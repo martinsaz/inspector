@@ -1,0 +1,1226 @@
+(function () {
+    const root = document.getElementById("bl26-list-builder-app");
+    if (!root) {
+        return;
+    }
+
+    const responseTypes = [
+        "Calificacion",
+        "Opcion simple",
+        "Opcion multiple",
+        "Texto",
+        "Numeros",
+        "Fecha",
+        "Fecha y hora",
+        "Hora"
+    ];
+
+    const state = {
+        categoryOptions: {
+            Operacion: ["Apertura", "Cierre", "Supervision"],
+            Seguridad: ["EPP", "Riesgos", "Emergencia"],
+            Calidad: ["Limpieza", "Producto", "Documentacion"]
+        },
+        lists: [
+            createList("list-1", "Checklist de apertura", "Validar que la operacion arranque con las tareas minimas del turno.", false, [
+                createTask("task-1", "Verificar accesos", "Operacion", "Apertura", "Calificacion", "Confirmar que el acceso principal este listo para recibir al equipo.", 5, ["5"], []),
+                createTask("task-2", "Estado de senaletica", "Seguridad", "EPP", "Opcion simple", "Revisar la senaletica visible al inicio del recorrido.", 3, ["Correcta"], ["Correcta", "Danada", "Faltante"])
+            ]),
+            createList("list-2", "Checklist de calidad", "Registrar hallazgos de calidad con una configuracion sencilla para demo.", false, [
+                createTask("task-3", "Numero de lote", "Calidad", "Producto", "Texto", "Captura visible en la etiqueta principal.", 2, ["L-001"], [])
+            ])
+        ],
+        selectedListId: "list-1",
+        selectedTaskId: "task-1",
+        newOptionText: "",
+        notification: null,
+        notificationVersion: 0,
+        modal: null,
+        confirmation: null
+    };
+
+    function createList(id, name, description, isClosed, tasks) {
+        return { id, name, description, isClosed, tasks };
+    }
+
+    function createTask(id, name, category, subcategory, responseType, notes, value, correctAnswers, options) {
+        return {
+            id,
+            name,
+            category,
+            subcategory,
+            responseType,
+            notes,
+            value,
+            correctAnswers: [...correctAnswers],
+            singleOptions: responseType === "Opcion simple" ? [...options] : [],
+            multipleOptions: responseType === "Opcion multiple" ? [...options] : [],
+            previewResponse: {
+                rating: 0,
+                singleOption: "",
+                multiOptions: [],
+                text: "",
+                number: "",
+                date: "",
+                dateTime: "",
+                time: ""
+            }
+        };
+    }
+
+    function selectedList() {
+        return state.lists.find((item) => item.id === state.selectedListId) || null;
+    }
+
+    function selectedTask() {
+        const list = selectedList();
+        return list ? list.tasks.find((item) => item.id === state.selectedTaskId) || null : null;
+    }
+
+    function categories() {
+        return Object.keys(state.categoryOptions);
+    }
+
+    function getSubcategories(category) {
+        return state.categoryOptions[category] || [];
+    }
+
+    function getOptionsForTask(task) {
+        if (!task) {
+            return [];
+        }
+
+        if (task.responseType === "Opcion simple") {
+            return task.singleOptions;
+        }
+
+        if (task.responseType === "Opcion multiple") {
+            return task.multipleOptions;
+        }
+
+        return [];
+    }
+
+    function supportsOptions(task) {
+        return task && (task.responseType === "Opcion simple" || task.responseType === "Opcion multiple");
+    }
+
+    function isSelectedListClosed() {
+        const list = selectedList();
+        return list ? list.isClosed : false;
+    }
+
+    function canCreateAnotherTask() {
+        const task = selectedTask();
+        if (!task) {
+            return true;
+        }
+
+        return Boolean(task.responseType && task.notes.trim() && Number(task.value) > 0);
+    }
+
+    function ensureSelectedReferences() {
+        const list = selectedList();
+        if (!list) {
+            state.selectedListId = state.lists[0] ? state.lists[0].id : null;
+        }
+
+        const currentList = selectedList();
+        if (!currentList) {
+            state.selectedTaskId = null;
+            return;
+        }
+
+        const task = currentList.tasks.find((item) => item.id === state.selectedTaskId);
+        if (!task) {
+            state.selectedTaskId = currentList.tasks[0] ? currentList.tasks[0].id : null;
+        }
+    }
+
+    function escapeHtml(value) {
+        return String(value ?? "")
+            .replace(/&/g, "&amp;")
+            .replace(/</g, "&lt;")
+            .replace(/>/g, "&gt;")
+            .replace(/"/g, "&quot;")
+            .replace(/'/g, "&#39;");
+    }
+
+    function responseTypeIcon(responseType) {
+        switch (responseType) {
+            case "Calificacion": return "☆";
+            case "Opcion simple": return "◉";
+            case "Opcion multiple": return "☑";
+            case "Texto": return "≡";
+            case "Numeros": return "123";
+            case "Fecha": return "📅";
+            case "Fecha y hora": return "🗓";
+            case "Hora": return "🕒";
+            default: return "•";
+        }
+    }
+
+    function showNotification(kind, title, message) {
+        state.notificationVersion += 1;
+        const version = state.notificationVersion;
+        state.notification = { kind, title, message };
+        render();
+        window.setTimeout(function () {
+            if (state.notificationVersion === version) {
+                state.notification = null;
+                render();
+            }
+        }, 4000);
+    }
+
+    function closeNotification() {
+        state.notification = null;
+        state.notificationVersion += 1;
+        render();
+    }
+
+    function normalizeTaskState(task) {
+        const categoryList = categories();
+        if (!state.categoryOptions[task.category]) {
+            task.category = categoryList[0] || "";
+        }
+
+        const subcategories = getSubcategories(task.category);
+        if (!subcategories.includes(task.subcategory)) {
+            task.subcategory = subcategories[0] || "";
+        }
+    }
+
+    function resetPreview(task) {
+        task.previewResponse = {
+            rating: 0,
+            singleOption: "",
+            multiOptions: [],
+            text: "",
+            number: "",
+            date: "",
+            dateTime: "",
+            time: ""
+        };
+    }
+
+    function updateResponseType(task, responseType, clearCurrentOptions) {
+        if (!task) {
+            return;
+        }
+
+        if (clearCurrentOptions) {
+            getOptionsForTask(task).splice(0, getOptionsForTask(task).length);
+        }
+
+        task.responseType = responseType;
+        task.correctAnswers = responseType === "Calificacion" ? ["1"] : [];
+        resetPreview(task);
+    }
+
+    function openListModal(mode, listId) {
+        const list = mode === "edit" ? state.lists.find((item) => item.id === listId) : null;
+        state.modal = {
+            type: "list",
+            mode,
+            listId: list ? list.id : null,
+            name: list ? list.name : "",
+            description: list ? list.description : ""
+        };
+        render();
+    }
+
+    function openTaskModal(task) {
+        const taskToEdit = task || selectedTask();
+        if (!taskToEdit) {
+            return;
+        }
+
+        state.modal = {
+            type: "task",
+            taskId: taskToEdit.id,
+            name: taskToEdit.name,
+            category: taskToEdit.category,
+            subcategory: taskToEdit.subcategory
+        };
+        render();
+    }
+
+    function openCategoryModal() {
+        state.modal = { type: "category", name: "" };
+        render();
+    }
+
+    function openSubcategoryModal() {
+        const task = selectedTask();
+        const category = task ? task.category : "";
+        if (!category) {
+            showNotification("validation", "Validacion", "Selecciona una categoria antes de crear una subcategoria.");
+            return;
+        }
+
+        state.modal = { type: "subcategory", category, name: "" };
+        render();
+    }
+
+    function closeModal() {
+        state.modal = null;
+        render();
+    }
+
+    function openConfirmation(payload) {
+        state.confirmation = payload;
+        render();
+    }
+
+    function closeConfirmation() {
+        state.confirmation = null;
+        render();
+    }
+
+    function confirmAction() {
+        const confirmation = state.confirmation;
+        if (!confirmation) {
+            return;
+        }
+
+        state.confirmation = null;
+
+        if (confirmation.type === "delete-list") {
+            state.lists = state.lists.filter((item) => item.id !== confirmation.listId);
+        } else if (confirmation.type === "delete-task") {
+            const list = selectedList();
+            if (list) {
+                list.tasks = list.tasks.filter((item) => item.id !== confirmation.taskId);
+            }
+        } else if (confirmation.type === "change-response-type") {
+            const task = selectedTask();
+            if (task) {
+                updateResponseType(task, confirmation.responseType, true);
+                showNotification("attention", "Atencion", "Las opciones registradas fueron eliminadas por el cambio de tipo.");
+            }
+        }
+
+        ensureSelectedReferences();
+        render();
+    }
+
+    function saveListModal() {
+        if (!state.modal || state.modal.type !== "list") {
+            return;
+        }
+
+        const name = (state.modal.name || "").trim() || "Nueva lista";
+        const description = (state.modal.description || "").trim() || "Sin descripcion";
+
+        if (state.modal.mode === "edit" && state.modal.listId) {
+            const list = state.lists.find((item) => item.id === state.modal.listId);
+            if (list) {
+                list.name = name;
+                list.description = description;
+            }
+        } else {
+            const list = createList(makeId("list"), name, description, false, []);
+            state.lists.push(list);
+            state.selectedListId = list.id;
+            state.selectedTaskId = null;
+        }
+
+        state.modal = null;
+        render();
+    }
+
+    function saveTaskModal() {
+        if (!state.modal || state.modal.type !== "task") {
+            return;
+        }
+
+        const list = selectedList();
+        if (!list) {
+            return;
+        }
+
+        const task = list.tasks.find((item) => item.id === state.modal.taskId);
+        if (!task) {
+            return;
+        }
+
+        task.name = (state.modal.name || "").trim() || "Nueva tarea";
+        task.category = state.modal.category || categories()[0] || "";
+        normalizeTaskState(task);
+        task.subcategory = state.modal.subcategory || getSubcategories(task.category)[0] || "";
+        normalizeTaskState(task);
+        state.modal = null;
+        render();
+    }
+
+    function saveCategoryModal() {
+        if (!state.modal || state.modal.type !== "category") {
+            return;
+        }
+
+        const categoryName = (state.modal.name || "").trim();
+        if (!categoryName) {
+            showNotification("validation", "Validacion", "Ingresa un nombre de categoria antes de guardar.");
+            return;
+        }
+
+        if (Object.keys(state.categoryOptions).some((item) => item.toLowerCase() === categoryName.toLowerCase())) {
+            showNotification("validation", "Validacion", "La categoria ya existe.");
+            return;
+        }
+
+        state.categoryOptions[categoryName] = [];
+        const task = selectedTask();
+        if (task) {
+            task.category = categoryName;
+            task.subcategory = "";
+        }
+
+        state.modal = null;
+        showNotification("success", "Exito", "La categoria fue registrada correctamente.");
+        render();
+    }
+
+    function saveSubcategoryModal() {
+        if (!state.modal || state.modal.type !== "subcategory") {
+            return;
+        }
+
+        const categoryName = state.modal.category;
+        const subcategoryName = (state.modal.name || "").trim();
+
+        if (!subcategoryName) {
+            showNotification("validation", "Validacion", "Ingresa un nombre de subcategoria antes de guardar.");
+            return;
+        }
+
+        const current = state.categoryOptions[categoryName] || [];
+        if (current.some((item) => item.toLowerCase() === subcategoryName.toLowerCase())) {
+            showNotification("validation", "Validacion", "La subcategoria ya existe en esta categoria.");
+            return;
+        }
+
+        current.push(subcategoryName);
+        state.categoryOptions[categoryName] = current;
+        const task = selectedTask();
+        if (task && task.category === categoryName) {
+            task.subcategory = subcategoryName;
+        }
+
+        state.modal = null;
+        showNotification("success", "Exito", "La subcategoria quedo creada y seleccionada.");
+        render();
+    }
+
+    function addTask() {
+        const list = selectedList();
+        if (!list || list.isClosed) {
+            return;
+        }
+
+        if (!canCreateAnotherTask()) {
+            showNotification("attention", "Atencion", "Primero completa la tarea pendiente antes de crear una nueva.");
+            return;
+        }
+
+        const category = categories()[0] || "";
+        const subcategory = getSubcategories(category)[0] || "";
+        const task = createTask(makeId("task"), "Nueva tarea", category, subcategory, "Calificacion", "", 1, ["1"], []);
+        list.tasks.push(task);
+        state.selectedTaskId = task.id;
+        state.newOptionText = "";
+        render();
+    }
+
+    function makeId(prefix) {
+        return prefix + "-" + Math.random().toString(36).slice(2, 10);
+    }
+
+    function renderNotification() {
+        if (!state.notification) {
+            return "";
+        }
+
+        const icon = state.notification.kind === "success" ? "✓" : "!";
+        return `
+            <div class="notification-shell">
+                <article class="notification-card notification-${escapeHtml(state.notification.kind)}">
+                    <div class="notification-accent"></div>
+                    <div class="notification-icon" aria-hidden="true">${icon}</div>
+                    <div class="notification-content">
+                        <strong>${escapeHtml(state.notification.title)}</strong>
+                        <p>${escapeHtml(state.notification.message)}</p>
+                    </div>
+                    <button type="button" class="notification-close" data-action="dismiss-notification">×</button>
+                </article>
+            </div>
+        `;
+    }
+
+    function renderTypeSpecificAnswer(task) {
+        if (!task) {
+            return "";
+        }
+
+        const options = getOptionsForTask(task);
+        const singleAnswer = escapeHtml(task.correctAnswers[0] || "");
+
+        switch (task.responseType) {
+            case "Calificacion":
+                return `<div class="rating-row">${[1, 2, 3, 4, 5].map((value) => `
+                    <button type="button" class="star-button ${task.correctAnswers.includes(String(value)) ? "is-active" : ""}" data-action="set-rating-answer" data-value="${value}" ${isSelectedListClosed() ? "disabled" : ""}>★</button>
+                `).join("")}</div>`;
+            case "Opcion simple":
+                return `
+                    <select data-field="single-correct-answer" ${isSelectedListClosed() || options.length === 0 ? "disabled" : ""}>
+                        <option value="">Selecciona una opcion</option>
+                        ${options.map((option) => `<option value="${escapeHtml(option)}" ${task.correctAnswers[0] === option ? "selected" : ""}>${escapeHtml(option)}</option>`).join("")}
+                    </select>
+                `;
+            case "Opcion multiple":
+                return options.length === 0
+                    ? `<div class="empty-state compact-empty"><span>Primero agrega opciones.</span></div>`
+                    : `<div class="multi-answer-list">${options.map((option) => `
+                        <label class="checkbox-row">
+                            <input type="checkbox" data-field="multi-correct-answer" data-option="${escapeHtml(option)}" ${task.correctAnswers.includes(option) ? "checked" : ""} ${isSelectedListClosed() ? "disabled" : ""} />
+                            <span>${escapeHtml(option)}</span>
+                        </label>`).join("")}</div>`;
+            case "Texto":
+                return `<input value="${singleAnswer}" data-field="text-correct-answer" ${isSelectedListClosed() ? "disabled" : ""} />`;
+            case "Numeros":
+                return `<input type="number" value="${singleAnswer}" data-field="number-correct-answer" ${isSelectedListClosed() ? "disabled" : ""} />`;
+            case "Fecha":
+                return `<input type="date" value="${singleAnswer}" data-field="date-correct-answer" ${isSelectedListClosed() ? "disabled" : ""} />`;
+            case "Fecha y hora":
+                return `<input type="datetime-local" value="${singleAnswer}" data-field="datetime-correct-answer" ${isSelectedListClosed() ? "disabled" : ""} />`;
+            case "Hora":
+                return `<input type="time" value="${singleAnswer}" data-field="time-correct-answer" ${isSelectedListClosed() ? "disabled" : ""} />`;
+            default:
+                return "";
+        }
+    }
+
+    function renderPreview(task, list) {
+        if (!task) {
+            return `
+                <div class="mobile-question">
+                    <strong>Selecciona una tarea</strong>
+                    <span>La vista previa aparece aqui.</span>
+                </div>
+            `;
+        }
+
+        const preview = task.previewResponse;
+        const options = getOptionsForTask(task);
+        let control = "";
+
+        switch (task.responseType) {
+            case "Calificacion":
+                control = `<div class="preview-control-shell"><div class="preview-rating">${[1, 2, 3, 4, 5].map((value) => `
+                    <button type="button" class="preview-star-button ${preview.rating >= value ? "is-active" : ""}" data-action="preview-rating" data-value="${value}">★</button>
+                `).join("")}</div></div>`;
+                break;
+            case "Opcion simple":
+                control = options.length === 0
+                    ? `<div class="preview-empty-state">No hay opciones configuradas.</div>`
+                    : `<div class="preview-list">${options.map((option) => `
+                        <label class="preview-choice is-interactive ${preview.singleOption === option ? "is-selected" : ""}">
+                            <input type="radio" name="preview-single-${escapeHtml(task.id)}" data-action="preview-single-option" data-option="${escapeHtml(option)}" ${preview.singleOption === option ? "checked" : ""} />
+                            <span>${escapeHtml(option)}</span>
+                        </label>`).join("")}</div>`;
+                break;
+            case "Opcion multiple":
+                control = options.length === 0
+                    ? `<div class="preview-empty-state">No hay opciones configuradas.</div>`
+                    : `<div class="preview-list">${options.map((option) => `
+                        <label class="preview-choice is-interactive ${preview.multiOptions.includes(option) ? "is-selected" : ""}">
+                            <input type="checkbox" data-action="preview-multi-option" data-option="${escapeHtml(option)}" ${preview.multiOptions.includes(option) ? "checked" : ""} />
+                            <span>${escapeHtml(option)}</span>
+                        </label>`).join("")}</div>`;
+                break;
+            case "Texto":
+                control = `<div class="preview-control-shell"><label class="preview-input-label"><span class="sr-only">Respuesta de texto simulada</span><input class="preview-native-input" data-field="preview-text" value="${escapeHtml(preview.text)}" placeholder="Escribe tu respuesta" /></label></div>`;
+                break;
+            case "Numeros":
+                control = `<div class="preview-control-shell"><label class="preview-input-label"><span class="sr-only">Respuesta numerica simulada</span><input class="preview-native-input" type="number" data-field="preview-number" value="${escapeHtml(preview.number)}" placeholder="0" /></label></div>`;
+                break;
+            case "Fecha":
+                control = `<div class="preview-control-shell"><label class="preview-input-label preview-picker-label"><span aria-hidden="true">📅</span><span class="sr-only">Fecha simulada</span><input class="preview-native-input" type="date" data-field="preview-date" value="${escapeHtml(preview.date)}" /></label></div>`;
+                break;
+            case "Fecha y hora":
+                control = `<div class="preview-control-shell"><label class="preview-input-label preview-picker-label"><span aria-hidden="true">🗓</span><span class="sr-only">Fecha y hora simulada</span><input class="preview-native-input" type="datetime-local" data-field="preview-datetime" value="${escapeHtml(preview.dateTime)}" /></label></div>`;
+                break;
+            case "Hora":
+                control = `<div class="preview-control-shell"><label class="preview-input-label preview-picker-label"><span aria-hidden="true">🕒</span><span class="sr-only">Hora simulada</span><input class="preview-native-input" type="time" data-field="preview-time" value="${escapeHtml(preview.time)}" /></label></div>`;
+                break;
+        }
+
+        return `
+            <div class="mobile-question">
+                <strong>${escapeHtml(task.name)}</strong>
+                <span>${escapeHtml(task.category)} / ${escapeHtml(task.subcategory)}</span>
+            </div>
+            ${control}
+        `;
+    }
+
+    function renderModal() {
+        if (!state.modal) {
+            return "";
+        }
+
+        if (state.modal.type === "list") {
+            return `
+                <div class="modal-overlay" data-action="close-modal">
+                    <div class="modal-card" data-stop-click="true">
+                        <div class="modal-header">
+                            <h3>${state.modal.mode === "edit" ? "Editar lista" : "Agregar lista"}</h3>
+                            <button type="button" class="modal-close" data-action="close-modal">×</button>
+                        </div>
+                        <div class="modal-form">
+                            <label><span>Nombre</span><input data-modal-field="name" value="${escapeHtml(state.modal.name)}" /></label>
+                            <label><span>Descripcion u objetivo</span><textarea rows="4" data-modal-field="description">${escapeHtml(state.modal.description)}</textarea></label>
+                        </div>
+                        <div class="modal-actions">
+                            <button type="button" class="secondary-button" data-action="save-modal">Guardar</button>
+                            <button type="button" class="ghost-button" data-action="close-modal">Cancelar</button>
+                        </div>
+                    </div>
+                </div>`;
+        }
+
+        if (state.modal.type === "task") {
+            const modalSubcategories = getSubcategories(state.modal.category);
+            return `
+                <div class="modal-overlay" data-action="close-modal">
+                    <div class="modal-card" data-stop-click="true">
+                        <div class="modal-header">
+                            <h3>Editar tarea</h3>
+                            <button type="button" class="modal-close" data-action="close-modal">×</button>
+                        </div>
+                        <div class="modal-form">
+                            <label><span>Nombre</span><input data-modal-field="name" value="${escapeHtml(state.modal.name)}" /></label>
+                            <label><span>Categoria</span><select data-modal-field="category">${categories().map((item) => `<option value="${escapeHtml(item)}" ${state.modal.category === item ? "selected" : ""}>${escapeHtml(item)}</option>`).join("")}</select></label>
+                            <label><span>Subcategoria</span><select data-modal-field="subcategory">${(modalSubcategories.length === 0 ? [""] : modalSubcategories).map((item) => `<option value="${escapeHtml(item)}" ${state.modal.subcategory === item ? "selected" : ""}>${escapeHtml(item || "Sin subcategoria")}</option>`).join("")}</select></label>
+                        </div>
+                        <div class="modal-actions">
+                            <button type="button" class="secondary-button" data-action="save-modal">Guardar</button>
+                            <button type="button" class="ghost-button" data-action="close-modal">Cancelar</button>
+                        </div>
+                    </div>
+                </div>`;
+        }
+
+        if (state.modal.type === "category") {
+            return `
+                <div class="modal-overlay" data-action="close-modal">
+                    <div class="modal-card" data-stop-click="true">
+                        <div class="modal-header">
+                            <h3>Nueva categoria</h3>
+                            <button type="button" class="modal-close" data-action="close-modal">×</button>
+                        </div>
+                        <div class="modal-form">
+                            <label><span>Nombre de la categoria</span><input data-modal-field="name" value="${escapeHtml(state.modal.name)}" /></label>
+                        </div>
+                        <div class="modal-actions">
+                            <button type="button" class="secondary-button" data-action="save-modal">Guardar</button>
+                            <button type="button" class="ghost-button" data-action="close-modal">Cancelar</button>
+                        </div>
+                    </div>
+                </div>`;
+        }
+
+        return `
+            <div class="modal-overlay" data-action="close-modal">
+                <div class="modal-card" data-stop-click="true">
+                    <div class="modal-header">
+                        <h3>Nueva subcategoria</h3>
+                        <button type="button" class="modal-close" data-action="close-modal">×</button>
+                    </div>
+                    <div class="modal-form">
+                        <label><span>Categoria actual</span><input value="${escapeHtml(state.modal.category)}" disabled /></label>
+                        <label><span>Nombre de la subcategoria</span><input data-modal-field="name" value="${escapeHtml(state.modal.name)}" /></label>
+                    </div>
+                    <div class="modal-actions">
+                        <button type="button" class="secondary-button" data-action="save-modal">Guardar</button>
+                        <button type="button" class="ghost-button" data-action="close-modal">Cancelar</button>
+                    </div>
+                </div>
+            </div>`;
+    }
+
+    function renderConfirmation() {
+        if (!state.confirmation) {
+            return "";
+        }
+
+        return `
+            <div class="modal-overlay" data-action="close-confirmation">
+                <div class="modal-card confirm-card" data-stop-click="true">
+                    <div class="modal-header">
+                        <h3>${escapeHtml(state.confirmation.title)}</h3>
+                        <button type="button" class="modal-close" data-action="close-confirmation">×</button>
+                    </div>
+                    <div class="modal-form">
+                        <p class="confirm-copy">${escapeHtml(state.confirmation.message)}</p>
+                        ${state.confirmation.details && state.confirmation.details.length ? `<ul class="confirm-list">${state.confirmation.details.map((item) => `<li>${escapeHtml(item)}</li>`).join("")}</ul>` : ""}
+                        <p class="confirm-copy">${escapeHtml(state.confirmation.question)}</p>
+                    </div>
+                    <div class="modal-actions">
+                        <button type="button" class="ghost-button" data-action="close-confirmation">Cancelar</button>
+                        <button type="button" class="danger-primary-button" data-action="confirm-action">${escapeHtml(state.confirmation.confirmLabel)}</button>
+                    </div>
+                </div>
+            </div>`;
+    }
+
+    function captureFocusState() {
+        const active = document.activeElement;
+        if (!active || !root.contains(active)) {
+            return null;
+        }
+
+        const selectorParts = [];
+        if (active.getAttribute("data-field")) {
+            selectorParts.push(`[data-field="${active.getAttribute("data-field")}"]`);
+        }
+        if (active.getAttribute("data-modal-field")) {
+            selectorParts.push(`[data-modal-field="${active.getAttribute("data-modal-field")}"]`);
+        }
+        if (active.id) {
+            selectorParts.push(`#${active.id}`);
+        }
+
+        if (selectorParts.length === 0) {
+            return null;
+        }
+
+        return {
+            selector: selectorParts.join(","),
+            start: typeof active.selectionStart === "number" ? active.selectionStart : null,
+            end: typeof active.selectionEnd === "number" ? active.selectionEnd : null
+        };
+    }
+
+    function restoreFocusState(focusState) {
+        if (!focusState) {
+            return;
+        }
+
+        const target = root.querySelector(focusState.selector);
+        if (!target) {
+            return;
+        }
+
+        target.focus();
+        if (focusState.start !== null && typeof target.setSelectionRange === "function") {
+            target.setSelectionRange(focusState.start, focusState.end ?? focusState.start);
+        }
+    }
+
+    function render() {
+        const focusState = captureFocusState();
+        ensureSelectedReferences();
+        const list = selectedList();
+        const task = selectedTask();
+        const taskOptions = getOptionsForTask(task);
+
+        root.innerHTML = `
+            <div class="bl26-creator-host">
+                <div class="mockup-page">
+                    <header class="mockup-header">
+                        <div>
+                            <h1>Crear lista</h1>
+                            <p class="mockup-copy">Organiza listas, tareas y tipos de respuesta en una sola pantalla.</p>
+                        </div>
+                        <div class="mockup-header-fields">
+                            <div class="header-card">
+                                <span>Nombre de la lista</span>
+                                <strong>${escapeHtml(list ? list.name : "Sin lista seleccionada")}</strong>
+                            </div>
+                            <div class="header-card">
+                                <span>Descripcion u objetivo</span>
+                                <p>${escapeHtml(list ? list.description : "Crea o selecciona una lista para comenzar.")}</p>
+                            </div>
+                        </div>
+                    </header>
+                    ${renderNotification()}
+                    <div class="mockup-layout">
+                        <aside class="mockup-panel left-panel">
+                            <div class="mockup-panel-header">
+                                <div>
+                                    <p class="mockup-kicker">Panel izquierdo</p>
+                                    <h2>Listas y tareas</h2>
+                                </div>
+                            </div>
+                            <div class="list-section">
+                                <div class="section-heading">
+                                    <div class="section-meta">
+                                        <span>Listas</span>
+                                        <small>${state.lists.length} lista(s)</small>
+                                    </div>
+                                </div>
+                                <button type="button" class="secondary-button section-primary-button" data-action="open-add-list">Agregar lista</button>
+                                ${state.lists.length === 0 ? `
+                                    <div class="empty-state">
+                                        <strong>No hay listas</strong>
+                                        <span>Crea una lista para comenzar.</span>
+                                    </div>` : `
+                                    <div class="question-list scroll-region">
+                                        ${state.lists.map((item) => `
+                                            <article class="list-card ${item.id === state.selectedListId ? "is-selected" : ""}">
+                                                <button type="button" class="list-card-main" data-action="select-list" data-id="${escapeHtml(item.id)}">
+                                                    <span class="question-badge">Lista</span>
+                                                    <strong>${escapeHtml(item.name)}</strong>
+                                                    <span>${item.isClosed ? "Cerrada" : `${item.tasks.length} tarea(s)`}</span>
+                                                </button>
+                                                <div class="list-card-actions">
+                                                    <button type="button" class="mini-icon-button" title="Editar lista" data-action="edit-list" data-id="${escapeHtml(item.id)}">✎</button>
+                                                    <button type="button" class="mini-icon-button warning-button" title="${item.isClosed ? "Reabrir lista" : "Cerrar lista"}" data-action="toggle-list" data-id="${escapeHtml(item.id)}">✓</button>
+                                                    <button type="button" class="mini-icon-button danger-button" title="Eliminar lista" data-action="request-delete-list" data-id="${escapeHtml(item.id)}">🗑</button>
+                                                </div>
+                                            </article>`).join("")}
+                                    </div>`}
+                            </div>
+                            <div class="task-section">
+                                <div class="section-heading">
+                                    <div class="section-meta">
+                                        <span>Tareas de la lista seleccionada</span>
+                                        <small>${list ? list.tasks.length : 0} tarea(s)</small>
+                                    </div>
+                                </div>
+                                <button type="button" class="secondary-button section-primary-button" data-action="add-task" ${!list || list.isClosed ? "disabled" : ""}>Agregar tarea</button>
+                                ${!list ? `
+                                    <div class="empty-state">
+                                        <strong>Selecciona una lista</strong>
+                                        <span>Las tareas aparecen cuando eliges una lista.</span>
+                                    </div>` : list.tasks.length === 0 ? `
+                                    <div class="empty-state">
+                                        <strong>Sin tareas</strong>
+                                        <span>Agrega la primera tarea para configurar su respuesta.</span>
+                                    </div>` : `
+                                    <div class="question-list compact-list scroll-region">
+                                        ${list.tasks.map((item) => `
+                                            <button type="button" class="question-list-item ${item.id === state.selectedTaskId ? "is-selected" : ""}" data-action="select-task" data-id="${escapeHtml(item.id)}">
+                                                <span class="question-badge task-badge">Tarea</span>
+                                                <strong>${escapeHtml(item.name)}</strong>
+                                                <span>${escapeHtml(item.responseType)}</span>
+                                            </button>`).join("")}
+                                    </div>`}
+                            </div>
+                        </aside>
+                        <section class="mockup-panel">
+                            <div class="mockup-panel-header">
+                                <div>
+                                    <p class="mockup-kicker">Zona central</p>
+                                    <h2>Configuracion de tarea</h2>
+                                </div>
+                                ${task ? `<div class="toolbar-actions">
+                                    <button type="button" class="ghost-button" data-action="edit-task" ${isSelectedListClosed() ? "disabled" : ""}>Editar tarea</button>
+                                    <button type="button" class="ghost-button danger-button" data-action="request-delete-task" ${isSelectedListClosed() ? "disabled" : ""}>Eliminar</button>
+                                </div>` : ""}
+                            </div>
+                            ${!list ? `<div class="empty-state large-empty"><strong>Sin lista activa</strong><span>Crea una lista para comenzar a capturar tareas.</span></div>` :
+                            !task ? `<div class="empty-state large-empty"><strong>Sin tarea seleccionada</strong><span>Agrega o selecciona una tarea para configurar su tipo de respuesta.</span></div>` :
+                            `<div>
+                                ${isSelectedListClosed() ? `<div class="editor-banner">Esta lista esta cerrada. Puedes revisarla, pero no modificarla hasta reabrirla.</div>` : ""}
+                                <div class="question-form">
+                                    <div class="editor-top-row">
+                                        <label>
+                                            <span>Nombre de la tarea</span>
+                                            <input value="${escapeHtml(task.name)}" data-field="task-name" ${isSelectedListClosed() ? "disabled" : ""} />
+                                        </label>
+                                        <div>
+                                            <span class="field-label">Tipo de respuesta</span>
+                                            <div class="type-grid top-type-grid">
+                                                ${responseTypes.map((item) => `
+                                                    <button type="button" class="type-card ${task.responseType === item ? "is-active" : ""}" data-action="change-response-type" data-value="${escapeHtml(item)}" ${isSelectedListClosed() ? "disabled" : ""}>
+                                                        <span class="type-card-icon">${responseTypeIcon(item)}</span>
+                                                        <strong>${escapeHtml(item)}</strong>
+                                                    </button>`).join("")}
+                                            </div>
+                                        </div>
+                                    </div>
+                                    <div class="form-split">
+                                        <div class="field-with-action">
+                                            <label for="task-category-select">Categoria</label>
+                                            <div class="field-control-row">
+                                                <select id="task-category-select" data-field="task-category" ${isSelectedListClosed() ? "disabled" : ""}>
+                                                    ${categories().map((item) => `<option value="${escapeHtml(item)}" ${task.category === item ? "selected" : ""}>${escapeHtml(item)}</option>`).join("")}
+                                                </select>
+                                                <button type="button" class="field-action-button" data-action="open-category-modal" ${isSelectedListClosed() ? "disabled" : ""}>+</button>
+                                            </div>
+                                        </div>
+                                        <div class="field-with-action">
+                                            <label for="task-subcategory-select">Subcategoria</label>
+                                            <div class="field-control-row">
+                                                <select id="task-subcategory-select" data-field="task-subcategory" ${isSelectedListClosed() ? "disabled" : ""}>
+                                                    ${(getSubcategories(task.category).length === 0 ? [""] : getSubcategories(task.category)).map((item) => `<option value="${escapeHtml(item)}" ${task.subcategory === item ? "selected" : ""}>${escapeHtml(item || "Sin subcategoria")}</option>`).join("")}
+                                                </select>
+                                                <button type="button" class="field-action-button" data-action="open-subcategory-modal" ${isSelectedListClosed() ? "disabled" : ""}>+</button>
+                                            </div>
+                                        </div>
+                                    </div>
+                                    ${supportsOptions(task) ? `
+                                        <div class="options-editor">
+                                            <div class="section-heading">
+                                                <span>Opciones</span>
+                                                <small>${taskOptions.length} opcion(es)</small>
+                                            </div>
+                                            <div class="option-input-row">
+                                                <input value="${escapeHtml(state.newOptionText)}" data-field="new-option" placeholder="Agregar opcion" ${isSelectedListClosed() ? "disabled" : ""} />
+                                                <button type="button" class="ghost-button" data-action="add-option" ${isSelectedListClosed() ? "disabled" : ""}>Agregar</button>
+                                            </div>
+                                            ${taskOptions.length === 0 ? `<div class="empty-state compact-empty"><span>Agrega opciones para completar este tipo de respuesta.</span></div>` :
+                                                `<div class="option-list">${taskOptions.map((item) => `
+                                                    <div class="option-item">
+                                                        <span>${escapeHtml(item)}</span>
+                                                        <button type="button" class="icon-button" data-action="remove-option" data-option="${escapeHtml(item)}" ${isSelectedListClosed() ? "disabled" : ""}>Quitar</button>
+                                                    </div>`).join("")}</div>`}
+                                        </div>` : ""}
+                                    <label>
+                                        <span>Notas</span>
+                                        <textarea rows="4" data-field="task-notes" ${isSelectedListClosed() ? "disabled" : ""}>${escapeHtml(task.notes)}</textarea>
+                                    </label>
+                                    <label>
+                                        <span>Valor</span>
+                                        <input type="number" min="0" data-field="task-value" value="${escapeHtml(task.value)}" ${isSelectedListClosed() ? "disabled" : ""} />
+                                    </label>
+                                    <div class="answer-panel">
+                                        <span class="field-label">Respuesta correcta</span>
+                                        ${renderTypeSpecificAnswer(task)}
+                                    </div>
+                                </div>
+                            </div>`}
+                        </section>
+                        <aside class="mockup-panel">
+                            <div class="mockup-panel-header">
+                                <div>
+                                    <p class="mockup-kicker">Panel derecho</p>
+                                    <h2>Vista previa movil</h2>
+                                </div>
+                            </div>
+                            <div class="mobile-preview">
+                                <div class="mobile-preview-screen">
+                                    <p class="mobile-eyebrow">Lista</p>
+                                    <h3>${escapeHtml(list ? list.name : "Nueva lista")}</h3>
+                                    <p class="mobile-objective">${escapeHtml(list ? list.description : "Sin lista seleccionada.")}</p>
+                                    ${renderPreview(task, list)}
+                                </div>
+                            </div>
+                        </aside>
+                    </div>
+                    ${renderModal()}
+                    ${renderConfirmation()}
+                </div>
+            </div>
+        `;
+        restoreFocusState(focusState);
+    }
+
+    root.addEventListener("click", function (event) {
+        const actionTarget = event.target.closest("[data-action]");
+        const stopTarget = event.target.closest("[data-stop-click='true']");
+        if (stopTarget && !actionTarget) {
+            return;
+        }
+
+        if (!actionTarget) {
+            return;
+        }
+
+        const action = actionTarget.getAttribute("data-action");
+        const id = actionTarget.getAttribute("data-id");
+        const value = actionTarget.getAttribute("data-value");
+        const option = actionTarget.getAttribute("data-option");
+
+        switch (action) {
+            case "dismiss-notification":
+                closeNotification();
+                break;
+            case "open-add-list":
+                openListModal("add");
+                break;
+            case "select-list":
+                state.selectedListId = id;
+                state.selectedTaskId = selectedList() && selectedList().tasks[0] ? selectedList().tasks[0].id : null;
+                state.newOptionText = "";
+                render();
+                break;
+            case "select-task":
+                state.selectedTaskId = id;
+                state.newOptionText = "";
+                render();
+                break;
+            case "edit-list":
+                openListModal("edit", id);
+                break;
+            case "toggle-list": {
+                const list = state.lists.find((item) => item.id === id);
+                if (list) {
+                    list.isClosed = !list.isClosed;
+                    render();
+                }
+                break;
+            }
+            case "request-delete-list":
+                openConfirmation({
+                    type: "delete-list",
+                    listId: id,
+                    title: "Eliminar lista",
+                    message: "Toda la informacion de esta lista sera eliminada, incluyendo tareas y configuraciones asociadas.",
+                    details: [],
+                    question: "¿Deseas continuar?",
+                    confirmLabel: "Eliminar"
+                });
+                break;
+            case "add-task":
+                addTask();
+                break;
+            case "edit-task":
+                openTaskModal();
+                break;
+            case "request-delete-task":
+                openConfirmation({
+                    type: "delete-task",
+                    taskId: state.selectedTaskId,
+                    title: "Eliminar tarea",
+                    message: "La tarea sera eliminada junto con toda su configuracion.",
+                    details: ["notas", "valor", "opciones (si aplica)"],
+                    question: "¿Deseas continuar?",
+                    confirmLabel: "Eliminar"
+                });
+                break;
+            case "change-response-type": {
+                const task = selectedTask();
+                if (!task || task.responseType === value || isSelectedListClosed()) {
+                    break;
+                }
+
+                if (supportsOptions(task) && getOptionsForTask(task).length > 0) {
+                    openConfirmation({
+                        type: "change-response-type",
+                        responseType: value,
+                        title: "Cambiar tipo de respuesta",
+                        message: "Al cambiar el tipo de respuesta se eliminarán las opciones registradas.",
+                        details: [],
+                        question: "¿Deseas continuar?",
+                        confirmLabel: "Aceptar"
+                    });
+                    break;
+                }
+
+                updateResponseType(task, value, false);
+                render();
+                break;
+            }
+            case "open-category-modal":
+                openCategoryModal();
+                break;
+            case "open-subcategory-modal":
+                openSubcategoryModal();
+                break;
+            case "add-option": {
+                const task = selectedTask();
+                const optionText = state.newOptionText.trim();
+                if (!task || !optionText || isSelectedListClosed()) {
+                    break;
+                }
+
+                const options = getOptionsForTask(task);
+                if (options.some((item) => item.toLowerCase() === optionText.toLowerCase())) {
+                    break;
+                }
+
+                options.push(optionText);
+                if (task.responseType === "Opcion simple" && task.correctAnswers.length === 0) {
+                    task.correctAnswers = [optionText];
+                }
+                state.newOptionText = "";
+                render();
+                break;
+            }
+            case "remove-option": {
+                const task = selectedTask();
+                if (!task || isSelectedListClosed()) {
+                    break;
+                }
+
+                const options = getOptionsForTask(task);
+                const index = options.indexOf(option);
+                if (index >= 0) {
+                    options.splice(index, 1);
+                }
+                task.correctAnswers = task.correctAnswers.filter((item) => item !== option);
+                render();
+                break;
+            }
+            case "set-rating-answer": {
+                const task = selectedTask();
+                if (task && !isSelectedListClosed()) {
+                    task.correctAnswers = [String(value)];
+                    render();
+                }
+                break;
+            }
+            case "preview-rating": {
+                const task = selectedTask();
+                if (task) {
+                    task.previewResponse.rating = Number(value) || 0;
+                    render();
+                }
+                break;
+            }
+            case "preview-single-option": {
+                const task = selectedTask();
+                if (task) {
+                    task.previewResponse.singleOption = option;
+                    render();
+                }
+                break;
+            }
+            case "preview-multi-option": {
+                const task = selectedTask();
+                if (task) {
+                    const exists = task.previewResponse.multiOptions.includes(option);
+                    task.previewResponse.multiOptions = exists
+                        ? task.previewResponse.multiOptions.filter((item) => item !== option)
+                        : task.previewResponse.multiOptions.concat(option);
+                    render();
+                }
+                break;
+            }
+            case "close-modal":
+                closeModal();
+                break;
+            case "save-modal":
+                if (state.modal) {
+                    if (state.modal.type === "list") {
+                        saveListModal();
+                    } else if (state.modal.type === "task") {
+                        saveTaskModal();
+                    } else if (state.modal.type === "category") {
+                        saveCategoryModal();
+                    } else if (state.modal.type === "subcategory") {
+                        saveSubcategoryModal();
+                    }
+                }
+                break;
+            case "close-confirmation":
+                closeConfirmation();
+                break;
+            case "confirm-action":
+                confirmAction();
+                break;
+        }
+    });
+
+    root.addEventListener("input", function (event) {
+        const task = selectedTask();
+        const field = event.target.getAttribute("data-field");
+        const modalField = event.target.getAttribute("data-modal-field");
+
+        if (modalField && state.modal) {
+            state.modal[modalField] = event.target.value;
+            if (state.modal.type === "task" && modalField === "category") {
+                const subcategories = getSubcategories(state.modal.category);
+                state.modal.subcategory = subcategories[0] || "";
+            }
+            render();
+            return;
+        }
+
+        if (!task) {
+            return;
+        }
+
+        switch (field) {
+            case "task-name":
+                task.name = event.target.value;
+                render();
+                break;
+            case "task-notes":
+                task.notes = event.target.value;
+                render();
+                break;
+            case "task-value":
+                task.value = Math.max(0, Number(event.target.value) || 0);
+                render();
+                break;
+            case "new-option":
+                state.newOptionText = event.target.value;
+                break;
+            case "text-correct-answer":
+            case "number-correct-answer":
+            case "date-correct-answer":
+            case "datetime-correct-answer":
+            case "time-correct-answer":
+                task.correctAnswers = event.target.value ? [event.target.value] : [];
+                render();
+                break;
+            case "preview-text":
+                task.previewResponse.text = event.target.value;
+                break;
+            case "preview-number":
+                task.previewResponse.number = event.target.value;
+                break;
+            case "preview-date":
+                task.previewResponse.date = event.target.value;
+                break;
+            case "preview-datetime":
+                task.previewResponse.dateTime = event.target.value;
+                break;
+            case "preview-time":
+                task.previewResponse.time = event.target.value;
+                break;
+        }
+    });
+
+    root.addEventListener("change", function (event) {
+        const task = selectedTask();
+        const field = event.target.getAttribute("data-field");
+        const modalField = event.target.getAttribute("data-modal-field");
+
+        if (modalField && state.modal) {
+            state.modal[modalField] = event.target.value;
+            if (state.modal.type === "task" && modalField === "category") {
+                const subcategories = getSubcategories(state.modal.category);
+                state.modal.subcategory = subcategories[0] || "";
+            }
+            render();
+            return;
+        }
+
+        if (!task) {
+            return;
+        }
+
+        switch (field) {
+            case "task-category":
+                task.category = event.target.value;
+                normalizeTaskState(task);
+                render();
+                break;
+            case "task-subcategory":
+                task.subcategory = event.target.value;
+                render();
+                break;
+            case "single-correct-answer":
+                task.correctAnswers = event.target.value ? [event.target.value] : [];
+                render();
+                break;
+        }
+
+        if (event.target.getAttribute("data-field") === "multi-correct-answer") {
+            const option = event.target.getAttribute("data-option");
+            const exists = task.correctAnswers.includes(option);
+            task.correctAnswers = event.target.checked
+                ? (exists ? task.correctAnswers : task.correctAnswers.concat(option))
+                : task.correctAnswers.filter((item) => item !== option);
+            render();
+        }
+    });
+
+    render();
+})();

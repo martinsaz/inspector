@@ -1,0 +1,370 @@
+﻿@{
+    ViewBag.Title = "Index";
+    Layout = "~/Views/Shared/_Layout.cshtml";
+}
+
+<h2>Nueva</h2>
+
+
+<div class="container mt-5">
+    <div class="container mt-4">
+        <div class="card">
+            <div class="card-body">
+                <div class="container">
+                    <div class="row mb-3">
+                        <div class="col-12 col-md-7">
+                            <!-- Combobox -->
+                            <div class="form-floating fv-row" style="font-size: 80%;">
+                                <select id="cbListas" name="cbListas" class="form-select" aria-label="Lista"></select>
+                                <label for="cbListas">Selecciona una lista</label>
+                            </div>
+                        </div>
+                        <div class="col-12 col-md-5 mt-2 d-flex justify-content-end">
+                            <!-- Botón para agregar -->
+                            <button id="btAgregarLista" type="button" class="btn btn-primary mb-3 me-2" data-bs-toggle="modal" data-bs-target="#exampleModal">
+                                <i class="bi bi-plus"></i>
+                            </button>
+                            <!-- Botón para editar -->
+                            <button id="btEditarLista" type="button" class="btn btn-warning mb-3 me-2">
+                                <i class="bi bi-pencil"></i>
+                            </button>
+                            <!-- Botón para eliminar -->
+                            <button type="button" id="buttonEliminarLista" class="btn btn-danger mb-3">
+                                <i class="bi bi-trash"></i>
+                            </button>
+                        </div>
+                    </div>
+                    <div class="row mb-3">
+                        <div class="col-12 col-md-7">
+                            <!-- Combobox -->
+                            <div class="form-floating fv-row" style="font-size: 80%;">
+                                <select id="cbPreguntas" name="cbPreguntas" class="form-select" aria-label="Área"></select>
+                                <label for="cbPreguntas">Selecciona una tarea</label>
+                            </div>
+                        </div>
+                        <div class="col-12 col-md-5 mt-2 d-flex justify-content-end">
+                            <!-- Botón para agregar -->
+                            <button id="btAgregarPregunta" type="button" class="btn btn-primary mb-3 me-2" data-bs-toggle="modal" data-bs-target="#exampleModalPregunta">
+                                <i class="bi bi-plus"></i>
+                            </button>
+                            <!-- Botón para editar -->
+                            <button type="button" id="btEditarPregunta" class="btn btn-warning mb-3 me-2">
+                                <i class="bi bi-pencil"></i>
+                            </button>
+                            <!-- Botón para eliminar -->
+                            <button type="button" id="buttonEliminarPregunta" class="btn btn-danger mb-3">
+                                <i class="bi bi-trash"></i>
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="container mt-5" id="fmConstructor">
+        <div class="row">
+            <div class="col">
+                <div class="card">
+                    <div class="card-body">
+                        <div class="row">
+                            <div class="col-4 text-center">
+                                <button type="button" class="btn btn-outline-primary btn-block btn-selectable" onclick="activarBoton(1)">
+                                    <i class="bi bi-star-half" style="font-size: 2rem;"></i><br> Calificacion
+                                </button>
+                            </div>
+                            <div class="col-4 text-center">
+                                <button type="button" class="btn btn-outline-primary btn-block btn-selectable" data-bs-toggle="modal" data-bs-target="#exampleModal2" onclick="activarBoton(2)">
+                                    <i class="bi bi-check-circle" style="font-size: 2rem;"></i><br> Opcion simple
+                                </button>
+                            </div>
+                            <div class="col-4 text-center">
+                                <button type="button" class="btn btn-outline-primary btn-block btn-selectable" data-bs-toggle="modal" data-bs-target="#exampleModal2" onclick="activarBoton(3)">
+                                    <i class="bi bi-check-square" style="font-size: 2rem;"></i><br> Opcion multiple
+                                </button>
+                            </div>
+                        </div>
+                        <div class="row mt-3">
+                            <div class="col-4 text-center">
+                                <button type="button" class="btn btn-outline-primary btn-block btn-selectable" onclick="activarBoton(4)">
+                                    <i class="bi bi-file-text" style="font-size: 2rem;"></i><br> Texto
+                                </button>
+                            </div>
+                            <div class="col-4 text-center">
+                                <button type="button" class="btn btn-outline-primary btn-block btn-selectable" onclick="activarBoton(5)">
+                                    <i class="bi bi-list-ol" style="font-size: 2rem;"></i><br> Numeros
+                                </button>
+                            </div>
+                            <div class="col-4 text-center">
+                                <button type="button" class="btn btn-outline-primary btn-block btn-selectable" onclick="activarBoton(6)">
+                                    <i class="bi bi-calendar" style="font-size: 2rem;"></i><br> Fecha
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="row mt-5">
+            <div class="col-12">
+                <div class="form-floating">
+                    <textarea id="txNotas" class="form-control" placeholder="Notas" style="height: 120px"></textarea>
+                    <label for="txNotas">Notas</label>
+                </div>
+            </div>
+        </div>
+        <div class="row">
+
+
+
+            <div class="col-12 fv-row mt-2">
+                <div class="form-floating">
+                    <input id="txValorPregunta" name="txValorPregunta" class="form-control" type="text" maxlength="255" placeholder="Valor" />
+                    <label for="txValorPregunta">Valor<span class="text-danger"></span></label>
+                </div>
+            </div>
+
+            <div class="col-12 fv-row mt-2">
+                <div class="form-floating">
+                    <input id="txRespuestaCorrecta" name="txRespuestaCorrecta" class="form-control" type="text" maxlength="255" placeholder="Valor" />
+                    <label for="txRespuestaCorrecta">Respuesta Correcta<span class="text-danger"></span></label>
+                </div>
+            </div>
+
+            <!--<div class="col-md-3 col-lg-4 col-sm-4 mt-16">
+                <div class="form-check form-switch">
+                    <input class="form-check-input" type="checkbox" role="switch" id="swVence" checked>
+                    <label class="form-check-label" for="swVence"><small>¿Obligatorio responder?</small></label>
+                </div>
+            </div>-->
+        </div>
+
+
+        <a id="btGuardarConstructor" href="javascript:;" class="btn btn-primary btn-block font-weight-bolder mt-5">
+            <span class="svg-icon svg-icon-primary svg-icon-2x">
+                <i class="fa fa-save"></i>
+            </span>&nbsp;&nbsp;Guardar
+        </a>
+
+
+    </div>
+</div>
+
+<div class="modal fade" id="exampleModal" tabindex="-1" aria-labelledby="exampleModalLabel" aria-hidden="true">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title" id="exampleModalLabel">Lista</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body">
+                <form class="container">
+                   @*  <div class="row mb-3">
+                        <div class="col-12">
+                            <div class="form-floating fv-row">
+                                <select id="cbPrograma" name="cbPrograma" class="form-select" aria-label="Lista"></select>
+                                <label for="cbPrograma">Selecciona un programa</label>
+                            </div>
+                        </div>
+                    </div> *@
+                   @*  <div class="row mb-3">
+                        <div class="col-12">
+                            <div class="form-floating fv-row">
+                                <select id="cbUsuario" name="cbUsuario" class="form-select" aria-label="Lista"></select>
+                                <label for="cbUsuario">Selecciona un usuario</label>
+                            </div>
+                        </div>
+                    </div> *@
+                    <div class="row mb-3">
+                        <div class="col-12">
+                            <label for="txNombreLista" class="form-label">Nombre</label>
+                            <input type="text" class="form-control" id="txNombreLista" placeholder="Ingrese un nombre">
+                        </div>
+                    </div>
+                    <div class="row mb-3">
+                        <div class="col-12">
+                            <div class="form-floating">
+                                <textarea id="txNotasLista" class="form-control" placeholder="Notas" style="height: 120px"></textarea>
+                                <label for="txNotasLista">Notas</label>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="row mb-3">
+                        <div class="col-12">
+                            <div class="form-check form-switch">
+                                <input class="form-check-input" type="checkbox" role="switch" id="swCerrada" checked>
+                                <label class="form-check-label" for="swCerrada"><small>Cerrar lista</small></label>
+                            </div>
+                        </div>
+                    </div>
+                </form>
+            </div>
+            <div class="modal-footer">
+                <a id="btGuardarLista" href="javascript:;" class="btn btn-primary btn-block font-weight-bolder">
+                    <span class="svg-icon svg-icon-primary svg-icon-2x">
+                        <i class="fa fa-save"></i>
+                    </span>&nbsp;&nbsp;Guardar
+                </a>
+                <a href="#" class="btn btn-light-danger btn-block font-weight-bolder" data-bs-dismiss="modal">
+                    <span class="svg-icon svg-icon-primary svg-icon-2x">
+                        <i class="fa fa-fast-ban"></i>
+                    </span>&nbsp;&nbsp;Cancelar
+                </a>
+            </div>
+        </div>
+
+    </div>
+
+</div>
+
+
+<div class="modal fade" id="exampleModalPregunta" tabindex="-1" aria-labelledby="exampleModalLabelPregunta" aria-hidden="true">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title" id="exampleModalLabel">Tarea</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body">
+                <form>
+
+                    <div class="mb-3">
+                        <label for="txNombrePregunta" class="form-label">Nombre</label>
+                        <input type="text" class="form-control" id="txNombrePregunta" placeholder="Ingrese una tarea">
+                    </div>
+                    <div class="col-12 col-md-12">
+                        <!-- Combobox -->
+                        <div class="form-floating fv-row" >
+                            <select id="cbCategorias" name="cbCategorias" class="form-select" aria-label="Área"></select>
+                            <label for="cbCategorias">Selecciona una categoría</label>
+                        </div>
+                    </div>
+
+                    <div class="col-12 col-md-12 mt-5">
+                        <!-- Combobox -->
+                        <div class="form-floating fv-row">
+                            <select id="cbSubcategorias" name="cbSubcategorias" class="form-select" aria-label="Área"></select>
+                            <label for="cbSubcategorias">Selecciona una subcategoría</label>
+                        </div>
+                    </div>
+
+
+
+
+                </form>
+            </div>
+            <div class="modal-footer">
+                <a id="btGuardarPregunta" href="javascript:;" class="btn btn-primary btn-block font-weight-bolder">
+                    <span class="svg-icon svg-icon-primary svg-icon-2x">
+                        <i class="fa fa-save"></i>
+                    </span>&nbsp;&nbsp;Guardar
+                </a>
+                <a href="#" class="btn btn-light-danger btn-block font-weight-bolder" data-bs-dismiss="modal">
+                    <span class="svg-icon svg-icon-primary svg-icon-2x">
+                        <i class="fa fa-fast-ban"></i>
+                    </span>&nbsp;&nbsp;Cancelar
+                </a>
+            </div>
+        </div>
+
+    </div>
+
+</div>
+
+
+<div class="modal fade" id="exampleModal1" tabindex="-1" aria-labelledby="exampleModalLabel1" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title" id="exampleModalLabel">Agregar Opción</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body">
+                <!-- Input para ingresar la opción -->
+                <div class="input-group mb-3">
+                    <input type="text" class="form-control" id="nuevaOpcion" placeholder="Ingrese una opción">
+                    <button class="btn btn-outline-secondary" type="button" id="agregarOpcion">Agregar</button>
+                </div>
+                <!-- Lista de opciones agregadas -->
+                <div id="listaOpciones"></div>
+
+               
+            </div>
+        </div>
+    </div>
+</div>
+
+<div class="modal fade" id="exampleModal2" tabindex="-1" aria-labelledby="exampleModalLabel2" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title" id="exampleModalLabel2">Agregar Opción</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body">
+                <!-- Input para ingresar la opción -->
+                <div class="input-group mb-3">
+                    <input type="text" class="form-control" id="nuevaOpcionRadio" placeholder="Ingrese una opción">
+                    <button class="btn btn-outline-secondary" type="button" id="agregarOpcionRadio">Agregar</button>
+                </div>
+                <!-- Lista de opciones agregadas -->
+                <div id="listaOpcionesRadio"></div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<style>
+    
+    .radio-button {
+        margin-right: 10px; /* Ajusta el valor según la cantidad de espacio que desees */
+        display: inline-block; /* Asegura que los elementos estén en línea */
+    }
+
+        .radio-button input {
+            margin-right: 5px; /* Ajusta el valor según la cantidad de espacio que desees entre el radio y el texto */
+        }
+
+    .question-spacing {
+        margin-bottom: 20px; /* Ajusta el valor según sea necesario */
+    }
+
+    .btn-danger {
+        color: #fff;
+        background-color: #dc3545;
+        border-color: #dc3545;
+        display: inline-block;
+        margin-top: 3px;
+        margin-left: 3px;
+    }
+    .btn-eliminar {
+        background-color: red;
+        color: white;
+        border: none;
+        padding: 5px 10px;
+        cursor: pointer;
+        font-size: 12px;
+        border-radius: 5px;
+        display: inline-block; 
+    }
+
+   /*  .btn-eliminar {
+        background: none; 
+        border: none; 
+        color: red; 
+        font-size: 16px; 
+        cursor: pointer; 
+        padding: 0; 
+        margin: 0; 
+    } */
+
+
+        .btn-eliminar:hover {
+            background-color: darkred;
+        }
+</style>
+
+
+<input type="hidden" id="valorId" name="valorId" value="" />
+<script src="/js/Listas/Listas.js"></script>

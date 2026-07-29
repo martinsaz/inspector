@@ -1,0 +1,56 @@
+@{
+    ViewBag.Title = "Nueva (editor)";
+    Layout = "~/Views/Shared/_Layout.cshtml";
+    var sessionIdEmpresa = Context.Session.GetString("idEmpresa")
+        ?? User.FindFirst(System.Security.Claims.ClaimTypes.SerialNumber)?.Value
+        ?? "";
+    var sessionCadena = Context.Session.GetString("cadena")
+        ?? User.FindFirst(System.Security.Claims.ClaimTypes.Uri)?.Value
+        ?? "";
+    var sessionEmpresa = Context.Session.GetString("empresa")
+        ?? User.FindFirst(System.Security.Claims.ClaimTypes.Sid)?.Value
+        ?? "";
+    var sessionCorreo = Context.Session.GetString("emailUser")
+        ?? User.FindFirst(System.Security.Claims.ClaimTypes.Email)?.Value
+        ?? "";
+}
+
+<link rel="stylesheet" href="/css/listas-bl26.css" />
+
+<div id="bl26-session-context"
+     data-id-empresa="@sessionIdEmpresa"
+     data-cadena-base64="@sessionCadena"
+     data-empresa="@sessionEmpresa"
+     data-correo="@sessionCorreo"
+     hidden></div>
+
+<div id="bl26-list-builder-app"></div>
+
+@section Scripts {
+    <script>
+        (function () {
+            var fallbackNode = document.getElementById("bl26-session-context");
+            if (!fallbackNode || !window.sessionStorage) {
+                return;
+            }
+
+            function normalizeSessionValue(value) {
+                return String(value || "").replace(/^"+|"+$/g, "").trim();
+            }
+
+            var context = {
+                idEmpresa: normalizeSessionValue(fallbackNode.dataset.idEmpresa || ""),
+                cadenaBase64: normalizeSessionValue(fallbackNode.dataset.cadenaBase64 || ""),
+                empresa: normalizeSessionValue(fallbackNode.dataset.empresa || ""),
+                correo: normalizeSessionValue(fallbackNode.dataset.correo || "")
+            };
+
+            Object.keys(context).forEach(function (key) {
+                if (!window.sessionStorage.getItem(key) && context[key]) {
+                    window.sessionStorage.setItem(key, context[key]);
+                }
+            });
+        })();
+    </script>
+    <script src="/js/Listas/CreadorListaBL26.js"></script>
+}

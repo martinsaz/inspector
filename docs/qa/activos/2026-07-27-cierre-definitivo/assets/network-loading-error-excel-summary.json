@@ -1,0 +1,87 @@
+{
+  "loading": {
+    "visible": {
+      "hostClasses": "checkapp-grid ca-grid-shell is-loading",
+      "stateText": "Cargando información Espera un momento mientras preparamos el listado.",
+      "countBefore": "11 registros",
+      "pageIndicator": "Página 1 de 1",
+      "range": "Mostrando 1-11 de 11",
+      "bodyOverflow": false
+    },
+    "recovered": {
+      "hostClasses": "checkapp-grid ca-grid-shell",
+      "stateVisible": false,
+      "countAfter": "11 registros",
+      "range": "Mostrando 1-11 de 11"
+    }
+  },
+  "error": {
+    "visible": {
+      "hostClasses": "checkapp-grid ca-grid-shell is-error",
+      "stateText": "No fue posible cargar la información Intenta nuevamente.",
+      "bodyOverflow": false,
+      "noTechnicalDetail": true
+    },
+    "recovered": {
+      "hostClasses": "checkapp-grid ca-grid-shell",
+      "stateVisible": false,
+      "countAfter": "11 registros"
+    }
+  },
+  "network": {
+    "initialLoad": {
+      "apiCallsObserved": [
+        "Usuario/ObtenerUsuarioPorEmail",
+        "Usuario/ObtenerUsuario",
+        "Usuario/ObtenerSuperAdminId",
+        "Activos/ObtenerActivos"
+      ],
+      "statuses": [
+        200
+      ],
+      "idEmpresaEmpty": false,
+      "busqueda": ""
+    },
+    "filterApply": {
+      "apiCallsObserved": [
+        "Activos/ObtenerActivos?busqueda=QA"
+      ],
+      "statuses": [
+        200
+      ],
+      "duplicateListadoWithinAction": false
+    },
+    "clearFilters": {
+      "apiCallsObserved": [
+        "Activos/ObtenerActivos"
+      ],
+      "statuses": [
+        200
+      ],
+      "duplicateListadoWithinAction": false
+    },
+    "exportExcel": {
+      "apiCallsObserved": [],
+      "note": "La exportación es client-side; no generó request adicional al backend."
+    },
+    "openTipos": {
+      "apiCallsObserved": [
+        "Activos/ObtenerTiposActivos"
+      ],
+      "statuses": [
+        200
+      ]
+    }
+  },
+  "excelDateAudit": {
+    "osClockAt0000": "Monday, July 27, 2026 00:00:48 CST (-0600)",
+    "jsLocal": "Mon Jul 27 2026 00:00:48 GMT-0600 (Central Standard Time)",
+    "timezone": "America/Mexico_City",
+    "jsIso": "2026-07-27T06:00:48.745Z",
+    "filenameCode": "Activos_yyyyMMdd_HHmm.xlsx",
+    "codeUsesLocalGetters": true,
+    "priorObservedClock": "Sunday, July 26, 2026 23:55:56 CST (-0600)",
+    "priorFileNameObserved": "Activos_20260726_2337.xlsx",
+    "conclusion": "El nombre previo coincidía con la hora local observada antes de medianoche; no hay evidencia de uso de UTC en la generación del nombre."
+  }
+}

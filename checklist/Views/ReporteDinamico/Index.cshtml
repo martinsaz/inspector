@@ -1,0 +1,186 @@
+﻿@*
+    For more information on enabling MVC for empty projects, visit https://go.microsoft.com/fwlink/?LinkID=397860
+*@
+@{
+}
+@*
+    For more information on enabling MVC for empty projects, visit https://go.microsoft.com/fwlink/?LinkID=397860
+*@
+@{
+}
+<script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.17.0/xlsx.full.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/exceljs/4.3.0/exceljs.min.js"></script>
+
+
+<h2>Estrellas con categorías</h2>
+
+<div class="container-fluid">
+    <div class="form-group row">
+        <div class="col-6 col-md-6 mb-6">
+            <div class="form-floating fv-row">
+                <select id="cbEvaluaciones" name="cbEvaluaciones" class="form-select" aria-label="Área"></select>
+                <label>Listas</label>
+            </div>
+        </div>
+
+        <div class="col-6 col-md-6 mb-6">
+            <div class="form-floating fv-row">
+                <select id="cbTipoPregunta" name="cbTipoPregunta" class="form-select" aria-label="Área"></select>
+                <label>Tipo pregunta</label>
+            </div>
+        </div>
+       @*  <div class="col-6 col-md-6 mb-6">
+            <div class="form-floating fv-row">
+                <select id="cbSucursal" name="cbSucursal" class="form-select" aria-label="Tipo Curso"></select>
+                <label>Sucursales</label>
+            </div>
+        </div>
+
+        <div class="col-6 col-md-6 mb-6">
+            <div class="form-floating fv-row">
+                <select id="cbUsuario" name="cbUsuario" class="form-select" aria-label="Tipo Curso"></select>
+                <label>Usuarios</label>
+            </div>
+        </div>
+
+    </div>
+
+    <div class="form-group row">
+        <div class="col-12 col-md-3 mb-3">
+            <div class="input-group date" id="dpFechaNace" data-td-target-input="nearest" data-td-target-toggle="nearest">
+                <input id="dpFechaNace_input" type="text" class="form-control" data-td-target="#dpFechaNace" />
+                <span class="input-group-text" data-td-target="#dpFechaNace" data-td-toggle="datetimepicker">
+                    <i class="ki-duotone ki-calendar fs-2"><span class="path1"></span><span class="path2"></span></i>
+                </span>
+            </div>
+            <label for="dpFechaNace_input"><small>Del</small></label>
+        </div>
+        <div class="col-12 col-md-3 mb-3">
+            <div class="input-group date" id="dpFechaNace2" data-td-target-input="nearest" data-td-target-toggle="nearest">
+                <input id="dpFechaNace_input2" type="text" class="form-control" data-td-target="#dpFechaNace2" />
+                <span class="input-group-text" data-td-target="#dpFechaNace2" data-td-toggle="datetimepicker">
+                    <i class="ki-duotone ki-calendar fs-2"><span class="path1"></span><span class="path2"></span></i>
+                </span>
+            </div>
+            <label for="dpFechaNace_input2"><small>Al</small></label>
+        </div>
+        
+    </div> *@
+        <div class="col-12 col-md-6 mb-3 d-flex align-items-end">
+            <a id="btBuscar" href="javascript:;" class="btn btn-primary btn-block font-weight-bolder">
+                <span class="svg-icon svg-icon-primary svg-icon-2x">
+                    <i class="fa fa-search"></i>
+                </span>&nbsp;&nbsp;Buscar
+            </a>
+        </div>
+    <div class="form-group row mt-3">
+        <div class="col-12">
+            <div style="overflow-x:auto;">
+                <table class="table table-striped table-row-bordered gy-5 gs-7 cell-border display nowrap" id="grData">
+                    <thead>
+                        <tr>
+
+
+                            <th><strong>Lista</strong></th>
+                            <th><strong>Usuario</strong></th>
+                            <th><strong>Sucursal</strong></th>
+                            <th><strong>Fecha</strong></th>
+                            <th><strong>Acciones</strong></th>
+                        </tr>
+                    </thead>
+                    <tbody></tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Modal -->
+<div class="modal fade" tabindex="-1" id="modalNuevo">
+    <div class="modal-dialog modal-lg">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h3 id="modalTitle" class="modal-title">Registrar Nueva Experiencia</h3>
+                <div class="btn btn-icon btn-sm btn-active-light-primary ms-2" data-bs-dismiss="modal" aria-label="Close">
+                    <i class="ki-duotone ki-cross fs-1"><span class="path1"></span><span class="path2"></span></i>
+                </div>
+            </div>
+            <form class="form w-100" novalidate="novalidate" id="frmModal">
+                <div class="modal-body">
+                    <div class="form-group row mt-3">
+                        <div class="col-12" style="overflow-x:auto;">
+                            <table class="table table-separate table-head-custom table-checkable" id="grData">
+                            </table>
+                        </div>
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    @*  <a id="btGuardar" href="javascript:;" class="btn btn-primary btn-block font-weight-bolder">
+                    <span class="svg-icon svg-icon-primary svg-icon-2x">
+                    <i class="fa fa-save"></i>
+                    </span>&nbsp;&nbsp;Guardar
+                    </a> *@
+                    <a href="javascript:;" class="btn btn-light-danger btn-block font-weight-bolder" data-bs-dismiss="modal">
+                        <span class="svg-icon svg-icon-primary svg-icon-2x">
+                            <i class="fa fa-fast-ban"></i>
+                        </span>&nbsp;&nbsp;Cerrar
+                    </a>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+
+
+
+<!-- Modal -->
+<div class="modal fade" tabindex="-1" id="modalNuevoAnexo">
+    <div class="modal-dialog modal-lg">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h3 id="modalTitle" class="modal-title">Registrar Nueva Experiencia</h3>
+                <div class="btn btn-icon btn-sm btn-active-light-primary ms-2" data-bs-dismiss="modal" aria-label="Close">
+                    <i class="ki-duotone ki-cross fs-1"><span class="path1"></span><span class="path2"></span></i>
+                </div>
+            </div>
+            <form class="form w-100" novalidate="novalidate" id="frmModal">
+                <div class="modal-body">
+                    <div class="form-group row mt-3">
+                        <div class="col-12" style="overflow-x:auto;">
+                            <table class="table table-striped table-row-bordered gy-5 gs-7 cell-border display nowrap" id="grDataModalAnexo">
+                                <thead>
+                                    <tr>
+                                        <th></th>
+                                        <th><strong> </strong></th>
+
+                                    </tr>
+                                </thead>
+                                <tbody></tbody>
+                            </table>
+                        </div>
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    @*  <a id="btGuardar" href="javascript:;" class="btn btn-primary btn-block font-weight-bolder">
+                    <span class="svg-icon svg-icon-primary svg-icon-2x">
+                    <i class="fa fa-save"></i>
+                    </span>&nbsp;&nbsp;Guardar
+                    </a> *@
+                    <a href="javascript:;" class="btn btn-light-danger btn-block font-weight-bolder" data-bs-dismiss="modal">
+                        <span class="svg-icon svg-icon-primary svg-icon-2x">
+                            <i class="fa fa-fast-ban"></i>
+                        </span>&nbsp;&nbsp;Cerrar
+                    </a>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+
+<script src="https://code.jquery.com/jquery-3.5.1.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/moment.js/2.29.1/moment.min.js"></script>
+<script src="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/js/bootstrap.bundle.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/tempus-dominus/5.39.0/js/tempus-dominus.min.js"></script>
+    <script src="~/js/ReporteDinamico/ReporteDinamico.js" asp-append-version="true"></script>
+<input type="hidden" id="valorId" name="valorId" value="" />
+

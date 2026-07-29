@@ -1,0 +1,309 @@
+@{
+    ViewBag.Title = "CheckApp Pattern";
+    Layout = "~/Views/Shared/_Layout.cshtml";
+}
+
+<div id="checkapp-pattern-page" class="checkapp-scope checkapp-page">
+    <div class="container-fluid checkapp-shell">
+        <section id="caLabHeader" class="checkapp-hero">
+            <div class="checkapp-hero-copy">
+                <span class="checkapp-kicker">Patrón CheckApp oficial</span>
+                <h1>Laboratorio único de construcción y certificación</h1>
+                <p>Referencia aislada para validar el estándar visual y funcional de CheckApp contra Tarahumara sin intervenir módulos operativos. Todo lo visible aquí debe poder reutilizarse sin rediseño posterior.</p>
+            </div>
+            <div class="checkapp-hero-actions">
+                <span class="ca-chip ca-chip--primary">Header</span>
+                <span class="ca-chip ca-chip--secondary">Toolbar</span>
+                <span class="ca-chip ca-chip--secondary">DynamicGrid</span>
+                <span class="ca-chip ca-chip--success">Responsive</span>
+                <button id="caOpenModal" type="button" class="checkapp-btn checkapp-btn-primary">
+                    <i class="fa fa-window-maximize"></i>
+                    <span>Modal oficial</span>
+                </button>
+            </div>
+        </section>
+
+        <section id="caLabCards" class="checkapp-summary-strip">
+            <article class="checkapp-summary-card">
+                <small>Componentes certificados</small>
+                <strong id="caStatCertificados">0</strong>
+            </article>
+            <article class="checkapp-summary-card">
+                <small>Estados visuales</small>
+                <strong id="caStatEstados">0</strong>
+            </article>
+            <article class="checkapp-summary-card">
+                <small>Registros de laboratorio</small>
+                <strong id="caStatTotal">0</strong>
+            </article>
+            <article class="checkapp-summary-card">
+                <small>Breakpoints cubiertos</small>
+                <strong>7</strong>
+            </article>
+        </section>
+
+        <section id="caLabToolbar" class="checkapp-panel">
+            <div class="checkapp-panel-head">
+                <div>
+                    <span class="checkapp-panel-eyebrow">Toolbar oficial</span>
+                    <h2>Acciones compactas y jerarquía operativa</h2>
+                    <p class="checkapp-panel-copy">La toolbar debe sentirse bancaria, contenida y directa: acción principal roja, secundarios neutros, exportación Excel verde y contexto corto sin ruido visual.</p>
+                </div>
+                <div class="checkapp-panel-actions">
+                    <button type="button" class="checkapp-btn checkapp-btn-primary"><i class="fa fa-search"></i><span>Buscar</span></button>
+                    <button type="button" class="checkapp-btn checkapp-btn-ghost"><i class="fa fa-eraser"></i><span>Limpiar</span></button>
+                    <button type="button" class="checkapp-btn checkapp-btn-ghost"><i class="fa fa-columns"></i><span>Columnas</span></button>
+                    <button type="button" class="checkapp-btn checkapp-btn-excel"><i class="fa fa-file-excel-o"></i><span>Excel</span></button>
+                    <span class="ca-chip ca-chip--secondary">32 registros</span>
+                </div>
+            </div>
+            <div class="checkapp-toolbar-showcase">
+                <span class="ca-chip ca-chip--primary">Header</span>
+                <span class="ca-chip ca-chip--secondary">Grid</span>
+                <span class="ca-chip ca-chip--secondary">FilterAccordion</span>
+                <button type="button" class="checkapp-btn checkapp-btn-primary">Buscar</button>
+                <button type="button" class="checkapp-btn checkapp-btn-ghost">Limpiar</button>
+                <button type="button" class="checkapp-btn checkapp-btn-excel">Excel</button>
+            </div>
+        </section>
+
+        <section id="caFiltersAccordion" class="checkapp-panel checkapp-accordion is-open">
+            <button type="button" class="checkapp-accordion-toggle" aria-expanded="true" aria-controls="caFiltersAccordionBody">
+                <div>
+                    <span class="checkapp-panel-eyebrow">CheckAppFilterAccordion</span>
+                    <h3>Filtros operativos</h3>
+                </div>
+                <span class="checkapp-accordion-summary">Sin filtros activos</span>
+            </button>
+            <div id="caFiltersAccordionBody" class="checkapp-accordion-body">
+                <div class="checkapp-accordion-inner">
+                    <div class="checkapp-filter-grid">
+                        <label class="checkapp-field">
+                            <span>Búsqueda general</span>
+                            <input id="caFilterSearch" type="text" placeholder="Folio, nombre, sitio o responsable" />
+                        </label>
+                        <label class="checkapp-field">
+                            <span>Categoría</span>
+                            <select id="caFilterCategoria" class="form-select">
+                                <option value="">Todas</option>
+                                <option value="Equipo">Equipo</option>
+                                <option value="Dispositivo">Dispositivo</option>
+                                <option value="Periférico">Periférico</option>
+                                <option value="Cómputo">Cómputo</option>
+                                <option value="Seguridad">Seguridad</option>
+                            </select>
+                        </label>
+                        <label class="checkapp-field">
+                            <span>Estado operativo</span>
+                            <select id="caFilterEstado" class="form-select">
+                                <option value="">Todos</option>
+                                <option value="Disponible">Disponible</option>
+                                <option value="Asignado">Asignado</option>
+                                <option value="Mantenimiento">Mantenimiento</option>
+                            </select>
+                        </label>
+                        <label class="checkapp-field">
+                            <span>Sitio</span>
+                            <select id="caFilterSitio" class="form-select">
+                                <option value="">Todos</option>
+                                <option value="CEDIS Norte">CEDIS Norte</option>
+                                <option value="Tienda Centro">Tienda Centro</option>
+                                <option value="Tienda Sur">Tienda Sur</option>
+                                <option value="Corporativo">Corporativo</option>
+                            </select>
+                        </label>
+                    </div>
+                    <div class="checkapp-filter-actions">
+                        <button id="caApplyFilters" type="button" class="checkapp-btn checkapp-btn-primary">
+                            <i class="fa fa-search"></i>
+                            <span>Buscar</span>
+                        </button>
+                        <button id="caClearFilters" type="button" class="checkapp-btn checkapp-btn-ghost">
+                            <i class="fa fa-eraser"></i>
+                            <span>Limpiar</span>
+                        </button>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <section id="caLabGrid" class="checkapp-panel">
+            <div class="checkapp-panel-head">
+                <div>
+                    <span class="checkapp-panel-eyebrow">CheckAppDynamicGrid</span>
+                    <h2>Grid premium con footer externo y mobile cards</h2>
+                    <p class="checkapp-panel-copy">Búsqueda, selector de columnas, exportación Excel, paginación operativa, cards móviles y estados visuales dentro de una sola API reutilizable.</p>
+                </div>
+                <div class="checkapp-grid-actions">
+                    <span id="caGridVisibleCount" class="ca-chip ca-chip--secondary">0 visibles</span>
+                    <button id="caStateData" type="button" class="checkapp-btn checkapp-btn-ghost">Datos</button>
+                    <button id="caStateLoading" type="button" class="checkapp-btn checkapp-btn-ghost">Loading</button>
+                    <button id="caStateEmpty" type="button" class="checkapp-btn checkapp-btn-ghost">Empty</button>
+                    <button id="caStateError" type="button" class="checkapp-btn checkapp-btn-danger">Error</button>
+                </div>
+            </div>
+
+            <div id="caGridHost">
+                <div class="checkapp-grid-toolbar">
+                    <label class="checkapp-grid-search" for="caGridSearch">
+                        <i class="fa fa-search"></i>
+                        <input id="caGridSearch" type="text" placeholder="Buscar en tabla..." />
+                    </label>
+                    <div class="checkapp-grid-actions">
+                        <span id="caGridCount" class="ca-grid-count">0 registros</span>
+                        <div class="checkapp-grid-columns">
+                            <button id="caColumnsButton" type="button" class="checkapp-btn checkapp-btn-ghost">
+                                <i class="fa fa-columns"></i>
+                                <span>Columnas</span>
+                            </button>
+                            <div id="caColumnsPanel" class="checkapp-grid-columns-panel"></div>
+                        </div>
+                        <button id="caExportButton" type="button" class="checkapp-btn checkapp-btn-excel">
+                            <i class="fa fa-file-excel-o"></i>
+                            <span>Excel</span>
+                        </button>
+                    </div>
+                </div>
+
+                <div class="checkapp-grid-scroll">
+                    <table id="caPatternGrid" class="table table-row-bordered align-middle checkapp-grid-table">
+                        <thead>
+                            <tr>
+                                <th>Acciones</th>
+                                <th>Folio</th>
+                                <th>Nombre</th>
+                                <th>Categoría</th>
+                                <th>Estado</th>
+                                <th>Sitio</th>
+                                <th>Responsable</th>
+                                <th>Valor</th>
+                                <th>Uso</th>
+                                <th>Actualización</th>
+                                <th>Estatus</th>
+                            </tr>
+                        </thead>
+                        <tbody></tbody>
+                    </table>
+                </div>
+
+                <div id="caGridFooter" class="checkapp-grid-footer">
+                    <span id="caGridRange" class="checkapp-grid-footer-range">Sin resultados</span>
+                    <div class="checkapp-grid-page-size" id="caGridPageSize">
+                        <span class="checkapp-grid-page-size-label">Filas:</span>
+                        <button type="button" class="checkapp-grid-page-chip is-active" data-page-size="25" aria-pressed="true">25</button>
+                        <button type="button" class="checkapp-grid-page-chip" data-page-size="50" aria-pressed="false">50</button>
+                        <button type="button" class="checkapp-grid-page-chip" data-page-size="100" aria-pressed="false">100</button>
+                    </div>
+                    <div class="checkapp-grid-page-nav">
+                        <span id="caGridPageIndicator" class="checkapp-grid-footer-page">Página 1 de 1</span>
+                        <button id="caGridPrev" type="button" class="checkapp-grid-nav-btn" aria-label="Página anterior">‹</button>
+                        <button id="caGridNext" type="button" class="checkapp-grid-nav-btn" aria-label="Página siguiente">›</button>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <section id="caLabForms" class="checkapp-panel">
+            <div class="checkapp-panel-head">
+                <div>
+                    <span class="checkapp-panel-eyebrow">Campos y estados</span>
+                    <h2>Inputs, selects, botones, badges y mensajes</h2>
+                    <p class="checkapp-panel-copy">Superficies base para formularios, filtros, edición y confirmación sin crear variaciones locales por pantalla.</p>
+                </div>
+            </div>
+            <div class="checkapp-filter-grid">
+                <label class="checkapp-field">
+                    <span>Nombre del activo</span>
+                    <input type="text" value="Terminal Zebra MC33" />
+                </label>
+                <label class="checkapp-field">
+                    <span>Tipo</span>
+                    <select class="form-select">
+                        <option>Dispositivo</option>
+                    </select>
+                </label>
+                <label class="checkapp-field">
+                    <span>Estados</span>
+                    <div class="ca-toolbar ca-toolbar--dense">
+                        <span class="ca-badge ca-badge-success">Activo</span>
+                        <span class="ca-badge ca-badge-warning">Mantenimiento</span>
+                        <span class="ca-badge ca-badge-muted">Archivado</span>
+                    </div>
+                </label>
+                <label class="checkapp-field">
+                    <span>Acciones</span>
+                    <div class="ca-toolbar ca-toolbar--dense">
+                        <button type="button" class="checkapp-btn checkapp-btn-primary">Guardar</button>
+                        <button type="button" class="checkapp-btn checkapp-btn-ghost">Cancelar</button>
+                    </div>
+                </label>
+                <label class="checkapp-field" style="grid-column:1 / -1;">
+                    <span>Descripción</span>
+                    <textarea>Superficie de captura de ejemplo para certificar espaciado, contraste, foco visible y ritmo visual del patrón.</textarea>
+                </label>
+            </div>
+
+            <div id="caLabStates" class="ca-state-grid" style="margin-top:1rem;">
+                <article class="ca-state ca-state--loading">
+                    <h4>Loading state</h4>
+                    <p>Feedback visible mientras el sistema obtiene información o ejecuta una operación.</p>
+                </article>
+                <article class="ca-state ca-state--empty">
+                    <h4>Empty state</h4>
+                    <p>Mensaje útil que explica ausencia de resultados y sugiere cómo continuar.</p>
+                </article>
+                <article class="ca-state ca-state--error">
+                    <h4>Error state</h4>
+                    <p>Fallo operativo comunicado sin tecnicismos y con una ruta de recuperación clara.</p>
+                </article>
+            </div>
+        </section>
+    </div>
+</div>
+
+<div class="modal fade checkapp-modal ca-modal" tabindex="-1" id="caPatternModal" aria-hidden="true">
+    <div class="modal-dialog modal-lg modal-dialog-scrollable">
+        <div class="modal-content">
+            <div class="modal-header">
+                <div>
+                    <p class="checkapp-kicker">CheckAppModal</p>
+                    <h3 class="modal-title">Detalle de componente</h3>
+                </div>
+                <button type="button" class="btn btn-icon btn-sm btn-active-light-primary" data-bs-dismiss="modal" aria-label="Close">
+                    <i class="ki-duotone ki-cross fs-1"><span class="path1"></span><span class="path2"></span></i>
+                </button>
+            </div>
+            <div class="modal-body">
+                <div class="checkapp-filter-grid">
+                    <label class="checkapp-field">
+                        <span>Componente seleccionado</span>
+                        <input id="caModalItemName" type="text" value="Sin selección" readonly />
+                    </label>
+                    <label class="checkapp-field">
+                        <span>Acción principal</span>
+                        <select class="form-select">
+                            <option>Editar</option>
+                            <option>Consultar</option>
+                        </select>
+                    </label>
+                    <label class="checkapp-field" style="grid-column:1 / -1;">
+                        <span>Notas</span>
+                        <textarea>Este modal valida proporciones, bordes, contraste, footer de acciones y continuidad visual del patrón.</textarea>
+                    </label>
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="checkapp-btn checkapp-btn-ghost" data-bs-dismiss="modal">Cerrar</button>
+                <button type="button" class="checkapp-btn checkapp-btn-primary">Guardar ejemplo</button>
+            </div>
+        </div>
+    </div>
+</div>
+
+@section Scripts {
+    <link href="~/css/checkapp-theme.css" rel="stylesheet" />
+    <script>var XLSX = window.XLSX || {}; window.XLSX = XLSX;</script>
+    <script src="~/js/vendor/xlsx.full.min.js"></script>
+    <script src="~/js/checkapp-ui.js"></script>
+    <script src="~/js/CheckApp/Pattern.js"></script>
+}

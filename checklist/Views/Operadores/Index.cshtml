@@ -1,0 +1,441 @@
+@{
+    ViewBag.Title = "Operadores";
+    Layout = "~/Views/Shared/_Layout.cshtml";
+    string NormalizeSessionValue(string? value)
+    {
+        var normalized = (value ?? string.Empty).Trim();
+        if (string.IsNullOrWhiteSpace(normalized))
+        {
+            return string.Empty;
+        }
+
+        if (normalized.StartsWith("\"") && normalized.EndsWith("\"") && normalized.Length >= 2)
+        {
+            try
+            {
+                return Newtonsoft.Json.JsonConvert.DeserializeObject<string>(normalized)?.Trim() ?? string.Empty;
+            }
+            catch
+            {
+                return normalized.Trim('"').Trim();
+            }
+        }
+
+        return normalized;
+    }
+
+    var sessionIdEmpresa = string.IsNullOrWhiteSpace(NormalizeSessionValue(Context.Session.GetString("idEmpresa")))
+        ? (User.FindFirst(System.Security.Claims.ClaimTypes.SerialNumber)?.Value ?? "")
+        : NormalizeSessionValue(Context.Session.GetString("idEmpresa"));
+    var sessionCadena = string.IsNullOrWhiteSpace(NormalizeSessionValue(Context.Session.GetString("cadena")))
+        ? (User.FindFirst(System.Security.Claims.ClaimTypes.Uri)?.Value ?? "")
+        : NormalizeSessionValue(Context.Session.GetString("cadena"));
+    var sessionEmpresa = string.IsNullOrWhiteSpace(NormalizeSessionValue(Context.Session.GetString("empresa")))
+        ? (User.FindFirst(System.Security.Claims.ClaimTypes.Sid)?.Value ?? "")
+        : NormalizeSessionValue(Context.Session.GetString("empresa"));
+    var sessionCorreo = string.IsNullOrWhiteSpace(NormalizeSessionValue(Context.Session.GetString("emailUser")))
+        ? (User.FindFirst(System.Security.Claims.ClaimTypes.Email)?.Value ?? "")
+        : NormalizeSessionValue(Context.Session.GetString("emailUser"));
+    var accountType = Context.Session.GetString("accountType")
+        ?? User.FindFirst("account_type")?.Value
+        ?? "";
+}
+
+<div id="operadores-context"
+     data-id-empresa="@sessionIdEmpresa"
+     data-cadena="@sessionCadena"
+     data-empresa="@sessionEmpresa"
+     data-correo="@sessionCorreo"
+     data-account-type="@accountType"
+     hidden></div>
+
+<script>
+    (function () {
+        var fallbackNode = document.getElementById("operadores-context");
+        if (!fallbackNode || !window.sessionStorage) {
+            return;
+        }
+
+        function normalizeSessionValue(value) {
+            var normalized = String(value || "").trim();
+            if (normalized.length >= 2 && normalized.startsWith('"') && normalized.endsWith('"')) {
+                try {
+                    normalized = JSON.parse(normalized);
+                } catch (_error) {
+                    normalized = normalized.replace(/^"+|"+$/g, "");
+                }
+            }
+
+            return String(normalized || "").trim();
+        }
+
+        var context = {
+            idEmpresa: normalizeSessionValue(fallbackNode.dataset.idEmpresa || ""),
+            cadenaBase64: normalizeSessionValue(fallbackNode.dataset.cadena || ""),
+            empresa: normalizeSessionValue(fallbackNode.dataset.empresa || ""),
+            correo: normalizeSessionValue(fallbackNode.dataset.correo || ""),
+            accountType: normalizeSessionValue(fallbackNode.dataset.accountType || "")
+        };
+
+        Object.keys(context).forEach(function (key) {
+            if (context[key]) {
+                window.sessionStorage.setItem(key, context[key]);
+            }
+        });
+    })();
+</script>
+
+<link href="~/css/Operadores/OperadoresBL26.css" rel="stylesheet" />
+
+<div class="bl26-ops-shell">
+    <div class="bl26-ops-page">
+        <section class="bl26-ops-hero">
+            <div class="bl26-ops-hero-copy">
+                <p class="bl26-ops-kicker">Operación de campo</p>
+                <h1>Operadores</h1>
+                <p>Administra a las personas que capturan inspecciones de campo con una vista clara, filtros rápidos y acciones seguras.</p>
+            </div>
+            <div class="bl26-ops-hero-actions">
+                <button id="btVincularOperadorExistente" type="button" class="bl26-ops-secondary">
+                    <i class="fa fa-link"></i>
+                    <span>Vincular cuenta existente</span>
+                </button>
+                <button id="btNuevoOperador" type="button" class="bl26-ops-primary">
+                    <i class="fa fa-plus"></i>
+                    <span>Agregar operador</span>
+                </button>
+            </div>
+        </section>
+
+        <section class="bl26-ops-panel bl26-ops-filters">
+            <div class="bl26-ops-panel-head">
+                        <div>
+                            <p class="bl26-ops-eyebrow">Búsqueda y filtros</p>
+                            <h2>Encuentra y administra operadores</h2>
+                        </div>
+            </div>
+
+            <div class="bl26-ops-filter-grid">
+                <label class="bl26-ops-field bl26-ops-field--search">
+                    <span>Buscar por nombre o correo</span>
+                    <input id="txBusqueda" class="form-control" type="text" placeholder="Ej. Juan Pérez o correo@empresa.com" />
+                </label>
+                <label class="bl26-ops-field">
+                    <span>Sucursal</span>
+                    <select id="cbFiltroSucursal" class="form-select" style="width:100%"></select>
+                </label>
+                <label class="bl26-ops-field">
+                    <span>Estado</span>
+                    <select id="cbFiltroEstado" class="form-select">
+                        <option value="">Todos</option>
+                        <option value="activos">Activos</option>
+                        <option value="inactivos">Inactivos</option>
+                    </select>
+                </label>
+            </div>
+
+            <div class="bl26-ops-filter-actions">
+                <button id="btBuscar" type="button" class="bl26-ops-secondary">
+                    <i class="fa fa-search"></i>
+                    <span>Buscar</span>
+                </button>
+                <button id="btLimpiar" type="button" class="bl26-ops-ghost">
+                    <i class="fa fa-eraser"></i>
+                    <span>Limpiar</span>
+                </button>
+            </div>
+        </section>
+
+        <section class="bl26-ops-panel bl26-ops-table-panel">
+            <div class="bl26-ops-panel-head">
+                <div>
+                    <p class="bl26-ops-eyebrow">Listado</p>
+                    <h2>Operadores registrados</h2>
+                </div>
+            </div>
+
+            <div class="bl26-ops-table-wrap">
+                <table class="datatable datatable-bordered datatable-head-custom display nowrap" id="grDataOperadores">
+                    <thead>
+                        <tr>
+                            <th></th>
+                            <th>Nombre completo</th>
+                            <th>Correo</th>
+                            <th>Sucursales</th>
+                            <th>Estado</th>
+                            <th>Fecha de alta</th>
+                        </tr>
+                    </thead>
+                    <tbody></tbody>
+                </table>
+            </div>
+        </section>
+    </div>
+</div>
+
+<div class="modal fade" tabindex="-1" id="modalVincularOperador">
+    <div class="modal-dialog modal-lg">
+        <div class="modal-content bl26-ops-modal">
+            <form class="form w-100" novalidate="novalidate" id="frmOperadorExistente">
+                <div class="modal-header bl26-ops-modal-header">
+                    <div>
+                        <p class="bl26-ops-eyebrow">Identidad existente</p>
+                        <h3 class="modal-title">Agregar acceso como operador</h3>
+                        <p class="bl26-ops-modal-copy">Reutiliza una cuenta administrativa ya existente y asigna sus sucursales operativas.</p>
+                    </div>
+                    <div class="btn btn-icon btn-sm btn-active-light-primary ms-2" data-bs-dismiss="modal" aria-label="Close">
+                        <i class="ki-duotone ki-cross fs-1"><span class="path1"></span><span class="path2"></span></i>
+                    </div>
+                </div>
+                <div class="modal-body bl26-ops-modal-body">
+                    <div class="row g-4">
+                        <div class="col-lg-8">
+                            <label class="bl26-ops-field">
+                                <span>Correo de la persona <strong>*</strong></span>
+                                <input id="txCorreoExistente" class="form-control" type="email" placeholder="correo@empresa.com" />
+                            </label>
+                        </div>
+                        <div class="col-lg-4 d-flex align-items-end">
+                            <button id="btBuscarIdentidadDual" type="button" class="bl26-ops-secondary w-100">
+                                <i class="fa fa-search"></i>
+                                <span>Buscar persona</span>
+                            </button>
+                        </div>
+                        <div class="col-lg-12">
+                            <div id="panelIdentidadDual" class="bl26-ops-panel" style="display:none;">
+                                <div class="bl26-ops-panel-head">
+                                    <div>
+                                        <p class="bl26-ops-eyebrow">Cuenta encontrada</p>
+                                        <h2 id="txNombreIdentidadDual">Sin coincidencia</h2>
+                                    </div>
+                                </div>
+                                <div class="bl26-ops-filter-grid">
+                                    <label class="bl26-ops-field">
+                                        <span>Nombre</span>
+                                        <input id="txNombreExistente" class="form-control form-control-solid" type="text" readonly />
+                                    </label>
+                                    <label class="bl26-ops-field">
+                                        <span>Correo</span>
+                                        <input id="txCorreoEncontrado" class="form-control form-control-solid" type="text" readonly />
+                                    </label>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="col-lg-12">
+                            <label class="bl26-ops-field">
+                                <span>Sucursales <strong>*</strong></span>
+                                <select id="cbSucursalesExistente" class="form-select" multiple="multiple" style="width:100%"></select>
+                                <small>Selecciona una o varias sucursales.</small>
+                            </label>
+                        </div>
+                    </div>
+                </div>
+                <div class="modal-footer bl26-ops-modal-footer">
+                    <button id="btGuardarOperadorExistente" type="button" class="bl26-ops-primary" disabled>
+                        <i class="fa fa-save"></i>
+                        <span>Guardar acceso</span>
+                    </button>
+                    <button type="button" class="bl26-ops-ghost danger" data-bs-dismiss="modal">
+                        <i class="fa fa-ban"></i>
+                        <span>Cancelar</span>
+                    </button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+
+<div class="modal fade" tabindex="-1" id="modalNuevoOperador">
+    <div class="modal-dialog modal-lg">
+        <div class="modal-content bl26-ops-modal">
+            <form class="form w-100" novalidate="novalidate" id="frmOperadorNuevo">
+                <div class="modal-header bl26-ops-modal-header">
+                    <div>
+                            <p class="bl26-ops-eyebrow">Registro</p>
+                            <h3 class="modal-title">Agregar operador</h3>
+                            <p class="bl26-ops-modal-copy">Registra sus datos y asigna las sucursales donde podrá trabajar.</p>
+                    </div>
+                    <div class="btn btn-icon btn-sm btn-active-light-primary ms-2" data-bs-dismiss="modal" aria-label="Close">
+                        <i class="ki-duotone ki-cross fs-1"><span class="path1"></span><span class="path2"></span></i>
+                    </div>
+                </div>
+                <div class="modal-body bl26-ops-modal-body">
+                    <div class="row g-4">
+                        <div class="col-lg-4">
+                            <label class="bl26-ops-field fv-row">
+                                <span>Nombre <strong>*</strong></span>
+                                <input id="txNombreNuevo" name="txNombreNuevo" class="form-control" type="text" placeholder="Nombre" />
+                            </label>
+                        </div>
+                        <div class="col-lg-4">
+                            <label class="bl26-ops-field fv-row">
+                                <span>Apellido paterno <strong>*</strong></span>
+                                <input id="txApellidoPaternoNuevo" name="txApellidoPaternoNuevo" class="form-control" type="text" placeholder="Apellido paterno" />
+                            </label>
+                        </div>
+                        <div class="col-lg-4">
+                            <label class="bl26-ops-field">
+                                <span>Apellido materno</span>
+                                <input id="txApellidoMaternoNuevo" class="form-control" type="text" placeholder="Apellido materno" />
+                            </label>
+                        </div>
+                        <div class="col-lg-6">
+                            <label class="bl26-ops-field fv-row">
+                                <span>Correo <strong>*</strong></span>
+                                <input id="txCorreoNuevo" name="txCorreoNuevo" class="form-control" type="email" placeholder="correo@empresa.com" />
+                            </label>
+                        </div>
+                        <div class="col-lg-6">
+                            <div class="bl26-ops-password-card">
+                                <label class="bl26-ops-field fv-row">
+                                    <span>Contraseña <strong>*</strong></span>
+                                    <div class="bl26-ops-password-input">
+                                        <input id="txPasswordNuevo" name="txPasswordNuevo" class="form-control" type="password" placeholder="Define una contraseña segura" autocomplete="new-password" aria-describedby="passwordStrengthLive passwordPolicyStatus" />
+                                        <button type="button" class="bl26-ops-toggle-visibility" data-target="#txPasswordNuevo" aria-label="Mostrar u ocultar contraseña">
+                                            <i class="fa fa-eye"></i>
+                                        </button>
+                                    </div>
+                                </label>
+                                <div class="bl26-ops-password-feedback" aria-live="polite" aria-atomic="true">
+                                    <div class="bl26-ops-password-strength">
+                                        <div class="bl26-ops-strength-copy">
+                                            <span class="bl26-ops-strength-label">Seguridad de la contraseña</span>
+                                            <strong id="passwordStrengthLive">Muy débil</strong>
+                                        </div>
+                                        <div class="bl26-ops-strength-bar" role="img" aria-label="Indicador visual de seguridad de la contraseña">
+                                            <span data-strength-segment="0"></span>
+                                            <span data-strength-segment="1"></span>
+                                            <span data-strength-segment="2"></span>
+                                            <span data-strength-segment="3"></span>
+                                        </div>
+                                    </div>
+                                    <ul id="passwordPolicyStatus" class="bl26-ops-password-rules">
+                                        <li data-rule="length">Mínimo 8 caracteres</li>
+                                        <li data-rule="uppercase">Una letra mayúscula</li>
+                                        <li data-rule="lowercase">Una letra minúscula</li>
+                                        <li data-rule="digit">Un número</li>
+                                        <li data-rule="special">Un carácter especial</li>
+                                    </ul>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="col-lg-6">
+                            <div class="bl26-ops-password-card">
+                                <label class="bl26-ops-field fv-row">
+                                    <span>Confirmar contraseña <strong>*</strong></span>
+                                    <div class="bl26-ops-password-input">
+                                        <input id="txPasswordConfirmNuevo" name="txPasswordConfirmNuevo" class="form-control" type="password" placeholder="Repite la contraseña" autocomplete="new-password" aria-describedby="passwordMatchStatus" />
+                                        <button type="button" class="bl26-ops-toggle-visibility" data-target="#txPasswordConfirmNuevo" aria-label="Mostrar u ocultar confirmación de contraseña">
+                                            <i class="fa fa-eye"></i>
+                                        </button>
+                                    </div>
+                                </label>
+                                    <div id="passwordMatchStatus" class="bl26-ops-inline-validation neutral" aria-live="polite">Repite la contraseña para confirmar que coincide.</div>
+                            </div>
+                        </div>
+                        <div class="col-lg-12">
+                            <label class="bl26-ops-field">
+                                <span>Sucursales <strong>*</strong></span>
+                                <select id="cbSucursalesNuevo" name="cbSucursalesNuevo" class="form-select" multiple="multiple" style="width:100%"></select>
+                                <small>Selecciona una o varias sucursales.</small>
+                            </label>
+                        </div>
+                    </div>
+                </div>
+                <div class="modal-footer bl26-ops-modal-footer">
+                    <button id="btGuardarOperador" type="button" class="bl26-ops-primary" disabled>
+                        <i class="fa fa-save"></i>
+                        <span>Guardar operador</span>
+                    </button>
+                    <button type="button" class="bl26-ops-ghost danger" data-bs-dismiss="modal">
+                        <i class="fa fa-ban"></i>
+                        <span>Cancelar</span>
+                    </button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+
+<div class="modal fade" tabindex="-1" id="modalEditarOperador">
+    <div class="modal-dialog modal-lg">
+        <div class="modal-content bl26-ops-modal">
+            <form class="form w-100" novalidate="novalidate" id="frmOperadorEditar">
+                <div class="modal-header bl26-ops-modal-header">
+                        <div>
+                            <p class="bl26-ops-eyebrow">Actualización</p>
+                            <h3 class="modal-title">Editar operador</h3>
+                            <p class="bl26-ops-modal-copy">Actualiza la información y las sucursales asignadas.</p>
+                        </div>
+                    <div class="btn btn-icon btn-sm btn-active-light-primary ms-2" data-bs-dismiss="modal" aria-label="Close">
+                        <i class="ki-duotone ki-cross fs-1"><span class="path1"></span><span class="path2"></span></i>
+                    </div>
+                </div>
+                <div class="modal-body bl26-ops-modal-body">
+                    <div class="row g-4">
+                        <div class="col-lg-4">
+                            <label class="bl26-ops-field fv-row">
+                                <span>Nombre <strong>*</strong></span>
+                                <input id="txNombreEditar" name="txNombreEditar" class="form-control" type="text" placeholder="Nombre" />
+                            </label>
+                        </div>
+                        <div class="col-lg-4">
+                            <label class="bl26-ops-field fv-row">
+                                <span>Apellido paterno <strong>*</strong></span>
+                                <input id="txApellidoPaternoEditar" name="txApellidoPaternoEditar" class="form-control" type="text" placeholder="Apellido paterno" />
+                            </label>
+                        </div>
+                        <div class="col-lg-4">
+                            <label class="bl26-ops-field">
+                                <span>Apellido materno</span>
+                                <input id="txApellidoMaternoEditar" class="form-control" type="text" placeholder="Apellido materno" />
+                            </label>
+                        </div>
+                        <div class="col-lg-6">
+                            <label class="bl26-ops-field">
+                                <span>Correo</span>
+                                <input id="txCorreoEditar" class="form-control form-control-solid" type="email" placeholder="Correo" readonly />
+                            </label>
+                        </div>
+                        <div class="col-lg-3">
+                            <label class="bl26-ops-field">
+                                <span>Estado</span>
+                                <input id="txEstadoEditar" class="form-control form-control-solid" type="text" placeholder="Estado" readonly />
+                            </label>
+                        </div>
+                        <div class="col-lg-3">
+                            <label class="bl26-ops-field">
+                                <span>Fecha de alta</span>
+                                <input id="txFechaAltaEditar" class="form-control form-control-solid" type="text" placeholder="Fecha de alta" readonly />
+                            </label>
+                        </div>
+                        <div class="col-lg-12">
+                            <label class="bl26-ops-field">
+                                <span>Sucursales <strong>*</strong></span>
+                                <select id="cbSucursalesEditar" name="cbSucursalesEditar" class="form-select" multiple="multiple" style="width:100%"></select>
+                                <small>Selecciona una o varias sucursales.</small>
+                            </label>
+                        </div>
+                    </div>
+                </div>
+                <div class="modal-footer bl26-ops-modal-footer">
+                    <button id="btActualizarOperador" type="button" class="bl26-ops-primary">
+                        <i class="fa fa-save"></i>
+                        <span>Guardar cambios</span>
+                    </button>
+                    <button type="button" class="bl26-ops-ghost danger" data-bs-dismiss="modal">
+                        <i class="fa fa-ban"></i>
+                        <span>Cancelar</span>
+                    </button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+
+<input type="hidden" id="hdOperadorId" value="" />
+<input type="hidden" id="hdOperadorVersionRow" value="" />
+<input type="hidden" id="hdUsuarioExistenteId" value="" />
+<input type="hidden" id="hdUsuarioExistenteFirebase" value="" />
+
+<script src="/js/Operadores/Operadores.js?v=2.0.0.0"></script>

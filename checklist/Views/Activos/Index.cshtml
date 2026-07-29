@@ -1,0 +1,982 @@
+@{
+    ViewBag.Title = "Activos";
+    Layout = "~/Views/Shared/_Layout.cshtml";
+
+    string NormalizeSessionValue(string? value)
+    {
+        var normalized = (value ?? string.Empty).Trim();
+        if (string.IsNullOrWhiteSpace(normalized))
+        {
+            return string.Empty;
+        }
+
+        if (normalized.StartsWith("\"") && normalized.EndsWith("\"") && normalized.Length >= 2)
+        {
+            try
+            {
+                return Newtonsoft.Json.JsonConvert.DeserializeObject<string>(normalized)?.Trim() ?? string.Empty;
+            }
+            catch
+            {
+                return normalized.Trim('"').Trim();
+            }
+        }
+
+        return normalized;
+    }
+
+    var sessionIdEmpresa = string.IsNullOrWhiteSpace(NormalizeSessionValue(Context.Session.GetString("idEmpresa")))
+        ? (User.FindFirst(System.Security.Claims.ClaimTypes.SerialNumber)?.Value ?? "")
+        : NormalizeSessionValue(Context.Session.GetString("idEmpresa"));
+    var sessionCadena = string.IsNullOrWhiteSpace(NormalizeSessionValue(Context.Session.GetString("cadena")))
+        ? (User.FindFirst(System.Security.Claims.ClaimTypes.Uri)?.Value ?? "")
+        : NormalizeSessionValue(Context.Session.GetString("cadena"));
+    var sessionEmpresa = string.IsNullOrWhiteSpace(NormalizeSessionValue(Context.Session.GetString("empresa")))
+        ? (User.FindFirst(System.Security.Claims.ClaimTypes.Sid)?.Value ?? "")
+        : NormalizeSessionValue(Context.Session.GetString("empresa"));
+    var sessionCorreo = string.IsNullOrWhiteSpace(NormalizeSessionValue(Context.Session.GetString("emailUser")))
+        ? (User.FindFirst(System.Security.Claims.ClaimTypes.Email)?.Value ?? "")
+        : NormalizeSessionValue(Context.Session.GetString("emailUser"));
+}
+
+<div id="activos-context"
+     data-id-empresa="@sessionIdEmpresa"
+     data-cadena="@sessionCadena"
+     data-empresa="@sessionEmpresa"
+     data-correo="@sessionCorreo"
+     hidden></div>
+
+<script>
+    (function () {
+        var fallbackNode = document.getElementById("activos-context");
+        if (!fallbackNode || !window.sessionStorage) {
+            return;
+        }
+
+        function normalizeSessionValue(value) {
+            var normalized = String(value || "").trim();
+            if (normalized.length >= 2 && normalized.startsWith('"') && normalized.endsWith('"')) {
+                try {
+                    normalized = JSON.parse(normalized);
+                } catch (_error) {
+                    normalized = normalized.replace(/^"+|"+$/g, "");
+                }
+            }
+
+            return String(normalized || "").trim();
+        }
+
+        var context = {
+            idEmpresa: normalizeSessionValue(fallbackNode.dataset.idEmpresa || ""),
+            cadenaBase64: normalizeSessionValue(fallbackNode.dataset.cadena || ""),
+            empresa: normalizeSessionValue(fallbackNode.dataset.empresa || ""),
+            correo: normalizeSessionValue(fallbackNode.dataset.correo || "")
+        };
+
+        Object.keys(context).forEach(function (key) {
+            if (context[key]) {
+                window.sessionStorage.setItem(key, context[key]);
+            }
+        });
+    })();
+</script>
+
+<div class="checkapp-scope checkapp-page">
+    <div class="container-fluid checkapp-shell">
+        <section class="checkapp-hero">
+            <div>
+                <p class="checkapp-kicker">CheckApp Pro</p>
+                <h1>Activos</h1>
+                <p>Administra el inventario operativo con catálogos controlados, multimedia validada y un flujo completo de consulta, alta, edición y baja lógica.</p>
+            </div>
+            <div class="checkapp-hero-actions">
+                <button id="btAbrirTiposActivos" type="button" class="checkapp-btn checkapp-btn-secondary">
+                    <i class="fa fa-tags"></i>
+                    <span>Tipos</span>
+                </button>
+                <button id="btAbrirMarcasActivos" type="button" class="checkapp-btn checkapp-btn-secondary">
+                    <i class="fa fa-bookmark"></i>
+                    <span>Marcas</span>
+                </button>
+                <button id="btAbrirProveedoresActivos" type="button" class="checkapp-btn checkapp-btn-secondary">
+                    <i class="fa fa-truck"></i>
+                    <span>Proveedores</span>
+                </button>
+                <button id="btAbrirEstadosOperativos" type="button" class="checkapp-btn checkapp-btn-secondary">
+                    <i class="fa fa-sliders"></i>
+                    <span>Estados operativos</span>
+                </button>
+                <button id="btNuevoActivo" type="button" class="checkapp-btn checkapp-btn-primary">
+                    <i class="fa fa-plus"></i>
+                    <span>Nuevo activo</span>
+                </button>
+            </div>
+        </section>
+
+        <section class="checkapp-summary-strip" id="activos-summary">
+            <article class="checkapp-summary-card">
+                <small>Total</small>
+                <strong id="txResumenTotal">0</strong>
+            </article>
+            <article class="checkapp-summary-card">
+                <small>Activos vigentes</small>
+                <strong id="txResumenActivos">0</strong>
+            </article>
+            <article class="checkapp-summary-card">
+                <small>Baja lógica</small>
+                <strong id="txResumenInactivos">0</strong>
+            </article>
+        </section>
+
+        <section id="accordionFiltrosActivos" class="checkapp-panel checkapp-accordion is-open">
+            <button type="button" class="checkapp-accordion-toggle" aria-expanded="true" aria-controls="accordionFiltrosActivosBody">
+                <div>
+                    <span class="checkapp-panel-eyebrow">Filtros</span>
+                    <h3>Refina el inventario operativo</h3>
+                </div>
+                <span class="checkapp-accordion-summary">Sin filtros activos</span>
+            </button>
+            <div class="checkapp-accordion-body" id="accordionFiltrosActivosBody">
+                <div class="checkapp-accordion-inner">
+                    <div class="checkapp-filter-grid">
+                        <label class="checkapp-field">
+                            <span>Búsqueda general</span>
+                            <input id="txBusquedaActivos" type="text" placeholder="Código, nombre, marca, proveedor, tipo o serie" />
+                        </label>
+                        <label class="checkapp-field">
+                            <span>Tipo de activo</span>
+                            <select id="cbFiltroTipoActivo" class="form-select"></select>
+                        </label>
+                        <label class="checkapp-field">
+                            <span>Marca</span>
+                            <select id="cbFiltroMarcaActivo" class="form-select"></select>
+                        </label>
+                        <label class="checkapp-field">
+                            <span>Proveedor</span>
+                            <select id="cbFiltroProveedorActivo" class="form-select"></select>
+                        </label>
+                        <label class="checkapp-field">
+                            <span>Estado operativo</span>
+                            <select id="cbFiltroEstadoOperativo" class="form-select"></select>
+                        </label>
+                        <label class="checkapp-field">
+                            <span>Sucursal</span>
+                            <select id="cbFiltroSucursal" class="form-select"></select>
+                        </label>
+                        <label class="checkapp-field">
+                            <span>Estatus</span>
+                            <select id="cbFiltroEstatus" class="form-select">
+                                <option value="">Todos</option>
+                                <option value="activos">Activos</option>
+                                <option value="inactivos">Inactivos</option>
+                            </select>
+                        </label>
+                    </div>
+                    <div class="checkapp-filter-actions" style="margin-top:1rem;">
+                        <button id="btAplicarFiltrosActivos" type="button" class="checkapp-btn checkapp-btn-secondary">
+                            <i class="fa fa-search"></i>
+                            <span>Aplicar filtros</span>
+                        </button>
+                        <button id="btLimpiarFiltrosActivos" type="button" class="checkapp-btn checkapp-btn-ghost">
+                            <i class="fa fa-eraser"></i>
+                            <span>Limpiar</span>
+                        </button>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <section class="checkapp-panel">
+            <div class="checkapp-panel-head">
+                <div>
+                    <span class="checkapp-panel-eyebrow">Inventario</span>
+                    <h2>Listado de activos</h2>
+                    <p class="checkapp-panel-copy">La exportación respeta los filtros aplicados e incorpora los indicadores de multimedia sin exponer datos técnicos.</p>
+                </div>
+                <div class="checkapp-grid-actions">
+                    <span id="txGridActivosVisibleCount" class="ca-chip ca-chip--secondary">0 visibles</span>
+                    <div class="checkapp-grid-columns">
+                        <button id="btColumnasActivos" type="button" class="checkapp-btn checkapp-btn-ghost">
+                            <i class="fa fa-columns"></i>
+                            <span>Columnas</span>
+                        </button>
+                        <div id="panelColumnasActivos" class="checkapp-grid-columns-panel"></div>
+                    </div>
+                    <button id="btExportarActivos" type="button" class="checkapp-btn checkapp-btn-excel">
+                        <i class="fa fa-file-excel-o"></i>
+                        <span>Exportar Excel</span>
+                    </button>
+                </div>
+            </div>
+
+            <div id="gridActivosHost">
+                <div class="checkapp-grid-toolbar">
+                    <label class="checkapp-grid-search" for="txBusquedaGridActivos">
+                        <i class="fa fa-search"></i>
+                        <input id="txBusquedaGridActivos" type="text" placeholder="Busca dentro del resultado filtrado" />
+                    </label>
+                    <div class="checkapp-grid-actions">
+                        <span id="txGridActivosCount" class="ca-grid-count">0 registros</span>
+                    </div>
+                </div>
+                <div class="checkapp-grid-scroll">
+                    <table id="grActivos" class="table table-row-bordered align-middle checkapp-grid-table">
+                        <thead>
+                            <tr>
+                                <th>Acciones</th>
+                                <th>Código</th>
+                                <th>Nombre</th>
+                                <th>Tipo</th>
+                                <th>Marca</th>
+                                <th>Proveedor</th>
+                                <th>Estado</th>
+                                <th>Sucursal</th>
+                                <th>Fotos</th>
+                                <th>Video</th>
+                                <th>Documentos</th>
+                                <th>Tag</th>
+                                <th>Número de serie</th>
+                                <th>Estatus</th>
+                                <th>Actualización</th>
+                            </tr>
+                        </thead>
+                        <tbody></tbody>
+                    </table>
+                </div>
+                <div id="gridActivosFooter" class="checkapp-grid-footer">
+                    <span id="txGridActivosRange" class="checkapp-grid-footer-range">Sin resultados</span>
+                    <div id="txGridActivosPageSize" class="checkapp-grid-page-size">
+                        <span class="checkapp-grid-page-size-label">Filas:</span>
+                        <button type="button" class="checkapp-grid-page-chip is-active" data-page-size="25" aria-pressed="true">25</button>
+                        <button type="button" class="checkapp-grid-page-chip" data-page-size="50" aria-pressed="false">50</button>
+                        <button type="button" class="checkapp-grid-page-chip" data-page-size="100" aria-pressed="false">100</button>
+                    </div>
+                    <div class="checkapp-grid-page-nav">
+                        <span id="txGridActivosPageIndicator" class="checkapp-grid-footer-page">Página 1 de 1</span>
+                        <button id="btGridActivosPrev" type="button" class="checkapp-grid-nav-btn" aria-label="Página anterior">‹</button>
+                        <button id="btGridActivosNext" type="button" class="checkapp-grid-nav-btn" aria-label="Página siguiente">›</button>
+                    </div>
+                </div>
+            </div>
+        </section>
+    </div>
+</div>
+
+<div class="modal fade checkapp-modal" tabindex="-1" id="modalActivo">
+    <div class="modal-dialog modal-xl activos-modal-dialog">
+        <div class="modal-content activos-modal-content">
+            <form id="frmActivo" class="activos-modal-form">
+                <div class="modal-header">
+                    <div>
+                        <p class="checkapp-kicker" id="txModalActivoKicker">Registro</p>
+                        <h3 class="modal-title" id="txModalActivoTitulo">Nuevo activo</h3>
+                    </div>
+                    <button type="button" class="btn btn-icon btn-sm btn-active-light-primary" data-bs-dismiss="modal" aria-label="Close">
+                        <i class="ki-duotone ki-cross fs-1"><span class="path1"></span><span class="path2"></span></i>
+                    </button>
+                </div>
+                <div class="modal-body activos-modal-body">
+                    <input id="hdActivoId" type="hidden" />
+                    <div class="checkapp-filter-grid">
+                        <label class="checkapp-field">
+                            <span>Código *</span>
+                            <input id="txCodigoActivo" maxlength="64" type="text" />
+                        </label>
+                        <label class="checkapp-field">
+                            <span>Nombre *</span>
+                            <input id="txNombreActivo" maxlength="200" type="text" />
+                        </label>
+                        <label class="checkapp-field">
+                            <span>Tipo de activo *</span>
+                            <select id="cbTipoActivo" class="form-select"></select>
+                        </label>
+                        <label class="checkapp-field">
+                            <span>Marca *</span>
+                            <select id="cbMarcaActivo" class="form-select"></select>
+                        </label>
+                        <label class="checkapp-field">
+                            <span>Proveedor *</span>
+                            <select id="cbProveedorActivo" class="form-select"></select>
+                        </label>
+                        <label class="checkapp-field">
+                            <span>Estado operativo *</span>
+                            <select id="cbEstadoOperativo" class="form-select"></select>
+                        </label>
+                        <label class="checkapp-field">
+                            <span>Sucursal *</span>
+                            <select id="cbSucursal" class="form-select"></select>
+                        </label>
+                        <label class="checkapp-field">
+                            <span>Tag</span>
+                            <input id="txTagActivo" maxlength="80" type="text" />
+                        </label>
+                        <label class="checkapp-field">
+                            <span>Número de serie</span>
+                            <input id="txNumeroSerieActivo" maxlength="120" type="text" />
+                        </label>
+                        <label class="checkapp-field" style="grid-column:1 / -1;">
+                            <span>Descripción</span>
+                            <textarea id="txDescripcionActivo" maxlength="500"></textarea>
+                        </label>
+                    </div>
+
+                    <section class="checkapp-panel activos-media-panel">
+                        <div class="checkapp-panel-head">
+                            <div>
+                                <span class="checkapp-panel-eyebrow">Multimedia</span>
+                                <h2>Evidencia del activo</h2>
+                                <p class="checkapp-panel-copy">Valida la carga mínima y máxima antes de guardar. Las evidencias se conservan en Firebase.</p>
+                                <div id="txResumenCargaActivosMultimedia" class="checkapp-status-inline"></div>
+                            </div>
+                        </div>
+                        <div class="activos-media-grid">
+                            <article class="activos-media-card">
+                                <div class="activos-media-card-head">
+                                    <div>
+                                        <strong>Fotos</strong>
+                                        <small>Entre 1 y 3</small>
+                                    </div>
+                                    <div class="activos-media-card-actions">
+                                        <button id="btTomarFotoActivo" type="button" class="checkapp-btn checkapp-btn-secondary">
+                                            <i class="fa fa-camera"></i>
+                                            <span>Tomar foto</span>
+                                        </button>
+                                        <button id="btElegirFotoActivo" type="button" class="checkapp-btn checkapp-btn-ghost">
+                                            <i class="fa fa-picture-o"></i>
+                                            <span>Elegir foto</span>
+                                        </button>
+                                    </div>
+                                    <input id="flFotosActivo" type="file" accept="image/*" multiple hidden />
+                                </div>
+                                <div id="txResumenFotosActivo" class="checkapp-status-inline"></div>
+                                <div id="contenedorFotosActivo" class="activos-media-list activos-media-list--gallery"></div>
+                            </article>
+
+                            <article class="activos-media-card">
+                                <div class="activos-media-card-head">
+                                    <div>
+                                        <strong>Video</strong>
+                                        <small>Máximo 1</small>
+                                    </div>
+                                    <div class="activos-media-card-actions">
+                                        <button id="btGrabarVideoActivo" type="button" class="checkapp-btn checkapp-btn-secondary">
+                                            <i class="fa fa-video-camera"></i>
+                                            <span>Grabar video</span>
+                                        </button>
+                                        <button id="btElegirVideoActivo" type="button" class="checkapp-btn checkapp-btn-ghost">
+                                            <i class="fa fa-folder-open-o"></i>
+                                            <span>Elegir video</span>
+                                        </button>
+                                    </div>
+                                    <input id="flVideoActivo" type="file" accept="video/*" hidden />
+                                </div>
+                                <div id="txResumenVideoActivo" class="checkapp-status-inline"></div>
+                                <div id="contenedorVideoActivo" class="activos-media-list"></div>
+                            </article>
+
+                            <article class="activos-media-card">
+                                <div class="activos-media-card-head">
+                                    <div>
+                                        <strong>Documentos</strong>
+                                        <small>Entre 1 y 3 · PDF / Word</small>
+                                    </div>
+                                    <button id="btAgregarDocumentosActivo" type="button" class="checkapp-btn checkapp-btn-secondary">
+                                        <i class="fa fa-file-text-o"></i>
+                                        <span>Agregar</span>
+                                    </button>
+                                    <input id="flDocumentosActivo" type="file" accept=".pdf,.doc,.docx,application/pdf,application/msword,application/vnd.openxmlformats-officedocument.wordprocessingml.document" multiple hidden />
+                                </div>
+                                <div id="txResumenDocumentosActivo" class="checkapp-status-inline"></div>
+                                <div id="contenedorDocumentosActivo" class="activos-media-list"></div>
+                            </article>
+                        </div>
+                    </section>
+
+                    <div class="checkapp-status-inline" id="txInfoActivo" style="margin-top:1rem;"></div>
+                </div>
+                <div class="modal-footer activos-modal-footer">
+                    <button id="btGuardarActivo" type="button" class="checkapp-btn checkapp-btn-primary">
+                        <i class="fa fa-save"></i>
+                        <span>Guardar activo</span>
+                    </button>
+                    <button type="button" class="checkapp-btn checkapp-btn-ghost" data-bs-dismiss="modal">
+                        <i class="fa fa-ban"></i>
+                        <span>Cerrar</span>
+                    </button>
+                </div>
+                <div id="activosSaveOverlay" class="activos-save-overlay" aria-hidden="true">
+                    <div class="activos-save-card" role="status" aria-live="polite">
+                        <div class="activos-save-spinner"></div>
+                        <div class="activos-save-copy">
+                            <strong id="txActivosSaveTitle">Guardando activo...</strong>
+                            <p id="txActivosSaveStatus">Preparando información del activo...</p>
+                        </div>
+                    </div>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+
+<div class="modal fade checkapp-modal" tabindex="-1" id="modalMultimediaActivo">
+    <div class="modal-dialog modal-xl modal-dialog-scrollable">
+        <div class="modal-content">
+            <div class="modal-header">
+                <div>
+                    <p class="checkapp-kicker">Visor</p>
+                    <h3 class="modal-title">Multimedia del activo</h3>
+                </div>
+                <button type="button" class="btn btn-icon btn-sm btn-active-light-primary" data-bs-dismiss="modal" aria-label="Close">
+                    <i class="ki-duotone ki-cross fs-1"><span class="path1"></span><span class="path2"></span></i>
+                </button>
+            </div>
+            <div class="modal-body">
+                <section class="activos-viewer-section">
+                    <div class="checkapp-panel-head">
+                        <div>
+                            <span class="checkapp-panel-eyebrow">Fotos</span>
+                            <h2>Galería</h2>
+                        </div>
+                    </div>
+                    <div id="visorFotosActivo" class="activos-viewer-gallery"></div>
+                </section>
+                <section class="activos-viewer-section">
+                    <div class="checkapp-panel-head">
+                        <div>
+                            <span class="checkapp-panel-eyebrow">Video</span>
+                            <h2>Reproductor</h2>
+                        </div>
+                    </div>
+                    <div id="visorVideoActivo" class="activos-viewer-video"></div>
+                </section>
+                <section class="activos-viewer-section">
+                    <div class="checkapp-panel-head">
+                        <div>
+                            <span class="checkapp-panel-eyebrow">Documentos</span>
+                            <h2>Descargas</h2>
+                        </div>
+                    </div>
+                    <div id="visorDocumentosActivo" class="activos-viewer-docs"></div>
+                </section>
+            </div>
+        </div>
+    </div>
+</div>
+
+<div class="modal fade checkapp-modal" tabindex="-1" id="modalTiposActivos">
+    <div class="modal-dialog modal-xl modal-dialog-scrollable">
+        <div class="modal-content">
+            <div class="modal-header">
+                <div>
+                    <p class="checkapp-kicker">Catálogo relacionado</p>
+                    <h3 class="modal-title">Tipos de activo</h3>
+                </div>
+                <button type="button" class="btn btn-icon btn-sm btn-active-light-primary" data-bs-dismiss="modal" aria-label="Close">
+                    <i class="ki-duotone ki-cross fs-1"><span class="path1"></span><span class="path2"></span></i>
+                </button>
+            </div>
+            <div class="modal-body">
+                <section class="checkapp-panel">
+                    <div class="checkapp-panel-head">
+                        <div>
+                            <span class="checkapp-panel-eyebrow">Administración</span>
+                            <h2>Listado de tipos</h2>
+                            <p class="checkapp-panel-copy">Catálogo homologado al patrón aprobado para Activos.</p>
+                        </div>
+                        <div class="checkapp-grid-actions">
+                            <span id="txGridTiposVisibleCount" class="ca-chip ca-chip--secondary">0 visibles</span>
+                            <button id="btNuevoTipoActivo" type="button" class="checkapp-btn checkapp-btn-primary">
+                                <i class="fa fa-plus"></i>
+                                <span>Nuevo tipo</span>
+                            </button>
+                        </div>
+                    </div>
+                    <div class="checkapp-filter-grid" style="margin-top:0;">
+                        <label class="checkapp-field">
+                            <span>Búsqueda</span>
+                            <input id="txBusquedaTipos" type="text" placeholder="Código, nombre o descripción" />
+                        </label>
+                        <label class="checkapp-field">
+                            <span>Estatus</span>
+                            <select id="cbFiltroEstatusTipos" class="form-select">
+                                <option value="">Todos</option>
+                                <option value="activos">Activos</option>
+                                <option value="inactivos">Inactivos</option>
+                            </select>
+                        </label>
+                    </div>
+                    <div id="gridTiposHost" style="margin-top:1rem;">
+                        <div class="checkapp-grid-toolbar">
+                            <label class="checkapp-grid-search" for="txBusquedaGridTipos">
+                                <i class="fa fa-search"></i>
+                                <input id="txBusquedaGridTipos" type="text" placeholder="Busca dentro del listado de tipos" />
+                            </label>
+                            <div class="checkapp-grid-actions">
+                                <span id="txGridTiposCount" class="ca-grid-count">0 registros</span>
+                            </div>
+                        </div>
+                        <div class="checkapp-grid-scroll">
+                            <table id="grTiposActivos" class="table table-row-bordered align-middle checkapp-grid-table">
+                                <thead>
+                                    <tr>
+                                        <th>Acciones</th>
+                                        <th>Código</th>
+                                        <th>Nombre</th>
+                                        <th>Descripción</th>
+                                        <th>Estatus</th>
+                                        <th>Actualización</th>
+                                    </tr>
+                                </thead>
+                                <tbody></tbody>
+                            </table>
+                        </div>
+                        <div id="gridTiposFooter" class="checkapp-grid-footer">
+                            <span id="txGridTiposRange" class="checkapp-grid-footer-range">Sin resultados</span>
+                            <div id="txGridTiposPageSize" class="checkapp-grid-page-size">
+                                <span class="checkapp-grid-page-size-label">Filas:</span>
+                                <button type="button" class="checkapp-grid-page-chip is-active" data-page-size="25" aria-pressed="true">25</button>
+                                <button type="button" class="checkapp-grid-page-chip" data-page-size="50" aria-pressed="false">50</button>
+                                <button type="button" class="checkapp-grid-page-chip" data-page-size="100" aria-pressed="false">100</button>
+                            </div>
+                            <div class="checkapp-grid-page-nav">
+                                <span id="txGridTiposPageIndicator" class="checkapp-grid-footer-page">Página 1 de 1</span>
+                                <button id="btGridTiposPrev" type="button" class="checkapp-grid-nav-btn" aria-label="Página anterior">‹</button>
+                                <button id="btGridTiposNext" type="button" class="checkapp-grid-nav-btn" aria-label="Página siguiente">›</button>
+                            </div>
+                        </div>
+                    </div>
+                </section>
+                <section class="checkapp-panel" style="margin-top:1rem;">
+                    <div class="checkapp-panel-head">
+                        <div>
+                            <span class="checkapp-panel-eyebrow">Edición</span>
+                            <h2 id="txTituloTipoActivo">Nuevo tipo de activo</h2>
+                        </div>
+                    </div>
+                    <form id="frmTipoActivo">
+                        <input id="hdTipoActivoId" type="hidden" />
+                        <div class="checkapp-filter-grid" style="margin-top:0;">
+                            <label class="checkapp-field">
+                                <span>Código *</span>
+                                <input id="txCodigoTipoActivo" maxlength="64" type="text" />
+                            </label>
+                            <label class="checkapp-field">
+                                <span>Nombre *</span>
+                                <input id="txNombreTipoActivo" maxlength="160" type="text" />
+                            </label>
+                            <label class="checkapp-field" style="grid-column:1 / -1;">
+                                <span>Descripción</span>
+                                <textarea id="txDescripcionTipoActivo" maxlength="400"></textarea>
+                            </label>
+                        </div>
+                        <div class="checkapp-status-inline" id="txInfoTipoActivo" style="margin-top:1rem;"></div>
+                        <div class="checkapp-filter-actions" style="margin-top:1rem;">
+                            <button id="btGuardarTipoActivo" type="button" class="checkapp-btn checkapp-btn-primary">
+                                <i class="fa fa-save"></i>
+                                <span>Guardar tipo</span>
+                            </button>
+                            <button id="btCancelarTipoActivo" type="button" class="checkapp-btn checkapp-btn-ghost">
+                                <i class="fa fa-eraser"></i>
+                                <span>Limpiar formulario</span>
+                            </button>
+                        </div>
+                    </form>
+                </section>
+            </div>
+        </div>
+    </div>
+</div>
+
+<div class="modal fade checkapp-modal" tabindex="-1" id="modalMarcasActivos">
+    <div class="modal-dialog modal-xl modal-dialog-scrollable">
+        <div class="modal-content">
+            <div class="modal-header">
+                <div>
+                    <p class="checkapp-kicker">Catálogo relacionado</p>
+                    <h3 class="modal-title">Marcas</h3>
+                </div>
+                <button type="button" class="btn btn-icon btn-sm btn-active-light-primary" data-bs-dismiss="modal" aria-label="Close">
+                    <i class="ki-duotone ki-cross fs-1"><span class="path1"></span><span class="path2"></span></i>
+                </button>
+            </div>
+            <div class="modal-body">
+                <section class="checkapp-panel">
+                    <div class="checkapp-panel-head">
+                        <div>
+                            <span class="checkapp-panel-eyebrow">Administración</span>
+                            <h2>Listado de marcas</h2>
+                            <p class="checkapp-panel-copy">Catálogo operativo y reutilizable para altas y edición de activos.</p>
+                        </div>
+                        <div class="checkapp-grid-actions">
+                            <span id="txGridMarcasVisibleCount" class="ca-chip ca-chip--secondary">0 visibles</span>
+                            <button id="btNuevoMarcaActivo" type="button" class="checkapp-btn checkapp-btn-primary">
+                                <i class="fa fa-plus"></i>
+                                <span>Nueva marca</span>
+                            </button>
+                        </div>
+                    </div>
+                    <div class="checkapp-filter-grid" style="margin-top:0;">
+                        <label class="checkapp-field">
+                            <span>Búsqueda</span>
+                            <input id="txBusquedaMarcas" type="text" placeholder="Código, nombre o descripción" />
+                        </label>
+                        <label class="checkapp-field">
+                            <span>Estatus</span>
+                            <select id="cbFiltroEstatusMarcas" class="form-select">
+                                <option value="">Todos</option>
+                                <option value="activos">Activos</option>
+                                <option value="inactivos">Inactivos</option>
+                            </select>
+                        </label>
+                    </div>
+                    <div id="gridMarcasHost" style="margin-top:1rem;">
+                        <div class="checkapp-grid-toolbar">
+                            <label class="checkapp-grid-search" for="txBusquedaGridMarcas">
+                                <i class="fa fa-search"></i>
+                                <input id="txBusquedaGridMarcas" type="text" placeholder="Busca dentro del listado de marcas" />
+                            </label>
+                            <div class="checkapp-grid-actions">
+                                <span id="txGridMarcasCount" class="ca-grid-count">0 registros</span>
+                            </div>
+                        </div>
+                        <div class="checkapp-grid-scroll">
+                            <table id="grMarcasActivos" class="table table-row-bordered align-middle checkapp-grid-table">
+                                <thead>
+                                    <tr>
+                                        <th>Acciones</th>
+                                        <th>Código</th>
+                                        <th>Nombre</th>
+                                        <th>Descripción</th>
+                                        <th>Estatus</th>
+                                        <th>Actualización</th>
+                                    </tr>
+                                </thead>
+                                <tbody></tbody>
+                            </table>
+                        </div>
+                        <div id="gridMarcasFooter" class="checkapp-grid-footer">
+                            <span id="txGridMarcasRange" class="checkapp-grid-footer-range">Sin resultados</span>
+                            <div id="txGridMarcasPageSize" class="checkapp-grid-page-size">
+                                <span class="checkapp-grid-page-size-label">Filas:</span>
+                                <button type="button" class="checkapp-grid-page-chip is-active" data-page-size="25" aria-pressed="true">25</button>
+                                <button type="button" class="checkapp-grid-page-chip" data-page-size="50" aria-pressed="false">50</button>
+                                <button type="button" class="checkapp-grid-page-chip" data-page-size="100" aria-pressed="false">100</button>
+                            </div>
+                            <div class="checkapp-grid-page-nav">
+                                <span id="txGridMarcasPageIndicator" class="checkapp-grid-footer-page">Página 1 de 1</span>
+                                <button id="btGridMarcasPrev" type="button" class="checkapp-grid-nav-btn" aria-label="Página anterior">‹</button>
+                                <button id="btGridMarcasNext" type="button" class="checkapp-grid-nav-btn" aria-label="Página siguiente">›</button>
+                            </div>
+                        </div>
+                    </div>
+                </section>
+                <section class="checkapp-panel" style="margin-top:1rem;">
+                    <div class="checkapp-panel-head">
+                        <div>
+                            <span class="checkapp-panel-eyebrow">Edición</span>
+                            <h2 id="txTituloMarcaActivo">Nueva marca</h2>
+                        </div>
+                    </div>
+                    <form id="frmMarcaActivo">
+                        <input id="hdMarcaActivoId" type="hidden" />
+                        <div class="checkapp-filter-grid" style="margin-top:0;">
+                            <label class="checkapp-field">
+                                <span>Código *</span>
+                                <input id="txCodigoMarcaActivo" maxlength="64" type="text" />
+                            </label>
+                            <label class="checkapp-field">
+                                <span>Nombre *</span>
+                                <input id="txNombreMarcaActivo" maxlength="160" type="text" />
+                            </label>
+                            <label class="checkapp-field" style="grid-column:1 / -1;">
+                                <span>Descripción</span>
+                                <textarea id="txDescripcionMarcaActivo" maxlength="400"></textarea>
+                            </label>
+                        </div>
+                        <div class="checkapp-status-inline" id="txInfoMarcaActivo" style="margin-top:1rem;"></div>
+                        <div class="checkapp-filter-actions" style="margin-top:1rem;">
+                            <button id="btGuardarMarcaActivo" type="button" class="checkapp-btn checkapp-btn-primary">
+                                <i class="fa fa-save"></i>
+                                <span>Guardar marca</span>
+                            </button>
+                            <button id="btCancelarMarcaActivo" type="button" class="checkapp-btn checkapp-btn-ghost">
+                                <i class="fa fa-eraser"></i>
+                                <span>Limpiar formulario</span>
+                            </button>
+                        </div>
+                    </form>
+                </section>
+            </div>
+        </div>
+    </div>
+</div>
+
+<div class="modal fade checkapp-modal" tabindex="-1" id="modalProveedoresActivos">
+    <div class="modal-dialog modal-xl modal-dialog-scrollable">
+        <div class="modal-content">
+            <div class="modal-header">
+                <div>
+                    <p class="checkapp-kicker">Catálogo relacionado</p>
+                    <h3 class="modal-title">Proveedores</h3>
+                </div>
+                <button type="button" class="btn btn-icon btn-sm btn-active-light-primary" data-bs-dismiss="modal" aria-label="Close">
+                    <i class="ki-duotone ki-cross fs-1"><span class="path1"></span><span class="path2"></span></i>
+                </button>
+            </div>
+            <div class="modal-body">
+                <section class="checkapp-panel">
+                    <div class="checkapp-panel-head">
+                        <div>
+                            <span class="checkapp-panel-eyebrow">Administración</span>
+                            <h2>Listado de proveedores</h2>
+                            <p class="checkapp-panel-copy">Catálogo homologado para origen operativo y trazabilidad de activos.</p>
+                        </div>
+                        <div class="checkapp-grid-actions">
+                            <span id="txGridProveedoresVisibleCount" class="ca-chip ca-chip--secondary">0 visibles</span>
+                            <button id="btNuevoProveedorActivo" type="button" class="checkapp-btn checkapp-btn-primary">
+                                <i class="fa fa-plus"></i>
+                                <span>Nuevo proveedor</span>
+                            </button>
+                        </div>
+                    </div>
+                    <div class="checkapp-filter-grid" style="margin-top:0;">
+                        <label class="checkapp-field">
+                            <span>Búsqueda</span>
+                            <input id="txBusquedaProveedores" type="text" placeholder="Código, nombre o descripción" />
+                        </label>
+                        <label class="checkapp-field">
+                            <span>Estatus</span>
+                            <select id="cbFiltroEstatusProveedores" class="form-select">
+                                <option value="">Todos</option>
+                                <option value="activos">Activos</option>
+                                <option value="inactivos">Inactivos</option>
+                            </select>
+                        </label>
+                    </div>
+                    <div id="gridProveedoresHost" style="margin-top:1rem;">
+                        <div class="checkapp-grid-toolbar">
+                            <label class="checkapp-grid-search" for="txBusquedaGridProveedores">
+                                <i class="fa fa-search"></i>
+                                <input id="txBusquedaGridProveedores" type="text" placeholder="Busca dentro del listado de proveedores" />
+                            </label>
+                            <div class="checkapp-grid-actions">
+                                <span id="txGridProveedoresCount" class="ca-grid-count">0 registros</span>
+                            </div>
+                        </div>
+                        <div class="checkapp-grid-scroll">
+                            <table id="grProveedoresActivos" class="table table-row-bordered align-middle checkapp-grid-table">
+                                <thead>
+                                    <tr>
+                                        <th>Acciones</th>
+                                        <th>Código</th>
+                                        <th>Nombre</th>
+                                        <th>Descripción</th>
+                                        <th>Estatus</th>
+                                        <th>Actualización</th>
+                                    </tr>
+                                </thead>
+                                <tbody></tbody>
+                            </table>
+                        </div>
+                        <div id="gridProveedoresFooter" class="checkapp-grid-footer">
+                            <span id="txGridProveedoresRange" class="checkapp-grid-footer-range">Sin resultados</span>
+                            <div id="txGridProveedoresPageSize" class="checkapp-grid-page-size">
+                                <span class="checkapp-grid-page-size-label">Filas:</span>
+                                <button type="button" class="checkapp-grid-page-chip is-active" data-page-size="25" aria-pressed="true">25</button>
+                                <button type="button" class="checkapp-grid-page-chip" data-page-size="50" aria-pressed="false">50</button>
+                                <button type="button" class="checkapp-grid-page-chip" data-page-size="100" aria-pressed="false">100</button>
+                            </div>
+                            <div class="checkapp-grid-page-nav">
+                                <span id="txGridProveedoresPageIndicator" class="checkapp-grid-footer-page">Página 1 de 1</span>
+                                <button id="btGridProveedoresPrev" type="button" class="checkapp-grid-nav-btn" aria-label="Página anterior">‹</button>
+                                <button id="btGridProveedoresNext" type="button" class="checkapp-grid-nav-btn" aria-label="Página siguiente">›</button>
+                            </div>
+                        </div>
+                    </div>
+                </section>
+                <section class="checkapp-panel" style="margin-top:1rem;">
+                    <div class="checkapp-panel-head">
+                        <div>
+                            <span class="checkapp-panel-eyebrow">Edición</span>
+                            <h2 id="txTituloProveedorActivo">Nuevo proveedor</h2>
+                        </div>
+                    </div>
+                    <form id="frmProveedorActivo">
+                        <input id="hdProveedorActivoId" type="hidden" />
+                        <div class="checkapp-filter-grid" style="margin-top:0;">
+                            <label class="checkapp-field">
+                                <span>Código *</span>
+                                <input id="txCodigoProveedorActivo" maxlength="64" type="text" />
+                            </label>
+                            <label class="checkapp-field">
+                                <span>Nombre *</span>
+                                <input id="txNombreProveedorActivo" maxlength="160" type="text" />
+                            </label>
+                            <label class="checkapp-field" style="grid-column:1 / -1;">
+                                <span>Descripción</span>
+                                <textarea id="txDescripcionProveedorActivo" maxlength="400"></textarea>
+                            </label>
+                        </div>
+                        <div class="checkapp-status-inline" id="txInfoProveedorActivo" style="margin-top:1rem;"></div>
+                        <div class="checkapp-filter-actions" style="margin-top:1rem;">
+                            <button id="btGuardarProveedorActivo" type="button" class="checkapp-btn checkapp-btn-primary">
+                                <i class="fa fa-save"></i>
+                                <span>Guardar proveedor</span>
+                            </button>
+                            <button id="btCancelarProveedorActivo" type="button" class="checkapp-btn checkapp-btn-ghost">
+                                <i class="fa fa-eraser"></i>
+                                <span>Limpiar formulario</span>
+                            </button>
+                        </div>
+                    </form>
+                </section>
+            </div>
+        </div>
+    </div>
+</div>
+
+<div class="modal fade checkapp-modal" tabindex="-1" id="modalEstadosOperativos">
+    <div class="modal-dialog modal-xl modal-dialog-scrollable">
+        <div class="modal-content">
+            <div class="modal-header">
+                <div>
+                    <p class="checkapp-kicker">Catálogo relacionado</p>
+                    <h3 class="modal-title">Estados operativos</h3>
+                </div>
+                <button type="button" class="btn btn-icon btn-sm btn-active-light-primary" data-bs-dismiss="modal" aria-label="Close">
+                    <i class="ki-duotone ki-cross fs-1"><span class="path1"></span><span class="path2"></span></i>
+                </button>
+            </div>
+            <div class="modal-body">
+                <section class="checkapp-panel">
+                    <div class="checkapp-panel-head">
+                        <div>
+                            <span class="checkapp-panel-eyebrow">Administración</span>
+                            <h2>Listado de estados operativos</h2>
+                            <p class="checkapp-panel-copy">Catálogo operativo homologado al patrón oficial de Activos.</p>
+                        </div>
+                        <div class="checkapp-grid-actions">
+                            <span id="txGridEstadosVisibleCount" class="ca-chip ca-chip--secondary">0 visibles</span>
+                            <button id="btNuevoEstadoOperativo" type="button" class="checkapp-btn checkapp-btn-primary">
+                                <i class="fa fa-plus"></i>
+                                <span>Nuevo estado</span>
+                            </button>
+                        </div>
+                    </div>
+                    <div class="checkapp-filter-grid" style="margin-top:0;">
+                        <label class="checkapp-field">
+                            <span>Búsqueda</span>
+                            <input id="txBusquedaEstados" type="text" placeholder="Código, nombre o descripción" />
+                        </label>
+                        <label class="checkapp-field">
+                            <span>Estatus</span>
+                            <select id="cbFiltroEstatusEstados" class="form-select">
+                                <option value="">Todos</option>
+                                <option value="activos">Activos</option>
+                                <option value="inactivos">Inactivos</option>
+                            </select>
+                        </label>
+                    </div>
+                    <div id="gridEstadosHost" style="margin-top:1rem;">
+                        <div class="checkapp-grid-toolbar">
+                            <label class="checkapp-grid-search" for="txBusquedaGridEstados">
+                                <i class="fa fa-search"></i>
+                                <input id="txBusquedaGridEstados" type="text" placeholder="Busca dentro del listado de estados" />
+                            </label>
+                            <div class="checkapp-grid-actions">
+                                <span id="txGridEstadosCount" class="ca-grid-count">0 registros</span>
+                            </div>
+                        </div>
+                        <div class="checkapp-grid-scroll">
+                            <table id="grEstadosOperativos" class="table table-row-bordered align-middle checkapp-grid-table">
+                                <thead>
+                                    <tr>
+                                        <th>Acciones</th>
+                                        <th>Código</th>
+                                        <th>Nombre</th>
+                                        <th>Descripción</th>
+                                        <th>Permite operación</th>
+                                        <th>Orden</th>
+                                        <th>Estatus</th>
+                                        <th>Actualización</th>
+                                    </tr>
+                                </thead>
+                                <tbody></tbody>
+                            </table>
+                        </div>
+                        <div id="gridEstadosFooter" class="checkapp-grid-footer">
+                            <span id="txGridEstadosRange" class="checkapp-grid-footer-range">Sin resultados</span>
+                            <div id="txGridEstadosPageSize" class="checkapp-grid-page-size">
+                                <span class="checkapp-grid-page-size-label">Filas:</span>
+                                <button type="button" class="checkapp-grid-page-chip is-active" data-page-size="25" aria-pressed="true">25</button>
+                                <button type="button" class="checkapp-grid-page-chip" data-page-size="50" aria-pressed="false">50</button>
+                                <button type="button" class="checkapp-grid-page-chip" data-page-size="100" aria-pressed="false">100</button>
+                            </div>
+                            <div class="checkapp-grid-page-nav">
+                                <span id="txGridEstadosPageIndicator" class="checkapp-grid-footer-page">Página 1 de 1</span>
+                                <button id="btGridEstadosPrev" type="button" class="checkapp-grid-nav-btn" aria-label="Página anterior">‹</button>
+                                <button id="btGridEstadosNext" type="button" class="checkapp-grid-nav-btn" aria-label="Página siguiente">›</button>
+                            </div>
+                        </div>
+                    </div>
+                </section>
+
+                <section class="checkapp-panel" style="margin-top:1rem;">
+                    <div class="checkapp-panel-head">
+                        <div>
+                            <span class="checkapp-panel-eyebrow">Edición</span>
+                            <h2 id="txTituloEstadoOperativo">Nuevo estado operativo</h2>
+                        </div>
+                    </div>
+                    <form id="frmEstadoOperativo">
+                        <input id="hdEstadoOperativoId" type="hidden" />
+                        <div class="checkapp-filter-grid" style="margin-top:0;">
+                            <label class="checkapp-field">
+                                <span>Código *</span>
+                                <input id="txCodigoEstadoOperativo" maxlength="64" type="text" />
+                            </label>
+                            <label class="checkapp-field">
+                                <span>Nombre *</span>
+                                <input id="txNombreEstadoOperativo" maxlength="160" type="text" />
+                            </label>
+                            <label class="checkapp-field">
+                                <span>Orden *</span>
+                                <input id="txOrdenEstadoOperativo" type="number" min="1" step="1" inputmode="numeric" />
+                            </label>
+                            <label class="checkapp-field activos-checkbox-field">
+                                <span>Permite operación</span>
+                                <input id="chkPermiteOperacionEstado" type="checkbox" />
+                            </label>
+                            <label class="checkapp-field" style="grid-column:1 / -1;">
+                                <span>Descripción</span>
+                                <textarea id="txDescripcionEstadoOperativo" maxlength="400"></textarea>
+                            </label>
+                        </div>
+                        <div class="checkapp-status-inline" id="txInfoEstadoOperativo" style="margin-top:1rem;"></div>
+                        <div class="checkapp-filter-actions" style="margin-top:1rem;">
+                            <button id="btGuardarEstadoOperativo" type="button" class="checkapp-btn checkapp-btn-primary">
+                                <i class="fa fa-save"></i>
+                                <span>Guardar estado</span>
+                            </button>
+                            <button id="btCancelarEstadoOperativo" type="button" class="checkapp-btn checkapp-btn-ghost">
+                                <i class="fa fa-eraser"></i>
+                                <span>Limpiar formulario</span>
+                            </button>
+                        </div>
+                    </form>
+                </section>
+            </div>
+        </div>
+    </div>
+</div>
+
+<div id="activosMediaCaptureHost"></div>
+
+@section Scripts {
+    <link href="~/css/checkapp-theme.css" rel="stylesheet" />
+    <link href="~/css/Activos/Activos.css" rel="stylesheet" />
+    <script>var XLSX = window.XLSX || {}; window.XLSX = XLSX;</script>
+    <script src="~/js/vendor/xlsx.full.min.js"></script>
+    <script src="~/js/checkapp-ui.js"></script>
+    <script src="~/js/Activos/Activos.js?v=20260727c"></script>
+}

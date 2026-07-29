@@ -1,0 +1,167 @@
+﻿@*
+    For more information on enabling MVC for empty projects, visit https://go.microsoft.com/fwlink/?LinkID=397860
+*@
+@{
+}
+<script src="//maps.google.com/maps/api/js?key=AIzaSyBSxXvQXJwXxCd2jgTgtS2dEiQkxGsrv8Y&callback=initMap&v=weekly" async>
+</script>
+
+<h2>Mis listas</h2>
+
+<div class="container-fluid">
+    <div class="form-group row">
+      @*   <div class="col-12 col-md-12 mb-12">
+            <div class="form-floating fv-row">
+                <select id="cbEvaluaciones" name="cbEvaluaciones" class="form-select" aria-label="Área"></select>
+                <label>Listas</label>
+            </div>
+        </div>
+        <div class="col-6 col-md-6 mb-6">
+            <div class="form-floating fv-row">
+                <select id="cbSucursal" name="cbSucursal" class="form-select" aria-label="Tipo Curso"></select>
+                <label>Sucursales</label>
+            </div>
+        </div>
+
+        <div class="col-6 col-md-6 mb-6">
+            <div class="form-floating fv-row">
+                <select id="cbUsuario" name="cbUsuario" class="form-select" aria-label="Tipo Curso"></select>
+                <label>Usuarios</label>
+            </div>
+        </div> *@
+
+    </div>
+
+  @*   <div class="form-group row">
+        <div class="col-12 col-md-3 mb-3">
+            <div class="input-group date" id="dpFechaNace" data-td-target-input="nearest" data-td-target-toggle="nearest">
+                <input id="dpFechaNace_input" type="text" class="form-control" data-td-target="#dpFechaNace" />
+                <span class="input-group-text" data-td-target="#dpFechaNace" data-td-toggle="datetimepicker">
+                    <i class="ki-duotone ki-calendar fs-2"><span class="path1"></span><span class="path2"></span></i>
+                </span>
+            </div>
+            <label for="dpFechaNace_input"><small>Del</small></label>
+        </div>
+        <div class="col-12 col-md-3 mb-3">
+            <div class="input-group date" id="dpFechaNace2" data-td-target-input="nearest" data-td-target-toggle="nearest">
+                <input id="dpFechaNace_input2" type="text" class="form-control" data-td-target="#dpFechaNace2" />
+                <span class="input-group-text" data-td-target="#dpFechaNace2" data-td-toggle="datetimepicker">
+                    <i class="ki-duotone ki-calendar fs-2"><span class="path1"></span><span class="path2"></span></i>
+                </span>
+            </div>
+            <label for="dpFechaNace_input2"><small>Al</small></label>
+        </div>
+        <div class="col-12 col-md-6 mb-3 d-flex align-items-end">
+            <a id="btBuscar" href="javascript:;" class="btn btn-primary btn-block font-weight-bolder">
+                <span class="svg-icon svg-icon-primary svg-icon-2x">
+                    <i class="fa fa-search"></i>
+                </span>&nbsp;&nbsp;Buscar
+            </a>
+        </div>
+    </div> *@
+
+    <div class="form-group row mt-3">
+        <div class="col-12">
+            <div style="overflow-x:auto;">
+                <table class="table table-striped table-row-bordered gy-5 gs-7 cell-border display nowrap" id="grData">
+                    <thead>
+                        <tr>
+
+                            <th><strong>Ubicacion</strong></th>
+                            <th><strong>Lista</strong></th>
+                            <th><strong>FechaCreacion</strong></th>
+                            <th><strong>Notas</strong></th>
+                            <th><strong>Status</strong></th>
+                            <th><strong>Creador</strong></th>
+                             <th><strong>Tareas</strong></th>
+                            <th><strong>Veces</strong></th>
+                        </tr>
+                    </thead>
+                    <tbody></tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+</div>
+
+<div class="modal fade" id="modalLozalizacion" data-backdrop="static" tabindex="-1" role="dialog"
+     aria-labelledby="staticBackdrop" aria-hidden="true">
+    <div class="modal-dialog modal-xl" role="document">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title" id="modalLozalizacionLabel">Localización</h5>
+                <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                    <i aria-hidden="true" class="ki ki-close"></i>
+                </button>
+            </div>
+            <div class="modal-body">
+                <div class="row">
+                    <div class="col-12">
+                        <div class="rounded-lg shadow-sm" id="map" style="width: 100%; height:600px;"></div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Modal -->
+<div class="modal fade" tabindex="-1" id="modalNuevo2">
+    <div class="modal-dialog modal-lg">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h3 id="modalTitle" class="modal-title">Detalle</h3>
+                <div class="btn btn-icon btn-sm btn-active-light-primary ms-2" data-bs-dismiss="modal" aria-label="Close">
+                    <i class="ki-duotone ki-cross fs-1"><span class="path1"></span><span class="path2"></span></i>
+                </div>
+            </div>
+            <form class="form w-100" novalidate="novalidate" id="frmModal">
+                <div class="modal-body">
+                    <div class="form-group row mt-3">
+                        <div class="col-12" style="overflow-x:auto;">
+                            <table class="table table-striped table-row-bordered gy-5 gs-7 cell-border display nowrap" id="grDataModal">
+                                <thead>
+                                    <tr>
+                                      
+                                        <th><strong>Lista </strong></th>
+                                        <th><strong>Pregunta </strong></th>
+                                        <th><strong>Categoría </strong></th>
+                                        <th><strong>Subcategoría </strong></th>
+                                        <th><strong>Tipo</strong></th>
+                                        <th><strong>Opciones</strong></th>
+                                        <th><strong>ValorCorrecto</strong></th>
+                                        <th><strong>Explicacion</strong></th>
+                                    </tr>
+                                </thead>
+                                <tbody></tbody>
+                            </table>
+                        </div>
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    @*  <a id="btGuardar" href="javascript:;" class="btn btn-primary btn-block font-weight-bolder">
+                    <span class="svg-icon svg-icon-primary svg-icon-2x">
+                    <i class="fa fa-save"></i>
+                    </span>&nbsp;&nbsp;Guardar
+                    </a> *@
+                    <a href="javascript:;" class="btn btn-light-danger btn-block font-weight-bolder" data-bs-dismiss="modal">
+                        <span class="svg-icon svg-icon-primary svg-icon-2x">
+                            <i class="fa fa-fast-ban"></i>
+                        </span>&nbsp;&nbsp;Cerrar
+                    </a>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+
+
+
+
+<script src="https://code.jquery.com/jquery-3.5.1.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/moment.js/2.29.1/moment.min.js"></script>
+<script src="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/js/bootstrap.bundle.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/tempus-dominus/5.39.0/js/tempus-dominus.min.js"></script>
+<script src="~/js/MisListas/MisListas.js?v=1.0.5"></script>
+<input type="hidden" id="valorId" name="valorId" value="" />
+

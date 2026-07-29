@@ -1,0 +1,274 @@
+﻿
+<div class="card mb-5 mb-xxl-8">
+    <!--begin::Header-->
+    <div class="card-header border-0 pt-5">
+        <!--begin::Title-->
+        <h3 class="card-title align-items-start flex-column">
+            <span class="card-label fw-bold fs-3 mb-1">Sucursales</span>
+            <span class="text-muted fw-semibold fs-7"></span>
+        </h3>
+        <!--end::Title-->
+        <!--begin::Toolbar-->
+        <!-- <a id="btNuevaZona" href="javascript:;" class="btn btn-primary btn-block font-weight-bolder  btn-separation" data-bs-toggle="modal" data-bs-target="#modalNuevaZona">
+                <span class="svg-icon svg-icon-md">
+
+            </span>Nueva región
+        </a> -->
+        <h3></h3>
+        <!-- <a id="btNuevaRazonSocial" href="javascript:;" class="btn btn-primary btn-block font-weight-bolder  btn-separation" data-bs-toggle="modal" data-bs-target="#modalNuevaRazonSocial">
+                <span class="svg-icon svg-icon-md">
+
+                </span>Nueva Razón Social
+        </a>-->
+        <h3></h3>
+        <a id="btNuevo" href="javascript:;" class="btn btn-primary btn-block font-weight-bolder   btn-separation">
+            <span class="svg-icon svg-icon-md">
+                <!-- SVG Icon -->
+            </span>Nueva sucursal
+        </a>
+
+        <!--end::Toolbar-->
+    </div>
+    <!--end::Header-->
+    <!--begin::Body-->
+    <div class="card-body">
+        <div class="form-group row mt-3">
+            <div class="col-md-12" style="overflow-x:auto;">
+                <table class="datatable datatable-bordered datatable-head-custom display nowrap" id="grData">
+                    <thead>
+                        <tr>
+                            <th></th>
+                            <th>Nombre</th>
+                            <th>Dirección</th>
+                            <th>Ciudad</th>
+                            <th>Teléfono</th>
+                            <th>Correo</th>
+                            <th>País</th>
+                            <th>Razón Social</th>
+                            <th>Región</th>
+
+                        </tr>
+                    </thead>
+                    <tbody></tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+    <!--end::Body-->
+    @*   <div class="card-footer">
+    <div class="row">
+    <div class="col-lg-12">
+    <a href="/Home/Index" class="btn btn-light-danger btn-block font-weight-bolder">
+    <span class="svg-icon svg-icon-primary svg-icon-2x">
+    <i class="fa fa-fast-backward"></i>
+    </span>&nbsp;&nbsp;Regresar
+    </a>
+    </div>
+    </div>
+    </div> *@
+</div>
+<!-- -->
+<div id="modalNuevo" class="modal fade" tabindex="-1">
+    <div class="modal-dialog modal-lg">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h3 id="modalTitle" class="modal-title">Nueva sucursal</h3>
+                <div class="btn btn-icon btn-sm btn-active-light-primary ms-2" data-bs-dismiss="modal" aria-label="Close">
+                    <i class="ki-duotone ki-cross fs-1"><span class="path1"></span><span class="path2"></span></i>
+                </div>
+            </div>
+            <form class="form w-100" novalidate="novalidate" id="frmSucursal">
+
+                <div class="modal-body">
+                    <div class="form-group row">
+                        <div class="col-md-8 col-sm-12 form-floating fv-row">
+                            <input id="txNombre" name="txNombre" class="form-control form-control-lg form-control-solid" type="text" maxlength="50" placeholder="Nombre" />
+                            <label class="ml-1" for="txNombre">Nombre <span class="text-danger">*</span></label>
+                        </div>
+                        @* <div class="col-md-4 col-sm-12 form-floating fv-row">
+                        <input id="txNoIdentif" name="txNoIdentif" class="form-control form-control-lg form-control-solid" type="text" maxlength="50" placeholder="No. Identificador" />
+                        <label class="ml-1" for="txNoIdentif">No. Identificador <span class="text-danger">*</span></label>
+                        </div> *@
+                    </div>
+                    <div class="form-group row mt-3">
+                        <div class="col-12 form-floating fv-row">
+                            <input id="txCalle" name="txCalle" class="form-control form-control-lg form-control-solid" type="text" maxlength="50" placeholder="Dirección" />
+                            <label class="ml-1" for="txCalle">Dirección <span class="text-danger">*</span></label>
+                        </div>
+                    </div>
+                    <div class="form-group row mt-3">
+                        <div class="col-md-4 col-sm-12 form-floating fv-row">
+                            <input id="txCiudad" name="txCiudad" class="form-control form-control-lg form-control-solid" type="text" maxlength="50" placeholder="Ciudad" />
+                            <label class="ml-1" for="txCiudad">Ciudad <span class="text-danger">*</span></label>
+                        </div>
+                        <div class="col-md-4 col-sm-12 form-floating fv-row">
+                            <input id="txTelefono" name="txTelefono" class="form-control form-control-lg form-control-solid" type="text" maxlength="10" placeholder="Teléfono" />
+                            <label class="ml-1" for="txTelefono">Teléfono <span class="text-danger">*</span></label>
+                        </div>
+                        @*  <div class="col-md-4 col-sm-12 form-floating fv-row">
+                        <select id="cbTitular" name="cbTitular" class="form-select select2" aria-label="Titular">
+                        </select>
+                        <label for="cbTitular">Titular <span class="text-danger">*</span></label>
+                        </div> *@
+                    </div>
+                    <div class="form-group row mt-3">
+                        <div class="col-md-4 col-sm-12 form-floating fv-row">
+                            <input id="txCorreo" name="txCorreo" class="form-control form-control-lg form-control-solid" type="email" maxlength="50" placeholder="Correo" />
+                            <label class="ml-1" for="txCorreo">Correo <span class="text-danger">*</span></label>
+                        </div>
+                        <div class="col-md-4 col-sm-12 form-floating fv-row">
+                            <input id="txPais" name="txPais" class="form-control form-control-lg form-control-solid" type="text" maxlength="50" placeholder="País" />
+                            <label class="ml-1" for="txPais">País <span class="text-danger">*</span></label>
+                        </div>
+                        <div class="col-md-4 col-sm-12 form-floating fv-row">
+                            <select id="cbRazon" name="cbRazon" class="form-select select2" aria-label="Razón Social">
+                            </select>
+                            <label for="cbRazon">Razón Social <span class="text-danger">*</span></label>
+                        </div>
+                    </div>
+                    <div class="form-group row mt-3">
+                        <div class="col-md-4 col-sm-12 form-floating fv-row">
+                            <select id="cbZonas" name="cbZonas" class="form-select select2" aria-label="Región">
+                            </select>
+                            <label for="cbZonas">Región<span class="text-danger">*</span></label>
+                        </div>
+                        @* <div class="col-md-4 col-sm-12 form-floating fv-row">
+                        <select id="cbTipo" name="cbTipo" class="form-select select2" aria-label="Tipo">
+                        </select>
+                        <label for="cbTipo">Tipo <span class="text-danger">*</span></label>
+                        </div> *@
+                    </div>
+                    @*  <div class="form-group row mt-3">
+                    <div class="col-md-3 col-sm-12">
+                    <div id="imgLogo" class="image-input image-input-outline" data-kt-image-input="true" style="background-image: url(/Imagenes/blank.jpg)">
+                    <div id="imgLogoWrapper" class="image-input-wrapper w-125px h-125px" style="background-image: url(/Imagenes/blank.jpg)"></div>
+                    <label class="btn btn-icon btn-circle btn-color-muted btn-active-color-primary w-25px h-25px bg-body shadow" data-kt-image-input-action="change" data-bs-toggle="tooltip" data-bs-dismiss="click" title="Cambiar">
+                    <i class="ki-duotone ki-pencil fs-6"><span class="path1"></span><span class="path2"></span></i>
+                    <input id="imagen" type="file" name="avatar" accept=".png, .jpg, .jpeg" />
+                    <input type="hidden" name="avatar_remove" />
+                    </label>
+                    <span class="btn btn-icon btn-circle btn-color-muted btn-active-color-primary w-25px h-25px bg-body shadow" data-kt-image-input-action="cancel" data-bs-toggle="tooltip" data-bs-dismiss="click" title="Cancelar">
+                    <i class="ki-outline ki-cross fs-3"></i>
+                    </span>
+                    <span class="btn btn-icon btn-circle btn-color-muted btn-active-color-primary w-25px h-25px bg-body shadow" data-kt-image-input-action="remove" data-bs-toggle="tooltip" data-bs-dismiss="click" title="Quitar">
+                    <i class="ki-outline ki-cross fs-3"></i>
+                    </span>
+                    </div>
+                    </div>
+                    <div class="col-md-5 col-sm-12 form-floating fv-row">
+                    <textarea id="txNotas" class="form-control form-control-solid" placeholder="Notas" style="height: 120px"></textarea>
+                    <label for="txNotas">Notas</label>
+                    </div>
+                    </div> *@
+                </div>
+
+
+                <div class="modal-footer">
+                    <a href="javascript:;" class="btn btn-danger font-weight-bolder" data-bs-dismiss="modal">
+                        <span class="svg-icon svg-icon-primary svg-icon-2x">
+                            <i class="fa fa-ban"></i>
+                        </span>&nbsp;&nbsp;Cancelar
+                    </a>
+                    <a id="btGuardar" href="javascript:;" class="btn btn-primary font-weight-bolder">
+                        <span class="svg-icon svg-icon-primary svg-icon-2x">
+                            <i class="fa fa-save"></i>
+                        </span>&nbsp;&nbsp;Guardar
+                    </a>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+
+
+
+<!-- Modal Nueva Zona -->
+<div id="modalNuevaZona" class="modal fade" tabindex="-1">
+    <div class="modal-dialog modal-lg">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h3 class="modal-title">Nueva región </h3>
+                <div class="btn btn-icon btn-sm btn-active-light-primary ms-2" data-bs-dismiss="modal" aria-label="Close">
+                    <i class="ki-duotone ki-cross fs-1"><span class="path1"></span><span class="path2"></span></i>
+                </div>
+            </div>
+            <form class="form w-100" novalidate="novalidate" id="frmZona">
+                <div class="modal-body">
+                    <div class="form-group row">
+                        <div class="col-md-8 col-sm-12 form-floating fv-row">
+                            <input id="txNombreZona" name="txNombreZona" class="form-control form-control-lg form-control-solid" type="text" maxlength="50" placeholder="Nombre" />
+                            <label class="ml-1" for="txNombreZona">Nombre <span class="text-danger">*</span></label>
+                        </div>
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <a href="javascript:;" class="btn btn-danger font-weight-bolder" data-bs-dismiss="modal">
+                        <span class="svg-icon svg-icon-primary svg-icon-2x">
+                            <i class="fa fa-ban"></i>
+                        </span>&nbsp;&nbsp;Cancelar
+                    </a>
+                    <a id="btGuardarZona" href="javascript:;" class="btn btn-primary font-weight-bolder">
+                        <span class="svg-icon svg-icon-primary svg-icon-2x">
+                            <i class="fa fa-save"></i>
+                        </span>&nbsp;&nbsp;Guardar
+                    </a>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+
+<!-- Modal Nueva Razón Social -->
+<div id="modalNuevaRazonSocial" class="modal fade" tabindex="-1">
+    <div class="modal-dialog modal-lg">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h3 class="modal-title">Nueva Razón Social</h3>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <form class="form w-100" novalidate="novalidate" id="frmRazonSocial">
+                <div class="modal-body">
+                    <div class="row mb-3">
+                        <div class="col-md-12 form-floating">
+                            <input id="txNombreRazon" name="txNombreRazon" class="form-control form-control-lg form-control-solid" type="text" maxlength="50" placeholder="Nombre" required />
+                            <label for="txNombreRazon">Nombre <span class="text-danger">*</span></label>
+                        </div>
+                    </div>
+                    <div class="row mb-3">
+                        <div class="col-md-12 form-floating">
+                            <input id="txRFC" name="txRFC" class="form-control form-control-lg form-control-solid" type="text" maxlength="13" placeholder="RFC" value="XAXX010101000" required />
+                            <label for="txRFC">RFC <span class="text-danger">*</span></label>
+                        </div>
+                    </div>
+                    <!--
+                    Descomentar para añadir dirección
+                    <div class="row mb-3">
+                        <div class="col-md-12 form-floating">
+                            <input id="txDireccionRazon" name="txDireccionRazon" class="form-control form-control-lg form-control-solid" type="text" maxlength="50" placeholder="Dirección" required />
+                            <label for="txDireccionRazon">Dirección <span class="text-danger">*</span></label>
+                        </div>
+                    </div>
+                    -->
+                </div>
+                <div class="modal-footer text-end">
+                    <button type="button" class="btn btn-danger" data-bs-dismiss="modal">
+                        <i class="fa fa-ban me-2"></i>Cancelar
+                    </button>
+                    <button id="btGuardarRazon" type="button" class="btn btn-primary">
+                        <i class="fa fa-save me-2"></i>Guardar
+                    </button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+
+<!-- -->
+<style>
+    .btn-separation {
+        margin-bottom: 15px; /* Ajusta el valor según la separación deseada */
+    }
+</style>
+<input type="hidden" id="valorId" name="valorId" value="" />
+
+<script src="/js/sucursales/Sucursales.js"></script>

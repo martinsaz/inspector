@@ -1,0 +1,186 @@
+﻿@{
+    ViewBag.Title = "Index";
+    Layout = "/Views/Shared/_Layout.cshtml";
+}
+
+<div class="card mb-5 mb-xxl-8">
+    <!--begin::Header-->
+    <div class="card-header border-0 pt-5">
+        <!--begin::Title-->
+        <h3 class="card-title align-items-start flex-column">
+            <span class="card-label fw-bold fs-3 mb-1">Razones Sociales</span>
+            <span class="text-muted fw-semibold fs-7">ABC Razones Sociales</span>
+        </h3>
+        <!--end::Title-->
+        <!--begin::Toolbar-->
+        <div class="card-toolbar">
+            <a id="btNuevo" href="javascript:;" class="btn btn-primary font-weight-bolder">
+                <span class="svg-icon svg-icon-md">
+                    <!--begin::Svg Icon | path:assets/media/svg/icons/Design/Flatten.svg-->
+                    <svg xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" width="24px"
+                         height="24px" viewBox="0 0 24 24" version="1.1">
+                        <g stroke="none" stroke-width="1" fill="none" fill-rule="evenodd">
+                            <rect x="0" y="0" width="24" height="24" />
+                            <circle fill="#000000" cx="9" cy="15" r="6" />
+                            <path d="M8.8012943,7.00241953 C9.83837775,5.20768121 11.7781543,4 14,4 C17.3137085,4 20,6.6862915 20,10 C20,12.2218457 18.7923188,14.1616223 16.9975805,15.1987057 C16.9991904,15.1326658 17,15.0664274 17,15 C17,10.581722 13.418278,7 9,7 C8.93357256,7 8.86733422,7.00080962 8.8012943,7.00241953 Z"
+                                  fill="#000000" opacity="0.3" />
+                        </g>
+                    </svg>
+                    <!--end::Svg Icon-->
+                </span>Nueva Razón Social
+            </a>
+        </div>
+        <!--end::Toolbar-->
+    </div>
+    <!--end::Header-->
+    <!--begin::Body-->
+    <div class="card-body">
+        <div class="form-group row mt-3">
+            <div class="col-md-12" style="overflow-x:auto;">
+                <table class="datatable datatable-bordered datatable-head-custom display nowrap" id="grData">
+                    <thead>
+                        <tr>
+                            <th></th>
+                            <th>Razón Social</th>
+                            <th>Representante</th>
+                            <th>R.F.C</th>
+                            <th>Dirección</th>
+                            <th>Colonia</th>
+                            <th>C.P.</th>
+                            <th>Ciudad</th>
+                            <th>Estado</th>
+                            <th>País</th>
+                            <th>Teléfono</th>
+                            <th>Regimen Fiscal</th>
+                            <th>Notas</th>
+                        </tr>
+                    </thead>
+                    <tbody></tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+    <!--end::Body-->
+    <div class="card-footer">
+        <div class="row">
+            <div class="col-lg-12">
+                <a href="/Home/Index" class="btn btn-light-danger btn-block font-weight-bolder">
+                    <span class="svg-icon svg-icon-primary svg-icon-2x">
+                        <i class="fa fa-backward"></i>
+                    </span>&nbsp;&nbsp;Regresar
+                </a>
+            </div>
+        </div>
+    </div>
+</div>
+<!-- -->
+<div class="modal fade" tabindex="-1" id="modalNuevo">
+    <div class="modal-dialog modal-lg">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h3 id="modalTitle" class="modal-title">Nueva Razón Social</h3>
+                <div class="btn btn-icon btn-sm btn-active-light-primary ms-2" data-bs-dismiss="modal" aria-label="Close">
+                    <i class="ki-duotone ki-cross fs-1"><span class="path1"></span><span class="path2"></span></i>
+                </div>
+            </div>
+            <form class="form w-100" novalidate="novalidate" id="frmRazon">
+
+                <div class="modal-body">
+                    <div class="form-group row">
+                        <div class="col-lg-4 col-md-6 col-sm-12 form-floating fv-row mb-3">
+                            <input id="txRazon" name="txRazon" class="form-control form-control-lg form-control-solid" type="text" maxlength="200" placeholder="Razón Social" />
+                            <label class="ml-1" for="txRazon">Razón Social <span class="text-danger">*</span></label>
+                        </div>
+                        <div class="col-lg-4 col-md-6 col-sm-12 form-floating fv-row mb-3">
+                            <input id="txRepresentante" name="txRepresentante" class="form-control form-control-lg form-control-solid" type="text" maxlength="255" placeholder="Representante" />
+                            <label class="ml-1" for="txRepresentante">Representante <span class="text-danger">*</span></label>
+                        </div>
+                        <div class="col-lg-4 col-md-6 col-sm-12 form-floating fv-row mb-3">
+                            <input id="txRfc" name="txRfc" class="form-control form-control-lg form-control-solid" type="text" maxlength="15" placeholder="XAXX010101000" />
+                            <label class="ml-1" for="txRfc">RFC <span class="text-danger">*</span></label>
+                        </div>
+                    </div>
+                    <div class="form-group row">
+                        <div class="col-12 form-floating fv-row mb-3">
+                            <input id="txDireccion" name="txDireccion" class="form-control form-control-lg form-control-solid" type="text" maxlength="255" placeholder="Dirección" />
+                            <label class="ml-1" for="txDireccion">Dirección <span class="text-danger">*</span></label>
+                        </div>
+                    </div>
+                    <div class="form-group row">
+                        <div class="col-lg-4 col-md-6 col-sm-12 form-floating fv-row mb-3">
+                            <input id="txColonia" name="txColonia" class="form-control form-control-lg form-control-solid" type="text" maxlength="255" placeholder="Colonia" />
+                            <label class="ml-1" for="txColonia">Colonia <span class="text-danger">*</span></label>
+                        </div>
+                        <div class="col-lg-4 col-md-6 col-sm-12 form-floating fv-row mb-3">
+                            <input id="txCP" name="txCP" class="form-control form-control-lg form-control-solid" type="text" maxlength="5" placeholder="C.P." />
+                            <label class="ml-1" for="txCP">C.P. <span class="text-danger">*</span></label>
+                        </div>
+                        <div class="col-lg-4 col-md-6 col-sm-12 form-floating fv-row mb-3">
+                            <input id="txCiudad" name="txCiudad" class="form-control form-control-lg form-control-solid" type="text" maxlength="255" placeholder="Ciudad" />
+                            <label class="ml-1" for="txCiudad">Ciudad <span class="text-danger">*</span></label>
+                        </div>
+                    </div>
+                    <div class="form-group row">
+                        <div class="col-lg-4 col-md-6 col-sm-12 form-floating fv-row mb-3">
+                            <input id="txEstado" name="txEstado" class="form-control form-control-lg form-control-solid" type="text" maxlength="255" placeholder="Estado" />
+                            <label class="ml-1" for="txEstado">Estado <span class="text-danger">*</span></label>
+                        </div>
+                        <div class="col-lg-4 col-md-6 col-sm-12 form-floating fv-row mb-3">
+                            <input id="txPais" name="txPais" class="form-control form-control-lg form-control-solid" type="text" maxlength="255" placeholder="País" />
+                            <label class="ml-1" for="txPais">País <span class="text-danger">*</span></label>
+                        </div>
+                        <div class="col-lg-4 col-md-6 col-sm-12 form-floating fv-row mb-3">
+                            <input id="txTelefono" name="txTelefono" class="form-control form-control-lg form-control-solid" type="text" maxlength="13" placeholder="Teléfono" />
+                            <label class="ml-1" for="txTelefono">Teléfono <span class="text-danger">*</span></label>
+                        </div>
+                    </div>
+                    <div class="form-group row">
+                        <!-- <div class="col-lg-3 col-md-6 col-sm-12 mb-3">
+                            
+                            <div id="imgLogo" class="image-input image-input-outline" data-kt-image-input="true" style="background-image: url(/Imagenes/blank.jpg)">
+                                <div id="imgLogoWrapper" class="image-input-wrapper w-125px h-125px" style="background-image: url(/Imagenes/blank.jpg)"></div>
+                                <label class="btn btn-icon btn-circle btn-color-muted btn-active-color-primary w-25px h-25px bg-body shadow" data-kt-image-input-action="change" data-bs-toggle="tooltip" data-bs-dismiss="click" title="Cambiar">
+                                    <i class="ki-duotone ki-pencil fs-6"><span class="path1"></span><span class="path2"></span></i>
+                                    <input id="imagen" type="file" name="avatar" accept=".png, .jpg, .jpeg" />
+                                    <input type="hidden" name="avatar_remove" />
+                                </label>
+                                <span class="btn btn-icon btn-circle btn-color-muted btn-active-color-primary w-25px h-25px bg-body shadow" data-kt-image-input-action="cancel" data-bs-toggle="tooltip" data-bs-dismiss="click" title="Cancelar">
+                                    <i class="ki-outline ki-cross fs-3"></i>
+                                </span>
+                                <span class="btn btn-icon btn-circle btn-color-muted btn-active-color-primary w-25px h-25px bg-body shadow" data-kt-image-input-action="remove" data-bs-toggle="tooltip" data-bs-dismiss="click" title="Quitar">
+                                    <i class="ki-outline ki-cross fs-3"></i>
+                                </span>
+                            </div>
+                    </div>-->
+                        <div class="col-lg-5 col-md-6 col-sm-12 form-floating mb-3">
+                            <textarea id="txNotas" class="form-control form-control-solid" placeholder="Notas" style="height: 120px"></textarea>
+                            <label for="txNotas">Notas</label>
+                        </div>
+                        <div class="col-md-6 col-12 form-floating fv-row mb-3">
+                            <input id="txRegimenFiscal" name="txRegimenFiscal" class="form-control form-control-lg form-control-solid" type="text" maxlength="200" placeholder="Régimen Fiscal" />
+                            <label class="ml-1" for="txRegimenFiscal">Régimen Fiscal <span class="text-danger">*</span></label>
+                        </div>
+                    </div>
+                </div>
+
+
+                <div class="modal-footer">
+                    <a href="javascript:;" class="btn btn-light-danger font-weight-bolder" data-bs-dismiss="modal">
+                        <span class="svg-icon svg-icon-primary svg-icon-2x">
+                            <i class="fa fa-ban"></i>
+                        </span>&nbsp;&nbsp;Cancelar
+                    </a>
+                    <a id="btGuardar" href="javascript:;" class="btn btn-primary font-weight-bolder">
+                        <span class="svg-icon svg-icon-primary svg-icon-2x">
+                            <i class="fa fa-save"></i>
+                        </span>&nbsp;&nbsp;Guardar
+                    </a>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+<input type="hidden" id="valorId" name="valorId" value="" />
+<script src="/js/RazonesSociales/razonessociales.js?v=1.1.1"></script>
+
+

@@ -1,0 +1,427 @@
+﻿@{
+    Layout = null;
+}
+<!DOCTYPE html>
+<html lang="es-mx">
+<head>
+    <title>CheckApp, la app de los supervisores</title>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <link rel="stylesheet" href="https://fonts.googleapis.com/css?family=Inter:300,400,500,600,700" />
+    <link href="/assets/plugins/global/plugins.bundle.css" rel="stylesheet" type="text/css" />
+    <link href="/assets/css/style.bundle.css" rel="stylesheet" type="text/css" />
+    <script>if (window.top != window.self) { window.top.location.replace(window.self.location.href); }</script>
+    <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+    <style>
+        .vertical-center {
+            margin: 0;
+            position: absolute;
+            top: 50%;
+            -ms-transform: translateY(-50%);
+            transform: translateY(-50%);
+        }
+    </style>
+</head>
+<body id="kt_body" class="auth-bg bgi-size-cover bgi-attachment-fixed bgi-position-center">
+    <script>var defaultThemeMode = "light"; var themeMode; if (document.documentElement) { if (document.documentElement.hasAttribute("data-bs-theme-mode")) { themeMode = document.documentElement.getAttribute("data-bs-theme-mode"); } else { if (localStorage.getItem("data-bs-theme") !== null) { themeMode = localStorage.getItem("data-bs-theme"); } else { themeMode = defaultThemeMode; } } if (themeMode === "system") { themeMode = window.matchMedia("(prefers-color-scheme: dark)").matches ? "dark" : "light"; } document.documentElement.setAttribute("data-bs-theme", themeMode); }</script>
+    <div class="d-flex flex-column flex-root">
+        <style>
+            body {
+                background-image: url('/assets/media/auth/bg10.jpeg');
+            }
+
+            [data-bs-theme="dark"] body {
+                background-image: url('/assets/media/auth/bg10-dark.jpeg');
+            }</style>
+        <div class="d-flex flex-column flex-lg-row flex-column-fluid">
+            <div class="d-flex flex-column-fluid flex-lg-row-auto justify-content-center justify-content-lg-end p-12">
+                <div class="bg-body d-flex flex-column flex-center rounded-4 w-md-600px p-10">
+                    <div class="d-flex flex-center flex-column align-items-stretch h-lg-100 w-md-400px">
+                        <div class="d-flex flex-center flex-column flex-column-fluid pb-15 pb-lg-20">
+                            <form class="form w-100" novalidate="novalidate" id="kt_sign_in_form" data-kt-redirect-url="/Home/Index" action="#">
+                                <div class="text-center mb-11">
+                                    <img src="/assets/media/logos/checkapp2.png" alt="Logo CheckApp" style="max-width: 300px; margin-bottom: 10px;">
+                                    <p class="fs-5">La app de los supervisores®</p>
+                                </div>
+                                <div class="separator separator-content my-14">
+                                    <span class="w-125px text-gray-500 fw-semibold fs-7">Iniciar sesión</span>
+                                </div>
+                                <div class="fv-row mb-8">
+                                    <input type="text" placeholder="usuario@servidor.com" id="email" name="email" autocomplete="off" class="form-control bg-transparent" />
+                                </div>
+                                <div class="fv-row mb-3">
+                                    <input type="password" placeholder="Contraseña" id="password" name="password" autocomplete="off" class="form-control bg-transparent" />
+                                </div>
+                                <div id="areaNoEmp" style="display:none">
+                                    <div class="fv-row mb-3">
+                                        <input type="number" placeholder="Empresa" id="noEmp" name="noEmp" autocomplete="off" class="form-control bg-transparent" value="100" min="100" max="1000" />
+                                    </div>
+                                </div>
+                                <div class="d-flex flex-stack flex-wrap gap-3 fs-base fw-semibold mb-8">
+                                    <a href="javascript:;" class="link-primary" style="color: #FF9230 !important;" data-bs-toggle="modal" data-bs-target="#forgotPasswordModal">¿Olvidó su contraseña?</a>
+                                </div>
+                                <div class="d-grid mb-10">
+                                    <button type="submit" id="kt_sign_in_submit" class="btn btn-primary" style="background-color: #FF9230 !important; border-color: #FF9230 !important;">
+                                        <span class="indicator-label">Iniciar sesión</span>
+                                        <span class="indicator-progress">
+                                            Espere por favor...
+                                            <span class="spinner-border spinner-border-sm align-middle ms-2"></span>
+                                        </span>
+                                    </button>
+                                </div>
+                                <div class="text-gray-500 text-center fw-semibold fs-6">
+                                    ¿No está registrado?
+                                    <a id="btRegistro" href="javascript:;" class="link-primary">Registrarme</a>
+                                </div>
+                                <div class="text-gray-500 text-center fw-semibold fs-6" style="color: black; margin-top: 15px;">
+                                    Soporte y ayuda escríbenos a <a href="mailto:hola@supervisores.mx" style="color: black;">hola@supervisores.mx</a>
+                                </div>
+                            </form>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <div class="d-none d-lg-flex flex-lg-row-fluid">
+                <div class="d-flex flex-column flex-center pb-0 pb-lg-10 p-10 w-100">
+                    <img class="theme-dark-show mx-auto mw-100" src="/assets/media/auth/homex.png" alt="" style="width: 100%; height: 100%;">
+                    <img class="theme-light-show mx-auto mw-100" src="/assets/media/auth/homex.png" alt="" style="width: 100%; height: 100%;">
+                    <div class="text-gray-600 fs-base text-center fw-semibold">
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    <!-- Modal -->
+    <div class="modal fade" id="forgotPasswordModal" tabindex="-1" aria-labelledby="forgotPasswordLabel" aria-hidden="true">
+        <div class="modal-dialog">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title" id="forgotPasswordLabel">¿Olvidó su contraseña?</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                </div>
+                <div class="modal-body">
+                    <form id="kt_password_reset_form">
+                        <div class="text-center mb-10">
+                            <div class="text-gray-500 fw-semibold fs-6">Ingrese su dirección de correo y le enviaremos instrucciones.</div>
+                        </div>
+                        <div class="fv-row mb-8">
+                            <input type="text" placeholder="Email" id="email" name="email" autocomplete="off" class="form-control bg-transparent" />
+                        </div>
+                        <div class="d-flex flex-wrap justify-content-center pb-lg-0">
+                            <button type="button" id="kt_password_reset_submit" class="btn btn-primary me-4">Enviar</button>
+                            <button type="button" class="btn btn-light" data-bs-dismiss="modal">Cancelar</button>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+    <!-- modal nuevo usuario -->
+    <div class="modal fade" tabindex="-1" id="modalNuevo">
+        <div class="modal-dialog modal-xl">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h3 class="modal-title">Registro de Nuevo Usuario</h3>
+                    <div class="btn btn-icon btn-sm btn-active-light-primary ms-2" data-bs-dismiss="modal" aria-label="Close">
+                        <i class="ki-duotone ki-cross fs-1"><span class="path1"></span><span class="path2"></span></i>
+                    </div>
+                </div>
+                <form class="form w-100" novalidate="novalidate" id="frmUsuario">
+                    <div class="modal-body">
+                        <div class="form-group">
+                            <div class="row col-12 mt-3">
+                                <div class="col-4 form-floating fv-row">
+                                    <input id="txNombre" name="txNombre" class="form-control bg-transparent" type="text" maxlength="255" placeholder="Nombre Completo" />
+                                    <label for="txNombre">Nombre Completo<span class="text-danger">*</span></label>
+                                </div>
+                                <div class="col-4 form-floating fv-row">
+                                    <input id="txApaterno" name="txApaterno" class="form-control bg-transparent" type="text" maxlength="255" placeholder="Apellido Paterno" />
+                                    <label for="txApaterno">Apellido Paterno<span class="text-danger">*</span></label>
+                                </div>
+                                <div class="col-4 form-floating fv-row">
+                                    <input id="txAmaterno" name="txAmaterno" class="form-control bg-transparent" type="text" maxlength="255" placeholder="Apellido Materno" />
+                                    <label for="txAmaterno">Apellido Materno<span class="text-danger">*</span></label>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="form-group">
+                            <div class="row col-12 mt-3">
+                                <div class="col-6 form-floating fv-row">
+                                    <input id="txToken" name="txToken" class="form-control bg-transparent" type="text" maxlength="25" placeholder="Indetificador de la cuenta" />
+                                    <label for="txToken">Identificador de la cuenta <span class="text-danger">*</span></label>
+                                </div>
+                                <div class="col-6 form-floating fv-row">
+                                    <span class="form-check-label fw-semibold text-gray-700 fs-base vertical-center">
+                                        <a href="javascript:;" class="ms-1 link-primary" onclick="abreModal(2); return false;">¿Qué es un identificador de cuenta?</a>
+                                    </span>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="form-group">
+                            <div class="row col-12 mt-3">
+                                <div class="col-12 form-floating fv-row">
+                                    <input id="txCorreo" name="txCorreo" class="form-control bg-transparent" type="email" maxlength="50" placeholder="Dirección de Correo" />
+                                    <label for="txCorreo">Dirección de Correo <span class="text-danger">*</span></label>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="form-group" data-kt-password-meter="true">
+                            <div class="row col-12 mt-3">
+                                <div class="col-6 fv-row">
+                                    <input class="form-control bg-transparent" type="password" placeholder="Contraseña" id="password1" name="password1" autocomplete="off" />
+                                    <span class="btn btn-sm btn-icon position-absolute translate-middle top-50 end-0 me-n2" data-kt-password-meter-control="visibility">
+                                        <i class="ki-duotone ki-eye-slash fs-2"></i>
+                                        <i class="ki-duotone ki-eye fs-2 d-none"></i>
+                                    </span>
+                                </div>
+                                <div class="col-6 fv-row">
+                                    <input class="form-control bg-transparent" type="password" placeholder="Confirmar contraseña" name="confpassword" autocomplete="off" />
+                                </div>
+                            </div>
+                            <div class="row col-12 mt-3">
+                                <div class="text-muted text-center p-2" style="font-size: 1em; max-width: 90%; margin: 0 auto;">
+                                    Al menos 8 caracteres, uno o más caracteres en mayúsculas, uno o más caracteres en minúsculas, uno o más dígitos y uno o más de los siguientes caracteres #?!$%^&*-
+                                </div>
+                                <div class="d-flex align-items-center mb-3" data-kt-password-meter-control="highlight">
+                                    <div class="flex-grow-1 bg-secondary bg-active-success rounded h-5px me-2"></div>
+                                    <div class="flex-grow-1 bg-secondary bg-active-success rounded h-5px me-2"></div>
+                                    <div class="flex-grow-1 bg-secondary bg-active-success rounded h-5px me-2"></div>
+                                    <div class="flex-grow-1 bg-secondary bg-active-success rounded h-5px"></div>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="form-group">
+                            <div class="row col-12 mt-3">
+                                <div class="col-6 fv-row">
+                                    <div class="text-center p-2" style="font-size: 1em; color: #FF9230 !important;">
+                                        ¿Aún no tienes cuenta?
+                                    </div>
+                                    <p class="text-center">
+                                        <!-- class="text-primary fs-5 text-decoration-underline" -->
+                                        <a id="btNuevaEmpresa" href="javascript:;"  style="font-weight: bold; font-size:large">
+                                            Registrarme gratis por 7 días
+                                        </a>
+                                    </p>
+                                </div>
+                                <div class="col-6 fv-row" style="text-align: center;">
+                                    <label class="form-check form-check-inline" style="display: inline-flex; align-items: center;">
+                                        <input id="toc" class="form-check-input" type="checkbox" name="toc" value="1" />
+                                        <span class="form-check-label fw-semibold text-gray-700 fs-base ms-1">
+                                            He leído y Acepto los
+                                            <a href="#" class="ms-1 link-primary" onclick="abreModal(1); return false;">Términos y condiciones</a>
+                                        </span>
+                                    </label>
+                                    <label class="form-check form-check-inline" style="display: inline-flex; align-items: center;">
+                                        <input id="privacy" class="form-check-input" type="checkbox" name="privacy" value="1" />
+                                        <span class="form-check-label fw-semibold text-gray-700 fs-base ms-1">
+                                            He leído y Acepto el
+                                            <a href="#" class="ms-1 link-primary" onclick="abreModal(3); return false;">Aviso de privacidad</a>
+                                        </span>
+                                    </label>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="modal-footer">
+                        <a id="btGuardar" href="javascript:;" class="btn btn-primary btn-block font-weight-bolder">
+                            <span class="svg-icon svg-icon-primary svg-icon-2x">
+                                <i class="fa fa-save"></i>
+                            </span>&nbsp;&nbsp;Guardar
+                        </a>
+                        <a href="javascript:;" class="btn btn-light-danger btn-block font-weight-bolder" data-bs-dismiss="modal">
+                            <span class="svg-icon svg-icon-primary svg-icon-2x">
+                                <i class="fa fa-close"></i>
+                            </span>&nbsp;&nbsp;Cancelar
+                        </a>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+    <!-- Modal empresa -->
+    <div class="modal fade" tabindex="-1" id="mdEmpresa">
+        <div class="modal-dialog modal-lg">
+            <div class="modal-content" style="background-color:ghostwhite">
+                <div class="modal-header">
+                    <h3 class="modal-title">Registro de Empresa</h3>
+                    <div class="btn btn-icon btn-sm btn-active-light-primary ms-2" data-bs-dismiss="modal" aria-label="Close">
+                        <i class="ki-duotone ki-cross fs-1"><span class="path1"></span><span class="path2"></span></i>
+                    </div>
+                </div>
+                <div class="modal-body">
+                    <div class="form-group row mt-3 mx-2">
+                        <div class="col-12 mx-auto form-floating fv-row">
+                            <input id="txEmpresa" name="txEmpresa" class="form-control" type="text" maxlength="255" placeholder="Nombre de la Cuenta" />
+                            <label for="txEmpresa">Nombre de la Cuenta (empresa) <span class="text-danger">*</span></label>
+                        </div>
+                    </div>
+                    <div class="form-group row mt-3">
+                        <span id="txResultado"></span>
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <a id="btRegistrar" href="javascript:;" class="btn btn-primary font-weight-bolder mx-2">
+                        <i class="fa fa-save"></i>&nbsp;&nbsp;Guardar
+                    </a>
+                    <a href="javascript:;" class="btn btn-light-danger btn-block font-weight-bolder" data-bs-dismiss="modal">
+                        <span class="svg-icon svg-icon-primary svg-icon-2x">
+                            <i class="fa fa-close"></i>
+                        </span>&nbsp;&nbsp;Cancelar
+                    </a>
+                </div>
+            </div>
+        </div>
+    </div>
+    <!-- Modal términos -->
+    <div class="modal fade" tabindex="-1" id="termsModal">
+        <div class="modal-dialog modal-lg">
+            <div class="modal-content" style="background-color:ghostwhite">
+                <div class="modal-header">
+                    <h3 class="modal-title">Términos y condiciones de Uso</h3>
+                    <div class="btn btn-icon btn-sm btn-active-light-primary ms-2" data-bs-dismiss="modal" aria-label="Close">
+                        <i class="ki-duotone ki-cross fs-1"><span class="path1"></span><span class="path2"></span></i>
+                    </div>
+                </div>
+                <div class="modal-body">
+                    <p>Bienvenido a CheckApp®, una aplicación desarrollada por Supervisores.mx (en adelante, "la Empresa") para facilitar la supervisión de actividades en el ámbito empresarial. Al utilizar la aplicación, el usuario acepta estar sujeto a los siguientes términos y condiciones. Si no está de acuerdo con ellos, le recomendamos no utilizar los servicios de CheckApp®.</p>
+                    <h2>1. Definiciones</h2>
+                    <ul>
+                        <li><strong>Usuario:</strong> Cualquier persona que acceda o utilice la aplicación CheckApp®.</li>
+                        <li><strong>Servicios:</strong> Funcionalidades y herramientas proporcionadas por CheckApp®, tales como la creación de listas de verificación (checklists), seguimiento de tareas, reportes de supervisión y otros.</li>
+                        <li><strong>Periodo de Prueba:</strong> Periodo gratuito de 7 días en el que el usuario puede utilizar los servicios sin costo.</li>
+                    </ul>
+                    <h2>2. Registro y Acceso a los Servicios</h2>
+                    <p>Para utilizar los servicios de CheckApp®, el usuario deberá crear una cuenta proporcionando información personal como su nombre, correo electrónico y datos laborales. El usuario es responsable de mantener la confidencialidad de su cuenta y contraseña, así como de todas las actividades realizadas en su cuenta.</p>
+                    <h2>3. Periodo de Prueba y Suscripción</h2>
+                    <p>CheckApp® ofrece un periodo de prueba gratuito de 7 días a los nuevos usuarios, que comienza desde el momento en que se crea una cuenta y se activan los servicios.</p>
+                    <p>Durante el periodo de prueba, el usuario podrá acceder a todas las funcionalidades de la aplicación sin costo.</p>
+                    <p>Al finalizar el periodo de prueba, el usuario deberá suscribirse a uno de los planes de pago ofrecidos para continuar utilizando los servicios de CheckApp®.</p>
+                    <p>Si el usuario no realiza el pago al finalizar los 7 días de prueba, la cuenta será suspendida automáticamente y el acceso a los servicios quedará bloqueado hasta que se regularice el pago.</p>
+                    <p>Si en 60 días naturales no se realiza el pago, los datos serán eliminados permanentemente.</p>
+                    <h2>4. Tarifas y Pagos</h2>
+                    <p>Los planes de suscripción de CheckApp® pueden variar en función de la cantidad de usuarios y características contratadas. Las tarifas aplicables estarán disponibles en <a href="https://www.supervisores.mx" target="_blank">www.supervisores.mx</a> y podrán ser actualizadas periódicamente.</p>
+                    <p>Los pagos se realizarán mediante los métodos de pago disponibles en la plataforma, y el cobro se hará de manera recurrente, según el plan contratado.</p>
+                    <p>Si el pago no se puede procesar, ya sea por insuficiencia de fondos u otras razones, el servicio se suspenderá automáticamente y el usuario recibirá una notificación al respecto.</p>
+                    <p>Una vez regularizado el pago, el acceso a la cuenta será reactivado.</p>
+                    <h2>5. Obligaciones del Usuario</h2>
+                    <p>El usuario se compromete a:</p>
+                    <ul>
+                        <li>Utilizar la aplicación y los servicios conforme a las leyes aplicables y a estos términos y condiciones.</li>
+                        <li>No utilizar la aplicación para fines ilícitos, fraudulentos o que perjudiquen los derechos de terceros.</li>
+                        <li>No intentar acceder a áreas restringidas de la aplicación o realizar acciones que comprometan la seguridad del sistema.</li>
+                    </ul>
+                    <h2>6. Suspensión y Terminación de Cuenta</h2>
+                    <p>CheckApp® se reserva el derecho de suspender o cancelar la cuenta del usuario en cualquier momento si detecta el incumplimiento de estos términos y condiciones, el uso indebido de los servicios, o la falta de pago tras la finalización del periodo de prueba.</p>
+                    <h2>7. Propiedad Intelectual</h2>
+                    <p>Todos los derechos de propiedad intelectual relacionados con CheckApp®, incluyendo su diseño, código fuente, logos, marcas y demás contenido visual, son propiedad exclusiva de la Empresa o sus licenciantes. El usuario no adquiere ningún derecho sobre la propiedad intelectual de CheckApp® al utilizar la aplicación, excepto los derechos limitados de uso según estos términos y condiciones.</p>
+                    <h2>8. Limitación de Responsabilidad</h2>
+                    <p>La Empresa no será responsable de daños directos, indirectos, incidentales, especiales o consecuentes derivados del uso o la imposibilidad de uso de CheckApp®, incluidos los fallos en la plataforma, pérdida de datos, errores en los reportes de supervisión, o cualquier otro perjuicio.</p>
+                    <p>El usuario entiende y acepta que el uso de CheckApp® es bajo su propio riesgo.</p>
+                    <h2>9. Modificaciones</h2>
+                    <p>Supervisores.mx se reserva el derecho de modificar estos términos y condiciones en cualquier momento. Las modificaciones entrarán en vigor desde el momento de su publicación en <a href="https://www.supervisores.mx" target="_blank">www.supervisores.mx</a> o cuando sean notificadas a los usuarios mediante correo electrónico o dentro de la aplicación.</p>
+                    <h2>10. Ley Aplicable y Jurisdicción</h2>
+                    <p>Estos términos y condiciones se rigen por las leyes de los Estados Unidos Mexicanos. Cualquier controversia derivada de la interpretación o aplicación de estos términos será resuelta ante los tribunales competentes de [ciudad o estado donde se encuentra la empresa], renunciando el usuario a cualquier otra jurisdicción que pudiera corresponderle.</p>
+                </div>
+                <div class="modal-footer">
+                    <a href="javascript:;" class="btn btn-light-danger btn-block font-weight-bolder" data-bs-dismiss="modal">
+                        <span class="svg-icon svg-icon-primary svg-icon-2x">
+                            <i class="fa fa-close"></i>
+                        </span>&nbsp;&nbsp;Cerrar
+                    </a>
+                </div>
+            </div>
+        </div>
+    </div>
+    <!-- Modal ayuda identificador -->
+    <div class="modal fade" tabindex="-1" id="CuentaModal">
+        <div class="modal-dialog modal-lg">
+            <div class="modal-content" style="background-color:ghostwhite">
+                <div class="modal-header">
+                    <h3 class="modal-title">¿Qué es un identificador de cuenta?</h3>
+                    <div class="btn btn-icon btn-sm btn-active-light-primary ms-2" data-bs-dismiss="modal" aria-label="Close">
+                        <i class="ki-duotone ki-cross fs-1"><span class="path1"></span><span class="path2"></span></i>
+                    </div>
+                </div>
+                <div class="modal-body">
+                    <p>Tu identificador de cuenta se genera automáticamente cuando se creó la cuenta. Esto solo aplica si ya tienes una cuenta y quieres agregarte un usuario adicional. Ese identificador llegó al correo de la persona que registró la cuenta.</p>
+                </div>
+                <div class="modal-footer">
+                    <a href="javascript:;" class="btn btn-light-danger btn-block font-weight-bolder" data-bs-dismiss="modal">
+                        <span class="svg-icon svg-icon-primary svg-icon-2x">
+                            <i class="fa fa-close"></i>
+                        </span>&nbsp;&nbsp;Cerrar
+                    </a>
+                </div>
+            </div>
+        </div>
+    </div>
+    <!-- Modal privacidad -->
+    <div class="modal fade" tabindex="-1" id="privacyModal">
+        <div class="modal-dialog modal-lg">
+            <div class="modal-content style=" style="background-color:ghostwhite">
+                <div class="modal-header">
+                    <h3 class="modal-title">Aviso de privacidad</h3>
+                    <div class="btn btn-icon btn-sm btn-active-light-primary ms-2" data-bs-dismiss="modal" aria-label="Close">
+                        <i class="ki-duotone ki-cross fs-1"><span class="path1"></span><span class="path2"></span></i>
+                    </div>
+                </div>
+                <div class="modal-body">
+                    <p>Supervisores.mx, a través de la aplicación CheckApp®, es responsable del tratamiento de sus datos personales conforme a lo dispuesto por la Ley Federal de Protección de Datos Personales en Posesión de los Particulares (LFPDPPP).</p>
+                    <h2>1. Datos Personales que Recabamos</h2>
+                    <p>Los datos personales que recabamos a través de CheckApp® pueden incluir, entre otros:</p>
+                    <ul>
+                        <li>Nombre completo</li>
+                        <li>Correo electrónico</li>
+                        <li>Número telefónico</li>
+                        <li>Ubicación geográfica (para la función de supervisión)</li>
+                        <li>Información relacionada con las listas, tareas y reportes generados en la aplicación</li>
+                    </ul>
+                    <h2>2. Finalidades del Tratamiento de Datos</h2>
+                    <p>Los datos personales que recabamos serán utilizados para las siguientes finalidades principales:</p>
+                    <ul>
+                        <li>Gestionar y administrar la cuenta de usuario en la aplicación</li>
+                        <li>Facilitar el seguimiento, control y supervisión de tareas asignadas en su entorno laboral</li>
+                        <li>Generar reportes de supervisión y control en tiempo real</li>
+                        <li>Mejorar la experiencia de uso de CheckApp® mediante la implementación de actualizaciones y mejoras técnicas</li>
+                    </ul>
+                    <p>Asimismo, de manera secundaria, podremos utilizar sus datos para:</p>
+                    <ul>
+                        <li>Enviar comunicaciones relacionadas con actualizaciones de productos y servicios</li>
+                        <li>Informarle sobre promociones o novedades en CheckApp® y Supervisores.mx</li>
+                    </ul>
+                    <h2>3. Transferencia de Datos</h2>
+                    <p>Sus datos personales no serán transferidos a terceros sin su consentimiento, salvo en los casos previstos por la ley. No obstante, sus datos podrán ser compartidos con terceros proveedores de servicios tecnológicos que apoyan el funcionamiento de la aplicación, quienes estarán obligados a cumplir con las mismas medidas de protección de datos.</p>
+                    <h2>4. Ejercicio de Derechos ARCO</h2>
+                    <p>En cualquier momento, usted podrá ejercer sus derechos de Acceso, Rectificación, Cancelación u Oposición (ARCO) al tratamiento de sus datos personales. Para ello, puede contactarnos a través del correo electrónico: [correo de contacto para asuntos de privacidad] o en nuestro domicilio físico. Su solicitud deberá contener la siguiente información:</p>
+                    <ul>
+                        <li>Nombre del titular</li>
+                        <li>Descripción clara de los datos respecto de los cuales busca ejercer algún derecho</li>
+                        <li>Medio para comunicar la respuesta a su solicitud</li>
+                    </ul>
+                    <p>Responderemos a su solicitud dentro de los plazos establecidos por la ley.</p>
+                    <h2>5. Uso de Cookies</h2>
+                    <p>CheckApp® y Supervisores.mx utilizan cookies y otras tecnologías similares para mejorar su experiencia de usuario y obtener información sobre el uso de la aplicación. Estas tecnologías pueden recabar información como su dirección IP, tipo de navegador y páginas visitadas. Puede desactivar el uso de cookies a través de la configuración de su navegador o dispositivo.</p>
+                    <h2>6. Cambios en el Aviso de Privacidad</h2>
+                    <p>Nos reservamos el derecho de actualizar o modificar el presente aviso de privacidad en cualquier momento, a fin de reflejar cambios en nuestras prácticas o en la legislación aplicable. Cualquier modificación será publicada en nuestro sitio web <a href="https://www.supervisores.mx" target="_blank">www.supervisores.mx</a> y/o notificada a través de la aplicación CheckApp®.</p>
+                    <h2>7. Contacto</h2>
+                    <p>Si tiene dudas o inquietudes sobre este aviso de privacidad, puede contactarnos en el correo electrónico: <a href="mailto:hola@supervisores.mx">hola@supervisores.mx</a></p>
+                    <p><strong>Fecha de última actualización:</strong> [fecha de actualización]</p>
+                </div>
+                <div class="modal-footer">
+                    <a href="javascript:;" class="btn btn-light-danger btn-block font-weight-bolder" data-bs-dismiss="modal">
+                        <span class="svg-icon svg-icon-primary svg-icon-2x">
+                            <i class="fa fa-close"></i>
+                        </span>&nbsp;&nbsp;Cerrar
+                    </a>
+                </div>
+            </div>
+        </div>
+    </div>
+    <!-- -->
+    <script>var hostUrl = "assets/";</script>
+    <script src="/assets/plugins/global/plugins.bundle.js"></script>
+    <script src="/assets/js/scripts.bundle.js"></script>
+    <script src="/js/login.js?v=1.0.0.5" asp-append-version="true"></script>
+</body>
+<!--end::Body-->
+</html>

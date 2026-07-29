@@ -1,0 +1,162 @@
+﻿@{
+    ViewBag.Title = "Index";
+    Layout = "~/Views/Shared/_Layout.cshtml";
+
+    var idEmpresa = Context.Session.GetString("idEmpresa") ?? User.FindFirst(System.Security.Claims.ClaimTypes.SerialNumber)?.Value ?? "";
+    var cadenaBase64 = Context.Session.GetString("cadena") ?? User.FindFirst(System.Security.Claims.ClaimTypes.Uri)?.Value ?? "";
+    var empresa = Context.Session.GetString("empresa") ?? User.FindFirst(System.Security.Claims.ClaimTypes.Sid)?.Value ?? "";
+    var correo = Context.Session.GetString("emailUser") ?? User.FindFirst(System.Security.Claims.ClaimTypes.Email)?.Value ?? "";
+}
+<style>
+    .image-input-placeholder {
+        background-image: url('svg/avatars/blank.svg');
+    }
+
+    [data-bs-theme="dark"] .image-input-placeholder {
+        background-image: url('svg/avatars/blank-dark.svg');
+    }
+</style>
+
+<div class="card mb-5 mb-xxl-8">
+    <!--begin::Header-->
+    <div class="card-header border-0 pt-5">
+        <!--begin::Title-->
+        <h3 class="card-title align-items-start flex-column">
+            <span class="card-label fw-bold fs-3 mb-1">Categorías</span>
+            <span class="text-muted fw-semibold fs-7">ABC Categorías</span>
+        </h3>
+        <!--end::Title-->
+        <!--begin::Toolbar-->
+        <div class="card-toolbar">
+            <a id="btNuevo" href="javascript:;" class="btn btn-primary btn-block font-weight-bolder" data-toggle="modal"
+               data-target="#modalAgregar">
+                <span class="svg-icon svg-icon-md">
+                    <!--begin::Svg Icon | path:assets/media/svg/icons/Design/Flatten.svg-->
+                    <svg xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" width="24px"
+                         height="24px" viewBox="0 0 24 24" version="1.1">
+                        <g stroke="none" stroke-width="1" fill="none" fill-rule="evenodd">
+                            <rect x="0" y="0" width="24" height="24" />
+                            <circle fill="#000000" cx="9" cy="15" r="6" />
+                            <path d="M8.8012943,7.00241953 C9.83837775,5.20768121 11.7781543,4 14,4 C17.3137085,4 20,6.6862915 20,10 C20,12.2218457 18.7923188,14.1616223 16.9975805,15.1987057 C16.9991904,15.1326658 17,15.0664274 17,15 C17,10.581722 13.418278,7 9,7 C8.93357256,7 8.86733422,7.00080962 8.8012943,7.00241953 Z"
+                                  fill="#000000" opacity="0.3" />
+                        </g>
+                    </svg>
+                    <!--end::Svg Icon-->
+                </span>Nueva Categoría
+            </a>
+        </div>
+        <!--end::Toolbar-->
+    </div>
+    <!--end::Header-->
+    <!--begin::Body-->
+    <div class="card-body">
+        <div class="form-group row mt-3">
+            <div class="col-md-12" style="overflow-x:auto;">
+                <table class="table table-separate table-head-custom table-checkable display nowrap" id="grData">
+                    <thead>
+                        <tr>
+                            <th></th>
+                            <th>Categoría</th>
+                            <th>Notas</th>
+                            <th>Fecha</th>
+                        </tr>
+                    </thead>
+                    <tbody></tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+    <!--end::Body-->
+    <div class="card-footer">
+        <div class="row">
+            <div class="col-lg-12">
+                <!--<a href="/Home/Index" class="btn btn-light-danger btn-block font-weight-bolder">
+                    <span class="svg-icon svg-icon-primary svg-icon-2x">
+                        <i class="fa fa-ban"></i>
+                    </span>&nbsp;&nbsp;Regresar
+                                </a>-->
+            </div>
+        </div>
+    </div>
+</div>
+<!-- -->
+<div class="modal fade" tabindex="-1" id="modalNuevo">
+    <div class="modal-dialog modal-lg">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h3 id="modalTitle" class="modal-title">Categoría</h3>
+                <!--begin::Close-->
+                <div class="btn btn-icon btn-sm btn-active-light-primary ms-2" data-bs-dismiss="modal" aria-label="Close">
+                    <i class="ki-duotone ki-cross fs-1"><span class="path1"></span><span class="path2"></span></i>
+                </div>
+                <!--end::Close-->
+            </div>
+            <form class="form w-100" novalidate="novalidate" id="frmZona">
+                <div class="modal-body">
+                    <div class="form-group row">
+                        <div class="col-12">
+                            <div class="form-group row">
+                                <div class="col-lg-12 form-floating fv-row">
+                                    <input id="txNombre" name="txNombre" class="form-control form-control-lg form-control-solid" type="text" maxlength="200" placeholder="Región" />
+                                    <label class="ml-1" for="txNombre">Nombre<span class="text-danger">*</span></label>
+                                </div>
+                            </div>
+                            <div class="form-group row mt-3">
+                                <div class="col-lg-12 form-floating">
+                                    <textarea id="txNotas" class="form-control form-control-solid" placeholder="Notas" style="height: 120px"></textarea>
+                                    <label for="txNotas">Notas</label>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <a id="btGuardar" href="javascript:;" class="btn btn-primary btn-block font-weight-bolder">
+                        <span class="svg-icon svg-icon-primary svg-icon-2x">
+                            <i class="fa fa-save"></i>
+                        </span>&nbsp;&nbsp;Guardar
+                    </a>
+                    <a href="javascript:;" class="btn btn-light-danger btn-block font-weight-bolder" data-bs-dismiss="modal">
+                        <span class="svg-icon svg-icon-primary svg-icon-2x">
+                            <i class="fa fa-fast-ban"></i>
+                        </span>&nbsp;&nbsp;Cancelar
+                    </a>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+<!-- -->
+<input type="hidden" id="valorId" name="valorId" value="" />
+<div id="categorias-session-context"
+     data-id-empresa="@idEmpresa"
+     data-cadena-base64="@cadenaBase64"
+     data-empresa="@empresa"
+     data-correo="@correo"
+     hidden></div>
+<script>
+    (function () {
+        const context = document.getElementById("categorias-session-context");
+        if (!context || typeof window.sessionStorage === "undefined") {
+            return;
+        }
+
+        const normalizeValue = function (value) {
+            return (value || "").replace(/^"+|"+$/g, "").trim();
+        };
+
+        const values = {
+            idEmpresa: normalizeValue(context.dataset.idEmpresa),
+            cadenaBase64: normalizeValue(context.dataset.cadenaBase64),
+            empresa: normalizeValue(context.dataset.empresa),
+            correo: normalizeValue(context.dataset.correo)
+        };
+
+        Object.keys(values).forEach(function (key) {
+            if (!sessionStorage.getItem(key) && values[key]) {
+                sessionStorage.setItem(key, values[key]);
+            }
+        });
+    })();
+</script>
+<script src="/js/Categorias/Categorias.js"></script>

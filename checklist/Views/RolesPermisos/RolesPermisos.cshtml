@@ -1,0 +1,543 @@
+﻿@{
+    ViewBag.Title = "Index";
+    Layout = "~/Views/Shared/_Layout.cshtml";
+}
+
+<div class="card mb-5 mb-xxl-8">
+    <div class="card-header border-0 pt-5">
+        <h3 class="card-title align-items-start flex-column">
+            <span class="card-label fw-bold fs-3 mb-1">Roles y Permisos</span>
+            <span class="text-muted fw-semibold fs-7"></span>
+        </h3>
+        <div class="card-toolbar">
+        </div>
+    </div>
+    <div class="card-body">
+        <div class="form-group row">
+            <div class="col-md-12">
+                <div class="input-group col-12">
+                    <div class="form-floating fv-row">
+                        <select id="cbRol" name="cbRol" class="form-select" aria-label="Rol"></select>
+                        <label for="cbRol">Rol</label>
+                    </div>
+                    <a id="btNuevoRol" href="javascript:;" class="btn btn-light-primary font-weight-bolder" data-toggle='tooltip' title='Agregar nuevo Rol'>
+                        <span class="svg-icon svg-icon-primary svg-icon-2x">
+                            <i class="fa fa-plus"></i>
+                        </span>
+                    </a>
+                </div>
+            </div>
+        </div>
+        <div class="mt-3 mb-5 hover-scroll-x">
+            <div class="d-grid">
+                <ul class="nav nav-tabs flex-nowrap text-nowrap">
+
+                    <li class="nav-item">
+                        <a class="nav-link active btn btn-active-light btn-color-gray-600 btn-active-color-primary rounded-bottom-0" data-bs-toggle="tab" href="#tabListas">Listas</a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link  btn btn-active-light btn-color-gray-600 btn-active-color-primary rounded-bottom-0" data-bs-toggle="tab" href="#tabRecolecciones">Recolecciones</a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link btn btn-active-light btn-color-gray-600 btn-active-color-primary rounded-bottom-0" data-bs-toggle="tab" href="#tabReportes">Reportes</a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link btn btn-active-light btn-color-gray-600 btn-active-color-primary rounded-bottom-0" data-bs-toggle="tab" href="#tabAjustes">Ajustes</a>
+                    </li>
+
+                </ul>
+            </div>
+        </div>
+
+        <div class="tab-content" id="myTabContent">
+
+            <div class="tab-pane fade show active" id="tabListas" role="tabpanel">
+                <div class="form-group row">
+                    <div class="col-4 text-end"><strong>Conceder Acceso a este menú</strong></div>
+                    <div class="col-1 form-check form-switch">
+                        <input class="form-check-input" type="checkbox" role="switch" id="swMenuListas">
+                        <label class="form-check-label" for="swMenuListas"></label>
+                    </div>
+                </div>
+
+                <div id="areaMenuListas">
+
+                    <div class="form-group row mt-3">
+                        <div class="offset-2 col-5"><strong>Ruta/Opción</strong></div>
+                        <div class="col-1">
+                            <span class="svg-icon svg-icon-primary svg-icon-2x">
+                                <i class="fa fa-unlock-alt"></i>
+                            </span>
+                        </div>
+                        <div class="col-1">
+                            <span>
+                                <i class="fa fa-edit"></i>
+                            </span>
+                        </div>
+                    </div>
+
+                    <div id="areaLista">
+
+                        <div class="form-group row mt-3">
+
+                            <div class="offset-2 col-5">ABC de Listas</div>
+                            <div class="col-1 form-check form-switch">
+                                <input class="form-check-input" type="checkbox" role="switch" id="sw01001000A">
+                                <label class="form-check-label" for="sw01001000A"></label>
+                            </div>
+
+                        </div>
+
+                        <div id="areaABCListas">
+
+                            <div class="form-group row mt-3">
+                                <div class="offset-3 col-4">Nueva (creador)</div>
+                                <div class="col-1 form-check form-switch">
+                                    <input class="form-check-input" type="checkbox" role="switch" id="sw01001001A">
+                                    <label class="form-check-label" for="sw01001001A"></label>
+                                </div>
+                                <div class="col-1 form-check form-switch">
+                                    <input class="form-check-input" type="checkbox" role="switch" id="sw01001001W">
+                                    <label class="form-check-label" for="sw01001001W"></label>
+                                </div>
+                            </div>
+
+                            <div class="form-group row mt-3">
+                                <div class="offset-3 col-4">Abiertas</div>
+                                <div class="col-1 form-check form-switch">
+                                    <input class="form-check-input" type="checkbox" role="switch" id="sw01001002A">
+                                    <label class="form-check-label" for="sw01001002A"></label>
+                                </div>
+                                <div class="col-1 form-check form-switch">
+                                    <input class="form-check-input" type="checkbox" role="switch" id="sw01001002W">
+                                    <label class="form-check-label" for="sw01001002W"></label>
+                                </div>
+                            </div>
+
+                            <div class="form-group row mt-3">
+                                <div class="offset-3 col-4">Mis Listas</div>
+                                <div class="col-1 form-check form-switch">
+                                    <input class="form-check-input" type="checkbox" role="switch" id="sw01001003A">
+                                    <label class="form-check-label" for="sw01001003A"></label>
+                                </div>
+                                <div class="col-1 form-check form-switch">
+                                    <input class="form-check-input" type="checkbox" role="switch" id="sw01001003W">
+                                    <label class="form-check-label" for="sw01001003W"></label>
+                                </div>
+                            </div>
+
+                        </div>
+
+                        <div class="form-group row mt-3">
+                            <div class="offset-2 col-5">Categorización</div>
+                            <div class="col-1 form-check form-switch">
+                                <input class="form-check-input" type="checkbox" role="switch" id="sw01002000A">
+                                <label class="form-check-label" for="sw01002000A"></label>
+                            </div>
+                        </div>
+
+                        <div id="areaCategorizacion">
+
+                            <div class="form-group row mt-3">
+                                <div class="offset-3 col-4">Categorías</div>
+                                <div class="col-1 form-check form-switch">
+                                    <input class="form-check-input" type="checkbox" role="switch" id="sw01002001A">
+                                    <label class="form-check-label" for="sw01002001A"></label>
+                                </div>
+                                <div class="col-1 form-check form-switch">
+                                    <input class="form-check-input" type="checkbox" role="switch" id="sw01002001W">
+                                    <label class="form-check-label" for="sw01002001W"></label>
+                                </div>
+                            </div>
+
+                            <div class="form-group row mt-3">
+                                <div class="offset-3 col-4">Subcategorías</div>
+                                <div class="col-1 form-check form-switch">
+                                    <input class="form-check-input" type="checkbox" role="switch" id="sw01002002A">
+                                    <label class="form-check-label" for="sw01002002A"></label>
+                                </div>
+                                <div class="col-1 form-check form-switch">
+                                    <input class="form-check-input" type="checkbox" role="switch" id="sw01002002W">
+                                    <label class="form-check-label" for="sw01002002W"></label>
+                                </div>
+                            </div>
+
+                        </div>
+                    </div>
+
+                </div>
+            </div>
+
+            <div class="tab-pane fade" id="tabRecolecciones" role="tabpanel">
+                <div class="form-group row">
+                    <div class="col-4 text-end"><strong>Conceder Acceso a este menú</strong></div>
+                    <div class="col-1 form-check form-switch">
+                        <input class="form-check-input" type="checkbox" role="switch" id="swMenuRecolecciones">
+                        <label class="form-check-label" for="swMenuRecolecciones"></label>
+                    </div>
+                </div>
+                <div id="areaMenuRecolecciones">
+                    <div class="form-group row mt-3">
+                        <div class="offset-2 col-5"><strong>Ruta/Opción</strong></div>
+                        <div class="col-1">
+                            <span class="svg-icon svg-icon-primary svg-icon-2x">
+                                <i class="fa fa-unlock-alt"></i>
+                            </span>
+                        </div>
+                        <div class="col-1">
+                            <span>
+                                <i class="fa fa-edit"></i>
+                            </span>
+                        </div>
+                    </div>
+
+                    <div id="areaRecoleccion">
+
+                        <!--  <div class="form-group row mt-3">
+                            <div class="offset-2 col-5">Contestar Listas</div>
+                            <div class="col-1 form-check form-switch">
+                                <input class="form-check-input" type="checkbox" role="switch" id="sw02001000A">
+                                <label class="form-check-label" for="sw02001000A"></label>
+                            </div>
+                        </div>
+
+                        <div id="areaNuevaLista">
+                            </div>
+
+                          -->
+
+
+                        <div class="form-group row mt-3">
+                            <div class="offset-2 col-5">Nueva </div>
+                            <div class="col-1 form-check form-switch">
+                                <input class="form-check-input" type="checkbox" role="switch" id="sw02001000A">
+                                <label class="form-check-label" for="sw02001000A"></label>
+                            </div>
+                            <div class="col-1 form-check form-switch">
+                                <input class="form-check-input" type="checkbox" role="switch" id="sw02001000W">
+                                <label class="form-check-label" for="sw02001000W"></label>
+                            </div>
+                        </div>
+
+                        <div class="form-group row mt-3">
+                            <div class="offset-2 col-5">Inspección en campo</div>
+                            <div class="col-1 form-check form-switch">
+                                <input class="form-check-input" type="checkbox" role="switch" id="sw02005000A">
+                                <label class="form-check-label" for="sw02005000A"></label>
+                            </div>
+                            <div class="col-1 form-check form-switch">
+                                <input class="form-check-input" type="checkbox" role="switch" id="sw02005000W">
+                                <label class="form-check-label" for="sw02005000W"></label>
+                            </div>
+                        </div>
+
+                        <!-- 
+                               <div class="form-group row mt-3">
+                            <div class="offset-2 col-5">Nueva Offline</div>
+                            <div class="col-1 form-check form-switch">
+                                <input class="form-check-input" type="checkbox" role="switch" id="sw02002000A">
+                                <label class="form-check-label" for="sw02002000A"></label>
+                            </div>
+                            <div class="col-1 form-check form-switch">
+                                <input class="form-check-input" type="checkbox" role="switch" id="sw02002000W">
+                                <label class="form-check-label" for="sw02002000W"></label>
+                            </div>
+                        </div>
+
+                        -->
+                     
+                        <!-- -->
+                        <div class="form-group row mt-3">
+                            <div class="offset-2 col-5">Listado</div>
+                            <div class="col-1 form-check form-switch">
+                                <input class="form-check-input" type="checkbox" role="switch" id="sw02003000A">
+                                <label class="form-check-label" for="sw02003000A"></label>
+                            </div>
+                            <div class="col-1 form-check form-switch">
+                                <input class="form-check-input" type="checkbox" role="switch" id="sw02003000W">
+                                <label class="form-check-label" for="sw02003000W"></label>
+                            </div>
+                        </div>
+                        <!-- -->
+                        <div class="form-group row mt-3">
+                            <div class="offset-2 col-5">Detalle</div>
+                            <div class="col-1 form-check form-switch">
+                                <input class="form-check-input" type="checkbox" role="switch" id="sw02004000A">
+                                <label class="form-check-label" for="sw02004000A"></label>
+                            </div>
+                            <div class="col-1 form-check form-switch">
+                                <input class="form-check-input" type="checkbox" role="switch" id="sw02004000W">
+                                <label class="form-check-label" for="sw02004000W"></label>
+                            </div>
+                        </div>
+                    </div>
+
+                </div>
+            </div>
+
+            <div class="tab-pane fade" id="tabReportes" role="tabpanel">
+                <div class="form-group row">
+                    <div class="col-4 text-end"><strong>Conceder Acceso a este menú</strong></div>
+                    <div class="col-1 form-check form-switch">
+                        <input class="form-check-input" type="checkbox" role="switch" id="swMenuReportes">
+                        <label class="form-check-label" for="swMenuReportes"></label>
+                    </div>
+                </div>
+                <div id="areaMenuReportes">
+                    <div class="form-group row mt-3">
+                        <div class="offset-2 col-5"><strong>Ruta/Opción</strong></div>
+                        <div class="col-1">
+                            <span class="svg-icon svg-icon-primary svg-icon-2x">
+                                <i class="fa fa-unlock-alt"></i>
+                            </span>
+                        </div>
+                        <div class="col-1">
+                            <span>
+                                <i class="fa fa-edit"></i>
+                            </span>
+                        </div>
+                    </div>
+
+                    <div id="areaReporte">
+
+                        <div class="form-group row mt-3">
+                            <div class="offset-2 col-5">Estrella</div>
+                            <div class="col-1 form-check form-switch">
+                                <input class="form-check-input" type="checkbox" role="switch" id="sw03001000A">
+                                <label class="form-check-label" for="sw03001000A"></label>
+                            </div>
+                        </div>
+
+                        <div id="areaEstrella">
+
+                            <div class="form-group row mt-3">
+                                <div class="offset-4 col-3">Estrellas Contraido</div>
+                                <div class="col-1 form-check form-switch">
+                                    <input class="form-check-input" type="checkbox" role="switch" id="sw03001001A">
+                                    <label class="form-check-label" for="sw03001001A"></label>
+                                </div>
+                                <div class="col-1 form-check form-switch">
+                                    <input class="form-check-input" type="checkbox" role="switch" id="sw03001001W">
+                                    <label class="form-check-label" for="sw03001001W"></label>
+                                </div>
+                            </div>
+
+                            <div class="form-group row mt-3">
+                                <div class="offset-4 col-3">Estrellas con Categorías</div>
+                                <div class="col-1 form-check form-switch">
+                                    <input class="form-check-input" type="checkbox" role="switch" id="sw03001002A">
+                                    <label class="form-check-label" for="sw03001002A"></label>
+                                </div>
+                                <div class="col-1 form-check form-switch">
+                                    <input class="form-check-input" type="checkbox" role="switch" id="sw03001002W">
+                                    <label class="form-check-label" for="sw03001002W"></label>
+                                </div>
+                            </div>
+
+                        </div>
+                        <!-- -->
+
+                        <div class="form-group row mt-3">
+                            <div class="offset-2 col-5">Listado Recolecciones</div>
+                            <div class="col-1 form-check form-switch">
+                                <input class="form-check-input" type="checkbox" role="switch" id="sw03002000A">
+                                <label class="form-check-label" for="sw03002000A"></label>
+                            </div>
+                            <div class="col-1 form-check form-switch">
+                                <input class="form-check-input" type="checkbox" role="switch" id="sw03002000W">
+                                <label class="form-check-label" for="sw03002000W"></label>
+                            </div>
+                        </div>
+
+                    </div>
+
+                </div>
+            </div>
+
+            <div class="tab-pane fade" id="tabAjustes" role="tabpanel">
+                <div class="form-group row">
+                    <div class="col-4 text-end"><strong>Conceder Acceso a este menú</strong></div>
+                    <div class="col-1 form-check form-switch">
+                        <input class="form-check-input" type="checkbox" role="switch" id="swMenuAjustes">
+                        <label class="form-check-label" for="swMenuAjustes"></label>
+                    </div>
+                </div>
+                <div id="areaMenuAjustes">
+                    <div class="form-group row mt-3">
+                        <div class="offset-2 col-5"><strong>Ruta/Opción</strong></div>
+                        <div class="col-1">
+                            <span class="svg-icon svg-icon-primary svg-icon-2x">
+                                <i class="fa fa-unlock-alt"></i>
+                            </span>
+                        </div>
+                        <div class="col-1">
+                            <span>
+                                <i class="fa fa-edit"></i>
+                            </span>
+                        </div>
+                    </div>
+
+                    <div id="areaAjuste">
+
+                        <div class="form-group row mt-3">
+                            <div class="offset-2 col-5">Usuarios</div>
+                            <div class="col-1 form-check form-switch">
+                                <input class="form-check-input" type="checkbox" role="switch" id="sw04001000A">
+                                <label class="form-check-label" for="sw04001000A"></label>
+                            </div>
+                        </div>
+
+                        <div id="areaUsuarios">
+
+                            <div class="form-group row mt-3">
+                                <div class="offset-4 col-3">ABC Usuarios</div>
+                                <div class="col-1 form-check form-switch">
+                                    <input class="form-check-input" type="checkbox" role="switch" id="sw04001001A">
+                                    <label class="form-check-label" for="sw04001001A"></label>
+                                </div>
+                                <div class="col-1 form-check form-switch">
+                                    <input class="form-check-input" type="checkbox" role="switch" id="sw04001001W">
+                                    <label class="form-check-label" for="sw04001001W"></label>
+                                </div>
+                            </div>
+
+                            <div class="form-group row mt-3">
+
+
+                                <div class="offset-4 col-3">Departamentos</div>
+                                <div class="col-1 form-check form-switch">
+                                    <input class="form-check-input" type="checkbox" role="switch" id="sw04001002A">
+                                    <label class="form-check-label" for="sw04001002A"></label>
+                                </div>
+                                <div class="col-1 form-check form-switch">
+                                    <input class="form-check-input" type="checkbox" role="switch" id="sw04001002W">
+                                    <label class="form-check-label" for="sw04001002W"></label>
+                                </div>
+
+                            </div>
+
+                            <div class="form-group row mt-3">
+
+                                <div class="offset-4 col-3">Puestos</div>
+                                <div class="col-1 form-check form-switch">
+                                    <input class="form-check-input" type="checkbox" role="switch" id="sw04001003A">
+                                    <label class="form-check-label" for="sw04001003A"></label>
+                                </div>
+                                <div class="col-1 form-check form-switch">
+                                    <input class="form-check-input" type="checkbox" role="switch" id="sw04001003W">
+                                    <label class="form-check-label" for="sw04001003W"></label>
+                                </div>
+
+                            </div>
+
+                        </div>
+                        <!-- -->
+                        <div class="form-group row mt-3">
+                            <div class="offset-2 col-5">Roles y Permisos</div>
+                            <div class="col-1 form-check form-switch">
+                                <input class="form-check-input" type="checkbox" role="switch" id="sw04002000A">
+                                <label class="form-check-label" for="sw04002000A"></label>
+                            </div>
+                            <div class="col-1 form-check form-switch">
+                                <input class="form-check-input" type="checkbox" role="switch" id="sw04002000W">
+                                <label class="form-check-label" for="sw04002000W"></label>
+                            </div>
+                        </div>
+                        <!-- -->
+                        <div class="form-group row mt-3">
+                            <div class="offset-2 col-5">Sucursales</div>
+                            <div class="col-1 form-check form-switch">
+                                <input class="form-check-input" type="checkbox" role="switch" id="sw04003000A">
+                                <label class="form-check-label" for="sw04003000A"></label>
+                            </div>
+                            <div class="col-1 form-check form-switch">
+                                <input class="form-check-input" type="checkbox" role="switch" id="sw04003000W">
+                                <label class="form-check-label" for="sw04003000W"></label>
+                            </div>
+                        </div>
+                        <!-- -->
+                        <div class="form-group row mt-3">
+                            <div class="offset-2 col-5">Razones Sociales</div>
+                            <div class="col-1 form-check form-switch">
+                                <input class="form-check-input" type="checkbox" role="switch" id="sw04004000A">
+                                <label class="form-check-label" for="sw04004000A"></label>
+                            </div>
+                            <div class="col-1 form-check form-switch">
+                                <input class="form-check-input" type="checkbox" role="switch" id="sw04004000W">
+                                <label class="form-check-label" for="sw04004000W"></label>
+                            </div>
+                        </div>
+                        <!-- -->
+                        <div class="form-group row mt-3">
+                            <div class="offset-2 col-5">Regiones</div>
+                            <div class="col-1 form-check form-switch">
+                                <input class="form-check-input" type="checkbox" role="switch" id="sw04005000A">
+                                <label class="form-check-label" for="sw04005000A"></label>
+                            </div>
+                            <div class="col-1 form-check form-switch">
+                                <input class="form-check-input" type="checkbox" role="switch" id="sw04005000W">
+                                <label class="form-check-label" for="sw04005000W"></label>
+                            </div>
+                        </div>
+
+
+                    </div>
+
+                </div>
+            </div>
+
+        </div>
+    </div>
+
+
+    <!--end::Body-->
+    <div class="card-footer">
+        <div class="row">
+            <div class="col-lg-12">
+                <a id="Guardar" href="javascript:;" class="btn btn-primary btn-block font-weight-bolder">
+                    <span class="svg-icon svg-icon-primary svg-icon-2x">
+                        <i class="fa fa-save"></i>
+                    </span>&nbsp;&nbsp;Guardar
+                </a>
+
+            </div>
+        </div>
+    </div>
+</div>
+<!-- -->
+<div class="modal fade" tabindex="-1" id="mdRol">
+    <div class="modal-dialog modal-lg">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h3 class="modal-title">Nuevo Rol</h3>
+                <div class="btn btn-icon btn-sm btn-active-light-primary ms-2" data-bs-dismiss="modal" aria-label="Close">
+                    <i class="ki-duotone ki-cross fs-1"><span class="path1"></span><span class="path2"></span></i>
+                </div>
+            </div>
+            <div class="modal-body">
+                <div class="form-group row">
+                    <div class="col-12 form-floating fv-row">
+                        <input id="txNombre" name="txNombre" class="form-control" type="text" maxlength="255" placeholder="Nombre" />
+                        <label for="txNombre">Nombre <span class="text-danger">*</span></label>
+                    </div>
+                </div>
+            </div>
+            <div class="modal-footer">
+                <a id="btGuardaRol" href="javascript:;" class="btn btn-primary btn-block font-weight-bolder">
+                    <span class="svg-icon svg-icon-primary svg-icon-2x">
+                        <i class="fa fa-save"></i>
+                    </span>&nbsp;&nbsp;Guardar
+                </a>
+                <a href="javascript:;" class="btn btn-light-danger btn-block font-weight-bolder" data-bs-dismiss="modal">
+                    <span class="svg-icon svg-icon-primary svg-icon-2x">
+                        <i class="fa fa-fast-backward"></i>
+                    </span>&nbsp;&nbsp;Cancelar
+                </a>
+            </div>
+        </div>
+    </div>
+</div>
+<!-- -->
+<input type="hidden" id="valorId" name="valorId" value="" />
+<!-- -->
+<script src="/js/RolesPermisos/RolesPermisos.js?v=1.0.0.2"></script>

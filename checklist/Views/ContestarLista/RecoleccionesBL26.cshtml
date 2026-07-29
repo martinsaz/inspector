@@ -1,0 +1,102 @@
+@{
+    ViewBag.Title = "Inspección en campo";
+    Layout = "~/Views/Shared/_Layout.cshtml";
+    var sessionIdEmpresa = Context.Session.GetString("idEmpresa")
+        ?? User.FindFirst(System.Security.Claims.ClaimTypes.SerialNumber)?.Value
+        ?? "";
+    var sessionCadena = Context.Session.GetString("cadena")
+        ?? User.FindFirst(System.Security.Claims.ClaimTypes.Uri)?.Value
+        ?? "";
+    var sessionEmpresa = Context.Session.GetString("empresa")
+        ?? User.FindFirst(System.Security.Claims.ClaimTypes.Sid)?.Value
+        ?? "";
+    var sessionCorreo = Context.Session.GetString("emailUser")
+        ?? User.FindFirst(System.Security.Claims.ClaimTypes.Email)?.Value
+        ?? "";
+}
+
+<link rel="stylesheet" href="/css/ContestarLista/RecoleccionesBL26.css" asp-append-version="true" />
+
+<div id="recolecciones-bl26-context"
+     data-id-empresa="@sessionIdEmpresa"
+     data-cadena="@sessionCadena"
+     data-empresa="@sessionEmpresa"
+     data-correo="@sessionCorreo"
+     hidden></div>
+
+<script>
+    (function () {
+        var fallbackNode = document.getElementById("recolecciones-bl26-context");
+        if (!fallbackNode || !window.sessionStorage) {
+            return;
+        }
+
+        function normalizeSessionValue(value) {
+            return String(value || "").replace(/^"+|"+$/g, "").trim();
+        }
+
+        var context = {
+            idEmpresa: normalizeSessionValue(fallbackNode.dataset.idEmpresa || ""),
+            cadenaBase64: normalizeSessionValue(fallbackNode.dataset.cadena || ""),
+            empresa: normalizeSessionValue(fallbackNode.dataset.empresa || ""),
+            correo: normalizeSessionValue(fallbackNode.dataset.correo || "")
+        };
+
+        Object.keys(context).forEach(function (key) {
+            if (!window.sessionStorage.getItem(key) && context[key]) {
+                window.sessionStorage.setItem(key, context[key]);
+            }
+        });
+    })();
+</script>
+
+<script>
+    (function () {
+        function syncBl26MenuState() {
+            var pathname = (window.location && window.location.pathname ? window.location.pathname : "").toLowerCase();
+            if (pathname !== "/contestarlista/recoleccionesbl26") {
+                return false;
+            }
+
+            var root = document.getElementById("02000000");
+            var submenu = root ? root.querySelector(".menu-sub") : null;
+            var item = document.getElementById("02001000BL26");
+            var link = item ? item.querySelector(".menu-link") : null;
+
+            if (!root || !item) {
+                return false;
+            }
+
+            root.classList.add("here", "show");
+            submenu && submenu.classList.add("show");
+            item.classList.add("here", "show");
+            link && link.classList.add("active");
+
+            return true;
+        }
+
+        function waitForMenuSync(attempt) {
+            if (syncBl26MenuState() || attempt >= 20) {
+                return;
+            }
+
+            window.setTimeout(function () {
+                waitForMenuSync(attempt + 1);
+            }, 250);
+        }
+
+        if (document.readyState === "loading") {
+            document.addEventListener("DOMContentLoaded", function () {
+                waitForMenuSync(0);
+            });
+        } else {
+            waitForMenuSync(0);
+        }
+    })();
+</script>
+
+<div id="recolecciones-bl26-app"></div>
+
+@section Scripts {
+    <script src="/js/ContestarLista/RecoleccionesBL26.js" asp-append-version="true"></script>
+}

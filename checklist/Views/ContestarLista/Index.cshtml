@@ -1,0 +1,140 @@
+﻿@{
+    ViewBag.Title = "Index";
+    Layout = "/Views/Shared/_Layout.cshtml";
+}
+    <div id="processingMessage">Procesando archivos...</div>
+    <h2>Nueva</h2>
+    <div class="container-fluid">
+        <div class="form-group row">
+
+            <div class="col-12 col-md-8 mb-8">
+                <div class="form-floating fv-row">
+                    <select id="cbPrograma" name="cbPrograma" class="form-select" aria-label="Tipo Curso"></select>
+                    <label>Listas</label>
+                </div>
+            </div>
+
+             <div class="col-6 col-md-6 mb-8">
+                <div class="form-floating fv-row">
+                    <select id="cbSucursal" name="cbSucursal" class="form-select" aria-label="Tipo Curso"></select>
+                    <label>Sucursales</label>
+                </div>
+            </div>
+
+            <div class="col-6 col-md-6 mb-8">
+                <div class="form-floating fv-row">
+                    <select id="cbUsuario" name="cbUsuario" class="form-select" aria-label="Tipo Curso"></select>
+                    <label>Usuarios</label>
+                </div>
+            </div>
+
+
+            <div class="col-12 col-md-6 col-lg-3 mt-5">
+                <a id="btBuscar" href="javascript:;" class="btn btn-primary btn-block font-weight-bolder">
+                    <span class="svg-icon svg-icon-primary svg-icon-2x">
+                        <i class="fa fa-search"></i>
+                    </span>&nbsp;&nbsp;Buscar
+                </a>
+            </div>
+        </div>
+
+        <!-- Rating Bar -->
+        <!--<div class="col-12 mt-5 ">
+            <label for="rating">Rating:</label>
+            <div id="ratingBar" class="rating-bar"></div>
+        </div>-->
+
+        <div class="container">
+            <div id="content" class="row mt-5"></div>
+        </div>
+
+        @*     <video id="video" width="640" height="480" autoplay></video>
+        <button id="snap">Tomar Foto</button>
+        <button id="startRecording">Iniciar Grabación</button>
+        <button id="stopRecording" disabled>Detener Grabación</button>
+        <video id="recordedVideo" width="640" height="480" controls></video>
+        <canvas id="canvas" width="640" height="480"></canvas> *@
+
+        <div class="col-12 col-md-6 col-lg-3 mt-5">
+            <a id="btEnviar" href="javascript:;" class="btn btn-primary btn-block font-weight-bolder">
+                <span class="svg-icon svg-icon-primary svg-icon-2x">
+                    <i class="fa fa-send"></i>
+                </span>&nbsp;&nbsp;Enviar respuestas
+            </a>
+        </div>
+    </div>
+
+
+
+    <div class="modal fade" id="modalFoto" tabindex="-1" role="dialog" aria-labelledby="modalFotoLabel" aria-hidden="true">
+        <div class="modal-dialog" role="document">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title" id="modalFotoLabel">Tomar Foto</h5>
+                    <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                        <span aria-hidden="true">&times;</span>
+                    </button>
+                </div>
+                <div class="modal-body">
+                    <video id="video" width="320" height="240" autoplay></video>
+                    <button id="snap" class="btn btn-primary mt-2">Tomar Foto</button>
+                    <canvas id="canvas" width="320" height="240"></canvas>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-dismiss="modal">Cerrar</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Modal para Video -->
+    <div class="modal fade" id="modalVideo" tabindex="-1" role="dialog" aria-labelledby="modalVideoLabel" aria-hidden="true">
+        <div class="modal-dialog" role="document">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title" id="modalVideoLabel">Grabar Video</h5>
+                    <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                        <span aria-hidden="true">&times;</span>
+                    </button>
+                </div>
+                <div class="modal-body">
+                    <video id="recordedVideo" width="320" height="240" controls></video>
+                    <div class="mt-2">
+                        <button id="startRecording" class="btn btn-primary">Iniciar Grabación</button>
+                        <button id="stopRecording" class="btn btn-danger" disabled>Detener Grabación</button>
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-dismiss="modal">Cerrar</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Modal para Cargar -->
+    <div class="modal fade" id="modalCargar" tabindex="-1" role="dialog" aria-labelledby="modalCargarLabel" aria-hidden="true">
+        <div class="modal-dialog" role="document">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title" id="modalCargarLabel">Cargar Archivo</h5>
+                </div>
+                <div id="loadingMessage" style="display:none;">Espere...</div>
+                <div class="modal-body">
+                    <input type="file" id="fileInput" class="form-control" />
+                    <!-- Mensaje de advertencia sobre los límites de duración del archivo -->
+                    <small class="form-text text-muted mt-2">
+                        Dispositivos iOS: máximo 4 minutos, Android: máximo 2 minutos.
+                    </small>
+                </div>
+                <div class="modal-footer">
+                </div>
+            </div>
+        </div>
+    </div>
+
+<link rel="stylesheet" href="/css/ContestarLista/ContestarLista.css">
+
+
+<!-- -->
+<script src="/js/ContestarLista/ContestarLista.js?v=1.4.3"></script>
+

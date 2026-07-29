@@ -1,0 +1,197 @@
+﻿@{
+    ViewBag.Title = "Index";
+    Layout = "~/Views/Shared/_Layout.cshtml";
+}
+
+<div class="card mb-5 mb-xxl-8">
+    <div class="card-header border-0 pt-5">
+        <h3 class="card-title align-items-start flex-column">
+            <span class="card-label fw-bold fs-3 mb-1">Usuarios</span>
+            <span class="text-muted fw-semibold fs-7">ABC Usuarios</span>
+        </h3>
+    </div>
+    <div class="card-body">
+        <div class="form-group row">
+            <div class="col-md-12" style="overflow-x:auto;">
+                <table class="datatable datatable-bordered datatable-head-custom display nowrap" id="grData">
+                    <thead>
+                        <tr>
+                            <th></th>
+                            <th>Nombre</th>
+                            <th>Fecha Nacimiento</th>
+                            <th>Sucursal</th>
+                            <th>Departamento</th>
+                            <th>Puesto</th>
+                            <th>Identificador</th>
+                            <th>Teléfono Móvil</th>
+                            <th>Teléfono Fijo</th>
+                            <th>Correo Institucional</th>
+                            <th>Correo Personal</th>
+                            <th>Fecha Ingreso</th>
+                            <th>Activo</th>
+                            <th>Notas</th>
+                        </tr>
+                    </thead>
+                    <tbody></tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+</div>
+<!-- -->
+<div class="modal fade" tabindex="-1" id="modalNuevo">
+    <div class="modal-dialog modal-lg">
+        <div class="modal-content">
+            <form class="form w-100" novalidate="novalidate" id="frmUsuario">
+                <div class="modal-header">
+                    <h3 class="modal-title" id="miTitulo">Nuevo usuario </h3>
+                    <div class="btn btn-icon btn-sm btn-active-light-primary ms-2" data-bs-dismiss="modal" aria-label="Close">
+                        <i class="ki-duotone ki-cross fs-1"><span class="path1"></span><span class="path2"></span></i>
+                    </div>
+                </div>
+                <div class="modal-body">
+                    <div class="form-group row">
+                        <div class="col-4 form-floating fv-row">
+                            <input id="txNombre" name="txNombre" class="form-control form-control-solid" type="text" maxlength="255" placeholder="Nombre" />
+                            <label for="txNombre">Nombre <span class="text-danger">*</span></label>
+                        </div>
+                        <div class="col-4">
+                            <div class="col-md">
+                                <div class="form-floating fv-row">
+                                    <input id="txApaterno" name="txApaterno" class="form-control form-control-solid" type="text" maxlength="255" placeholder="Nombre" />
+                                    <label for="txApaterno">Apellido paterno <span class="text-danger">*</span></label>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="col-4">
+                            <div class="col-md">
+                                <div class="form-floating fv-row">
+                                    <input id="txAmaterno" name="txAmaterno" class="form-control form-control-solid" type="text" maxlength="255" placeholder="Nombre" />
+                                    <label for="txAmaterno">Apellido materno <span class="text-danger">*</span></label>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="form-group row mt-3">
+                        <div class="col-4">
+                            <label class="col-md-12"><small>Fecha de nacimiento</small></label>
+                            <div class="input-group date" id="dpFechaNace" data-td-target-input="nearest" data-td-target-toggle="nearest">
+                                <input id="dpFechaNace_input" type="text" class="form-control" data-td-target="#dpFechaNace" />
+                                <span class="input-group-text" data-td-target="#dpFechaNace" data-td-toggle="datetimepicker">
+                                    <i class="ki-duotone ki-calendar fs-2"><span class="path1"></span><span class="path2"></span></i>
+                                </span>
+                            </div>
+                        </div>
+                        <div class="col-4 form-floating">
+                            <input id="txNumero" class="form-control form-control-solid" type="text" maxlength="255" placeholder="Número/Identificador" />
+                            <label for="txNumero">Número/Identificador</label>
+                        </div>
+                        <div class="col-4 form-floating fv-row">
+                            <input id="txMovil" name="txMovil" class="form-control form-control-solid" type="tel" maxlength="255" placeholder="Teléfono Móvil" />
+                            <label for="txMovil">Teléfono Móvil <span class="text-danger">*</span></label>
+                        </div>
+                    </div>
+                    <div class="form-group row mt-3">
+                        <div class="col-4 form-floating fv-row">
+                            <input id="txFijo" name="txFijo" class="form-control form-control-solid" type="tel" maxlength="255" placeholder="Teléfono Fijo" />
+                            <label for="txFijo">Teléfono Fijo <span class="text-danger">*</span></label>
+                        </div>
+                        <div class="col-4 form-floating fv-row" style="display:none">
+                            <input id="txCorreoIns" name="txCorreoIns" class="form-control form-control-solid" type="email" maxlength="255" placeholder="Correo Institucional" />
+                            <label for="txCorreoIns">Correo Institucional <span class="text-danger">*</span></label>
+                        </div>
+                        <div class="col-4 form-floating fv-row">
+                            <input id="txCorreoPer" name="txCorreoPer" class="form-control form-control-solid" type="email" maxlength="255" placeholder="Dirección de Correo" />
+                            <label for="txCorreoPer">Dirección de Correo <span class="text-danger">*</span></label>
+                        </div>
+                    </div>
+                    <div class="form-group row mt-3">
+                        <div class="col-4 form-floating">
+                            <div class="col-md">
+                                <div class="form-floating fv-row">
+                                    <select id="cbSucursal" name="cbSucursal" class="form-select" style="width:100%"></select>
+                                    <label>Sucursal <span class="text-danger">*</span></label>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="col-4 form-floating">
+                            <div class="col-md">
+                                <div class="form-floating fv-row">
+                                    <select id="cbDepartamento" name="cbDepartamento" class="form-select" style="width:100%"></select>
+                                    <label>Departamento <span class="text-danger">*</span></label>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="col-4 form-floating fv-row">
+                            <div class="col-md">
+                                <div class="form-floating">
+                                    <select id="cbPuesto" name="cbPuesto" class="form-select" style="width:100%"></select>
+                                    <label>Puesto <span class="text-danger">*</span></label>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="form-group row mt-3">
+                        <div class="col-4">
+                            <label class="col-md-12">Fecha de Alta </label>
+                            <div class="input-group date" id="dpFechaIngr" data-td-target-input="nearest" data-td-target-toggle="nearest">
+                                <input id="dpFechaIngr_input" type="text" class="form-control" data-td-target="#dpFechaIngr" />
+                                <span class="input-group-text" data-td-target="#dpFechaIngr" data-td-toggle="datetimepicker">
+                                    <i class="ki-duotone ki-calendar fs-2"><span class="path1"></span><span class="path2"></span></i>
+                                </span>
+                            </div>
+                        </div>
+                        <div class="col-4 form-check form-switch">
+                            <input class="form-check-input" type="checkbox" role="switch" id="swStatus" checked>
+                            <label class="form-check-label" for="swStatus">¿Activo?</label>
+                        </div>
+                    </div>
+                    <div class="form-group row mt-3">
+                        <div class="col-3">
+                            <div id="imgLogo" class="image-input image-input-outline" data-kt-image-input="true" style="background-image: url(/Imagenes/blank.jpg)">
+                                <div id="imgLogoWrapper" class="image-input-wrapper w-125px h-125px" style="background-image: url(/Imagenes/blank.jpg)"></div>
+                                <label class="btn btn-icon btn-circle btn-color-muted btn-active-color-primary w-25px h-25px bg-body shadow" data-kt-image-input-action="change" data-bs-toggle="tooltip" data-bs-dismiss="click" title="Cambiar">
+                                    <i class="ki-duotone ki-pencil fs-6"><span class="path1"></span><span class="path2"></span></i>
+                                    <input id="imagen" type="file" name="avatar" accept=".png, .jpg, .jpeg" />
+                                    <input type="hidden" name="avatar_remove" />
+                                </label>
+                                <span class="btn btn-icon btn-circle btn-color-muted btn-active-color-primary w-25px h-25px bg-body shadow" data-kt-image-input-action="cancel" data-bs-toggle="tooltip" data-bs-dismiss="click" title="Cancelar">
+                                    <i class="ki-outline ki-cross fs-3"></i>
+                                </span>
+                                <span class="btn btn-icon btn-circle btn-color-muted btn-active-color-primary w-25px h-25px bg-body shadow" data-kt-image-input-action="remove" data-bs-toggle="tooltip" data-bs-dismiss="click" title="Quitar">
+                                    <i class="ki-outline ki-cross fs-3"></i>
+                                </span>
+                            </div>
+                        </div>
+                        <div class="col-5 form-floating">
+                            <textarea id="txNotas" class="form-control form-control-solid" placeholder="Notas" style="height: 120px"></textarea>
+                            <label for="txNotas">Notas</label>
+                        </div>
+                        <div class="col-lg-3 col-md-6 col-sm-12 mb-3">
+                            <div class="form-floating fv-row col-md">
+                                <select id="cbRol" name="cbRol" class="form-select" aria-label="Rol" style="width:100%"></select>
+                                <label for="cbRol">Rol <span class="text-danger">*</span></label>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <a id="btGuardar" href="javascript:;" class="btn btn-primary btn-block font-weight-bolder">
+                        <span class="svg-icon svg-icon-primary svg-icon-2x">
+                            <i class="fa fa-save"></i>
+                        </span>&nbsp;&nbsp;Guardar
+                    </a>
+                    <a href="javascript:;" class="btn btn-light-danger btn-block font-weight-bolder" data-bs-dismiss="modal">
+                        <span class="svg-icon svg-icon-primary svg-icon-2x">
+                            <i class="fa fa-ban"></i>
+                        </span>&nbsp;&nbsp;Cancelar
+                    </a>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+<!-- -->
+<input type="hidden" id="valorId" name="valorId" value="" />
+<input type="hidden" id="valsad" name="valsad" value="" />
+<script src="/js/Usuarios/Usuarios.js?v=1.0.0.2"></script>

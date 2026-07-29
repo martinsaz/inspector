@@ -1,0 +1,50 @@
+﻿<Project Sdk="Microsoft.NET.Sdk.Web">
+
+  <PropertyGroup>
+    <TargetFramework>net8.0</TargetFramework>
+    <Nullable>enable</Nullable>
+    <ImplicitUsings>enable</ImplicitUsings>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <Folder Include="wwwroot\js\Listas\" />
+    <Folder Include="wwwroot\js\Departamentos\" />
+    <Folder Include="wwwroot\js\ContestarLista\" />
+    <Folder Include="wwwroot\js\Categorias\" />
+    <Folder Include="wwwroot\js\MisListas\" />
+    <Folder Include="wwwroot\js\ReporteListado\" />
+    <Folder Include="wwwroot\js\ReporteDinamico\" />
+    <Folder Include="wwwroot\js\Subcategorias\" />
+    <Folder Include="wwwroot\js\Sucursales\" />
+    <Folder Include="wwwroot\js\RolesPermisos\" />
+    <Folder Include="wwwroot\js\RolesPermisos\" />
+    <Folder Include="wwwroot\js\Respuestas\" />
+    <Folder Include="wwwroot\js\Resultados\" />
+    <Folder Include="wwwroot\js\Puestos\" />
+    <Folder Include="wwwroot\lib\" />
+    <Folder Include="wwwroot\elmah\" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <PackageReference Include="Antlr" Version="3.5.0.2" />
+    <PackageReference Include="bootstrap" Version="5.3.3" />
+    <PackageReference Include="FirebaseAuthentication.net" Version="4.1.0" />
+    <PackageReference Include="FirebaseDatabase.net" Version="4.2.0" />
+    <PackageReference Include="FirebaseStorage.net" Version="1.0.3" />
+    <PackageReference Include="jQuery" Version="3.7.1" />
+    <PackageReference Include="jQuery.Validation" Version="1.20.0" />
+    <PackageReference Include="MailKit" Version="4.8.0" />
+    <PackageReference Include="MediaToolkit" Version="1.1.0.1" />
+    <PackageReference Include="Microsoft.AspNet.Mvc" Version="5.3.0" />
+    <PackageReference Include="Microsoft.Data.Sqlite" Version="8.0.8" />
+    <PackageReference Include="Microsoft.VisualStudio.Web.CodeGeneration.Design" Version="8.0.2" />
+    <PackageReference Include="MimeKit" Version="4.8.0" />
+    <PackageReference Include="Newtonsoft.Json" Version="13.0.3" />
+    <PackageReference Include="RestSharp" Version="111.3.0" />
+    <PackageReference Include="SQLite" Version="3.13.0" />
+    <PackageReference Include="System.Collections" Version="4.3.0" />
+    <PackageReference Include="System.Data.SQLite.Core" Version="1.0.119" />
+    <PackageReference Include="System.Net.Http" Version="4.3.4" />
+  </ItemGroup>
+
+</Project>
