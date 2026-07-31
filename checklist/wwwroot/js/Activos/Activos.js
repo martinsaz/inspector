@@ -122,6 +122,71 @@ const activosCatalogConfigs = {
     }
 };
 
+const activosQuickAddConfigs = {
+    tipo: {
+        key: "tipo",
+        modalSelector: "#modalQuickTipoActivo",
+        formSelector: "#frmQuickTipoActivo",
+        infoSelector: "#txInfoQuickTipoActivo",
+        selectSelector: "#cbTipoActivo",
+        loadUrl: "/Activos/GetTiposActivos",
+        saveUrl: "/Activos/GuardarTipoActivo",
+        successMessage: "El tipo de activo fue registrado correctamente.",
+        fieldSelectors: {
+            codigo: "#txQuickCodigoTipoActivo",
+            nombre: "#txQuickNombreTipoActivo",
+            descripcion: "#txQuickDescripcionTipoActivo"
+        }
+    },
+    marca: {
+        key: "marca",
+        modalSelector: "#modalQuickMarcaActivo",
+        formSelector: "#frmQuickMarcaActivo",
+        infoSelector: "#txInfoQuickMarcaActivo",
+        selectSelector: "#cbMarcaActivo",
+        loadUrl: "/Activos/GetMarcasActivos",
+        saveUrl: "/Activos/GuardarMarcaActivo",
+        successMessage: "La marca fue registrada correctamente.",
+        fieldSelectors: {
+            codigo: "#txQuickCodigoMarcaActivo",
+            nombre: "#txQuickNombreMarcaActivo",
+            descripcion: "#txQuickDescripcionMarcaActivo"
+        }
+    },
+    proveedor: {
+        key: "proveedor",
+        modalSelector: "#modalQuickProveedorActivo",
+        formSelector: "#frmQuickProveedorActivo",
+        infoSelector: "#txInfoQuickProveedorActivo",
+        selectSelector: "#cbProveedorActivo",
+        loadUrl: "/Activos/GetProveedoresActivos",
+        saveUrl: "/Activos/GuardarProveedorActivo",
+        successMessage: "El proveedor fue registrado correctamente.",
+        fieldSelectors: {
+            codigo: "#txQuickCodigoProveedorActivo",
+            nombre: "#txQuickNombreProveedorActivo",
+            descripcion: "#txQuickDescripcionProveedorActivo"
+        }
+    },
+    estado: {
+        key: "estado",
+        modalSelector: "#modalQuickEstadoOperativo",
+        formSelector: "#frmQuickEstadoOperativo",
+        infoSelector: "#txInfoQuickEstadoOperativo",
+        selectSelector: "#cbEstadoOperativo",
+        loadUrl: "/Activos/GetEstadosOperativos",
+        saveUrl: "/Activos/GuardarEstadoOperativo",
+        successMessage: "El estado operativo fue registrado correctamente.",
+        fieldSelectors: {
+            codigo: "#txQuickCodigoEstadoOperativo",
+            nombre: "#txQuickNombreEstadoOperativo",
+            descripcion: "#txQuickDescripcionEstadoOperativo",
+            orden: "#txQuickOrdenEstadoOperativo",
+            permiteOperacion: "#chkQuickPermiteOperacionEstado"
+        }
+    }
+};
+
 document.addEventListener("DOMContentLoaded", function () {
     window.addEventListener("resize", syncOpenActionMenuPosition);
     window.addEventListener("scroll", syncOpenActionMenuPosition, true);
@@ -152,6 +217,7 @@ function inicializaPermisosActivos() {
                 $("#btAbrirMarcasActivos").hide();
                 $("#btAbrirProveedoresActivos").hide();
                 $("#btAbrirEstadosOperativos").hide();
+                $(".activos-inline-add").hide();
             }
 
             if (!permisosActivos.exportar) {
@@ -186,8 +252,17 @@ function configuraEventosActivos() {
     });
 
     $("#btLimpiarFiltrosActivos").on("click", limpiarFiltrosActivos);
+    $("#cbFiltroEstatus").on("change", function () {
+        actualizaResumenFiltros();
+        CheckAppUI.reloadGrid("activos-grid");
+    });
     $("#btNuevoActivo").on("click", abrirNuevoActivo);
     $("#btGuardarActivo").on("click", guardarActivo);
+    $(document).on("click", "[data-summary-status]", function () {
+        $("#cbFiltroEstatus").val($(this).data("summaryStatus") || "");
+        actualizaResumenFiltros();
+        CheckAppUI.reloadGrid("activos-grid");
+    });
 
     $("#btAbrirTiposActivos").on("click", function () {
         abrirModalCatalogo(activosCatalogConfigs.tipo);
@@ -210,6 +285,39 @@ function configuraEventosActivos() {
         $("#modalEstadosOperativos").modal("show");
         CheckAppUI.reloadGrid("estados-grid");
     });
+    $(document).on("click", "#btQuickAddTipoActivo", function () {
+        if (!permisosActivos.catalogos) {
+            return;
+        }
+
+        abrirModalAltaRapida(activosQuickAddConfigs.tipo);
+    });
+    $(document).on("click", "#btQuickAddMarcaActivo", function () {
+        if (!permisosActivos.catalogos) {
+            return;
+        }
+
+        abrirModalAltaRapida(activosQuickAddConfigs.marca);
+    });
+    $(document).on("click", "#btQuickAddProveedorActivo", function () {
+        if (!permisosActivos.catalogos) {
+            return;
+        }
+
+        abrirModalAltaRapida(activosQuickAddConfigs.proveedor);
+    });
+    $(document).on("click", "#btQuickAddEstadoOperativo", function () {
+        if (!permisosActivos.catalogos) {
+            return;
+        }
+
+        abrirModalAltaRapida(activosQuickAddConfigs.estado);
+    });
+
+    $("#btGuardarQuickTipoActivo").on("click", function () { guardarAltaRapidaCatalogo(activosQuickAddConfigs.tipo); });
+    $("#btGuardarQuickMarcaActivo").on("click", function () { guardarAltaRapidaCatalogo(activosQuickAddConfigs.marca); });
+    $("#btGuardarQuickProveedorActivo").on("click", function () { guardarAltaRapidaCatalogo(activosQuickAddConfigs.proveedor); });
+    $("#btGuardarQuickEstadoOperativo").on("click", function () { guardarAltaRapidaCatalogo(activosQuickAddConfigs.estado); });
 
     $("#btNuevoTipoActivo").on("click", function () { limpiarFormularioCatalogo(activosCatalogConfigs.tipo); });
     $("#btGuardarTipoActivo").on("click", function () { guardarCatalogo(activosCatalogConfigs.tipo); });
@@ -348,6 +456,22 @@ function bindActivosValidationEvents() {
 
     $("#frmEstadoOperativo input, #frmEstadoOperativo textarea").on("input change", function () {
         clearGenericFieldError("#" + this.id, "#txInfoEstadoOperativo");
+    });
+
+    $("#frmQuickTipoActivo input, #frmQuickTipoActivo textarea").on("input", function () {
+        clearGenericFieldError("#" + this.id, "#txInfoQuickTipoActivo");
+    });
+
+    $("#frmQuickMarcaActivo input, #frmQuickMarcaActivo textarea").on("input", function () {
+        clearGenericFieldError("#" + this.id, "#txInfoQuickMarcaActivo");
+    });
+
+    $("#frmQuickProveedorActivo input, #frmQuickProveedorActivo textarea").on("input", function () {
+        clearGenericFieldError("#" + this.id, "#txInfoQuickProveedorActivo");
+    });
+
+    $("#frmQuickEstadoOperativo input, #frmQuickEstadoOperativo textarea").on("input change", function () {
+        clearGenericFieldError("#" + this.id, "#txInfoQuickEstadoOperativo");
     });
 }
 
@@ -1092,6 +1216,32 @@ function abrirModalCatalogo(config) {
     CheckAppUI.reloadGrid(config.gridId);
 }
 
+function abrirModalAltaRapida(config) {
+    if (!config || !permisosActivos.catalogos) {
+        return;
+    }
+
+    limpiarFormularioAltaRapida(config);
+    $(config.modalSelector).modal("show");
+}
+
+function limpiarFormularioAltaRapida(config) {
+    if (!config) {
+        return;
+    }
+
+    const form = $(config.formSelector).get(0);
+    if (form) {
+        form.reset();
+    }
+
+    $(config.infoSelector).removeClass("is-danger is-success").text("");
+
+    Object.keys(config.fieldSelectors || {}).forEach(function (key) {
+        clearGenericFieldError(config.fieldSelectors[key], config.infoSelector);
+    });
+}
+
 function limpiarFormularioCatalogo(config) {
     const fieldSelectors = config.fieldSelectors;
     $(config.idSelector).val("");
@@ -1172,6 +1322,171 @@ function guardarCatalogo(config) {
         .catch(function (error) {
             mensajeErrorActivos(error && error.message ? error.message : "No fue posible guardar el " + config.label + ".");
         });
+}
+
+function guardarAltaRapidaCatalogo(config) {
+    const payload = buildQuickAddPayload(config);
+    const validation = validateQuickAddPayload(config, payload);
+    if (validation) {
+        showGenericValidation(validation.selector, config.infoSelector, validation.message);
+        return;
+    }
+
+    fetchJson(config.saveUrl, {
+        method: "POST",
+        headers: { "Content-Type": "application/json; charset=utf-8" },
+        body: JSON.stringify(payload)
+    })
+        .then(function (data) {
+            const message = data.d || "";
+            if (!/^El /.test(message)) {
+                throw new Error(message || "No fue posible guardar el registro.");
+            }
+
+            return resolveQuickAddCreatedItem(config, payload)
+                .then(function (item) {
+                    if (!item || !item.id) {
+                        throw new Error("El registro fue creado, pero no fue posible seleccionarlo automáticamente.");
+                    }
+
+                    setSelect2Value(config.selectSelector, item.id, buildQuickAddOptionText(item));
+                    $(config.modalSelector).modal("hide");
+                    limpiarFormularioAltaRapida(config);
+                    $("#txInfoActivo").removeClass("is-danger").addClass("is-success").text(config.successMessage);
+                });
+        })
+        .catch(function (error) {
+            $(config.infoSelector)
+                .removeClass("is-success")
+                .addClass("is-danger")
+                .text(error && error.message ? error.message : "No fue posible guardar el registro.");
+        });
+}
+
+function buildQuickAddPayload(config) {
+    if (config.key === "tipo") {
+        return {
+            id: "",
+            codigo: ($(config.fieldSelectors.codigo).val() || "").trim(),
+            nombre: ($(config.fieldSelectors.nombre).val() || "").trim(),
+            descripcion: ($(config.fieldSelectors.descripcion).val() || "").trim()
+        };
+    }
+
+    if (config.key === "marca" || config.key === "proveedor") {
+        return {
+            id: "",
+            codigo: ($(config.fieldSelectors.codigo).val() || "").trim(),
+            nombre: ($(config.fieldSelectors.nombre).val() || "").trim(),
+            descripcion: ($(config.fieldSelectors.descripcion).val() || "").trim()
+        };
+    }
+
+    return {
+        id: "",
+        codigo: ($(config.fieldSelectors.codigo).val() || "").trim(),
+        nombre: ($(config.fieldSelectors.nombre).val() || "").trim(),
+        descripcion: ($(config.fieldSelectors.descripcion).val() || "").trim(),
+        permiteOperacion: $(config.fieldSelectors.permiteOperacion).is(":checked"),
+        ordenTexto: ($(config.fieldSelectors.orden).val() || "").toString().trim(),
+        orden: parseStrictPositiveInteger(($(config.fieldSelectors.orden).val() || "").toString().trim())
+    };
+}
+
+function validateQuickAddPayload(config, payload) {
+    if (config.key === "tipo") {
+        return validateCatalogoPayload({
+            fieldSelectors: config.fieldSelectors
+        }, payload);
+    }
+
+    if (config.key === "marca" || config.key === "proveedor") {
+        return validateCatalogoPayload({
+            fieldSelectors: config.fieldSelectors
+        }, payload);
+    }
+
+    if (!payload.codigo || payload.codigo.length > activosValidationLimits.estadoCodigo) {
+        return {
+            selector: config.fieldSelectors.codigo,
+            message: "Captura un código válido de hasta " + activosValidationLimits.estadoCodigo + " caracteres."
+        };
+    }
+
+    if (!payload.nombre || payload.nombre.length > activosValidationLimits.estadoNombre) {
+        return {
+            selector: config.fieldSelectors.nombre,
+            message: "Captura un nombre válido de hasta " + activosValidationLimits.estadoNombre + " caracteres."
+        };
+    }
+
+    if (!payload.ordenTexto || !Number.isInteger(payload.orden) || payload.orden <= 0) {
+        return {
+            selector: config.fieldSelectors.orden,
+            message: "Captura un orden entero mayor que cero."
+        };
+    }
+
+    if (payload.descripcion.length > activosValidationLimits.estadoDescripcion) {
+        return {
+            selector: config.fieldSelectors.descripcion,
+            message: "La descripción no puede exceder " + activosValidationLimits.estadoDescripcion + " caracteres."
+        };
+    }
+
+    return null;
+}
+
+function resolveQuickAddCreatedItem(config, payload) {
+    const query = new URLSearchParams({
+        busqueda: payload.codigo || payload.nombre || "",
+        estatus: "activos"
+    });
+
+    return fetchJson(config.loadUrl + "?" + query.toString())
+        .then(function (data) {
+            const items = data.items || [];
+            return findQuickAddCreatedItem(config, items, payload);
+        });
+}
+
+function findQuickAddCreatedItem(config, items, payload) {
+    const normalizedCodigo = normalizeQuickAddCompareValue(payload.codigo);
+    const normalizedNombre = normalizeQuickAddCompareValue(payload.nombre);
+
+    return items.find(function (item) {
+        if (!item || !item.id || item.activo === false) {
+            return false;
+        }
+
+        if (config.key === "estado") {
+            return normalizeQuickAddCompareValue(item.codigo) === normalizedCodigo
+                && normalizeQuickAddCompareValue(item.nombre) === normalizedNombre
+                && Number(item.orden || 0) === Number(payload.orden || 0);
+        }
+
+        if (config.key === "tipo") {
+            return normalizeQuickAddCompareValue(item.codigo) === normalizedCodigo
+                && normalizeQuickAddCompareValue(item.nombre) === normalizedNombre;
+        }
+
+        return normalizeQuickAddCompareValue(item.nombre) === normalizedNombre
+            && normalizeQuickAddCompareValue(item.codigo) === normalizedCodigo;
+    }) || null;
+}
+
+function buildQuickAddOptionText(item) {
+    const codigo = String(item.codigo || "").trim();
+    const nombre = String(item.nombre || "").trim();
+    return codigo ? codigo + " - " + nombre : nombre;
+}
+
+function normalizeQuickAddCompareValue(value) {
+    return String(value || "")
+        .trim()
+        .normalize("NFD")
+        .replace(/[\u0300-\u036f]/g, "")
+        .toLowerCase();
 }
 
 function confirmarCambioCatalogo(tipo, id, activar) {
@@ -1336,14 +1651,14 @@ function agregarArchivosActivos(tipo, fileList) {
     }
 
     if (tipo === "video" && (activoMultimediaState.video.length + files.length) > 1) {
-        mensajeErrorActivos("Solo se permite 1 video por activo.");
+        mensajeErrorActivos("Solo puedes agregar un video por activo.");
         return;
     }
 
     const currentCount = getMultimediaArrayByTipo(tipo).length;
     const maxCount = tipo === "foto" || tipo === "documento" ? 3 : 1;
     if ((currentCount + files.length) > maxCount) {
-        mensajeErrorActivos("Se excedió el máximo permitido para " + getTipoMultimediaLabel(tipo).toLowerCase() + ".");
+        mensajeErrorActivos(buildMultimediaCountExceededMessage(tipo, maxCount));
         return;
     }
 
@@ -1374,8 +1689,8 @@ function startActivoMediaCapture(tipo) {
     const maxCount = tipo === "foto" ? 3 : 1;
     if (multimediaActual.length >= maxCount) {
         mensajeErrorActivos(tipo === "foto"
-            ? "Solo se permiten 3 fotos por activo."
-            : "Solo se permite 1 video por activo.");
+            ? "Solo puedes agregar hasta 3 fotografías por activo."
+            : "Solo puedes agregar un video por activo.");
         return;
     }
 
@@ -1908,7 +2223,12 @@ function renderMultimediaSection(tipo, containerSelector, summarySelector) {
         .text(summaryText);
 
     if (!items.length) {
-        $(containerSelector).html("<div class='activos-empty-media'>Sin " + escapeHtmlActivos(getTipoMultimediaLabel(tipo).toLowerCase()) + " cargados.</div>");
+        const emptyMessages = {
+            foto: "Sin fotos cargadas.",
+            video: "Sin video cargado.",
+            documento: "Sin documentos cargados."
+        };
+        $(containerSelector).html("<div class='activos-empty-media'>" + emptyMessages[tipo] + "</div>");
         return;
     }
 
@@ -2098,12 +2418,12 @@ function resetCatalogoEstadoOperativo() {
     $("#cbEstadoOperativo").val(null).trigger("change");
 }
 
-function renderIndicadorConteo(value, label) {
+function renderIndicadorConteo(value, _label) {
     if (!value) {
         return "<span class='checkapp-badge checkapp-badge-muted'>0</span>";
     }
 
-    return "<span class='checkapp-badge checkapp-badge-success'>" + escapeHtmlActivos(String(value)) + "</span><small>" + escapeHtmlActivos(label) + "</small>";
+    return "<span class='checkapp-badge checkapp-badge-success'>" + escapeHtmlActivos(String(value)) + "</span>";
 }
 
 function formatDisplayDate(value) {
@@ -2469,6 +2789,18 @@ function getTipoMultimediaLabel(tipo) {
     return "Documentos";
 }
 
+function buildMultimediaCountExceededMessage(tipo, maxCount) {
+    if (tipo === "foto") {
+        return "Puedes agregar hasta " + maxCount + " fotografías por activo.";
+    }
+
+    if (tipo === "video") {
+        return "Solo puedes agregar un video por activo.";
+    }
+
+    return "Puedes agregar hasta " + maxCount + " documentos por activo.";
+}
+
 function revokeMultimediaPreviews() {
     getAllMultimediaItems().forEach(function (item) {
         if (item.isNew && item.previewUrl && item.previewUrl.startsWith("blob:")) {
@@ -2679,8 +3011,9 @@ function dataUrlToBlobActivos(dataUrl) {
 }
 
 function validateMultimediaFile(tipo, file) {
+    const fileName = (file && file.name) ? file.name : "El archivo";
     if (!file || !Number(file.size || 0)) {
-        return "Se detectó un archivo vacío. Selecciona una evidencia válida.";
+        return fileName + " está vacío. Selecciona un archivo válido.";
     }
 
     const extension = getFileExtension(file.name).toLowerCase();
@@ -2688,34 +3021,34 @@ function validateMultimediaFile(tipo, file) {
     const maxBytes = activosMultimediaLimits[tipo] ? activosMultimediaLimits[tipo].maxBytes : 0;
     if (maxBytes && Number(file.size || 0) > maxBytes) {
         if (tipo === "foto") {
-            return "Cada fotografía debe pesar como máximo 10 MB.";
+            return fileName + " supera el tamaño permitido. Cada fotografía debe pesar como máximo 10 MB.";
         }
 
         if (tipo === "video") {
-            return "El video debe pesar como máximo 200 MB.";
+            return fileName + " supera el tamaño permitido. El video debe pesar como máximo 200 MB.";
         }
 
-        return "Cada documento debe pesar como máximo 25 MB.";
+        return fileName + " supera el tamaño permitido. Cada documento debe pesar como máximo 25 MB.";
     }
 
     if (tipo === "foto") {
         const allowedPhotoExtensions = [".png", ".jpg", ".jpeg", ".webp", ".heic"];
         if (mimeType.indexOf("image/") !== 0 && allowedPhotoExtensions.indexOf(extension) < 0) {
-            return "Selecciona una foto válida para el activo.";
+            return fileName + " no es una fotografía válida. Usa PNG, JPG, JPEG, WEBP o HEIC.";
         }
     }
 
     if (tipo === "video") {
         const allowedVideoExtensions = [".webm", ".mp4", ".mov"];
         if (mimeType.indexOf("video/") !== 0 && allowedVideoExtensions.indexOf(extension) < 0) {
-            return "Selecciona un video válido para el activo.";
+            return fileName + " no es un video válido. Usa WEBM, MP4 o MOV.";
         }
     }
 
     if (tipo === "documento") {
         const allowedDocumentExtensions = [".pdf", ".doc", ".docx"];
         if (allowedDocumentExtensions.indexOf(extension) < 0) {
-            return "Selecciona un documento PDF o Word válido.";
+            return fileName + " no es un documento permitido. Usa PDF, DOC o DOCX.";
         }
     }
 
@@ -2798,7 +3131,7 @@ function prepareMultimediaDraftItem(tipo, file) {
     }
 
     if (tipo === "documento") {
-        item.optimizationSummary = "Validado para carga temporal · máx. 25 MB";
+        item.optimizationSummary = "Formato permitido: PDF o Word · tamaño máximo 25 MB";
     }
 
     return Promise.resolve(item);
@@ -3121,14 +3454,14 @@ function parseJsonSafely(text) {
 function syncActivoUploadSummary() {
     const items = getAllMultimediaItems().filter(function (item) { return item.isNew; });
     if (!items.length) {
-        $("#txResumenCargaActivosMultimedia").removeClass("is-danger is-success").text("Carga temporal controlada por archivo con limpieza automática al cerrar.");
+        $("#txResumenCargaActivosMultimedia").removeClass("is-danger is-success").text("Puedes revisar aquí el avance de las evidencias antes de guardar.");
         return;
     }
 
     const ready = items.filter(function (item) { return item.status === "uploaded"; }).length;
     const active = items.filter(function (item) { return item.status === "queued" || item.status === "uploading" || item.status === "pending"; }).length;
     const failed = items.filter(function (item) { return item.status === "error"; }).length;
-    const message = ready + " de " + items.length + " temporales listos"
+    const message = ready + " de " + items.length + " archivos listos"
         + (active ? " · " + active + " en proceso" : "")
         + (failed ? " · " + failed + " con error" : "");
 

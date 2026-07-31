@@ -143,6 +143,7 @@
     window.onbeforeunload = handleBeforeUnload;
     window.addEventListener("popstate", handlePopState);
     document.addEventListener("click", handleDocumentNavigation, true);
+    document.addEventListener("keydown", handleGlobalKeydown);
 
     render();
     bootstrap();
@@ -268,10 +269,15 @@
         state.selectedListAssetTypeName = selected ? normalizeValue(selected.tipoActivo) : "";
     }
 
-    function loadAssets(searchTerm) {
+    function loadAssets(searchTerm, options) {
+        var preserveSearchUi = !!(options && options.preserveSearch && state.assetDrawerOpen);
         state.assetState = "loading";
         state.assetError = "";
-        render();
+        if (preserveSearchUi) {
+            refreshAssetSearchResults();
+        } else {
+            render();
+        }
 
         return request("/ContestarLista/GetActivosRecoleccionesBL26", {
             busqueda: searchTerm || "",
@@ -294,12 +300,20 @@
 
                 state.assets = Array.isArray(payload.d) ? payload.d : [];
                 state.assetState = state.assets.length ? "loaded" : "empty";
-                render();
+                if (preserveSearchUi) {
+                    refreshAssetSearchResults();
+                } else {
+                    render();
+                }
             })
             .catch(function () {
                 state.assetState = "error";
                 state.assetError = "No fue posible cargar los activos disponibles.";
-                render();
+                if (preserveSearchUi) {
+                    refreshAssetSearchResults();
+                } else {
+                    render();
+                }
             });
     }
 
@@ -316,6 +330,18 @@
     function closeAssetDrawer() {
         state.assetDrawerOpen = false;
         render();
+    }
+
+    function handleGlobalKeydown(event) {
+        if (!event || event.key !== "Escape") {
+            return;
+        }
+
+        if (state.assetDrawerOpen) {
+            event.preventDefault();
+            closeAssetDrawer();
+            return;
+        }
     }
 
     function selectAsset(assetId) {
@@ -870,26 +896,29 @@
         var canConfirm = !!state.selectedAssetId && !!state.selectedAssetDetail && !hasStartedInspection();
         var selectedAsset = state.selectedAssetDetail;
         var detail = selectedAsset ? normalizeAssetDetail(selectedAsset) : null;
+        var headerTitle = detail
+            ? escapeHtml(detail.nombre || detail.codigo || "Activo")
+            : (hasStartedInspection() ? 'Activo consultado' : 'Seleccionar activo');
         var headerSummary = detail
-            ? '<p class="bl26-reco-drawer-summary">' + escapeHtml([detail.codigo || detail.nombre, detail.tipoActivo, detail.sucursal].filter(Boolean).join(' · ')) + '</p>'
+            ? '<p class="bl26-reco-drawer-summary">' + escapeHtml([detail.codigo, detail.tipoActivo, detail.sucursal].filter(Boolean).join(' · ')) + '</p>'
             : '<p class="bl26-reco-drawer-summary">Consulta su información, multimedia y documentos en solo lectura.</p>';
 
         return [
             '<section class="bl26-reco-drawer-shell bl26-reco-asset-drawer-shell is-open">',
             '<button type="button" class="bl26-reco-drawer-backdrop" data-action="close-asset-drawer" aria-label="Cerrar activo"></button>',
             '<div class="bl26-reco-drawer bl26-reco-asset-drawer is-open">',
-            '<div class="bl26-reco-drawer-handle" aria-hidden="true"></div>',
             '<div class="bl26-reco-drawer-head bl26-reco-asset-drawer-head">',
             '<div class="bl26-reco-drawer-head-copy">',
-            '<p class="bl26-reco-eyebrow">Activo</p>',
-            '<h2>', hasStartedInspection() ? 'Activo consultado' : 'Seleccionar activo', '</h2>',
+            '<h2>', headerTitle, '</h2>',
             headerSummary,
             '</div>',
-            '<button type="button" class="bl26-reco-ghost bl26-reco-drawer-close" data-action="close-asset-drawer">Cerrar</button>',
+            '<button type="button" class="bl26-reco-ghost bl26-reco-drawer-close bl26-reco-asset-close" data-action="close-asset-drawer" aria-label="Cerrar información del activo"><span class="bl26-reco-asset-close-glyph" aria-hidden="true">&times;</span><span class="bl26-reco-asset-close-label">Cerrar</span></button>',
             '</div>',
+            '<div class="bl26-reco-asset-drawer-scroll">',
             '<div class="bl26-reco-asset-drawer-body', hasStartedInspection() ? ' is-detail-only' : '', '">',
             hasStartedInspection() ? '' : renderAssetSearchPanel(),
             renderAssetDetailPanel(detail),
+            '</div>',
             '</div>',
             '<div class="bl26-reco-drawer-actions bl26-reco-asset-drawer-actions">',
             hasStartedInspection() ? '' : '<button type="button" class="bl26-reco-secondary" data-action="close-asset-drawer">Cancelar</button>',
@@ -901,40 +930,16 @@
     }
 
     function renderAssetSearchPanel() {
-        var body = '';
-        if (state.assetState === "loading") {
-            body = '<div class="bl26-reco-empty compact"><strong>Cargando activos</strong><p>Estamos consultando los activos disponibles.</p></div>';
-        } else if (state.assetState === "error") {
-            body = '<div class="bl26-reco-empty compact"><strong>No fue posible cargar los activos</strong><p>' + escapeHtml(state.assetError || "Intenta nuevamente.") + '</p></div>';
-        } else if (state.assetState === "empty") {
-            body = '<div class="bl26-reco-empty compact"><strong>Sin activos disponibles</strong><p>No encontramos activos compatibles con esta lista.</p></div>';
-        } else {
-            body = [
-                '<div class="bl26-reco-asset-list">',
-                (state.assets || []).map(function (item) {
-                    var selected = String(item.id) === String(state.selectedAssetId);
-                    return [
-                        '<button type="button" class="bl26-reco-asset-option', selected ? ' is-selected' : '', '" data-action="select-asset" data-asset-id="', escapeAttribute(item.id), '">',
-                        '<strong>', escapeHtml(item.codigo || item.nombre || "Activo"), '</strong>',
-                        '<span>', escapeHtml(item.nombre || ""), '</span>',
-                        '<small>', escapeHtml([item.tag, item.numeroSerie, item.tipoActivo].filter(Boolean).join(' · ')), '</small>',
-                        '</button>'
-                    ].join("");
-                }).join(""),
-                '</div>'
-            ].join("");
-        }
-
         return [
             '<div class="bl26-reco-asset-search-panel">',
             '<div class="bl26-reco-asset-search-sticky">',
                 '<label class="bl26-reco-field">',
                 '<span>Buscar activo</span>',
-                '<input id="bl26-asset-search" type="search" value="', escapeAttribute(state.assetSearchTerm || ""), '" placeholder="Código, nombre, tag o número de serie" />',
+                '<input id="bl26-asset-search" type="search" value="', escapeAttribute(state.assetSearchTerm || ""), '" placeholder="Código, nombre, tag o número de serie" autocomplete="off" autocapitalize="none" spellcheck="false" />',
                 '</label>',
             '</div>',
             '<div class="bl26-reco-asset-search-results">',
-                body,
+                renderAssetSearchResultsBody(),
             '</div>',
             '</div>'
         ].join("");
@@ -947,11 +952,6 @@
 
         return [
             '<div class="bl26-reco-asset-detail">',
-            '<article class="bl26-reco-asset-identity">',
-            '<strong>', escapeHtml(detail.codigo || detail.nombre || "Activo"), '</strong>',
-            '<span>', escapeHtml(detail.nombre || "Sin nombre"), '</span>',
-            '<small>', escapeHtml([detail.tag, detail.numeroSerie, detail.tipoActivo].filter(Boolean).join(" · ") || "Sin referencia adicional"), '</small>',
-            '</article>',
             '<div class="bl26-reco-asset-summary-grid">',
             renderMiniCard("Código", detail.codigo || "N/A"),
             renderMiniCard("Nombre", detail.nombre || "N/A"),
@@ -995,20 +995,191 @@
                 }
 
                 var rawName = item.nombre || ("Documento " + (index + 1));
-                var extension = rawName.indexOf(".") >= 0 ? rawName.split(".").pop().toUpperCase() : "Archivo";
+                var documentMeta = resolveAssetDocumentMeta(rawName);
+                var displayName = getAssetDocumentDisplayName(rawName, documentMeta, index);
                 return [
                     '<a class="bl26-reco-asset-doc" href="', escapeAttribute(item.url), '" target="_blank" rel="noopener noreferrer" title="', escapeAttribute(rawName), '">',
-                    '<span class="bl26-reco-asset-doc-type">', escapeHtml(extension), '</span>',
+                    '<span class="bl26-reco-asset-doc-icon" aria-hidden="true">', renderAssetDocumentIcon(documentMeta.iconKind), '</span>',
                     '<span class="bl26-reco-asset-doc-copy">',
-                    '<strong>', escapeHtml(rawName), '</strong>',
-                    '<small>Ver documento</small>',
+                    '<strong title="', escapeAttribute(rawName), '">', escapeHtml(displayName), '</strong>',
+                    '<small>', escapeHtml(documentMeta.typeLabel), ' · ', escapeHtml(documentMeta.actionLabel), '</small>',
                     '</span>',
+                    '<span class="bl26-reco-asset-doc-type" aria-hidden="true"><i class="fa ', escapeAttribute(documentMeta.trailingIcon), '"></i></span>',
                     '</a>'
                 ].join("");
             }).join(""),
             '</div>',
             '</section>'
         ].join("");
+    }
+
+    function resolveAssetDocumentMeta(fileName) {
+        var extension = fileName.indexOf(".") >= 0 ? fileName.split(".").pop().toLowerCase() : "";
+        if (extension === "pdf") {
+            return {
+                typeLabel: "Documento PDF",
+                actionLabel: "Ver archivo",
+                iconKind: "pdf",
+                trailingIcon: "fa-eye"
+            };
+        }
+
+        if (extension === "doc" || extension === "docx") {
+            return {
+                typeLabel: "Documento Word",
+                actionLabel: "Descargar archivo",
+                iconKind: "word",
+                trailingIcon: "fa-download"
+            };
+        }
+
+        return {
+            typeLabel: "Documento",
+            actionLabel: "Abrir archivo",
+            iconKind: "generic",
+            trailingIcon: "fa-external-link"
+        };
+    }
+
+    function renderAssetDocumentIcon(kind) {
+        if (kind === "word") {
+            return [
+                '<svg viewBox="0 0 32 32" focusable="false" aria-hidden="true">',
+                '<path d="M9 3.5h10.2L25 9.3V26a2 2 0 0 1-2 2H9a2 2 0 0 1-2-2V5.5a2 2 0 0 1 2-2Z" fill="#2563eb"></path>',
+                '<path d="M19.2 3.5V9.3H25" fill="#93c5fd"></path>',
+                '<path d="M10.2 11.8h2.2l1.1 5.9 1.5-5.9h1.9l1.5 5.9 1.2-5.9h2.1l-2.2 9.4h-2l-1.6-6.1-1.7 6.1h-2Z" fill="#fff"></path>',
+                '</svg>'
+            ].join("");
+        }
+
+        if (kind === "pdf") {
+            return [
+                '<svg viewBox="0 0 32 32" focusable="false" aria-hidden="true">',
+                '<path d="M9 3.5h10.2L25 9.3V26a2 2 0 0 1-2 2H9a2 2 0 0 1-2-2V5.5a2 2 0 0 1 2-2Z" fill="#dc2626"></path>',
+                '<path d="M19.2 3.5V9.3H25" fill="#fca5a5"></path>',
+                '<path d="M10.4 20.9v-9h2.4c1.7 0 2.8 1 2.8 2.6 0 1.7-1.1 2.8-2.9 2.8h-.9v3.6Zm2.2-5.3h.5c.8 0 1.3-.4 1.3-1.1s-.4-1.1-1.2-1.1h-.6Zm4.1 5.3v-9H19c2.4 0 3.8 1.7 3.8 4.5S21.4 20.9 19 20.9Zm2-1.8h.3c1.3 0 2-.9 2-2.7s-.7-2.7-2-2.7h-.3Zm4.9 1.8v-9H28v1.8h-2.2v1.8h2v1.8h-2v3.6Z" fill="#fff"></path>',
+                '</svg>'
+            ].join("");
+        }
+
+        return [
+            '<svg viewBox="0 0 32 32" focusable="false" aria-hidden="true">',
+            '<path d="M9 3.5h10.2L25 9.3V26a2 2 0 0 1-2 2H9a2 2 0 0 1-2-2V5.5a2 2 0 0 1 2-2Z" fill="#94a3b8"></path>',
+            '<path d="M19.2 3.5V9.3H25" fill="#cbd5e1"></path>',
+            '<path d="M11.5 13h9M11.5 16.5h9M11.5 20h6.3" stroke="#fff" stroke-width="2" stroke-linecap="round"></path>',
+            '</svg>'
+        ].join("");
+    }
+
+    function getAssetDocumentDisplayName(fileName, documentMeta, index) {
+        var normalizedName = normalizeValue(fileName);
+        if (!normalizedName) {
+            return documentMeta.typeLabel + " " + (index + 1);
+        }
+
+        var stem = normalizedName.replace(/\.[^.]+$/, "");
+        if (isOpaqueDocumentStem(stem)) {
+            return documentMeta.typeLabel + " " + (index + 1);
+        }
+
+        return normalizedName;
+    }
+
+    function isOpaqueDocumentStem(value) {
+        var normalized = normalizeValue(value)
+            .replace(/\s*\(\d+\)\s*$/, "")
+            .replace(/[_-]+/g, "");
+
+        if (normalized.length < 24) {
+            return false;
+        }
+
+        return /^[a-z0-9]+$/i.test(normalized);
+    }
+
+    function renderAssetSearchResultsBody() {
+        var filteredAssets = getFilteredAssets();
+
+        if (state.assetState === "loading") {
+            return '<div class="bl26-reco-empty compact"><strong>Cargando activos</strong><p>Estamos consultando los activos disponibles.</p></div>';
+        }
+
+        if (state.assetState === "error") {
+            return '<div class="bl26-reco-empty compact"><strong>No fue posible cargar los activos</strong><p>' + escapeHtml(state.assetError || "Intenta nuevamente.") + '</p></div>';
+        }
+
+        if (state.assetState === "empty") {
+            return '<div class="bl26-reco-empty compact"><strong>Sin activos disponibles</strong><p>No encontramos activos compatibles con esta lista.</p></div>';
+        }
+
+        if (!filteredAssets.length) {
+            return '<div class="bl26-reco-empty compact"><strong>Sin coincidencias</strong><p>No encontramos activos con ese criterio de búsqueda.</p></div>';
+        }
+
+        return '<div class="bl26-reco-asset-list">' + filteredAssets.map(function (item) {
+            var selected = String(item.id) === String(state.selectedAssetId);
+            return [
+                '<button type="button" class="bl26-reco-asset-option', selected ? ' is-selected' : '', '" data-action="select-asset" data-asset-id="', escapeAttribute(item.id), '">',
+                '<strong>', escapeHtml(item.codigo || item.nombre || "Activo"), '</strong>',
+                '<span>', escapeHtml(item.nombre || ""), '</span>',
+                '<small>', escapeHtml([item.tag, item.numeroSerie, item.tipoActivo].filter(Boolean).join(' · ')), '</small>',
+                '</button>'
+            ].join("");
+        }).join("") + '</div>';
+    }
+
+    function getFilteredAssets() {
+        var normalizedTerm = normalizeSearchTerm(state.assetSearchTerm);
+        var assets = Array.isArray(state.assets) ? state.assets : [];
+
+        if (!normalizedTerm) {
+            return assets;
+        }
+
+        return assets.filter(function (item) {
+            return [
+                item.codigo,
+                item.nombre,
+                item.tag,
+                item.numeroSerie,
+                item.tipoActivo
+            ].some(function (value) {
+                return normalizeSearchTerm(value).indexOf(normalizedTerm) >= 0;
+            });
+        });
+    }
+
+    function normalizeSearchTerm(value) {
+        return normalizeValue(value)
+            .toLowerCase()
+            .normalize("NFD")
+            .replace(/[\u0300-\u036f]/g, "");
+    }
+
+    function refreshAssetSearchResults() {
+        if (!state.assetDrawerOpen) {
+            return;
+        }
+
+        var resultsNode = root.querySelector(".bl26-reco-asset-search-results");
+        if (!resultsNode) {
+            return;
+        }
+
+        resultsNode.innerHTML = renderAssetSearchResultsBody();
+        bindAssetOptionButtons(resultsNode);
+    }
+
+    function bindAssetOptionButtons(scope) {
+        if (!scope) {
+            return;
+        }
+
+        scope.querySelectorAll("[data-action='select-asset']").forEach(function (button) {
+            button.addEventListener("click", function () {
+                selectAsset(button.dataset.assetId);
+            });
+        });
     }
 
     function normalizeAssetDetail(raw) {
@@ -1198,10 +1369,10 @@
             '</label>',
             '<div class="bl26-reco-field">',
             '<span>Ubicación GPS</span>',
-            '<article class="bl26-reco-mini-card compact bl26-reco-gps-card"><strong>' + escapeHtml(state.location ? "GPS confirmado" : "GPS pendiente") + '</strong></article>',
+            '<article class="bl26-reco-mini-card compact bl26-reco-gps-card"><strong>' + escapeHtml(renderGpsSummary()) + '</strong></article>',
             '</div>',
             assetSummary,
-            '<button id="bl26-start-button" class="bl26-reco-primary bl26-reco-start-button" type="button" ', canStart() ? "" : "disabled", '>Iniciar inspección</button>',
+            '<button id="bl26-start-button" class="bl26-reco-primary bl26-reco-start-button" type="button" ', canStart() ? "" : "disabled", '>', escapeHtml(getStartButtonLabel()), '</button>',
             '</section>'
         ].join("");
     }
@@ -1721,11 +1892,7 @@
                 }
 
                 state.leavingPage = true;
-                if (window.history.length > 1) {
-                    window.history.back();
-                } else {
-                    window.location.href = "/Home/Index";
-                }
+                window.location.href = "/ContestarLista/RecoleccionesBL26";
             });
         }
 
@@ -1792,11 +1959,7 @@
             });
         });
 
-        root.querySelectorAll("[data-action='select-asset']").forEach(function (button) {
-            button.addEventListener("click", function () {
-                selectAsset(button.dataset.assetId);
-            });
-        });
+        bindAssetOptionButtons(root);
 
         root.querySelectorAll("[data-action='confirm-asset-selection']").forEach(function (button) {
             button.addEventListener("click", function () {
@@ -1808,10 +1971,10 @@
         if (assetSearchInput) {
             assetSearchInput.addEventListener("input", function (event) {
                 state.assetSearchTerm = event.target.value || "";
-                render();
+                refreshAssetSearchResults();
                 window.clearTimeout(searchTimer);
                 searchTimer = window.setTimeout(function () {
-                    loadAssets(state.assetSearchTerm);
+                    loadAssets(state.assetSearchTerm, { preserveSearch: true });
                 }, 260);
             });
         }
@@ -3239,6 +3402,10 @@
         }
 
         return "GPS confirmado";
+    }
+
+    function getStartButtonLabel() {
+        return "Iniciar inspección";
     }
 
     function hydrateUiChrome() {
