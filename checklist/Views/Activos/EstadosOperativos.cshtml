@@ -1,0 +1,178 @@
+@{
+    ViewBag.Title = "Estados operativos";
+    Layout = "~/Views/Shared/_Layout.cshtml";
+}
+
+<partial name="_ActivosSessionContext" />
+
+<div class="checkapp-scope checkapp-page activos-catalog-page" data-activos-page="estadosoperativos">
+    <div class="container-fluid checkapp-shell activos-catalog-shell">
+        <section class="checkapp-hero">
+            <div>
+                <p class="checkapp-kicker">CheckApp Pro</p>
+                <h1>Estados operativos</h1>
+                <p>Controla los estados operativos disponibles para los activos con el mismo patrón visual y funcional aprobado.</p>
+            </div>
+        </section>
+
+        <section class="checkapp-panel activos-catalog-filter-panel">
+            <div class="checkapp-panel-head">
+                <div>
+                    <span class="checkapp-panel-eyebrow">Filtros</span>
+                    <h2>Ubica estados por código, nombre o estatus.</h2>
+                    <p class="checkapp-panel-copy">La pantalla mantiene las reglas vigentes de orden, operación y estatus del catálogo actual.</p>
+                </div>
+            </div>
+            <div class="checkapp-filter-grid activos-catalog-filter-grid">
+                <label class="checkapp-field">
+                    <span>Búsqueda</span>
+                    <input id="txBusquedaEstados" type="text" placeholder="Código, nombre o descripción" />
+                </label>
+                <label class="checkapp-field">
+                    <span>Estatus</span>
+                    <select id="cbFiltroEstatusEstados" class="form-select">
+                        <option value="">Todos</option>
+                        <option value="activos">Activos</option>
+                        <option value="inactivos">Inactivos</option>
+                    </select>
+                </label>
+            </div>
+            <div class="checkapp-filter-actions activos-catalog-filter-actions">
+                <button type="button" class="checkapp-btn checkapp-btn-secondary" data-catalog-filter-apply="estados-grid">
+                    <i class="fa fa-search"></i>
+                    <span>Buscar</span>
+                </button>
+                <button type="button" class="checkapp-btn checkapp-btn-ghost" data-catalog-filter-clear="estado">
+                    <i class="fa fa-eraser"></i>
+                    <span>Limpiar</span>
+                </button>
+            </div>
+        </section>
+
+        <section class="checkapp-panel">
+            <div class="checkapp-panel-head">
+                <div>
+                    <span class="checkapp-panel-eyebrow">Administración</span>
+                    <h2>Listado de estados operativos</h2>
+                    <p class="checkapp-panel-copy">Catálogo operativo homologado al patrón oficial de Activos.</p>
+                </div>
+                <div class="checkapp-grid-actions">
+                    <span id="txGridEstadosVisibleCount" class="ca-chip ca-chip--secondary">0 visibles</span>
+                    <button id="btExportarEstadosOperativos" type="button" class="checkapp-btn checkapp-btn-excel" data-activos-export-button="estadosoperativos">
+                        <i class="fa fa-file-excel-o"></i>
+                        <span>Exportar Excel</span>
+                    </button>
+                    <button id="btNuevoEstadoOperativo" type="button" class="checkapp-btn checkapp-btn-primary activos-catalog-create" onclick="abrirEstadoOperativoStandalone(); return false;">
+                        <i class="fa fa-plus"></i>
+                        <span>Nuevo estado</span>
+                    </button>
+                </div>
+            </div>
+            <div id="gridEstadosHost">
+                <div class="checkapp-grid-toolbar">
+                    <label class="checkapp-grid-search" for="txBusquedaGridEstados">
+                        <i class="fa fa-search"></i>
+                        <input id="txBusquedaGridEstados" type="text" placeholder="Busca dentro del listado de estados" />
+                    </label>
+                    <div class="checkapp-grid-actions">
+                        <span id="txGridEstadosCount" class="ca-grid-count">0 registros</span>
+                    </div>
+                </div>
+                <div class="checkapp-grid-scroll">
+                    <table id="grEstadosOperativos" class="table table-row-bordered align-middle checkapp-grid-table">
+                        <thead>
+                            <tr>
+                                <th>Acciones</th>
+                                <th>Código</th>
+                                <th>Nombre</th>
+                                <th>Descripción</th>
+                                <th>Permite operación</th>
+                                <th>Orden</th>
+                                <th>Estatus</th>
+                                <th>Actualización</th>
+                            </tr>
+                        </thead>
+                        <tbody></tbody>
+                    </table>
+                </div>
+                <div id="gridEstadosFooter" class="checkapp-grid-footer">
+                    <span id="txGridEstadosRange" class="checkapp-grid-footer-range">Sin resultados</span>
+                    <div id="txGridEstadosPageSize" class="checkapp-grid-page-size">
+                        <span class="checkapp-grid-page-size-label">Filas:</span>
+                        <button type="button" class="checkapp-grid-page-chip is-active" data-page-size="25" aria-pressed="true">25</button>
+                        <button type="button" class="checkapp-grid-page-chip" data-page-size="50" aria-pressed="false">50</button>
+                        <button type="button" class="checkapp-grid-page-chip" data-page-size="100" aria-pressed="false">100</button>
+                    </div>
+                    <div class="checkapp-grid-page-nav">
+                        <span id="txGridEstadosPageIndicator" class="checkapp-grid-footer-page">Página 1 de 1</span>
+                        <button id="btGridEstadosPrev" type="button" class="checkapp-grid-nav-btn" aria-label="Página anterior">‹</button>
+                        <button id="btGridEstadosNext" type="button" class="checkapp-grid-nav-btn" aria-label="Página siguiente">›</button>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+    </div>
+</div>
+
+<div class="modal fade checkapp-modal activos-quick-modal activos-standalone-catalog-modal" tabindex="-1" id="modalEstadosOperativos" aria-hidden="true">
+    <div class="modal-dialog modal-lg modal-dialog-centered">
+        <div class="modal-content">
+            <form id="frmEstadoOperativo">
+                <input id="hdEstadoOperativoId" type="hidden" />
+                <div class="modal-header">
+                    <div>
+                        <span class="checkapp-panel-eyebrow">Administración</span>
+                        <h3 class="modal-title" id="txTituloEstadoOperativo">Nuevo estado operativo</h3>
+                    </div>
+                    <button type="button" class="btn btn-icon btn-sm btn-active-light-primary" onclick="cerrarEstadoOperativoStandalone(); return false;" aria-label="Close">
+                        <i class="fa fa-times"></i>
+                    </button>
+                </div>
+                <div class="modal-body">
+                    <div class="checkapp-filter-grid activos-quick-modal-grid activos-quick-modal-grid--state" style="margin-top:0;">
+                        <label class="checkapp-field activos-quick-modal-field-code">
+                            <span>Código *</span>
+                            <input id="txCodigoEstadoOperativo" maxlength="64" type="text" />
+                        </label>
+                        <label class="checkapp-field activos-quick-modal-field-name">
+                            <span>Nombre *</span>
+                            <input id="txNombreEstadoOperativo" maxlength="160" type="text" />
+                        </label>
+                        <label class="checkapp-field activos-quick-modal-field-description">
+                            <span>Descripción</span>
+                            <textarea id="txDescripcionEstadoOperativo" maxlength="400"></textarea>
+                        </label>
+                        <div class="activos-quick-modal-side">
+                            <label class="checkapp-field activos-quick-modal-field-order">
+                                <span>Orden *</span>
+                                <input id="txOrdenEstadoOperativo" type="number" min="1" step="1" inputmode="numeric" />
+                            </label>
+                            <label class="checkapp-field activos-checkbox-field activos-checkbox-field--compact activos-quick-modal-field-toggle">
+                                <span>Permite operación</span>
+                                <input id="chkPermiteOperacionEstado" type="checkbox" />
+                            </label>
+                        </div>
+                    </div>
+                    <div class="checkapp-status-inline" id="txInfoEstadoOperativo" style="margin-top:1rem;"></div>
+                </div>
+                <div class="modal-footer activos-quick-modal-footer">
+                    <button id="btCancelarEstadoOperativo" type="button" class="checkapp-btn checkapp-btn-ghost" onclick="cerrarEstadoOperativoStandalone(); return false;">Cancelar</button>
+                    <button id="btGuardarEstadoOperativo" type="button" class="checkapp-btn checkapp-btn-primary">
+                        <i class="fa fa-save"></i>
+                        <span>Guardar estado</span>
+                    </button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+
+@section Scripts {
+    <link href="~/css/checkapp-theme.css" rel="stylesheet" />
+    <link href="~/css/Activos/Activos.css" rel="stylesheet" asp-append-version="true" />
+    <script>var XLSX = window.XLSX || {}; window.XLSX = XLSX;</script>
+    <script src="~/js/vendor/xlsx.full.min.js"></script>
+    <script src="~/js/checkapp-ui.js"></script>
+    <script src="~/js/Activos/Activos.js" asp-append-version="true"></script>
+}

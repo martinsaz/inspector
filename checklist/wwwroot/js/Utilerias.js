@@ -174,31 +174,31 @@ function BuildMenu() {
 
 function syncCurrentMenuState() {
     var pathname = (window.location && window.location.pathname ? window.location.pathname : '').toLowerCase();
-
-    if (pathname === '/activos/index') {
-        var activosRoot = document.getElementById('menu-activos');
-        var activosSubmenu = activosRoot ? activosRoot.querySelector('.menu-sub') : null;
-        var activosItem = document.getElementById('menu-activos-nuevo');
-        var activosLink = activosItem ? activosItem.querySelector('.menu-link') : null;
-
-        if (activosRoot) {
-            activosRoot.classList.add('show');
-            activosRoot.classList.add('here');
+    var activosRouteMap = {
+        '/activos/index': {
+            ancestors: ['menu-activos', 'menu-activos-abc'],
+            active: 'menu-activos-abc-nuevo'
+        },
+        '/activos/tipos': {
+            ancestors: ['menu-activos', 'menu-activos-catalogos'],
+            active: 'menu-activos-catalogos-tipos'
+        },
+        '/activos/marcas': {
+            ancestors: ['menu-activos', 'menu-activos-catalogos'],
+            active: 'menu-activos-catalogos-marcas'
+        },
+        '/activos/proveedores': {
+            ancestors: ['menu-activos', 'menu-activos-catalogos'],
+            active: 'menu-activos-catalogos-proveedores'
+        },
+        '/activos/estadosoperativos': {
+            ancestors: ['menu-activos', 'menu-activos-catalogos'],
+            active: 'menu-activos-catalogos-estados'
         }
+    };
 
-        if (activosSubmenu) {
-            activosSubmenu.classList.add('show');
-        }
-
-        if (activosItem) {
-            activosItem.classList.add('here');
-            activosItem.classList.add('show');
-        }
-
-        if (activosLink) {
-            activosLink.classList.add('active');
-        }
-
+    if (activosRouteMap[pathname]) {
+        markMenuBranch(activosRouteMap[pathname].ancestors, activosRouteMap[pathname].active);
         return;
     }
 
@@ -226,6 +226,49 @@ function syncCurrentMenuState() {
             link.classList.add('active');
         }
     }
+}
+
+function markMenuBranch(ancestorIds, activeItemId) {
+    (ancestorIds || []).forEach(function (id) {
+        var node = document.getElementById(id);
+        if (!node) {
+            return;
+        }
+
+        node.classList.add('show');
+        node.classList.add('here');
+
+        var submenu = getDirectMenuSub(node);
+        if (submenu) {
+            submenu.classList.add('show');
+        }
+    });
+
+    var activeItem = document.getElementById(activeItemId);
+    var activeLink = activeItem ? activeItem.querySelector('.menu-link') : null;
+
+    if (activeItem) {
+        activeItem.classList.add('show');
+        activeItem.classList.add('here');
+    }
+
+    if (activeLink) {
+        activeLink.classList.add('active');
+    }
+}
+
+function getDirectMenuSub(node) {
+    if (!node || !node.children) {
+        return null;
+    }
+
+    for (var i = 0; i < node.children.length; i++) {
+        if (node.children[i].classList && node.children[i].classList.contains('menu-sub')) {
+            return node.children[i];
+        }
+    }
+
+    return null;
 }
 
 function ilumina(raiz, padre, hijo, nieto, bisnieto) {

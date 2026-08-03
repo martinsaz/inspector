@@ -1,0 +1,166 @@
+@{
+    ViewBag.Title = "Tipos de activo";
+    Layout = "~/Views/Shared/_Layout.cshtml";
+}
+
+<partial name="_ActivosSessionContext" />
+
+<div class="checkapp-scope checkapp-page activos-catalog-page" data-activos-page="tipos">
+    <div class="container-fluid checkapp-shell activos-catalog-shell">
+        <section class="checkapp-hero">
+            <div>
+                <p class="checkapp-kicker">CheckApp Pro</p>
+                <h1>Tipos de activo</h1>
+                <p>Administra el catálogo homologado que clasifica el inventario operativo.</p>
+            </div>
+        </section>
+
+        <section class="checkapp-panel activos-catalog-filter-panel">
+            <div class="checkapp-panel-head">
+                <div>
+                    <span class="checkapp-panel-eyebrow">Filtros</span>
+                    <h2>Ubica tipos por código, nombre o estatus.</h2>
+                    <p class="checkapp-panel-copy">Conserva el mismo comportamiento aprobado del catálogo dentro de Activos.</p>
+                </div>
+            </div>
+            <div class="checkapp-filter-grid activos-catalog-filter-grid">
+                <label class="checkapp-field">
+                    <span>Búsqueda</span>
+                    <input id="txBusquedaTipos" type="text" placeholder="Código, nombre o descripción" />
+                </label>
+                <label class="checkapp-field">
+                    <span>Estatus</span>
+                    <select id="cbFiltroEstatusTipos" class="form-select">
+                        <option value="">Todos</option>
+                        <option value="activos">Activos</option>
+                        <option value="inactivos">Inactivos</option>
+                    </select>
+                </label>
+            </div>
+            <div class="checkapp-filter-actions activos-catalog-filter-actions">
+                <button type="button" class="checkapp-btn checkapp-btn-secondary" data-catalog-filter-apply="tipos-grid">
+                    <i class="fa fa-search"></i>
+                    <span>Buscar</span>
+                </button>
+                <button type="button" class="checkapp-btn checkapp-btn-ghost" data-catalog-filter-clear="tipo">
+                    <i class="fa fa-eraser"></i>
+                    <span>Limpiar</span>
+                </button>
+            </div>
+        </section>
+
+        <section class="checkapp-panel">
+            <div class="checkapp-panel-head">
+                <div>
+                    <span class="checkapp-panel-eyebrow">Administración</span>
+                    <h2>Listado de tipos</h2>
+                    <p class="checkapp-panel-copy">Catálogo homologado al patrón aprobado para Activos.</p>
+                </div>
+                <div class="checkapp-grid-actions">
+                    <span id="txGridTiposVisibleCount" class="ca-chip ca-chip--secondary">0 visibles</span>
+                    <button id="btExportarTiposActivos" type="button" class="checkapp-btn checkapp-btn-excel" data-activos-export-button="tipos">
+                        <i class="fa fa-file-excel-o"></i>
+                        <span>Exportar Excel</span>
+                    </button>
+                    <button id="btNuevoTipoActivo" type="button" class="checkapp-btn checkapp-btn-primary activos-catalog-create" onclick="abrirCatalogoStandalone('tipo'); return false;">
+                        <i class="fa fa-plus"></i>
+                        <span>Nuevo tipo</span>
+                    </button>
+                </div>
+            </div>
+            <div id="gridTiposHost">
+                <div class="checkapp-grid-toolbar">
+                    <label class="checkapp-grid-search" for="txBusquedaGridTipos">
+                        <i class="fa fa-search"></i>
+                        <input id="txBusquedaGridTipos" type="text" placeholder="Busca dentro del listado de tipos" />
+                    </label>
+                    <div class="checkapp-grid-actions">
+                        <span id="txGridTiposCount" class="ca-grid-count">0 registros</span>
+                    </div>
+                </div>
+                <div class="checkapp-grid-scroll">
+                    <table id="grTiposActivos" class="table table-row-bordered align-middle checkapp-grid-table">
+                        <thead>
+                            <tr>
+                                <th>Acciones</th>
+                                <th>Código</th>
+                                <th>Nombre</th>
+                                <th>Descripción</th>
+                                <th>Estatus</th>
+                                <th>Actualización</th>
+                            </tr>
+                        </thead>
+                        <tbody></tbody>
+                    </table>
+                </div>
+                <div id="gridTiposFooter" class="checkapp-grid-footer">
+                    <span id="txGridTiposRange" class="checkapp-grid-footer-range">Sin resultados</span>
+                    <div id="txGridTiposPageSize" class="checkapp-grid-page-size">
+                        <span class="checkapp-grid-page-size-label">Filas:</span>
+                        <button type="button" class="checkapp-grid-page-chip is-active" data-page-size="25" aria-pressed="true">25</button>
+                        <button type="button" class="checkapp-grid-page-chip" data-page-size="50" aria-pressed="false">50</button>
+                        <button type="button" class="checkapp-grid-page-chip" data-page-size="100" aria-pressed="false">100</button>
+                    </div>
+                    <div class="checkapp-grid-page-nav">
+                        <span id="txGridTiposPageIndicator" class="checkapp-grid-footer-page">Página 1 de 1</span>
+                        <button id="btGridTiposPrev" type="button" class="checkapp-grid-nav-btn" aria-label="Página anterior">‹</button>
+                        <button id="btGridTiposNext" type="button" class="checkapp-grid-nav-btn" aria-label="Página siguiente">›</button>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+    </div>
+</div>
+
+<div class="modal fade checkapp-modal activos-quick-modal activos-standalone-catalog-modal" tabindex="-1" id="modalTiposActivos" aria-hidden="true">
+    <div class="modal-dialog modal-lg modal-dialog-centered">
+        <div class="modal-content">
+            <form id="frmTipoActivo">
+                <input id="hdTipoActivoId" type="hidden" />
+                <div class="modal-header">
+                    <div>
+                        <span class="checkapp-panel-eyebrow">Administración</span>
+                        <h3 class="modal-title" id="txTituloTipoActivo">Nuevo tipo de activo</h3>
+                    </div>
+                    <button type="button" class="btn btn-icon btn-sm btn-active-light-primary" onclick="cerrarCatalogoStandalone('tipo'); return false;" aria-label="Close">
+                        <i class="fa fa-times"></i>
+                    </button>
+                </div>
+                <div class="modal-body">
+                    <div class="checkapp-filter-grid activos-quick-modal-grid activos-quick-modal-grid--catalog" style="margin-top:0;">
+                        <label class="checkapp-field activos-quick-modal-field-code">
+                            <span>Código *</span>
+                            <input id="txCodigoTipoActivo" maxlength="64" type="text" />
+                        </label>
+                        <label class="checkapp-field activos-quick-modal-field-name">
+                            <span>Nombre *</span>
+                            <input id="txNombreTipoActivo" maxlength="160" type="text" />
+                        </label>
+                        <label class="checkapp-field activos-quick-modal-field-full">
+                            <span>Descripción</span>
+                            <textarea id="txDescripcionTipoActivo" maxlength="400"></textarea>
+                        </label>
+                    </div>
+                    <div class="checkapp-status-inline" id="txInfoTipoActivo" style="margin-top:1rem;"></div>
+                </div>
+                <div class="modal-footer activos-quick-modal-footer">
+                    <button id="btCancelarTipoActivo" type="button" class="checkapp-btn checkapp-btn-ghost" onclick="cerrarCatalogoStandalone('tipo'); return false;">Cancelar</button>
+                    <button id="btGuardarTipoActivo" type="button" class="checkapp-btn checkapp-btn-primary">
+                        <i class="fa fa-save"></i>
+                        <span>Guardar tipo</span>
+                    </button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+
+@section Scripts {
+    <link href="~/css/checkapp-theme.css" rel="stylesheet" />
+    <link href="~/css/Activos/Activos.css" rel="stylesheet" asp-append-version="true" />
+    <script>var XLSX = window.XLSX || {}; window.XLSX = XLSX;</script>
+    <script src="~/js/vendor/xlsx.full.min.js"></script>
+    <script src="~/js/checkapp-ui.js"></script>
+    <script src="~/js/Activos/Activos.js" asp-append-version="true"></script>
+}

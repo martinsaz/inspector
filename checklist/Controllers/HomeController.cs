@@ -172,7 +172,6 @@ namespace checklist.Controllers
                         List<respUsuario> user = JsonConvert.DeserializeObject<List<respUsuario>>(response.Content);
                         foreach (var element in user)
                         {
-
                             idRol = element.idRol.ToString();
                         }
 
@@ -222,12 +221,7 @@ namespace checklist.Controllers
                         {
                             if (item.Opcion == "02000000")
                             {
-                                sb.Append(@"<div id=""menu-activos"" data-kt-menu-trigger=""click"" class=""menu-item menu-accordion"">");
-                                sb.Append(@"<span class=""menu-link""> <span class=""menu-icon""> <i class=""ki-duotone ki-element-plus fs-2""> <span class=""path1""></span> <span class=""path2""></span> <span class=""path3""></span> <span class=""path4""></span> <span class=""path5""></span> </i> </span> <span class=""menu-title"">Activos</span> <span class=""menu-arrow""></span> </span>");
-                                sb.Append(@"<div class=""menu-sub menu-sub-accordion"">");
-                                sb.Append(@"<div id=""menu-activos-nuevo"" class=""menu-item""> <a class=""menu-link"" href=""/Activos/Index""> <span class=""menu-bullet""> <span class=""bullet bullet-dot""></span> </span> <span class=""menu-title"">Nuevo</span> </a> </div>");
-                                sb.Append(@"</div>");
-                                sb.Append(@"</div>");
+                                sb.Append(BuildActivosMenu());
                             }
 
                             switch (item.Opcion)
@@ -774,6 +768,35 @@ namespace checklist.Controllers
 <div id=""02005000BL26"" class=""menu-item here show""> <a class=""menu-link active"" href=""/ContestarLista/RecoleccionesBL26""> <span class=""menu-bullet""> <span class=""bullet bullet-dot""></span> </span> <span class=""menu-title"">Inspección en campo</span> </a> </div>
 </div>
 </div>";
+        }
+
+        private static string BuildActivosMenu()
+        {
+            StringBuilder sb = new StringBuilder();
+            sb.Append(@"<div id=""menu-activos"" data-kt-menu-trigger=""click"" class=""menu-item menu-accordion"">");
+            sb.Append(@"<span class=""menu-link""> <span class=""menu-icon""> <i class=""ki-duotone ki-element-plus fs-2""> <span class=""path1""></span> <span class=""path2""></span> <span class=""path3""></span> <span class=""path4""></span> <span class=""path5""></span> </i> </span> <span class=""menu-title"">Activos</span> <span class=""menu-arrow""></span> </span>");
+            sb.Append(@"<div class=""menu-sub menu-sub-accordion"">");
+
+            sb.Append(@"<div id=""menu-activos-abc"" data-kt-menu-trigger=""click"" class=""menu-item menu-accordion"">");
+            sb.Append(@"<span class=""menu-link""> <span class=""menu-bullet""> <span class=""bullet bullet-dot""></span> </span> <span class=""menu-title"">ABC Activos</span> <span class=""menu-arrow""></span> </span>");
+            sb.Append(@"<div class=""menu-sub menu-sub-accordion"">");
+            sb.Append(@"<div id=""menu-activos-abc-nuevo"" class=""menu-item""> <a class=""menu-link"" href=""/Activos/Index""> <span class=""menu-bullet""> <span class=""bullet bullet-dot""></span> </span> <span class=""menu-title"">Nuevo</span> </a> </div>");
+            sb.Append(@"</div>");
+            sb.Append(@"</div>");
+
+            sb.Append(@"<div id=""menu-activos-catalogos"" data-kt-menu-trigger=""click"" class=""menu-item menu-accordion"">");
+            sb.Append(@"<span class=""menu-link""> <span class=""menu-bullet""> <span class=""bullet bullet-dot""></span> </span> <span class=""menu-title"">Catálogos</span> <span class=""menu-arrow""></span> </span>");
+            sb.Append(@"<div class=""menu-sub menu-sub-accordion"">");
+            sb.Append(@"<div id=""menu-activos-catalogos-tipos"" class=""menu-item""> <a class=""menu-link"" href=""/Activos/Tipos""> <span class=""menu-bullet""> <span class=""bullet bullet-dot""></span> </span> <span class=""menu-title"">Tipos</span> </a> </div>");
+            sb.Append(@"<div id=""menu-activos-catalogos-marcas"" class=""menu-item""> <a class=""menu-link"" href=""/Activos/Marcas""> <span class=""menu-bullet""> <span class=""bullet bullet-dot""></span> </span> <span class=""menu-title"">Marcas</span> </a> </div>");
+            sb.Append(@"<div id=""menu-activos-catalogos-proveedores"" class=""menu-item""> <a class=""menu-link"" href=""/Activos/Proveedores""> <span class=""menu-bullet""> <span class=""bullet bullet-dot""></span> </span> <span class=""menu-title"">Proveedores</span> </a> </div>");
+            sb.Append(@"<div id=""menu-activos-catalogos-estados"" class=""menu-item""> <a class=""menu-link"" href=""/Activos/EstadosOperativos""> <span class=""menu-bullet""> <span class=""bullet bullet-dot""></span> </span> <span class=""menu-title"">Estados operativos</span> </a> </div>");
+            sb.Append(@"</div>");
+            sb.Append(@"</div>");
+
+            sb.Append(@"</div>");
+            sb.Append(@"</div>");
+            return sb.ToString();
         }
     }
 }

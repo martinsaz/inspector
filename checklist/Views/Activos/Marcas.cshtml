@@ -1,0 +1,166 @@
+@{
+    ViewBag.Title = "Marcas";
+    Layout = "~/Views/Shared/_Layout.cshtml";
+}
+
+<partial name="_ActivosSessionContext" />
+
+<div class="checkapp-scope checkapp-page activos-catalog-page" data-activos-page="marcas">
+    <div class="container-fluid checkapp-shell activos-catalog-shell">
+        <section class="checkapp-hero">
+            <div>
+                <p class="checkapp-kicker">CheckApp Pro</p>
+                <h1>Marcas</h1>
+                <p>Administra las marcas disponibles para el inventario operativo sin alterar el flujo principal de Activos.</p>
+            </div>
+        </section>
+
+        <section class="checkapp-panel activos-catalog-filter-panel">
+            <div class="checkapp-panel-head">
+                <div>
+                    <span class="checkapp-panel-eyebrow">Filtros</span>
+                    <h2>Ubica marcas por código, nombre o estatus.</h2>
+                    <p class="checkapp-panel-copy">La pantalla conserva los mismos endpoints y validaciones aprobadas en el catálogo actual.</p>
+                </div>
+            </div>
+            <div class="checkapp-filter-grid activos-catalog-filter-grid">
+                <label class="checkapp-field">
+                    <span>Búsqueda</span>
+                    <input id="txBusquedaMarcas" type="text" placeholder="Código, nombre o descripción" />
+                </label>
+                <label class="checkapp-field">
+                    <span>Estatus</span>
+                    <select id="cbFiltroEstatusMarcas" class="form-select">
+                        <option value="">Todos</option>
+                        <option value="activos">Activos</option>
+                        <option value="inactivos">Inactivos</option>
+                    </select>
+                </label>
+            </div>
+            <div class="checkapp-filter-actions activos-catalog-filter-actions">
+                <button type="button" class="checkapp-btn checkapp-btn-secondary" data-catalog-filter-apply="marcas-grid">
+                    <i class="fa fa-search"></i>
+                    <span>Buscar</span>
+                </button>
+                <button type="button" class="checkapp-btn checkapp-btn-ghost" data-catalog-filter-clear="marca">
+                    <i class="fa fa-eraser"></i>
+                    <span>Limpiar</span>
+                </button>
+            </div>
+        </section>
+
+        <section class="checkapp-panel">
+            <div class="checkapp-panel-head">
+                <div>
+                    <span class="checkapp-panel-eyebrow">Administración</span>
+                    <h2>Listado de marcas</h2>
+                    <p class="checkapp-panel-copy">Catálogo operativo y reutilizable para altas y edición de activos.</p>
+                </div>
+                <div class="checkapp-grid-actions">
+                    <span id="txGridMarcasVisibleCount" class="ca-chip ca-chip--secondary">0 visibles</span>
+                    <button id="btExportarMarcasActivos" type="button" class="checkapp-btn checkapp-btn-excel" data-activos-export-button="marcas">
+                        <i class="fa fa-file-excel-o"></i>
+                        <span>Exportar Excel</span>
+                    </button>
+                    <button id="btNuevoMarcaActivo" type="button" class="checkapp-btn checkapp-btn-primary activos-catalog-create" onclick="abrirCatalogoStandalone('marca'); return false;">
+                        <i class="fa fa-plus"></i>
+                        <span>Nueva marca</span>
+                    </button>
+                </div>
+            </div>
+            <div id="gridMarcasHost">
+                <div class="checkapp-grid-toolbar">
+                    <label class="checkapp-grid-search" for="txBusquedaGridMarcas">
+                        <i class="fa fa-search"></i>
+                        <input id="txBusquedaGridMarcas" type="text" placeholder="Busca dentro del listado de marcas" />
+                    </label>
+                    <div class="checkapp-grid-actions">
+                        <span id="txGridMarcasCount" class="ca-grid-count">0 registros</span>
+                    </div>
+                </div>
+                <div class="checkapp-grid-scroll">
+                    <table id="grMarcasActivos" class="table table-row-bordered align-middle checkapp-grid-table">
+                        <thead>
+                            <tr>
+                                <th>Acciones</th>
+                                <th>Código</th>
+                                <th>Nombre</th>
+                                <th>Descripción</th>
+                                <th>Estatus</th>
+                                <th>Actualización</th>
+                            </tr>
+                        </thead>
+                        <tbody></tbody>
+                    </table>
+                </div>
+                <div id="gridMarcasFooter" class="checkapp-grid-footer">
+                    <span id="txGridMarcasRange" class="checkapp-grid-footer-range">Sin resultados</span>
+                    <div id="txGridMarcasPageSize" class="checkapp-grid-page-size">
+                        <span class="checkapp-grid-page-size-label">Filas:</span>
+                        <button type="button" class="checkapp-grid-page-chip is-active" data-page-size="25" aria-pressed="true">25</button>
+                        <button type="button" class="checkapp-grid-page-chip" data-page-size="50" aria-pressed="false">50</button>
+                        <button type="button" class="checkapp-grid-page-chip" data-page-size="100" aria-pressed="false">100</button>
+                    </div>
+                    <div class="checkapp-grid-page-nav">
+                        <span id="txGridMarcasPageIndicator" class="checkapp-grid-footer-page">Página 1 de 1</span>
+                        <button id="btGridMarcasPrev" type="button" class="checkapp-grid-nav-btn" aria-label="Página anterior">‹</button>
+                        <button id="btGridMarcasNext" type="button" class="checkapp-grid-nav-btn" aria-label="Página siguiente">›</button>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+    </div>
+</div>
+
+<div class="modal fade checkapp-modal activos-quick-modal activos-standalone-catalog-modal" tabindex="-1" id="modalMarcasActivos" aria-hidden="true">
+    <div class="modal-dialog modal-lg modal-dialog-centered">
+        <div class="modal-content">
+            <form id="frmMarcaActivo">
+                <input id="hdMarcaActivoId" type="hidden" />
+                <div class="modal-header">
+                    <div>
+                        <span class="checkapp-panel-eyebrow">Administración</span>
+                        <h3 class="modal-title" id="txTituloMarcaActivo">Nueva marca</h3>
+                    </div>
+                    <button type="button" class="btn btn-icon btn-sm btn-active-light-primary" onclick="cerrarCatalogoStandalone('marca'); return false;" aria-label="Close">
+                        <i class="fa fa-times"></i>
+                    </button>
+                </div>
+                <div class="modal-body">
+                    <div class="checkapp-filter-grid activos-quick-modal-grid activos-quick-modal-grid--catalog" style="margin-top:0;">
+                        <label class="checkapp-field activos-quick-modal-field-code">
+                            <span>Código *</span>
+                            <input id="txCodigoMarcaActivo" maxlength="64" type="text" />
+                        </label>
+                        <label class="checkapp-field activos-quick-modal-field-name">
+                            <span>Nombre *</span>
+                            <input id="txNombreMarcaActivo" maxlength="160" type="text" />
+                        </label>
+                        <label class="checkapp-field activos-quick-modal-field-full">
+                            <span>Descripción</span>
+                            <textarea id="txDescripcionMarcaActivo" maxlength="400"></textarea>
+                        </label>
+                    </div>
+                    <div class="checkapp-status-inline" id="txInfoMarcaActivo" style="margin-top:1rem;"></div>
+                </div>
+                <div class="modal-footer activos-quick-modal-footer">
+                    <button id="btCancelarMarcaActivo" type="button" class="checkapp-btn checkapp-btn-ghost" onclick="cerrarCatalogoStandalone('marca'); return false;">Cancelar</button>
+                    <button id="btGuardarMarcaActivo" type="button" class="checkapp-btn checkapp-btn-primary">
+                        <i class="fa fa-save"></i>
+                        <span>Guardar marca</span>
+                    </button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+
+@section Scripts {
+    <link href="~/css/checkapp-theme.css" rel="stylesheet" />
+    <link href="~/css/Activos/Activos.css" rel="stylesheet" asp-append-version="true" />
+    <script>var XLSX = window.XLSX || {}; window.XLSX = XLSX;</script>
+    <script src="~/js/vendor/xlsx.full.min.js"></script>
+    <script src="~/js/checkapp-ui.js"></script>
+    <script src="~/js/Activos/Activos.js" asp-append-version="true"></script>
+}

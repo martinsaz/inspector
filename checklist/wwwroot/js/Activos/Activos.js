@@ -15,6 +15,7 @@ let estadosDetalleCache = new Map();
 
 let activoFormReadOnly = false;
 let activosActionMenuOpenId = "";
+let activosPageMode = "index";
 let activoMultimediaState = {
     fotos: [],
     video: [],
@@ -63,6 +64,9 @@ const activosCatalogConfigs = {
         activarUrl: "/Activos/ActivarTipoActivo",
         idPayloadKey: "idTipoActivo",
         visibleCountSelector: "#txGridTiposVisibleCount",
+        exportButtonSelector: "#btExportarTiposActivos",
+        exportSheetName: "TiposActivos",
+        exportFilePrefix: "TiposActivos",
         fieldSelectors: {
             codigo: "#txCodigoTipoActivo",
             nombre: "#txNombreTipoActivo",
@@ -88,6 +92,9 @@ const activosCatalogConfigs = {
         activarUrl: "/Activos/ActivarMarcaActivo",
         idPayloadKey: "idMarca",
         visibleCountSelector: "#txGridMarcasVisibleCount",
+        exportButtonSelector: "#btExportarMarcasActivos",
+        exportSheetName: "MarcasActivos",
+        exportFilePrefix: "MarcasActivos",
         fieldSelectors: {
             codigo: "#txCodigoMarcaActivo",
             nombre: "#txNombreMarcaActivo",
@@ -113,6 +120,9 @@ const activosCatalogConfigs = {
         activarUrl: "/Activos/ActivarProveedorActivo",
         idPayloadKey: "idProveedor",
         visibleCountSelector: "#txGridProveedoresVisibleCount",
+        exportButtonSelector: "#btExportarProveedoresActivos",
+        exportSheetName: "ProveedoresActivos",
+        exportFilePrefix: "ProveedoresActivos",
         fieldSelectors: {
             codigo: "#txCodigoProveedorActivo",
             nombre: "#txNombreProveedorActivo",
@@ -187,19 +197,62 @@ const activosQuickAddConfigs = {
     }
 };
 
+const activosCatalogGridSelectors = {
+    tipo: {
+        hostSelector: "#gridTiposHost",
+        tableSelector: "#grTiposActivos",
+        searchInputSelector: "#txBusquedaGridTipos",
+        resultCountSelector: "#txGridTiposCount",
+        footerRangeSelector: "#txGridTiposRange",
+        footerPageIndicatorSelector: "#txGridTiposPageIndicator",
+        footerPrevButtonSelector: "#btGridTiposPrev",
+        footerNextButtonSelector: "#btGridTiposNext",
+        footerPageSizeSelector: "#txGridTiposPageSize"
+    },
+    marca: {
+        hostSelector: "#gridMarcasHost",
+        tableSelector: "#grMarcasActivos",
+        searchInputSelector: "#txBusquedaGridMarcas",
+        resultCountSelector: "#txGridMarcasCount",
+        footerRangeSelector: "#txGridMarcasRange",
+        footerPageIndicatorSelector: "#txGridMarcasPageIndicator",
+        footerPrevButtonSelector: "#btGridMarcasPrev",
+        footerNextButtonSelector: "#btGridMarcasNext",
+        footerPageSizeSelector: "#txGridMarcasPageSize"
+    },
+    proveedor: {
+        hostSelector: "#gridProveedoresHost",
+        tableSelector: "#grProveedoresActivos",
+        searchInputSelector: "#txBusquedaGridProveedores",
+        resultCountSelector: "#txGridProveedoresCount",
+        footerRangeSelector: "#txGridProveedoresRange",
+        footerPageIndicatorSelector: "#txGridProveedoresPageIndicator",
+        footerPrevButtonSelector: "#btGridProveedoresPrev",
+        footerNextButtonSelector: "#btGridProveedoresNext",
+        footerPageSizeSelector: "#txGridProveedoresPageSize"
+    }
+};
+
 document.addEventListener("DOMContentLoaded", function () {
+    activosPageMode = resolveActivosPageMode();
     window.addEventListener("resize", syncOpenActionMenuPosition);
     window.addEventListener("scroll", syncOpenActionMenuPosition, true);
 
     inicializaPermisosActivos().then(function () {
-        inicializaAccordion();
         configuraEventosActivos();
-        configuraCombosActivos();
-        inicializaGridActivos();
-        inicializaCatalogosActivos();
-        inicializaGridEstados();
-        actualizaResumenFiltros();
-        renderActivoMultimediaEditor();
+
+        if (activosPageMode === "index") {
+            inicializaAccordion();
+            configuraCombosActivos();
+            inicializaGridActivos();
+            inicializaCatalogosActivos();
+            inicializaGridEstados();
+            actualizaResumenFiltros();
+            renderActivoMultimediaEditor();
+            return;
+        }
+
+        inicializaCatalogoStandalone(activosPageMode);
     });
 });
 
@@ -218,10 +271,12 @@ function inicializaPermisosActivos() {
                 $("#btAbrirProveedoresActivos").hide();
                 $("#btAbrirEstadosOperativos").hide();
                 $(".activos-inline-add").hide();
+                $(".activos-catalog-create").hide();
             }
 
             if (!permisosActivos.exportar) {
                 $("#btExportarActivos").hide();
+                $("[data-activos-export-button]").hide();
             }
         })
         .catch(function () {
@@ -319,21 +374,21 @@ function configuraEventosActivos() {
     $("#btGuardarQuickProveedorActivo").on("click", function () { guardarAltaRapidaCatalogo(activosQuickAddConfigs.proveedor); });
     $("#btGuardarQuickEstadoOperativo").on("click", function () { guardarAltaRapidaCatalogo(activosQuickAddConfigs.estado); });
 
-    $("#btNuevoTipoActivo").on("click", function () { limpiarFormularioCatalogo(activosCatalogConfigs.tipo); });
+    $("#btNuevoTipoActivo").on("click", function () { handleCatalogCreateAction(activosCatalogConfigs.tipo); });
     $("#btGuardarTipoActivo").on("click", function () { guardarCatalogo(activosCatalogConfigs.tipo); });
-    $("#btCancelarTipoActivo").on("click", function () { limpiarFormularioCatalogo(activosCatalogConfigs.tipo); });
+    $("#btCancelarTipoActivo").on("click", function () { handleCatalogCancelAction(activosCatalogConfigs.tipo); });
 
-    $("#btNuevoMarcaActivo").on("click", function () { limpiarFormularioCatalogo(activosCatalogConfigs.marca); });
+    $("#btNuevoMarcaActivo").on("click", function () { handleCatalogCreateAction(activosCatalogConfigs.marca); });
     $("#btGuardarMarcaActivo").on("click", function () { guardarCatalogo(activosCatalogConfigs.marca); });
-    $("#btCancelarMarcaActivo").on("click", function () { limpiarFormularioCatalogo(activosCatalogConfigs.marca); });
+    $("#btCancelarMarcaActivo").on("click", function () { handleCatalogCancelAction(activosCatalogConfigs.marca); });
 
-    $("#btNuevoProveedorActivo").on("click", function () { limpiarFormularioCatalogo(activosCatalogConfigs.proveedor); });
+    $("#btNuevoProveedorActivo").on("click", function () { handleCatalogCreateAction(activosCatalogConfigs.proveedor); });
     $("#btGuardarProveedorActivo").on("click", function () { guardarCatalogo(activosCatalogConfigs.proveedor); });
-    $("#btCancelarProveedorActivo").on("click", function () { limpiarFormularioCatalogo(activosCatalogConfigs.proveedor); });
+    $("#btCancelarProveedorActivo").on("click", function () { handleCatalogCancelAction(activosCatalogConfigs.proveedor); });
 
-    $("#btNuevoEstadoOperativo").on("click", limpiarFormularioEstadoOperativo);
+    $("#btNuevoEstadoOperativo").on("click", handleEstadoOperativoCreateAction);
     $("#btGuardarEstadoOperativo").on("click", guardarEstadoOperativo);
-    $("#btCancelarEstadoOperativo").on("click", limpiarFormularioEstadoOperativo);
+    $("#btCancelarEstadoOperativo").on("click", handleEstadoOperativoCancelAction);
 
     $("#btTomarFotoActivo").on("click", function () { if (!activoFormReadOnly) { startActivoMediaCapture("foto"); } });
     $("#btElegirFotoActivo").on("click", function () { if (!activoFormReadOnly) { $("#flFotosActivo").trigger("click"); } });
@@ -372,6 +427,19 @@ function configuraEventosActivos() {
         CheckAppUI.reloadGrid("estados-grid");
     });
 
+    $(document).on("click", "[data-catalog-filter-apply]", function () {
+        const gridId = ($(this).data("catalogFilterApply") || "").toString();
+        if (!gridId) {
+            return;
+        }
+
+        CheckAppUI.reloadGrid(gridId);
+    });
+
+    $(document).on("click", "[data-catalog-filter-clear]", function () {
+        clearCatalogPageFilters(($(this).data("catalogFilterClear") || "").toString());
+    });
+
     $(document).on("click", ".js-activos-menu-toggle", function (event) {
         event.preventDefault();
         event.stopPropagation();
@@ -387,6 +455,12 @@ function configuraEventosActivos() {
 
         activosActionMenuOpenId = "";
         renderAccionMenus();
+    });
+
+    $(document).on("keydown", function (event) {
+        if (event.key === "Escape") {
+            closeOpenStandaloneCatalogModal();
+        }
     });
 
     $(document).on("click", "[data-activos-capture-action='close']", function () {
@@ -428,6 +502,30 @@ function configuraEventosActivos() {
 
     $("#modalMultimediaActivo").on("hidden.bs.modal", function () {
         cleanupActivoViewerResources();
+    });
+
+    $(activosCatalogConfigs.tipo.modalSelector).on("hidden.bs.modal", function () {
+        if (isStandaloneCatalogPage("tipo")) {
+            limpiarFormularioCatalogo(activosCatalogConfigs.tipo);
+        }
+    });
+
+    $(activosCatalogConfigs.marca.modalSelector).on("hidden.bs.modal", function () {
+        if (isStandaloneCatalogPage("marca")) {
+            limpiarFormularioCatalogo(activosCatalogConfigs.marca);
+        }
+    });
+
+    $(activosCatalogConfigs.proveedor.modalSelector).on("hidden.bs.modal", function () {
+        if (isStandaloneCatalogPage("proveedor")) {
+            limpiarFormularioCatalogo(activosCatalogConfigs.proveedor);
+        }
+    });
+
+    $("#modalEstadosOperativos").on("hidden.bs.modal", function () {
+        if (isStandaloneCatalogPage("estado")) {
+            limpiarFormularioEstadoOperativo();
+        }
     });
 
     bindActivosValidationEvents();
@@ -651,41 +749,9 @@ function inicializaGridActivos() {
 }
 
 function inicializaCatalogosActivos() {
-    inicializaGridCatalogo(activosCatalogConfigs.tipo, {
-        hostSelector: "#gridTiposHost",
-        tableSelector: "#grTiposActivos",
-        searchInputSelector: "#txBusquedaGridTipos",
-        resultCountSelector: "#txGridTiposCount",
-        footerRangeSelector: "#txGridTiposRange",
-        footerPageIndicatorSelector: "#txGridTiposPageIndicator",
-        footerPrevButtonSelector: "#btGridTiposPrev",
-        footerNextButtonSelector: "#btGridTiposNext",
-        footerPageSizeSelector: "#txGridTiposPageSize"
-    });
-
-    inicializaGridCatalogo(activosCatalogConfigs.marca, {
-        hostSelector: "#gridMarcasHost",
-        tableSelector: "#grMarcasActivos",
-        searchInputSelector: "#txBusquedaGridMarcas",
-        resultCountSelector: "#txGridMarcasCount",
-        footerRangeSelector: "#txGridMarcasRange",
-        footerPageIndicatorSelector: "#txGridMarcasPageIndicator",
-        footerPrevButtonSelector: "#btGridMarcasPrev",
-        footerNextButtonSelector: "#btGridMarcasNext",
-        footerPageSizeSelector: "#txGridMarcasPageSize"
-    });
-
-    inicializaGridCatalogo(activosCatalogConfigs.proveedor, {
-        hostSelector: "#gridProveedoresHost",
-        tableSelector: "#grProveedoresActivos",
-        searchInputSelector: "#txBusquedaGridProveedores",
-        resultCountSelector: "#txGridProveedoresCount",
-        footerRangeSelector: "#txGridProveedoresRange",
-        footerPageIndicatorSelector: "#txGridProveedoresPageIndicator",
-        footerPrevButtonSelector: "#btGridProveedoresPrev",
-        footerNextButtonSelector: "#btGridProveedoresNext",
-        footerPageSizeSelector: "#txGridProveedoresPageSize"
-    });
+    inicializaGridCatalogo(activosCatalogConfigs.tipo, activosCatalogGridSelectors.tipo);
+    inicializaGridCatalogo(activosCatalogConfigs.marca, activosCatalogGridSelectors.marca);
+    inicializaGridCatalogo(activosCatalogConfigs.proveedor, activosCatalogGridSelectors.proveedor);
 }
 
 function inicializaGridCatalogo(config, selectors) {
@@ -694,6 +760,7 @@ function inicializaGridCatalogo(config, selectors) {
         hostSelector: selectors.hostSelector,
         tableSelector: selectors.tableSelector,
         searchInputSelector: selectors.searchInputSelector,
+        exportButtonSelector: config.exportButtonSelector,
         resultCountSelector: selectors.resultCountSelector,
         footerRangeSelector: selectors.footerRangeSelector,
         footerPageIndicatorSelector: selectors.footerPageIndicatorSelector,
@@ -703,6 +770,10 @@ function inicializaGridCatalogo(config, selectors) {
         pageLength: 25,
         lengthMenu: [[25, 50, 100], [25, 50, 100]],
         order: [[2, "asc"]],
+        exportSheetName: config.exportSheetName,
+        exportFileName: function () {
+            return config.exportFilePrefix + "_" + formatDateForFile(new Date()) + ".xlsx";
+        },
         loadData: function () {
             const query = new URLSearchParams({
                 busqueda: $(config.searchSelector).val() || "",
@@ -733,6 +804,9 @@ function inicializaGridCatalogo(config, selectors) {
             {
                 key: "activo",
                 title: "Estatus",
+                exportValue: function (value) {
+                    return value ? "Activo" : "Inactivo";
+                },
                 render: function (value) {
                     return value
                         ? "<span class='checkapp-badge checkapp-badge-success'>Activo</span>"
@@ -742,6 +816,9 @@ function inicializaGridCatalogo(config, selectors) {
             {
                 key: "fechaActualizacion",
                 title: "Actualización",
+                exportValue: function (value) {
+                    return formatDisplayDate(value);
+                },
                 render: function (value) {
                     return formatDisplayDate(value);
                 }
@@ -760,6 +837,7 @@ function inicializaGridEstados() {
         hostSelector: "#gridEstadosHost",
         tableSelector: "#grEstadosOperativos",
         searchInputSelector: "#txBusquedaGridEstados",
+        exportButtonSelector: "#btExportarEstadosOperativos",
         resultCountSelector: "#txGridEstadosCount",
         footerRangeSelector: "#txGridEstadosRange",
         footerPageIndicatorSelector: "#txGridEstadosPageIndicator",
@@ -769,6 +847,10 @@ function inicializaGridEstados() {
         pageLength: 25,
         lengthMenu: [[25, 50, 100], [25, 50, 100]],
         order: [[5, "asc"], [2, "asc"]],
+        exportSheetName: "EstadosOperativos",
+        exportFileName: function () {
+            return "EstadosOperativos_" + formatDateForFile(new Date()) + ".xlsx";
+        },
         loadData: function () {
             const query = new URLSearchParams({
                 busqueda: $("#txBusquedaEstados").val() || "",
@@ -799,6 +881,9 @@ function inicializaGridEstados() {
             {
                 key: "permiteOperacion",
                 title: "Permite operación",
+                exportValue: function (value) {
+                    return value ? "Sí" : "No";
+                },
                 render: function (value) {
                     return value
                         ? "<span class='checkapp-badge checkapp-badge-success'>Sí</span>"
@@ -809,6 +894,9 @@ function inicializaGridEstados() {
             {
                 key: "activo",
                 title: "Estatus",
+                exportValue: function (value) {
+                    return value ? "Activo" : "Inactivo";
+                },
                 render: function (value) {
                     return value
                         ? "<span class='checkapp-badge checkapp-badge-success'>Activo</span>"
@@ -818,6 +906,9 @@ function inicializaGridEstados() {
             {
                 key: "fechaActualizacion",
                 title: "Actualización",
+                exportValue: function (value) {
+                    return formatDisplayDate(value);
+                },
                 render: function (value) {
                     return formatDisplayDate(value);
                 }
@@ -829,6 +920,244 @@ function inicializaGridEstados() {
         emptyText: "No hay estados operativos disponibles."
     });
 }
+
+function resolveActivosPageMode() {
+    const pageNode = document.querySelector("[data-activos-page]");
+    const pageMode = pageNode ? String(pageNode.getAttribute("data-activos-page") || "").trim().toLowerCase() : "";
+    if (pageMode) {
+        return pageMode;
+    }
+
+    const pathname = (window.location && window.location.pathname ? window.location.pathname : "").toLowerCase();
+    switch (pathname) {
+        case "/activos/tipos":
+            return "tipos";
+        case "/activos/marcas":
+            return "marcas";
+        case "/activos/proveedores":
+            return "proveedores";
+        case "/activos/estadosoperativos":
+            return "estadosoperativos";
+        default:
+            return "index";
+    }
+}
+
+function inicializaCatalogoStandalone(pageMode) {
+    switch (pageMode) {
+        case "tipos":
+            inicializaGridCatalogo(activosCatalogConfigs.tipo, activosCatalogGridSelectors.tipo);
+            break;
+        case "marcas":
+            inicializaGridCatalogo(activosCatalogConfigs.marca, activosCatalogGridSelectors.marca);
+            break;
+        case "proveedores":
+            inicializaGridCatalogo(activosCatalogConfigs.proveedor, activosCatalogGridSelectors.proveedor);
+            break;
+        case "estadosoperativos":
+            inicializaGridEstados();
+            break;
+        default:
+            break;
+    }
+}
+
+function isStandaloneCatalogPage(catalogKey) {
+    const normalizedKey = (catalogKey || "").toString().trim().toLowerCase();
+    switch (normalizedKey) {
+        case "tipo":
+            return activosPageMode === "tipos";
+        case "marca":
+            return activosPageMode === "marcas";
+        case "proveedor":
+            return activosPageMode === "proveedores";
+        case "estado":
+            return activosPageMode === "estadosoperativos";
+        default:
+            return false;
+    }
+}
+
+function openStandaloneCatalogModal(selector) {
+    const modalApi = resolveModalApi(selector);
+    if (!modalApi) {
+        return;
+    }
+
+    modalApi.show();
+}
+
+function closeStandaloneCatalogModal(selector) {
+    const modalApi = resolveModalApi(selector);
+    if (!modalApi) {
+        return;
+    }
+
+    modalApi.hide();
+}
+
+function resolveModalApi(selector) {
+    if (!selector) {
+        return null;
+    }
+
+    const modalNode = document.querySelector(selector);
+    if (!modalNode) {
+        return null;
+    }
+
+    if (isStandaloneCatalogModalSelector(selector)) {
+        return createStandaloneCatalogModalApi(modalNode);
+    }
+
+    if (window.bootstrap && window.bootstrap.Modal) {
+        return window.bootstrap.Modal.getOrCreateInstance(modalNode);
+    }
+
+    if (typeof window.$ === "function" && window.$.fn && typeof window.$.fn.modal === "function") {
+        return {
+            show: function () { window.$(selector).modal("show"); },
+            hide: function () { window.$(selector).modal("hide"); }
+        };
+    }
+
+    return createStandaloneCatalogModalApi(modalNode);
+}
+
+function isStandaloneCatalogModalSelector(selector) {
+    return [
+        "#modalTiposActivos",
+        "#modalMarcasActivos",
+        "#modalProveedoresActivos",
+        "#modalEstadosOperativos"
+    ].indexOf(selector) >= 0;
+}
+
+function createStandaloneCatalogModalApi(modalNode) {
+    return {
+        show: function () {
+            modalNode.style.display = "block";
+            modalNode.classList.add("show");
+            modalNode.removeAttribute("aria-hidden");
+            modalNode.setAttribute("aria-modal", "true");
+            document.body.classList.add("modal-open");
+
+            let backdrop = document.querySelector(".modal-backdrop.activos-standalone-backdrop");
+            if (!backdrop) {
+                backdrop = document.createElement("div");
+                backdrop.className = "modal-backdrop fade show activos-standalone-backdrop";
+                backdrop.addEventListener("click", function () {
+                    closeOpenStandaloneCatalogModal();
+                });
+                document.body.appendChild(backdrop);
+            }
+        },
+        hide: function () {
+            modalNode.style.display = "none";
+            modalNode.classList.remove("show");
+            modalNode.setAttribute("aria-hidden", "true");
+            modalNode.removeAttribute("aria-modal");
+            document.body.classList.remove("modal-open");
+            document.querySelectorAll(".modal-backdrop.activos-standalone-backdrop").forEach(function (backdrop) {
+                backdrop.remove();
+            });
+            modalNode.dispatchEvent(new Event("hidden.bs.modal"));
+        }
+    };
+}
+
+function closeOpenStandaloneCatalogModal() {
+    const openModal = document.querySelector(".activos-standalone-catalog-modal.show");
+    if (!openModal || !openModal.id) {
+        return;
+    }
+
+    closeStandaloneCatalogModal("#" + openModal.id);
+}
+
+function abrirCatalogoStandalone(tipo) {
+    const config = activosCatalogConfigs[(tipo || "").toString().trim().toLowerCase()];
+    if (!config) {
+        return;
+    }
+
+    handleCatalogCreateAction(config);
+}
+
+function cerrarCatalogoStandalone(tipo) {
+    const normalizedKey = (tipo || "").toString().trim().toLowerCase();
+    if (normalizedKey === "estado") {
+        handleEstadoOperativoCancelAction();
+        return;
+    }
+
+    const config = activosCatalogConfigs[normalizedKey];
+    if (!config) {
+        return;
+    }
+
+    handleCatalogCancelAction(config);
+}
+
+function handleCatalogCreateAction(config) {
+    limpiarFormularioCatalogo(config);
+    if (isStandaloneCatalogPage(config.key)) {
+        openStandaloneCatalogModal(config.modalSelector);
+    }
+}
+
+function handleCatalogCancelAction(config) {
+    if (isStandaloneCatalogPage(config.key)) {
+        closeStandaloneCatalogModal(config.modalSelector);
+        return;
+    }
+
+    limpiarFormularioCatalogo(config);
+}
+
+function handleEstadoOperativoCreateAction() {
+    limpiarFormularioEstadoOperativo();
+    if (isStandaloneCatalogPage("estado")) {
+        openStandaloneCatalogModal("#modalEstadosOperativos");
+    }
+}
+
+function handleEstadoOperativoCancelAction() {
+    if (isStandaloneCatalogPage("estado")) {
+        closeStandaloneCatalogModal("#modalEstadosOperativos");
+        return;
+    }
+
+    limpiarFormularioEstadoOperativo();
+}
+
+function clearCatalogPageFilters(catalogKey) {
+    const normalizedKey = (catalogKey || "").toString().trim().toLowerCase();
+    if (!normalizedKey) {
+        return;
+    }
+
+    if (normalizedKey === "estado") {
+        $("#txBusquedaEstados").val("");
+        $("#cbFiltroEstatusEstados").val("");
+        CheckAppUI.reloadGrid("estados-grid");
+        return;
+    }
+
+    const config = activosCatalogConfigs[normalizedKey];
+    if (!config) {
+        return;
+    }
+
+    $(config.searchSelector).val("");
+    $(config.statusSelector).val("");
+    CheckAppUI.reloadGrid(config.gridId);
+}
+
+window.abrirCatalogoStandalone = abrirCatalogoStandalone;
+window.cerrarCatalogoStandalone = cerrarCatalogoStandalone;
+window.abrirEstadoOperativoStandalone = handleEstadoOperativoCreateAction;
+window.cerrarEstadoOperativoStandalone = handleEstadoOperativoCancelAction;
 
 function actualizaResumenActivos(rows) {
     const activos = rows.filter(function (item) { return item.activo; }).length;
@@ -1281,6 +1610,9 @@ function editarCatalogo(tipo, id) {
             $(config.fieldSelectors.descripcion).val(data.d.descripcion || "");
             $(config.titleSelector).text("Editar " + config.label);
             $(config.infoSelector).removeClass("is-danger").text("");
+            if (isStandaloneCatalogPage(config.key)) {
+                openStandaloneCatalogModal(config.modalSelector);
+            }
         })
         .catch(function () {
             mensajeErrorActivos("No fue posible cargar el " + config.label + ".");
@@ -1312,12 +1644,20 @@ function guardarCatalogo(config) {
                 throw new Error(message || "No fue posible guardar el " + config.label + ".");
             }
 
+            const useStandaloneModal = isStandaloneCatalogPage(config.key);
             limpiarFormularioCatalogo(config);
-            $(config.infoSelector).removeClass("is-danger").addClass("is-success").text(message);
             CheckAppUI.reloadGrid(config.gridId);
             if (typeof config.resetCombos === "function") {
                 config.resetCombos();
             }
+
+            if (useStandaloneModal) {
+                closeStandaloneCatalogModal(config.modalSelector);
+                mensajeOkActivos(message);
+                return;
+            }
+
+            $(config.infoSelector).removeClass("is-danger").addClass("is-success").text(message);
         })
         .catch(function (error) {
             mensajeErrorActivos(error && error.message ? error.message : "No fue posible guardar el " + config.label + ".");
@@ -1554,6 +1894,9 @@ function editarEstadoOperativo(idEstadoOperativo) {
             $("#txOrdenEstadoOperativo").val(Number(data.d.orden || 0) > 0 ? data.d.orden : "");
             $("#chkPermiteOperacionEstado").prop("checked", !!data.d.permiteOperacion);
             $("#txTituloEstadoOperativo").text("Editar estado operativo");
+            if (isStandaloneCatalogPage("estado")) {
+                openStandaloneCatalogModal("#modalEstadosOperativos");
+            }
         })
         .catch(function () {
             mensajeErrorActivos("No fue posible cargar el estado operativo.");
@@ -1589,10 +1932,18 @@ function guardarEstadoOperativo() {
                 throw new Error(message || "No fue posible guardar el estado operativo.");
             }
 
+            const useStandaloneModal = isStandaloneCatalogPage("estado");
             limpiarFormularioEstadoOperativo();
-            $("#txInfoEstadoOperativo").removeClass("is-danger").addClass("is-success").text(message);
             CheckAppUI.reloadGrid("estados-grid");
             resetCatalogoEstadoOperativo();
+
+            if (useStandaloneModal) {
+                closeStandaloneCatalogModal("#modalEstadosOperativos");
+                mensajeOkActivos(message);
+                return;
+            }
+
+            $("#txInfoEstadoOperativo").removeClass("is-danger").addClass("is-success").text(message);
         })
         .catch(function (error) {
             mensajeErrorActivos(error && error.message ? error.message : "No fue posible guardar el estado operativo.");

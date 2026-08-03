@@ -38,6 +38,46 @@ namespace checklist.Controllers.Activos
             return View();
         }
 
+        public async Task<IActionResult> Tipos()
+        {
+            if (!await HasCatalogosAccessAsync())
+            {
+                return RedirectToAction(nameof(Index));
+            }
+
+            return View();
+        }
+
+        public async Task<IActionResult> Marcas()
+        {
+            if (!await HasCatalogosAccessAsync())
+            {
+                return RedirectToAction(nameof(Index));
+            }
+
+            return View();
+        }
+
+        public async Task<IActionResult> Proveedores()
+        {
+            if (!await HasCatalogosAccessAsync())
+            {
+                return RedirectToAction(nameof(Index));
+            }
+
+            return View();
+        }
+
+        public async Task<IActionResult> EstadosOperativos()
+        {
+            if (!await HasCatalogosAccessAsync())
+            {
+                return RedirectToAction(nameof(Index));
+            }
+
+            return View();
+        }
+
         public async Task<IActionResult> Inicializa()
         {
             bool isSuperAdmin = await IsSuperAdminSessionAsync();
