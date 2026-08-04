@@ -1,0 +1,79 @@
+@{
+    string NormalizeSessionValue(string? value)
+    {
+        var normalized = (value ?? string.Empty).Trim();
+        if (string.IsNullOrWhiteSpace(normalized))
+        {
+            return string.Empty;
+        }
+
+        if (normalized.StartsWith("\"") && normalized.EndsWith("\"") && normalized.Length >= 2)
+        {
+            try
+            {
+                return Newtonsoft.Json.JsonConvert.DeserializeObject<string>(normalized)?.Trim() ?? string.Empty;
+            }
+            catch
+            {
+                return normalized.Trim('"').Trim();
+            }
+        }
+
+        return normalized;
+    }
+
+    var sessionIdEmpresa = string.IsNullOrWhiteSpace(NormalizeSessionValue(Context.Session.GetString("idEmpresa")))
+        ? (User.FindFirst(System.Security.Claims.ClaimTypes.SerialNumber)?.Value ?? "")
+        : NormalizeSessionValue(Context.Session.GetString("idEmpresa"));
+    var sessionCadena = string.IsNullOrWhiteSpace(NormalizeSessionValue(Context.Session.GetString("cadena")))
+        ? (User.FindFirst(System.Security.Claims.ClaimTypes.Uri)?.Value ?? "")
+        : NormalizeSessionValue(Context.Session.GetString("cadena"));
+    var sessionEmpresa = string.IsNullOrWhiteSpace(NormalizeSessionValue(Context.Session.GetString("empresa")))
+        ? (User.FindFirst(System.Security.Claims.ClaimTypes.Sid)?.Value ?? "")
+        : NormalizeSessionValue(Context.Session.GetString("empresa"));
+    var sessionCorreo = string.IsNullOrWhiteSpace(NormalizeSessionValue(Context.Session.GetString("emailUser")))
+        ? (User.FindFirst(System.Security.Claims.ClaimTypes.Email)?.Value ?? "")
+        : NormalizeSessionValue(Context.Session.GetString("emailUser"));
+}
+
+<div id="productos-servicios-context"
+     data-id-empresa="@sessionIdEmpresa"
+     data-cadena="@sessionCadena"
+     data-empresa="@sessionEmpresa"
+     data-correo="@sessionCorreo"
+     hidden></div>
+
+<script>
+    (function () {
+        var fallbackNode = document.getElementById("productos-servicios-context");
+        if (!fallbackNode || !window.sessionStorage) {
+            return;
+        }
+
+        function normalizeSessionValue(value) {
+            var normalized = String(value || "").trim();
+            if (normalized.length >= 2 && normalized.startsWith('"') && normalized.endsWith('"')) {
+                try {
+                    normalized = JSON.parse(normalized);
+                } catch (_error) {
+                    normalized = normalized.replace(/^"+|"+$/g, "");
+                }
+            }
+
+            return String(normalized || "").trim();
+        }
+
+        var context = {
+            idEmpresa: normalizeSessionValue(fallbackNode.dataset.idEmpresa || ""),
+            cadenaBase64: normalizeSessionValue(fallbackNode.dataset.cadena || ""),
+            empresa: normalizeSessionValue(fallbackNode.dataset.empresa || ""),
+            correo: normalizeSessionValue(fallbackNode.dataset.correo || "")
+        };
+
+        Object.keys(context).forEach(function (key) {
+            if (context[key]) {
+                window.sessionStorage.setItem(key, context[key]);
+            }
+        });
+    })();
+</script>

@@ -1,0 +1,29 @@
+@{
+    ViewBag.Title = "Unidades de medida";
+    Layout = "~/Views/Shared/_Layout.cshtml";
+
+    ViewData["CatalogPageKey"] = "unidades";
+    ViewData["CatalogTitle"] = "Unidades de medida";
+    ViewData["CatalogDescription"] = "Administra las unidades de medida con control de abreviatura, límites de longitud y permiso de decimales.";
+    ViewData["CatalogFilterTitle"] = "Ubica unidades por código, nombre o estatus.";
+    ViewData["CatalogListingTitle"] = "Listado de unidades de medida";
+    ViewData["CatalogListingDescription"] = "Consulta el resultado filtrado, exporta solo columnas útiles y conserva el comportamiento aprobado de guardado y edición.";
+    ViewData["CatalogCreateButtonText"] = "Nueva unidad";
+    ViewData["CatalogModalTitle"] = "Nueva unidad de medida";
+    ViewData["CatalogShowDescription"] = false;
+    ViewData["CatalogShowAplicaA"] = false;
+    ViewData["CatalogShowAbreviatura"] = true;
+    ViewData["CatalogShowPermiteDecimales"] = true;
+}
+
+<partial name="_ProductosServiciosCatalogoPage" />
+
+@section Scripts {
+    <link href="~/css/checkapp-theme.css" rel="stylesheet" />
+    <link href="~/css/ProductosServicios/ProductosServicios.css" rel="stylesheet" asp-append-version="true" />
+    <link href="~/css/ProductosServicios/ProductosServiciosCatalogos.css" rel="stylesheet" asp-append-version="true" />
+    <script>var XLSX = window.XLSX || {}; window.XLSX = XLSX;</script>
+    <script src="~/js/vendor/xlsx.full.min.js"></script>
+    <script src="~/js/checkapp-ui.js"></script>
+    <script src="~/js/ProductosServicios/ProductosServiciosCatalogos.js" asp-append-version="true"></script>
+}

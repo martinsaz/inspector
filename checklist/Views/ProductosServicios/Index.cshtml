@@ -1,0 +1,318 @@
+@{
+    ViewBag.Title = "Productos y Servicios";
+    Layout = "~/Views/Shared/_Layout.cshtml";
+}
+
+<partial name="_ProductosServiciosSessionContext" />
+
+<div class="checkapp-scope checkapp-page productos-servicios-page" data-productos-servicios-page="index">
+    <div class="container-fluid checkapp-shell">
+        <section class="checkapp-hero">
+            <div>
+                <p class="checkapp-kicker">CheckApp Pro</p>
+                <h1>Productos y Servicios</h1>
+                <p>Administra los productos y servicios disponibles para operación.</p>
+            </div>
+            <div class="checkapp-hero-actions">
+                <button id="btNuevoProductoServicio" type="button" class="checkapp-btn checkapp-btn-primary">
+                    <i class="fa fa-plus"></i>
+                    <span>Nuevo</span>
+                </button>
+            </div>
+        </section>
+
+        <section class="checkapp-summary-strip ps-summary-strip" id="ps-summary" aria-label="Resumen de productos y servicios">
+            <button type="button" class="checkapp-summary-card ps-summary-card is-selected" data-summary-type="" aria-pressed="true">
+                <small>Total</small>
+                <strong id="txResumenPsTotal">0</strong>
+            </button>
+            <button type="button" class="checkapp-summary-card ps-summary-card" data-summary-type="1" aria-pressed="false">
+                <small>Productos</small>
+                <strong id="txResumenPsProductos">0</strong>
+            </button>
+            <button type="button" class="checkapp-summary-card ps-summary-card" data-summary-type="2" aria-pressed="false">
+                <small>Servicios</small>
+                <strong id="txResumenPsServicios">0</strong>
+            </button>
+        </section>
+
+        <section id="accordionFiltrosProductosServicios" class="checkapp-panel checkapp-accordion is-open">
+            <button type="button" class="checkapp-accordion-toggle" aria-expanded="true" aria-controls="accordionFiltrosProductosServiciosBody">
+                <div>
+                    <span class="checkapp-panel-eyebrow">Filtros</span>
+                    <h3>Encuentra productos y servicios por código, tipo, categoría o inventario.</h3>
+                </div>
+                <span class="checkapp-accordion-summary">Sin filtros activos</span>
+            </button>
+            <div class="checkapp-accordion-body" id="accordionFiltrosProductosServiciosBody">
+                <div class="checkapp-accordion-inner">
+                    <div class="checkapp-filter-grid ps-filter-grid">
+                        <label class="checkapp-field ps-filter-field ps-filter-field--search">
+                            <span>Búsqueda general</span>
+                            <input id="txBusquedaProductosServicios" type="text" placeholder="Código, tag, nombre o descripción" />
+                        </label>
+                        <label class="checkapp-field ps-filter-field">
+                            <span>Tipo</span>
+                            <select id="cbFiltroTipoProductoServicio" class="form-select"></select>
+                        </label>
+                        <label class="checkapp-field ps-filter-field">
+                            <span>Categoría</span>
+                            <select id="cbFiltroCategoriaProductoServicio" class="form-select"></select>
+                        </label>
+                        <label class="checkapp-field ps-filter-field">
+                            <span>Marca</span>
+                            <select id="cbFiltroMarcaProductoServicio" class="form-select"></select>
+                        </label>
+                        <label class="checkapp-field ps-filter-field">
+                            <span>Unidad</span>
+                            <select id="cbFiltroUnidadProductoServicio" class="form-select"></select>
+                        </label>
+                        <label class="checkapp-field ps-filter-field">
+                            <span>Causa inventario</span>
+                            <select id="cbFiltroCausaInventario" class="form-select">
+                                <option value="">Todos</option>
+                                <option value="true">Con inventario</option>
+                                <option value="false">Sin inventario</option>
+                            </select>
+                        </label>
+                        <label class="checkapp-field ps-filter-field">
+                            <span>Estatus</span>
+                            <select id="cbFiltroEstatusProductosServicios" class="form-select"></select>
+                        </label>
+                    </div>
+                    <div class="ps-filter-tail">
+                        <div class="checkapp-filter-actions ps-filter-actions ps-filter-actions--tail">
+                            <button id="btBuscarProductosServicios" type="button" class="checkapp-btn checkapp-btn-secondary ps-filter-search-btn">
+                                <i class="fa fa-search"></i>
+                                <span>Buscar</span>
+                            </button>
+                            <button id="btLimpiarProductosServicios" type="button" class="checkapp-btn checkapp-btn-ghost">
+                                <i class="fa fa-eraser"></i>
+                                <span>Limpiar</span>
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <section class="checkapp-panel">
+            <div class="checkapp-panel-head">
+                <div>
+                    <span class="checkapp-panel-eyebrow">Inventario</span>
+                    <h2>Listado de productos y servicios</h2>
+                    <p class="checkapp-panel-copy">Consulta el resultado filtrado y administra cada registro desde una sola pantalla.</p>
+                </div>
+                <div class="checkapp-grid-actions">
+                    <span id="txGridPsVisibleCount" class="ca-chip ca-chip--secondary">0 visibles</span>
+                    <div class="checkapp-grid-columns">
+                        <button id="btColumnasProductosServicios" type="button" class="checkapp-btn checkapp-btn-ghost">
+                            <i class="fa fa-columns"></i>
+                            <span>Columnas</span>
+                        </button>
+                        <div id="panelColumnasProductosServicios" class="checkapp-grid-columns-panel"></div>
+                    </div>
+                    <button id="btExportarProductosServicios" type="button" class="checkapp-btn checkapp-btn-excel">
+                        <i class="fa fa-file-excel-o"></i>
+                        <span>Exportar Excel</span>
+                    </button>
+                </div>
+            </div>
+
+            <div id="gridProductosServiciosHost">
+                <div class="checkapp-grid-toolbar">
+                    <label class="checkapp-grid-search" for="txBusquedaGridProductosServicios">
+                        <i class="fa fa-search"></i>
+                        <input id="txBusquedaGridProductosServicios" type="text" placeholder="Busca dentro del resultado filtrado" />
+                    </label>
+                    <div class="checkapp-grid-actions">
+                        <span id="txGridProductosServiciosCount" class="ca-grid-count">0 registros</span>
+                    </div>
+                </div>
+                <div class="checkapp-grid-scroll">
+                    <table id="grProductosServicios" class="table table-row-bordered align-middle checkapp-grid-table">
+                        <thead>
+                            <tr>
+                                <th>Acciones</th>
+                                <th>Imagen</th>
+                                <th>Código</th>
+                                <th>Tag</th>
+                                <th>Nombre</th>
+                                <th>Tipo</th>
+                                <th>Categoría</th>
+                                <th>Marca</th>
+                                <th>Unidad</th>
+                                <th>Costo</th>
+                                <th>Precio Público</th>
+                                <th>Inventario</th>
+                                <th>Estatus</th>
+                                <th>Actualización</th>
+                            </tr>
+                        </thead>
+                        <tbody></tbody>
+                    </table>
+                </div>
+                <div id="gridProductosServiciosFooter" class="checkapp-grid-footer">
+                    <span id="txGridProductosServiciosRange" class="checkapp-grid-footer-range">Sin resultados</span>
+                    <div id="txGridProductosServiciosPageSize" class="checkapp-grid-page-size">
+                        <span class="checkapp-grid-page-size-label">Filas:</span>
+                        <button type="button" class="checkapp-grid-page-chip is-active" data-page-size="25" aria-pressed="true">25</button>
+                        <button type="button" class="checkapp-grid-page-chip" data-page-size="50" aria-pressed="false">50</button>
+                        <button type="button" class="checkapp-grid-page-chip" data-page-size="100" aria-pressed="false">100</button>
+                    </div>
+                    <div class="checkapp-grid-page-nav">
+                        <span id="txGridProductosServiciosPageIndicator" class="checkapp-grid-footer-page">Página 1 de 1</span>
+                        <button id="btGridProductosServiciosPrev" type="button" class="checkapp-grid-nav-btn" aria-label="Página anterior">‹</button>
+                        <button id="btGridProductosServiciosNext" type="button" class="checkapp-grid-nav-btn" aria-label="Página siguiente">›</button>
+                    </div>
+                </div>
+            </div>
+        </section>
+    </div>
+</div>
+
+<div class="modal fade checkapp-modal" tabindex="-1" id="modalProductoServicio">
+    <div class="modal-dialog modal-xl ps-modal-dialog">
+        <div class="modal-content ps-modal-content">
+            <form id="frmProductoServicio" class="ps-modal-form">
+                <div class="modal-header">
+                    <div>
+                        <p class="checkapp-kicker" id="txModalProductoServicioKicker">Registro</p>
+                        <h3 class="modal-title" id="txModalProductoServicioTitulo">Nuevo producto / servicio</h3>
+                    </div>
+                    <button type="button" class="btn btn-icon btn-sm btn-active-light-primary" data-bs-dismiss="modal" aria-label="Close">
+                        <i class="ki-duotone ki-cross fs-1"><span class="path1"></span><span class="path2"></span></i>
+                    </button>
+                </div>
+                <div class="modal-body ps-modal-body">
+                    <input id="hdProductoServicioId" type="hidden" />
+                    <div class="checkapp-filter-grid ps-form-grid">
+                        <label class="checkapp-field ps-form-field ps-form-field--type">
+                            <span>Tipo *</span>
+                            <select id="cbTipoProductoServicio" class="form-select"></select>
+                        </label>
+                        <label class="checkapp-field ps-form-field ps-form-field--code">
+                            <span>Código *</span>
+                            <input id="txCodigoProductoServicio" maxlength="50" type="text" />
+                        </label>
+                        <label class="checkapp-field ps-form-field ps-form-field--tag">
+                            <span>Tag</span>
+                            <input id="txTagProductoServicio" maxlength="100" type="text" />
+                        </label>
+                        <label class="checkapp-field ps-form-field ps-form-field--name">
+                            <span>Nombre *</span>
+                            <input id="txNombreProductoServicio" maxlength="150" type="text" />
+                        </label>
+                        <label class="checkapp-field ps-form-field ps-form-field--description">
+                            <span>Descripción</span>
+                            <textarea id="txDescripcionProductoServicio" maxlength="1000"></textarea>
+                        </label>
+                        <label class="checkapp-field ps-form-field ps-form-field--category">
+                            <span>Categoría *</span>
+                            <select id="cbCategoriaProductoServicio" class="form-select"></select>
+                        </label>
+                        <label class="checkapp-field ps-form-field ps-form-field--brand" id="fieldMarcaProductoServicio">
+                            <span>Marca</span>
+                            <select id="cbMarcaProductoServicio" class="form-select"></select>
+                        </label>
+                        <label class="checkapp-field ps-form-field ps-form-field--unit">
+                            <span>Unidad *</span>
+                            <select id="cbUnidadProductoServicio" class="form-select"></select>
+                        </label>
+                        <label class="checkapp-field ps-form-field ps-form-field--cost">
+                            <span>Costo</span>
+                            <input id="txCostoProductoServicio" type="number" min="0" step="0.0001" inputmode="decimal" />
+                        </label>
+                        <label class="checkapp-field ps-form-field ps-form-field--price">
+                            <span>Precio Público *</span>
+                            <input id="txPrecioPublicoProductoServicio" type="number" min="0" step="0.0001" inputmode="decimal" />
+                        </label>
+                    </div>
+
+                    <section class="checkapp-panel ps-image-panel">
+                        <div class="checkapp-panel-head">
+                            <div>
+                                <span class="checkapp-panel-eyebrow">Imagen</span>
+                                <h2>Imagen principal</h2>
+                                <p class="checkapp-panel-copy">Carga una sola imagen con vista previa, cambio y eliminación.</p>
+                            </div>
+                            <div class="ps-image-actions">
+                                <button id="btCambiarImagenProductoServicio" type="button" class="checkapp-btn checkapp-btn-secondary">
+                                    <i class="fa fa-picture-o"></i>
+                                    <span>Cambiar</span>
+                                </button>
+                                <button id="btEliminarImagenProductoServicio" type="button" class="checkapp-btn checkapp-btn-ghost">
+                                    <i class="fa fa-trash"></i>
+                                    <span>Eliminar</span>
+                                </button>
+                                <input id="flImagenProductoServicio" type="file" accept="image/png,image/jpeg,image/webp" hidden />
+                            </div>
+                        </div>
+                        <div class="ps-image-editor">
+                            <div id="psImagePreview" class="ps-image-preview"></div>
+                            <div id="txInfoImagenProductoServicio" class="checkapp-status-inline"></div>
+                        </div>
+                    </section>
+
+                    <section class="checkapp-panel ps-inventory-panel" id="panelInventarioProductoServicio">
+                        <div class="checkapp-panel-head">
+                            <div>
+                                <span class="checkapp-panel-eyebrow">Inventario</span>
+                                <h2>Configuración de inventario</h2>
+                                <p class="checkapp-panel-copy">Activa solo los campos que correspondan al tipo de registro.</p>
+                            </div>
+                        </div>
+                        <div class="checkapp-filter-grid ps-inventory-grid">
+                            <label class="checkapp-field ps-checkbox-field">
+                                <span>Causa inventario</span>
+                                <input id="chkCausaInventarioProductoServicio" type="checkbox" />
+                            </label>
+                            <label class="checkapp-field ps-checkbox-field" id="fieldPermiteVentaSinExistencia">
+                                <span>Permite venta sin existencia</span>
+                                <input id="chkPermiteVentaSinExistencia" type="checkbox" />
+                            </label>
+                            <label class="checkapp-field ps-form-field" id="fieldExistenciaInicial">
+                                <span>Existencia inicial</span>
+                                <input id="txExistenciaInicialProductoServicio" type="number" min="0" step="0.0001" inputmode="decimal" />
+                            </label>
+                            <label class="checkapp-field ps-form-field" id="fieldExistenciaMinima">
+                                <span>Existencia mínima</span>
+                                <input id="txExistenciaMinimaProductoServicio" type="number" min="0" step="0.0001" inputmode="decimal" />
+                            </label>
+                        </div>
+                    </section>
+
+                    <div class="checkapp-status-inline" id="txInfoProductoServicio" style="margin-top:1rem;"></div>
+                </div>
+                <div class="modal-footer ps-modal-footer">
+                    <button id="btGuardarProductoServicio" type="button" class="checkapp-btn checkapp-btn-primary">
+                        <i class="fa fa-save"></i>
+                        <span>Guardar</span>
+                    </button>
+                    <button type="button" class="checkapp-btn checkapp-btn-ghost" data-bs-dismiss="modal">
+                        <i class="fa fa-ban"></i>
+                        <span>Cerrar</span>
+                    </button>
+                </div>
+                <div id="productosServiciosSaveOverlay" class="ps-save-overlay" aria-hidden="true">
+                    <div class="ps-save-card" role="status" aria-live="polite">
+                        <div class="ps-save-spinner"></div>
+                        <div class="ps-save-copy">
+                            <strong id="txProductosServiciosSaveTitle">Guardando producto / servicio...</strong>
+                            <p id="txProductosServiciosSaveStatus">Preparando información del registro...</p>
+                        </div>
+                    </div>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+
+@section Scripts {
+    <link href="~/css/checkapp-theme.css" rel="stylesheet" />
+    <link href="~/css/ProductosServicios/ProductosServicios.css" rel="stylesheet" asp-append-version="true" />
+    <script>var XLSX = window.XLSX || {}; window.XLSX = XLSX;</script>
+    <script src="~/js/vendor/xlsx.full.min.js"></script>
+    <script src="~/js/checkapp-ui.js"></script>
+    <script src="~/js/ProductosServicios/ProductosServicios.js" asp-append-version="true"></script>
+}

@@ -1,0 +1,29 @@
+@{
+    ViewBag.Title = "Categorías";
+    Layout = "~/Views/Shared/_Layout.cshtml";
+
+    ViewData["CatalogPageKey"] = "categorias";
+    ViewData["CatalogTitle"] = "Categorías";
+    ViewData["CatalogDescription"] = "Administra las categorías de productos y servicios con el patrón aprobado de catálogos independientes.";
+    ViewData["CatalogFilterTitle"] = "Ubica categorías por código, nombre o estatus.";
+    ViewData["CatalogListingTitle"] = "Listado de categorías";
+    ViewData["CatalogListingDescription"] = "Consulta el resultado filtrado, exporta en Excel y administra altas, edición, baja lógica y reactivación.";
+    ViewData["CatalogCreateButtonText"] = "Nueva categoría";
+    ViewData["CatalogModalTitle"] = "Nueva categoría";
+    ViewData["CatalogShowDescription"] = true;
+    ViewData["CatalogShowAplicaA"] = true;
+    ViewData["CatalogShowAbreviatura"] = false;
+    ViewData["CatalogShowPermiteDecimales"] = false;
+}
+
+<partial name="_ProductosServiciosCatalogoPage" />
+
+@section Scripts {
+    <link href="~/css/checkapp-theme.css" rel="stylesheet" />
+    <link href="~/css/ProductosServicios/ProductosServicios.css" rel="stylesheet" asp-append-version="true" />
+    <link href="~/css/ProductosServicios/ProductosServiciosCatalogos.css" rel="stylesheet" asp-append-version="true" />
+    <script>var XLSX = window.XLSX || {}; window.XLSX = XLSX;</script>
+    <script src="~/js/vendor/xlsx.full.min.js"></script>
+    <script src="~/js/checkapp-ui.js"></script>
+    <script src="~/js/ProductosServicios/ProductosServiciosCatalogos.js" asp-append-version="true"></script>
+}

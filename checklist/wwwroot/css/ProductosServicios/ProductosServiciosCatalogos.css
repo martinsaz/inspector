@@ -1,0 +1,265 @@
+.ps-catalog-page .checkapp-btn-primary,
+.ps-catalog-page .checkapp-btn-secondary,
+.ps-catalog-page .checkapp-btn-excel {
+    color: #fff !important;
+}
+
+.ps-catalog-page .checkapp-btn-primary i,
+.ps-catalog-page .checkapp-btn-secondary i,
+.ps-catalog-page .checkapp-btn-excel i {
+    color: inherit !important;
+}
+
+#accordionFiltrosCatalogoProductosServicios .checkapp-accordion-toggle {
+    padding: 0.9rem 1rem 0.2rem;
+}
+
+#accordionFiltrosCatalogoProductosServicios .checkapp-accordion-inner {
+    padding-top: 0;
+    padding-bottom: 0.55rem;
+}
+
+.ps-catalog-filter-grid {
+    grid-template-columns: minmax(0, 2fr) minmax(220px, 1fr);
+    gap: 0.75rem 1rem;
+}
+
+.ps-catalog-field {
+    gap: 0.22rem;
+    min-width: 0;
+}
+
+.ps-catalog-field span {
+    font-size: 0.82rem;
+    font-weight: 600;
+}
+
+.ps-catalog-field input,
+.ps-catalog-field textarea,
+.ps-catalog-field .form-select {
+    min-height: 2.4rem;
+    border-radius: 0.85rem;
+    font-size: 0.95rem;
+}
+
+.ps-catalog-field textarea {
+    min-height: 110px;
+}
+
+.ps-catalog-field--search {
+    grid-column: span 1;
+}
+
+.ps-catalog-field--full {
+    grid-column: 1 / -1;
+}
+
+.ps-catalog-field--checkbox {
+    display: flex;
+    flex-direction: row;
+    align-items: center;
+    justify-content: space-between;
+    border: 1px solid rgba(15, 23, 42, 0.12);
+    border-radius: 0.95rem;
+    padding: 0.9rem 1rem;
+    min-height: 3.3rem;
+}
+
+.ps-catalog-field--checkbox input {
+    width: 1.1rem;
+    height: 1.1rem;
+    min-height: auto;
+}
+
+.ps-catalog-filter-tail {
+    display: flex;
+    justify-content: flex-end;
+    margin-top: 0.75rem;
+}
+
+.ps-catalog-filter-actions {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.55rem;
+}
+
+.ps-catalog-search-btn {
+    background: #ff4336;
+    border-color: #ff4336;
+    color: #fff !important;
+    font-weight: 800;
+    box-shadow: 0 6px 16px rgba(15, 23, 42, 0.14);
+}
+
+.ps-catalog-search-btn:hover,
+.ps-catalog-search-btn:focus-visible {
+    background: #e63629;
+    border-color: #e63629;
+}
+
+.ps-catalog-title {
+    display: flex;
+    flex-direction: column;
+    gap: 0.2rem;
+}
+
+.ps-catalog-title strong {
+    color: var(--ca-text, #0f172a);
+}
+
+.ps-catalog-title small {
+    color: var(--ca-text-muted, #64748b);
+}
+
+.ps-catalog-chip {
+    display: inline-flex;
+    align-items: center;
+    border-radius: 999px;
+    padding: 0.34rem 0.7rem;
+    font-size: 0.8rem;
+    font-weight: 700;
+    background: rgba(255, 117, 24, 0.1);
+    color: #c2410c;
+}
+
+.ps-catalog-chip--bool {
+    background: rgba(14, 165, 233, 0.12);
+    color: #0369a1;
+}
+
+.ps-catalog-actions {
+    display: flex;
+    align-items: center;
+    gap: 0.45rem;
+}
+
+.ps-catalog-actions a {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    width: 2rem;
+    height: 2rem;
+    border-radius: 0.75rem;
+    background: rgba(148, 163, 184, 0.14);
+    color: #475569;
+    text-decoration: none;
+    transition: transform 120ms ease, background 120ms ease, color 120ms ease;
+}
+
+.ps-catalog-actions a:hover,
+.ps-catalog-actions a:focus-visible {
+    transform: translateY(-1px);
+    background: rgba(37, 99, 235, 0.14);
+    color: #1d4ed8;
+}
+
+.ps-catalog-actions a.is-danger:hover,
+.ps-catalog-actions a.is-danger:focus-visible {
+    background: rgba(220, 38, 38, 0.14);
+    color: #b91c1c;
+}
+
+.ps-catalog-modal-dialog {
+    max-width: min(860px, calc(100vw - 2rem));
+}
+
+.ps-catalog-modal-form {
+    position: relative;
+}
+
+.ps-catalog-form-grid {
+    gap: 1rem;
+}
+
+.ps-catalog-save-overlay {
+    position: absolute;
+    inset: 0;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    background: rgba(255, 255, 255, 0.72);
+    backdrop-filter: blur(2px);
+    opacity: 0;
+    pointer-events: none;
+    transition: opacity 160ms ease;
+    border-radius: inherit;
+}
+
+.ps-catalog-modal-form.is-saving .ps-catalog-save-overlay {
+    opacity: 1;
+    pointer-events: auto;
+}
+
+.ps-catalog-save-card {
+    display: flex;
+    align-items: center;
+    gap: 0.9rem;
+    min-width: min(380px, calc(100% - 2rem));
+    border-radius: 1.15rem;
+    background: #fff;
+    padding: 1rem 1.15rem;
+    box-shadow: 0 18px 42px rgba(15, 23, 42, 0.18);
+}
+
+.ps-catalog-save-spinner {
+    width: 2.1rem;
+    height: 2.1rem;
+    border-radius: 999px;
+    border: 3px solid rgba(255, 67, 54, 0.18);
+    border-top-color: #ff4336;
+    animation: psCatalogSpin 0.9s linear infinite;
+}
+
+.ps-catalog-save-copy {
+    display: flex;
+    flex-direction: column;
+    gap: 0.2rem;
+}
+
+.ps-catalog-save-copy strong {
+    color: var(--ca-text, #0f172a);
+}
+
+.ps-catalog-save-copy p {
+    margin: 0;
+    color: var(--ca-text-muted, #64748b);
+}
+
+@keyframes psCatalogSpin {
+    to {
+        transform: rotate(360deg);
+    }
+}
+
+@media (max-width: 768px) {
+    .ps-catalog-filter-grid,
+    .ps-catalog-form-grid {
+        grid-template-columns: 1fr;
+    }
+
+    .ps-catalog-filter-tail,
+    .ps-catalog-filter-actions {
+        width: 100%;
+    }
+
+    .ps-catalog-filter-actions .checkapp-btn {
+        flex: 1 1 180px;
+    }
+}
+
+@media (max-width: 390px) {
+    .ps-catalog-modal-dialog {
+        max-width: calc(100vw - 1rem);
+        margin: 0.5rem auto;
+    }
+
+    .ps-catalog-save-card {
+        min-width: calc(100% - 1rem);
+        padding: 0.9rem 1rem;
+    }
+
+    .ps-catalog-field--checkbox {
+        align-items: flex-start;
+        gap: 0.75rem;
+    }
+}

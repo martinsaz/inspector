@@ -1,0 +1,203 @@
+@{
+    var pageKey = ViewData["CatalogPageKey"]?.ToString() ?? string.Empty;
+    var title = ViewData["CatalogTitle"]?.ToString() ?? string.Empty;
+    var description = ViewData["CatalogDescription"]?.ToString() ?? string.Empty;
+    var listingTitle = ViewData["CatalogListingTitle"]?.ToString() ?? string.Empty;
+    var listingDescription = ViewData["CatalogListingDescription"]?.ToString() ?? string.Empty;
+    var filterTitle = ViewData["CatalogFilterTitle"]?.ToString() ?? string.Empty;
+    var createButtonText = ViewData["CatalogCreateButtonText"]?.ToString() ?? "Nuevo";
+    var modalTitle = ViewData["CatalogModalTitle"]?.ToString() ?? string.Empty;
+    var showDescription = string.Equals(ViewData["CatalogShowDescription"]?.ToString(), "true", StringComparison.OrdinalIgnoreCase);
+    var showAplicaA = string.Equals(ViewData["CatalogShowAplicaA"]?.ToString(), "true", StringComparison.OrdinalIgnoreCase);
+    var showAbreviatura = string.Equals(ViewData["CatalogShowAbreviatura"]?.ToString(), "true", StringComparison.OrdinalIgnoreCase);
+    var showPermiteDecimales = string.Equals(ViewData["CatalogShowPermiteDecimales"]?.ToString(), "true", StringComparison.OrdinalIgnoreCase);
+}
+
+<partial name="_ProductosServiciosSessionContext" />
+
+<div class="checkapp-scope checkapp-page productos-servicios-page ps-catalog-page" data-ps-catalog-page="@pageKey">
+    <div class="container-fluid checkapp-shell">
+        <section class="checkapp-hero">
+            <div>
+                <p class="checkapp-kicker">CheckApp Pro</p>
+                <h1>@title</h1>
+                <p>@description</p>
+            </div>
+            <div class="checkapp-hero-actions">
+                <button id="btNuevoCatalogo" type="button" class="checkapp-btn checkapp-btn-primary">
+                    <i class="fa fa-plus"></i>
+                    <span>@createButtonText</span>
+                </button>
+            </div>
+        </section>
+
+        <section id="accordionFiltrosCatalogoProductosServicios" class="checkapp-panel checkapp-accordion is-open">
+            <button type="button" class="checkapp-accordion-toggle" aria-expanded="true" aria-controls="accordionFiltrosCatalogoProductosServiciosBody">
+                <div>
+                    <span class="checkapp-panel-eyebrow">Filtros</span>
+                    <h3>@filterTitle</h3>
+                </div>
+                <span class="checkapp-accordion-summary">Sin filtros activos</span>
+            </button>
+            <div class="checkapp-accordion-body" id="accordionFiltrosCatalogoProductosServiciosBody">
+                <div class="checkapp-accordion-inner">
+                    <div class="checkapp-filter-grid ps-catalog-filter-grid">
+                        <label class="checkapp-field ps-catalog-field ps-catalog-field--search">
+                            <span>Búsqueda</span>
+                            <input id="txBusquedaCatalogo" type="text" placeholder="Código, nombre o descripción" />
+                        </label>
+                        <label class="checkapp-field ps-catalog-field">
+                            <span>Estatus</span>
+                            <select id="cbFiltroEstatusCatalogo" class="form-select">
+                                <option value="">Todos</option>
+                                <option value="activos">Activos</option>
+                                <option value="inactivos">Inactivos</option>
+                            </select>
+                        </label>
+                    </div>
+                    <div class="ps-catalog-filter-tail">
+                        <div class="checkapp-filter-actions ps-catalog-filter-actions">
+                            <button id="btBuscarCatalogo" type="button" class="checkapp-btn checkapp-btn-secondary ps-catalog-search-btn">
+                                <i class="fa fa-search"></i>
+                                <span>Buscar</span>
+                            </button>
+                            <button id="btLimpiarCatalogo" type="button" class="checkapp-btn checkapp-btn-ghost">
+                                <i class="fa fa-eraser"></i>
+                                <span>Limpiar</span>
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <section class="checkapp-panel">
+            <div class="checkapp-panel-head">
+                <div>
+                    <span class="checkapp-panel-eyebrow">Catálogo</span>
+                    <h2>@listingTitle</h2>
+                    <p class="checkapp-panel-copy">@listingDescription</p>
+                </div>
+                <div class="checkapp-grid-actions">
+                    <span id="txGridCatalogoVisibleCount" class="ca-chip ca-chip--secondary">0 visibles</span>
+                    <div class="checkapp-grid-columns">
+                        <button id="btColumnasCatalogo" type="button" class="checkapp-btn checkapp-btn-ghost">
+                            <i class="fa fa-columns"></i>
+                            <span>Columnas</span>
+                        </button>
+                        <div id="panelColumnasCatalogo" class="checkapp-grid-columns-panel"></div>
+                    </div>
+                    <button id="btExportarCatalogo" type="button" class="checkapp-btn checkapp-btn-excel">
+                        <i class="fa fa-file-excel-o"></i>
+                        <span>Exportar Excel</span>
+                    </button>
+                </div>
+            </div>
+
+            <div id="gridCatalogoHost">
+                <div class="checkapp-grid-toolbar">
+                    <label class="checkapp-grid-search" for="txBusquedaGridCatalogo">
+                        <i class="fa fa-search"></i>
+                        <input id="txBusquedaGridCatalogo" type="text" placeholder="Busca dentro del resultado filtrado" />
+                    </label>
+                    <div class="checkapp-grid-actions">
+                        <span id="txGridCatalogoCount" class="ca-grid-count">0 registros</span>
+                    </div>
+                </div>
+                <div class="checkapp-grid-scroll">
+                    <table id="grCatalogoProductosServicios" class="table table-row-bordered align-middle checkapp-grid-table">
+                        <thead>
+                            <tr id="trCatalogoHead"></tr>
+                        </thead>
+                        <tbody></tbody>
+                    </table>
+                </div>
+                <div id="gridCatalogoFooter" class="checkapp-grid-footer">
+                    <span id="txGridCatalogoRange" class="checkapp-grid-footer-range">Sin resultados</span>
+                    <div id="txGridCatalogoPageSize" class="checkapp-grid-page-size">
+                        <span class="checkapp-grid-page-size-label">Filas:</span>
+                        <button type="button" class="checkapp-grid-page-chip is-active" data-page-size="25" aria-pressed="true">25</button>
+                        <button type="button" class="checkapp-grid-page-chip" data-page-size="50" aria-pressed="false">50</button>
+                        <button type="button" class="checkapp-grid-page-chip" data-page-size="100" aria-pressed="false">100</button>
+                    </div>
+                    <div class="checkapp-grid-page-nav">
+                        <span id="txGridCatalogoPageIndicator" class="checkapp-grid-footer-page">Página 1 de 1</span>
+                        <button id="btGridCatalogoPrev" type="button" class="checkapp-grid-nav-btn" aria-label="Página anterior">‹</button>
+                        <button id="btGridCatalogoNext" type="button" class="checkapp-grid-nav-btn" aria-label="Página siguiente">›</button>
+                    </div>
+                </div>
+            </div>
+        </section>
+    </div>
+</div>
+
+<div class="modal fade checkapp-modal" tabindex="-1" id="modalCatalogoProductosServicios">
+    <div class="modal-dialog modal-lg ps-catalog-modal-dialog">
+        <div class="modal-content ps-catalog-modal-content">
+            <form id="frmCatalogoProductosServicios" class="ps-catalog-modal-form">
+                <div class="modal-header">
+                    <div>
+                        <p class="checkapp-kicker" id="txCatalogoModalKicker">Registro</p>
+                        <h3 class="modal-title" id="txCatalogoModalTitulo">@modalTitle</h3>
+                    </div>
+                    <button type="button" class="btn btn-icon btn-sm btn-active-light-primary" data-bs-dismiss="modal" aria-label="Close">
+                        <i class="ki-duotone ki-cross fs-1"><span class="path1"></span><span class="path2"></span></i>
+                    </button>
+                </div>
+                <div class="modal-body ps-catalog-modal-body">
+                    <input id="hdCatalogoId" type="hidden" />
+                    <div class="checkapp-filter-grid ps-catalog-form-grid">
+                        <label class="checkapp-field ps-catalog-field">
+                            <span>Código *</span>
+                            <input id="txCodigoCatalogo" type="text" />
+                        </label>
+                        <label class="checkapp-field ps-catalog-field">
+                            <span>Nombre *</span>
+                            <input id="txNombreCatalogo" type="text" />
+                        </label>
+                        <label class="checkapp-field ps-catalog-field ps-catalog-field--full" id="fieldDescripcionCatalogo"@(showDescription ? "" : " hidden")>
+                            <span>Descripción</span>
+                            <textarea id="txDescripcionCatalogo"></textarea>
+                        </label>
+                        <label class="checkapp-field ps-catalog-field" id="fieldAplicaACatalogo"@(showAplicaA ? "" : " hidden")>
+                            <span>Aplica a *</span>
+                            <select id="cbAplicaACatalogo" class="form-select">
+                                <option value="0">Todos</option>
+                                <option value="1">Producto</option>
+                                <option value="2">Servicio</option>
+                            </select>
+                        </label>
+                        <label class="checkapp-field ps-catalog-field" id="fieldAbreviaturaCatalogo"@(showAbreviatura ? "" : " hidden")>
+                            <span>Abreviatura *</span>
+                            <input id="txAbreviaturaCatalogo" type="text" />
+                        </label>
+                        <label class="checkapp-field ps-catalog-field ps-catalog-field--checkbox" id="fieldPermiteDecimalesCatalogo"@(showPermiteDecimales ? "" : " hidden")>
+                            <span>Permite decimales</span>
+                            <input id="chkPermiteDecimalesCatalogo" type="checkbox" />
+                        </label>
+                    </div>
+                    <div class="checkapp-status-inline" id="txInfoCatalogo" style="margin-top:1rem;"></div>
+                </div>
+                <div class="modal-footer ps-catalog-modal-footer">
+                    <button id="btGuardarCatalogo" type="button" class="checkapp-btn checkapp-btn-primary">
+                        <i class="fa fa-save"></i>
+                        <span>Guardar</span>
+                    </button>
+                    <button type="button" class="checkapp-btn checkapp-btn-ghost" data-bs-dismiss="modal">
+                        <i class="fa fa-ban"></i>
+                        <span>Cerrar</span>
+                    </button>
+                </div>
+                <div id="catalogoSaveOverlay" class="ps-catalog-save-overlay" aria-hidden="true">
+                    <div class="ps-catalog-save-card" role="status" aria-live="polite">
+                        <div class="ps-catalog-save-spinner"></div>
+                        <div class="ps-catalog-save-copy">
+                            <strong id="txCatalogoSaveTitle">Guardando registro...</strong>
+                            <p id="txCatalogoSaveStatus">Preparando información del catálogo...</p>
+                        </div>
+                    </div>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
