@@ -223,6 +223,7 @@ namespace checklist.Controllers
                             {
                                 sb.Append(BuildActivosMenu());
                                 sb.Append(BuildProductosServiciosMenu());
+                                sb.Append(BuildProveeduriaMenu());
                             }
 
                             switch (item.Opcion)
@@ -790,7 +791,6 @@ namespace checklist.Controllers
             sb.Append(@"<div class=""menu-sub menu-sub-accordion"">");
             sb.Append(@"<div id=""menu-activos-catalogos-tipos"" class=""menu-item""> <a class=""menu-link"" href=""/Activos/Tipos""> <span class=""menu-bullet""> <span class=""bullet bullet-dot""></span> </span> <span class=""menu-title"">Tipos</span> </a> </div>");
             sb.Append(@"<div id=""menu-activos-catalogos-marcas"" class=""menu-item""> <a class=""menu-link"" href=""/Activos/Marcas""> <span class=""menu-bullet""> <span class=""bullet bullet-dot""></span> </span> <span class=""menu-title"">Marcas</span> </a> </div>");
-            sb.Append(@"<div id=""menu-activos-catalogos-proveedores"" class=""menu-item""> <a class=""menu-link"" href=""/Activos/Proveedores""> <span class=""menu-bullet""> <span class=""bullet bullet-dot""></span> </span> <span class=""menu-title"">Proveedores</span> </a> </div>");
             sb.Append(@"<div id=""menu-activos-catalogos-estados"" class=""menu-item""> <a class=""menu-link"" href=""/Activos/EstadosOperativos""> <span class=""menu-bullet""> <span class=""bullet bullet-dot""></span> </span> <span class=""menu-title"">Estados operativos</span> </a> </div>");
             sb.Append(@"</div>");
             sb.Append(@"</div>");
@@ -816,6 +816,25 @@ namespace checklist.Controllers
             sb.Append(@"</div>");
             sb.Append(@"</div>");
 
+            sb.Append(@"</div>");
+            sb.Append(@"</div>");
+            return sb.ToString();
+        }
+
+        private static string BuildProveeduriaMenu()
+        {
+            StringBuilder sb = new StringBuilder();
+            sb.Append(@"<div id=""menu-proveeduria"" data-kt-menu-trigger=""click"" class=""menu-item menu-accordion"">");
+            sb.Append(@"<span class=""menu-link""> <span class=""menu-icon""> <i class=""ki-duotone ki-element-plus fs-2""> <span class=""path1""></span> <span class=""path2""></span> <span class=""path3""></span> <span class=""path4""></span> <span class=""path5""></span> </i> </span> <span class=""menu-title"">Proveeduría</span> <span class=""menu-arrow""></span> </span>");
+            sb.Append(@"<div class=""menu-sub menu-sub-accordion"">");
+            sb.Append(@"<div id=""menu-proveeduria-proveedores"" class=""menu-item""> <a class=""menu-link"" href=""/Activos/Proveedores""> <span class=""menu-bullet""> <span class=""bullet bullet-dot""></span> </span> <span class=""menu-title"">Proveedores</span> </a> </div>");
+            sb.Append(@"<div id=""menu-proveeduria-ordenes-compra"" data-kt-menu-trigger=""click"" class=""menu-item menu-accordion"">");
+            sb.Append(@"<span class=""menu-link""> <span class=""menu-bullet""> <span class=""bullet bullet-dot""></span> </span> <span class=""menu-title"">Órdenes de compra</span> <span class=""menu-arrow""></span> </span>");
+            sb.Append(@"<div class=""menu-sub menu-sub-accordion"">");
+            sb.Append(@"<div id=""menu-proveeduria-ordenes-compra-nueva"" class=""menu-item""> <a class=""menu-link"" href=""/Activos/OrdenesCompra/Nueva""> <span class=""menu-bullet""> <span class=""bullet bullet-dot""></span> </span> <span class=""menu-title"">Nueva</span> </a> </div>");
+            sb.Append(@"<div id=""menu-proveeduria-ordenes-compra-reporte"" class=""menu-item""> <a class=""menu-link"" href=""/Activos/OrdenesCompra/Reporte""> <span class=""menu-bullet""> <span class=""bullet bullet-dot""></span> </span> <span class=""menu-title"">Reporte</span> </a> </div>");
+            sb.Append(@"</div>");
+            sb.Append(@"</div>");
             sb.Append(@"</div>");
             sb.Append(@"</div>");
             return sb.ToString();

@@ -1,0 +1,431 @@
+@{
+    ViewBag.Title = "Órdenes de compra";
+    Layout = "~/Views/Shared/_Layout.cshtml";
+    var pageMode = (ViewData["OrdenesCompraPageMode"]?.ToString() ?? "new").Trim().ToLowerInvariant();
+    var detailId = (ViewData["OrdenesCompraDetailId"]?.ToString() ?? string.Empty).Trim();
+}
+
+<partial name="~/Views/Activos/_ActivosSessionContext.cshtml" />
+
+<div class="checkapp-scope checkapp-page oc-page" data-oc-page="editor" data-oc-mode="@pageMode" data-oc-id="@detailId">
+    <div class="container-fluid checkapp-shell oc-shell">
+        <section class="checkapp-hero oc-hero">
+            <div class="oc-hero-copy">
+                <p class="checkapp-kicker">Proveeduría</p>
+                <h1 id="txOcHeroTitle">Orden de compra</h1>
+                <p id="txOcHeroDescription">Captura la orden paso a paso, valida sus partidas y decide si quieres guardarla o generarla.</p>
+            </div>
+        </section>
+
+        <section class="oc-stepper" aria-label="Pasos de la orden de compra">
+            <button type="button" class="oc-stepper-item" data-step-target="1">
+                <span class="oc-stepper-index">1</span>
+                <span class="oc-stepper-copy">
+                    <strong>Configuración</strong>
+                    <small id="txOcStepState1">Pendiente</small>
+                </span>
+            </button>
+            <button type="button" class="oc-stepper-item" data-step-target="2">
+                <span class="oc-stepper-index">2</span>
+                <span class="oc-stepper-copy">
+                    <strong>Productos y servicios</strong>
+                    <small id="txOcStepState2">Bloqueado</small>
+                </span>
+            </button>
+            <button type="button" class="oc-stepper-item" data-step-target="3">
+                <span class="oc-stepper-index">3</span>
+                <span class="oc-stepper-copy">
+                    <strong>Partidas</strong>
+                    <small id="txOcStepState3">Bloqueado</small>
+                </span>
+            </button>
+            <button type="button" class="oc-stepper-item" data-step-target="4">
+                <span class="oc-stepper-index">4</span>
+                <span class="oc-stepper-copy">
+                    <strong>Revisar y guardar</strong>
+                    <small id="txOcStepState4">Bloqueado</small>
+                </span>
+            </button>
+        </section>
+
+        <section class="oc-progress" aria-label="Avance del wizard">
+            <div class="oc-progress-copy">
+                <strong id="txOcProgressLabel">Avance del wizard</strong>
+                <span id="txOcProgressMeta">Paso 1 de 4</span>
+            </div>
+            <div class="oc-progress-track" aria-hidden="true">
+                <span id="txOcProgressBar" class="oc-progress-bar"></span>
+            </div>
+        </section>
+
+        <div class="oc-layout">
+            <main class="oc-main">
+                <section class="checkapp-panel oc-panel oc-panel--wizard" data-step-panel="1">
+                    <div class="checkapp-panel-head">
+                        <div>
+                            <span class="checkapp-panel-eyebrow">Paso 1</span>
+                            <h2>Configuración</h2>
+                            <p class="checkapp-panel-copy">Define la empresa operativa, el proveedor y las fechas de la orden antes de capturar partidas.</p>
+                        </div>
+                    </div>
+                    <div class="checkapp-filter-grid oc-form-grid oc-form-grid--header">
+                        <label class="checkapp-field oc-field oc-field--wide">
+                            <span>Razón social *</span>
+                            <select id="cbOcRazonSocial" class="form-select"></select>
+                        </label>
+                        <label class="checkapp-field oc-field oc-field--wide">
+                            <span>Sucursal *</span>
+                            <select id="cbOcSucursal" class="form-select"></select>
+                        </label>
+                        <label class="checkapp-field oc-field oc-field--wide">
+                            <span>Proveedor *</span>
+                            <select id="cbOcProveedor" class="form-select"></select>
+                        </label>
+                        <label class="checkapp-field oc-field">
+                            <span>Fecha de orden *</span>
+                            <input id="txOcFechaOrden" type="date" />
+                        </label>
+                        <label class="checkapp-field oc-field">
+                            <span>Fecha de llegada</span>
+                            <input id="txOcFechaLlegada" type="date" />
+                        </label>
+                        <label class="checkapp-field oc-field">
+                            <span>Fecha mínima</span>
+                            <input id="txOcFechaMinima" type="date" />
+                        </label>
+                        <label class="checkapp-field oc-field">
+                            <span>Fecha máxima</span>
+                            <input id="txOcFechaMaxima" type="date" />
+                        </label>
+                        <label class="checkapp-field oc-field oc-field--full">
+                            <span>Observaciones</span>
+                            <textarea id="txOcObservaciones" maxlength="1000" placeholder="Agrega una referencia útil para el equipo de proveeduría."></textarea>
+                        </label>
+                    </div>
+                    <div class="oc-step-actions">
+                        <button id="btOcPaso1Siguiente" type="button" class="checkapp-btn checkapp-btn-primary">
+                            <span>Continuar a productos y servicios</span>
+                        </button>
+                    </div>
+                </section>
+
+                <section class="checkapp-panel oc-panel oc-panel--wizard" data-step-panel="2" hidden>
+                    <div class="checkapp-panel-head">
+                        <div>
+                            <span class="checkapp-panel-eyebrow">Paso 2</span>
+                            <h2>Productos y servicios</h2>
+                            <p class="checkapp-panel-copy">Busca artículos activos por código o nombre y agrega partidas sin mover inventario.</p>
+                        </div>
+                    </div>
+
+                    <div class="oc-search-layout">
+                        <div class="checkapp-filter-grid oc-form-grid oc-form-grid--search">
+                            <label class="checkapp-field oc-field oc-field--search">
+                                <span>Buscar producto o servicio</span>
+                                <input id="txOcBuscarProductoServicio" type="text" placeholder="Código, nombre o descripción" />
+                            </label>
+                            <label class="checkapp-field oc-field">
+                                <span>Tipo</span>
+                                <select id="cbOcBuscarTipo" class="form-select">
+                                    <option value="">Todos</option>
+                                    <option value="1">Producto</option>
+                                    <option value="2">Servicio</option>
+                                </select>
+                            </label>
+                        </div>
+                        <div class="checkapp-filter-actions oc-search-actions">
+                            <button id="btOcLimpiarBusquedaProductoServicio" type="button" class="checkapp-btn checkapp-btn-ghost">
+                                <i class="fa fa-eraser"></i>
+                                <span>Limpiar</span>
+                            </button>
+                        </div>
+                    </div>
+
+                    <div class="oc-search-results" id="panelOcResultadosBusqueda">
+                        <div class="checkapp-grid-toolbar">
+                            <strong>Resultados de búsqueda</strong>
+                            <div class="oc-grid-toolbar-meta oc-grid-toolbar-meta--tight">
+                                <span id="txOcBusquedaSpinner" class="oc-inline-spinner" hidden></span>
+                                <span id="txOcBusquedaResultadosCount" class="ca-grid-count">0 resultados</span>
+                                <span class="oc-search-hint">La búsqueda inicia automáticamente.</span>
+                            </div>
+                        </div>
+                        <div class="checkapp-grid-scroll">
+                            <table class="table table-row-bordered align-middle checkapp-grid-table oc-grid-table" id="grOcResultadosBusqueda">
+                                <thead>
+                                    <tr>
+                                        <th>Agregar</th>
+                                        <th>Tipo</th>
+                                        <th>Código</th>
+                                        <th>Producto o servicio</th>
+                                        <th>Unidad</th>
+                                        <th>Costo actual</th>
+                                    </tr>
+                                </thead>
+                                <tbody></tbody>
+                            </table>
+                        </div>
+                        <div id="txOcBusquedaEstado" class="checkapp-status-inline"></div>
+                    </div>
+
+                    <div class="oc-step-actions">
+                        <button id="btOcPaso2Anterior" type="button" class="checkapp-btn checkapp-btn-ghost">
+                            <span>Regresar</span>
+                        </button>
+                        <button id="btOcPaso2Siguiente" type="button" class="checkapp-btn checkapp-btn-primary">
+                            <span>Continuar a partidas</span>
+                        </button>
+                    </div>
+                </section>
+
+                <section class="checkapp-panel oc-panel oc-panel--wizard" data-step-panel="3" hidden>
+                    <div class="checkapp-panel-head">
+                        <div>
+                            <span class="checkapp-panel-eyebrow">Paso 3</span>
+                            <h2>Partidas</h2>
+                            <p class="checkapp-panel-copy">Ajusta cantidades y costos, consolida duplicados y valida el total antes de revisar la orden.</p>
+                        </div>
+                    </div>
+
+                    <div class="oc-partidas-section">
+                        <div class="checkapp-grid-toolbar">
+                            <strong>Partidas capturadas</strong>
+                            <div class="oc-grid-toolbar-meta">
+                                <label class="checkapp-field oc-field oc-field--toolbar">
+                                    <span>Buscar dentro de partidas</span>
+                                    <input id="txOcBuscarPartidas" type="text" placeholder="Código, nombre o descripción" />
+                                </label>
+                                <span id="txOcPartidasCount" class="ca-grid-count">0 partidas</span>
+                            </div>
+                        </div>
+                        <div class="checkapp-grid-scroll">
+                            <table class="table table-row-bordered align-middle checkapp-grid-table oc-grid-table" id="grOcPartidas">
+                                <thead>
+                                    <tr>
+                                        <th>Número</th>
+                                        <th>Tipo</th>
+                                        <th>Código</th>
+                                        <th>Producto o servicio</th>
+                                        <th>Unidad</th>
+                                        <th>Cantidad</th>
+                                        <th>Costo unitario</th>
+                                        <th>Subtotal</th>
+                                        <th>Acción</th>
+                                    </tr>
+                                </thead>
+                                <tbody></tbody>
+                            </table>
+                        </div>
+                        <div id="txOcPartidasEstadoVacio" class="oc-empty-state">Agrega al menos un producto o servicio a la orden.</div>
+                    </div>
+
+                    <div class="oc-totals-strip">
+                        <article class="checkapp-summary-card oc-summary-card oc-summary-card--totals">
+                            <small>Subtotal</small>
+                            <strong id="txOcSubtotal">$0.00</strong>
+                        </article>
+                        <article class="checkapp-summary-card oc-summary-card oc-summary-card--totals">
+                            <small>Total</small>
+                            <strong id="txOcTotal">$0.00</strong>
+                        </article>
+                    </div>
+
+                    <div class="oc-step-actions">
+                        <button id="btOcPaso3Anterior" type="button" class="checkapp-btn checkapp-btn-ghost">
+                            <span>Regresar</span>
+                        </button>
+                        <button id="btOcPaso3Buscar" type="button" class="checkapp-btn checkapp-btn-secondary">
+                            <span>Agregar más partidas</span>
+                        </button>
+                        <button id="btOcPaso3Siguiente" type="button" class="checkapp-btn checkapp-btn-primary">
+                            <span>Continuar a revisión</span>
+                        </button>
+                    </div>
+                </section>
+
+                <section class="checkapp-panel oc-panel oc-panel--wizard" data-step-panel="4" hidden>
+                    <div class="checkapp-panel-head">
+                        <div>
+                            <span class="checkapp-panel-eyebrow">Paso 4</span>
+                            <h2>Revisar y guardar</h2>
+                            <p class="checkapp-panel-copy">Confirma encabezado, partidas y totales antes de guardar la orden o generarla.</p>
+                        </div>
+                    </div>
+
+                    <div class="oc-review-grid">
+                        <article class="oc-review-card">
+                            <h3>Encabezado</h3>
+                            <dl class="oc-review-list">
+                                <div><dt>Razón social</dt><dd id="txOcReviewRazonSocial">—</dd></div>
+                                <div><dt>Sucursal</dt><dd id="txOcReviewSucursal">—</dd></div>
+                                <div><dt>Proveedor</dt><dd id="txOcReviewProveedor">—</dd></div>
+                                <div><dt>Fecha de orden</dt><dd id="txOcReviewFechaOrden">—</dd></div>
+                                <div><dt>Fecha de llegada</dt><dd id="txOcReviewFechaLlegada">—</dd></div>
+                                <div><dt>Observaciones</dt><dd id="txOcReviewObservaciones">—</dd></div>
+                            </dl>
+                        </article>
+                        <article class="oc-review-card oc-review-card--full">
+                            <div class="checkapp-grid-toolbar">
+                                <strong>Partidas</strong>
+                                <span id="txOcReviewPartidasCount" class="ca-grid-count">0 partidas</span>
+                            </div>
+                            <div class="checkapp-grid-scroll">
+                                <table class="table table-row-bordered align-middle checkapp-grid-table oc-grid-table" id="grOcRevisionPartidas">
+                                    <thead>
+                                        <tr>
+                                            <th>Tipo</th>
+                                            <th>Código</th>
+                                            <th>Producto o servicio</th>
+                                            <th>Unidad</th>
+                                            <th>Cantidad</th>
+                                            <th>Costo</th>
+                                            <th>Subtotal</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody></tbody>
+                                </table>
+                            </div>
+                        </article>
+                    </div>
+
+                    <section class="checkapp-panel oc-panel oc-panel--cancelled" id="panelOcCancelacion" hidden>
+                        <div class="checkapp-panel-head">
+                            <div>
+                                <span class="checkapp-panel-eyebrow">Cancelación</span>
+                                <h3>Historial de cancelación</h3>
+                                <p class="checkapp-panel-copy">La orden conserva su información y su motivo para mantener la trazabilidad.</p>
+                            </div>
+                        </div>
+                        <div class="checkapp-filter-grid oc-form-grid oc-form-grid--cancelled">
+                            <label class="checkapp-field oc-field">
+                                <span>Fecha de cancelación</span>
+                                <input id="txOcFechaCancelacion" type="text" readonly />
+                            </label>
+                            <label class="checkapp-field oc-field oc-field--full">
+                                <span>Motivo de cancelación</span>
+                                <textarea id="txOcMotivoCancelacion" readonly></textarea>
+                            </label>
+                        </div>
+                    </section>
+
+                    <div class="oc-step-actions oc-step-actions--review">
+                        <button id="btOcPaso4Anterior" type="button" class="checkapp-btn checkapp-btn-ghost">
+                            <span>Regresar</span>
+                        </button>
+                        <button id="btOcGuardar" type="button" class="checkapp-btn checkapp-btn-secondary">
+                            <i class="fa fa-save"></i>
+                            <span>Guardar orden</span>
+                        </button>
+                        <button id="btOcGenerar" type="button" class="checkapp-btn checkapp-btn-primary" hidden>
+                            <i class="fa fa-check-circle"></i>
+                            <span>Generar orden</span>
+                        </button>
+                        <button id="btOcCancelar" type="button" class="checkapp-btn checkapp-btn-ghost" hidden>
+                            <i class="fa fa-ban"></i>
+                            <span>Cancelar orden</span>
+                        </button>
+                    </div>
+                    <div class="oc-step-actions oc-step-actions--exports" id="panelOcExportaciones" hidden>
+                        <button id="btOcExportarPdf" type="button" class="checkapp-btn checkapp-btn-secondary">
+                            <i class="fa fa-file-pdf-o"></i>
+                            <span>Exportar PDF</span>
+                        </button>
+                        <button id="btOcExportarExcel" type="button" class="checkapp-btn checkapp-btn-excel">
+                            <i class="fa fa-file-excel-o"></i>
+                            <span>Exportar Excel</span>
+                        </button>
+                    </div>
+                </section>
+
+                <div id="txOcFormStatus" class="checkapp-status-inline"></div>
+            </main>
+
+            <aside class="oc-sidebar">
+                <section class="checkapp-panel oc-panel oc-panel--summary">
+                    <div class="checkapp-panel-head">
+                        <div>
+                            <span class="checkapp-panel-eyebrow">Resumen</span>
+                            <h2>Resumen</h2>
+                            <p class="checkapp-panel-copy">Consulta solo lo necesario mientras avanzas.</p>
+                        </div>
+                    </div>
+                    <div class="oc-summary-strip" aria-label="Resumen de la orden">
+                        <article class="checkapp-summary-card oc-summary-card">
+                            <small>Folio</small>
+                            <strong id="txOcResumenSidebarFolio">Pendiente</strong>
+                        </article>
+                        <article class="checkapp-summary-card oc-summary-card">
+                            <small>Estado</small>
+                            <strong id="txOcResumenSidebarEstado">En captura</strong>
+                        </article>
+                        <article class="checkapp-summary-card oc-summary-card">
+                            <small>Total</small>
+                            <strong id="txOcResumenSidebarTotal">$0.00</strong>
+                        </article>
+                    </div>
+                    <div class="oc-summary-meta">
+                        <div>
+                            <span>Avance</span>
+                            <strong id="txOcSidebarProgress">25%</strong>
+                        </div>
+                        <div>
+                            <span>Partidas</span>
+                            <strong id="txOcSidebarPartidasCount">0</strong>
+                        </div>
+                    </div>
+                </section>
+            </aside>
+        </div>
+    </div>
+</div>
+
+<div class="modal fade checkapp-modal" tabindex="-1" id="modalOcCancelar">
+    <div class="modal-dialog modal-lg modal-dialog-centered">
+        <div class="modal-content oc-modal-content">
+            <form id="frmOcCancelar">
+                <div class="modal-header">
+                    <div>
+                        <p class="checkapp-kicker">Proveeduría</p>
+                        <h3 class="modal-title">Cancelar orden de compra</h3>
+                    </div>
+                    <button type="button" class="btn btn-icon btn-sm btn-active-light-primary" data-bs-dismiss="modal" aria-label="Close">
+                        <i class="ki-duotone ki-cross fs-1"><span class="path1"></span><span class="path2"></span></i>
+                    </button>
+                </div>
+                <div class="modal-body oc-modal-body">
+                    <label class="checkapp-field oc-field oc-field--full">
+                        <span>Motivo de cancelación *</span>
+                        <textarea id="txOcCancelarMotivo" maxlength="500" placeholder="Explica por qué la orden ya no debe continuar."></textarea>
+                    </label>
+                    <div id="txOcCancelarStatus" class="checkapp-status-inline"></div>
+                </div>
+                <div class="modal-footer oc-modal-footer">
+                    <button type="button" class="checkapp-btn checkapp-btn-ghost" data-bs-dismiss="modal">
+                        <span>Cerrar</span>
+                    </button>
+                    <button id="btOcConfirmarCancelar" type="button" class="checkapp-btn checkapp-btn-primary">
+                        <i class="fa fa-ban"></i>
+                        <span>Cancelar orden</span>
+                    </button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+
+<div id="ocEditorOverlay" class="oc-overlay" aria-hidden="true" hidden>
+    <div class="oc-overlay-card" role="status" aria-live="polite">
+        <div class="oc-overlay-spinner"></div>
+        <div class="oc-overlay-copy">
+            <strong id="txOcOverlayTitle">Guardando orden...</strong>
+            <p id="txOcOverlayText">Estamos preparando la información de tu orden.</p>
+        </div>
+    </div>
+</div>
+
+@section Scripts {
+    <link href="~/css/checkapp-theme.css" rel="stylesheet" />
+    <link href="~/css/Activos/OrdenesCompra/OrdenesCompra.css" rel="stylesheet" asp-append-version="true" />
+    <script src="~/js/checkapp-ui.js"></script>
+    <script src="~/js/Activos/OrdenesCompra/OrdenesCompra.js" asp-append-version="true"></script>
+}

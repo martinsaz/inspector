@@ -188,14 +188,27 @@ function syncCurrentMenuState() {
             active: 'menu-activos-catalogos-marcas'
         },
         '/activos/proveedores': {
-            ancestors: ['menu-activos', 'menu-activos-catalogos'],
-            active: 'menu-activos-catalogos-proveedores'
+            ancestors: ['menu-proveeduria'],
+            active: 'menu-proveeduria-proveedores'
         },
         '/activos/estadosoperativos': {
             ancestors: ['menu-activos', 'menu-activos-catalogos'],
             active: 'menu-activos-catalogos-estados'
+        },
+        '/activos/ordenescompra/nueva': {
+            ancestors: ['menu-proveeduria', 'menu-proveeduria-ordenes-compra'],
+            active: 'menu-proveeduria-ordenes-compra-nueva'
+        },
+        '/activos/ordenescompra/index': {
+            ancestors: ['menu-proveeduria', 'menu-proveeduria-ordenes-compra'],
+            active: 'menu-proveeduria-ordenes-compra-nueva'
         }
     };
+
+    if (pathname.indexOf('/activos/ordenescompra/detalle/') === 0 || pathname.indexOf('/activos/ordenescompra/editar/') === 0) {
+        markMenuBranch(['menu-proveeduria', 'menu-proveeduria-ordenes-compra'], 'menu-proveeduria-ordenes-compra-nueva');
+        return;
+    }
 
     if (activosRouteMap[pathname]) {
         markMenuBranch(activosRouteMap[pathname].ancestors, activosRouteMap[pathname].active);
