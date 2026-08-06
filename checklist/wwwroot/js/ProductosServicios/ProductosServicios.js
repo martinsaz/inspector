@@ -18,13 +18,69 @@
         removeExistingImage: false,
         savedModalImage: false,
         modal: null,
+        quickCatalogModal: null,
         isSaving: false,
         isUploadingImage: false,
-        saveProgressTimerId: 0
+        saveProgressTimerId: 0,
+        quickCatalogSaving: false,
+        quickCatalogKey: ""
+    };
+
+    const quickCatalogConfigs = {
+        categoria: {
+            key: "categoria",
+            title: "Nueva categoría",
+            singular: "categoría",
+            saveUrl: "/ProductosServicios/GuardarCategoriaProductoServicio",
+            listUrl: "/ProductosServicios/ObtenerCategoriasProductosServicios",
+            selectSelector: "#cbCategoriaProductoServicio",
+            comboCollectionKey: "categorias",
+            codeMax: 50,
+            nameMax: 150,
+            descriptionMax: 500,
+            showDescription: true,
+            showAplicaA: true,
+            showAbreviatura: false,
+            showPermiteDecimales: false
+        },
+        marca: {
+            key: "marca",
+            title: "Nueva marca",
+            singular: "marca",
+            saveUrl: "/ProductosServicios/GuardarMarcaProductoServicio",
+            listUrl: "/ProductosServicios/ObtenerMarcasProductosServicios",
+            selectSelector: "#cbMarcaProductoServicio",
+            comboCollectionKey: "marcas",
+            codeMax: 50,
+            nameMax: 150,
+            descriptionMax: 500,
+            showDescription: true,
+            showAplicaA: false,
+            showAbreviatura: false,
+            showPermiteDecimales: false
+        },
+        unidad: {
+            key: "unidad",
+            title: "Nueva unidad de medida",
+            singular: "unidad de medida",
+            saveUrl: "/ProductosServicios/GuardarUnidadMedidaProductoServicio",
+            listUrl: "/ProductosServicios/ObtenerUnidadesMedidaProductosServicios",
+            selectSelector: "#cbUnidadProductoServicio",
+            comboCollectionKey: "unidadesMedida",
+            codeMax: 30,
+            nameMax: 100,
+            descriptionMax: 0,
+            abreviaturaMax: 20,
+            showDescription: false,
+            showAplicaA: false,
+            showAbreviatura: true,
+            showPermiteDecimales: true
+        }
     };
 
     document.addEventListener("DOMContentLoaded", function () {
         state.modal = resolveModalApi("#modalProductoServicio");
+        state.quickCatalogModal = resolveModalApi("#modalQuickCatalogoProductoServicio");
         initAccordion();
         initEvents();
         initGrid();
@@ -62,6 +118,10 @@
         $("#btLimpiarProductosServicios").on("click", clearFilters);
         $("#btNuevoProductoServicio").on("click", openCreateModal);
         $("#btGuardarProductoServicio").on("click", saveProductoServicio);
+        $("#btGuardarQuickCatalogoProductoServicio").on("click", saveQuickCatalog);
+        $("#btQuickAddCategoriaProductoServicio").on("click", function () { openQuickCatalogModal("categoria"); });
+        $("#btQuickAddMarcaProductoServicio").on("click", function () { openQuickCatalogModal("marca"); });
+        $("#btQuickAddUnidadProductoServicio").on("click", function () { openQuickCatalogModal("unidad"); });
 
         $("#txBusquedaProductosServicios").on("keydown", function (event) {
             if (event.key === "Enter") {
@@ -92,6 +152,12 @@
         $("#frmProductoServicio select").on("change", function () {
             clearFieldError("#" + this.id);
         });
+        $("#frmQuickCatalogoProductoServicio input, #frmQuickCatalogoProductoServicio textarea").on("input", function () {
+            clearQuickCatalogFieldError("#" + this.id);
+        });
+        $("#frmQuickCatalogoProductoServicio select").on("change", function () {
+            clearQuickCatalogFieldError("#" + this.id);
+        });
 
         $("#btCambiarImagenProductoServicio").on("click", function () {
             $("#flImagenProductoServicio").trigger("click");
@@ -104,6 +170,10 @@
             cleanupDraftImageOnClose();
             resetSaveUi();
             resetModal();
+        });
+
+        $("#modalQuickCatalogoProductoServicio").on("hidden.bs.modal", function () {
+            resetQuickCatalogModal();
         });
     }
 
@@ -704,12 +774,23 @@
         const tipo = Number($("#cbTipoProductoServicio").val() || 1);
         const causaInventario = $("#chkCausaInventarioProductoServicio").is(":checked");
         const isService = tipo === 2;
+        const modalNode = document.querySelector("#modalProductoServicio");
 
         toggleField("#fieldMarcaProductoServicio", !isService);
         toggleField("#panelInventarioProductoServicio", !isService);
         toggleField("#fieldPermiteVentaSinExistencia", !isService && causaInventario);
         toggleField("#fieldExistenciaInicial", !isService && causaInventario);
         toggleField("#fieldExistenciaMinima", !isService && causaInventario);
+
+        if (modalNode) {
+            modalNode.classList.toggle("ps-type-service", isService);
+            modalNode.classList.toggle("ps-type-product", !isService);
+        }
+
+        const inventoryPanel = document.querySelector("#panelInventarioProductoServicio");
+        if (inventoryPanel) {
+            inventoryPanel.classList.toggle("is-compact", !isService && !causaInventario);
+        }
 
         if (isService) {
             $("#cbMarcaProductoServicio").val("").trigger("change");
@@ -898,6 +979,262 @@
         node.textContent = message || "";
     }
 
+    function openQuickCatalogModal(key) {
+        const config = quickCatalogConfigs[key];
+        if (!config || state.quickCatalogSaving || state.isSaving || state.isUploadingImage) {
+            return;
+        }
+
+        state.quickCatalogKey = key;
+        resetQuickCatalogModal();
+        $("#hdQuickCatalogoTipo").val(key);
+        $("#txQuickCatalogoTitulo").text(config.title);
+        $("#frmQuickCatalogoProductoServicio").attr("data-quick-catalog-layout", key);
+        applyQuickCatalogFieldVisibility(config);
+        if (config.showAplicaA) {
+            $("#cbQuickCatalogoAplicaA").val("0");
+        }
+        state.quickCatalogModal && state.quickCatalogModal.show();
+    }
+
+    function applyQuickCatalogFieldVisibility(config) {
+        toggleField("#fieldQuickCatalogoDescripcion", !!config.showDescription);
+        toggleField("#fieldQuickCatalogoAplicaA", !!config.showAplicaA);
+        toggleField("#fieldQuickCatalogoAbreviatura", !!config.showAbreviatura);
+        toggleField("#fieldQuickCatalogoPermiteDecimales", !!config.showPermiteDecimales);
+    }
+
+    function resetQuickCatalogModal() {
+        state.quickCatalogSaving = false;
+        state.quickCatalogKey = "";
+
+        const form = document.querySelector("#frmQuickCatalogoProductoServicio");
+        if (form) {
+            form.reset();
+            form.classList.remove("is-saving");
+            form.removeAttribute("data-quick-catalog-layout");
+        }
+
+        $("#hdQuickCatalogoTipo").val("");
+        $("#txQuickCatalogoTitulo").text("Nuevo catálogo");
+        $("#cbQuickCatalogoAplicaA").val("0");
+        $("#chkQuickCatalogoPermiteDecimales").prop("checked", false);
+        setStatus("#txInfoQuickCatalogo", "", "");
+        clearQuickCatalogFieldErrors();
+        toggleField("#fieldQuickCatalogoDescripcion", true);
+        toggleField("#fieldQuickCatalogoAplicaA", false);
+        toggleField("#fieldQuickCatalogoAbreviatura", false);
+        toggleField("#fieldQuickCatalogoPermiteDecimales", false);
+    }
+
+    function clearQuickCatalogFieldError(selector) {
+        const node = document.querySelector(selector);
+        if (node) {
+            node.classList.remove("is-invalid");
+        }
+    }
+
+    function clearQuickCatalogFieldErrors() {
+        document.querySelectorAll("#frmQuickCatalogoProductoServicio .is-invalid").forEach(function (node) {
+            node.classList.remove("is-invalid");
+        });
+    }
+
+    function saveQuickCatalog() {
+        const config = quickCatalogConfigs[state.quickCatalogKey || $("#hdQuickCatalogoTipo").val()];
+        if (!config || state.quickCatalogSaving) {
+            return;
+        }
+
+        const payload = buildQuickCatalogPayload(config);
+        const validation = validateQuickCatalogPayload(config, payload);
+        if (validation) {
+            markFieldError(validation.selector);
+            setStatus("#txInfoQuickCatalogo", "danger", validation.message);
+            return;
+        }
+
+        state.quickCatalogSaving = true;
+        $("#frmQuickCatalogoProductoServicio").addClass("is-saving");
+        setStatus("#txInfoQuickCatalogo", "info", "Guardando " + config.singular + "...");
+
+        fetchJson(config.saveUrl, {
+            method: "POST",
+            headers: { "Content-Type": "application/json; charset=utf-8" },
+            body: JSON.stringify(payload)
+        })
+            .then(function (data) {
+                const message = resolveServerMessage(data);
+                if (!/^El /.test(message || "")) {
+                    throw new Error(message || "No fue posible guardar la " + config.singular + ".");
+                }
+
+                return resolveQuickCatalogCreatedItem(config, payload)
+                    .then(function (item) {
+                        if (!item || !item.id) {
+                            throw new Error("El catálogo fue creado, pero no fue posible seleccionarlo automáticamente.");
+                        }
+
+                        syncQuickCatalogCombo(config, item);
+                        state.quickCatalogModal && state.quickCatalogModal.hide();
+                        setStatus("#txInfoProductoServicio", "success", "Se agregó la " + config.singular + " y quedó seleccionada.");
+                    });
+            })
+            .catch(function (error) {
+                setStatus("#txInfoQuickCatalogo", "danger", resolveErrorMessage(error));
+            })
+            .finally(function () {
+                state.quickCatalogSaving = false;
+                $("#frmQuickCatalogoProductoServicio").removeClass("is-saving");
+            });
+    }
+
+    function buildQuickCatalogPayload(config) {
+        const payload = {
+            id: "",
+            idEmpresa: resolveEmpresaId(),
+            codigo: ($("#txQuickCatalogoCodigo").val() || "").trim(),
+            nombre: ($("#txQuickCatalogoNombre").val() || "").trim(),
+            descripcion: config.showDescription ? ($("#txQuickCatalogoDescripcion").val() || "").trim() : ""
+        };
+
+        if (config.showAplicaA) {
+            payload.aplicaA = Number($("#cbQuickCatalogoAplicaA").val() || 0);
+        }
+
+        if (config.showAbreviatura) {
+            payload.abreviatura = ($("#txQuickCatalogoAbreviatura").val() || "").trim();
+        }
+
+        if (config.showPermiteDecimales) {
+            payload.permiteDecimales = $("#chkQuickCatalogoPermiteDecimales").is(":checked");
+        }
+
+        return payload;
+    }
+
+    function validateQuickCatalogPayload(config, payload) {
+        if (!payload.codigo || payload.codigo.length > config.codeMax) {
+            return {
+                selector: "#txQuickCatalogoCodigo",
+                message: "Captura un código válido de hasta " + config.codeMax + " caracteres."
+            };
+        }
+
+        if (!payload.nombre || payload.nombre.length > config.nameMax) {
+            return {
+                selector: "#txQuickCatalogoNombre",
+                message: "Captura un nombre válido de hasta " + config.nameMax + " caracteres."
+            };
+        }
+
+        if (config.showDescription && payload.descripcion.length > config.descriptionMax) {
+            return {
+                selector: "#txQuickCatalogoDescripcion",
+                message: "La descripción no puede exceder " + config.descriptionMax + " caracteres."
+            };
+        }
+
+        if (config.showAbreviatura) {
+            if (!payload.abreviatura || payload.abreviatura.length > config.abreviaturaMax) {
+                return {
+                    selector: "#txQuickCatalogoAbreviatura",
+                    message: "Captura una abreviatura válida de hasta " + config.abreviaturaMax + " caracteres."
+                };
+            }
+        }
+
+        return null;
+    }
+
+    function resolveQuickCatalogCreatedItem(config, payload) {
+        const query = new URLSearchParams({
+            busqueda: payload.codigo || payload.nombre || "",
+            estatus: "activos"
+        });
+
+        return fetchJson(config.listUrl + "?" + query.toString())
+            .then(function (data) {
+                const items = Array.isArray(data) ? data : Array.isArray(data.items) ? data.items : [];
+                return findQuickCatalogCreatedItem(items, payload);
+            });
+    }
+
+    function findQuickCatalogCreatedItem(items, payload) {
+        const normalizedCodigo = normalizeCatalogCompareValue(payload.codigo);
+        const normalizedNombre = normalizeCatalogCompareValue(payload.nombre);
+
+        return (items || []).find(function (item) {
+            if (!item || !item.id || item.activo === false) {
+                return false;
+            }
+
+            return normalizeCatalogCompareValue(item.codigo) === normalizedCodigo
+                && normalizeCatalogCompareValue(item.nombre) === normalizedNombre;
+        }) || null;
+    }
+
+    function syncQuickCatalogCombo(config, item) {
+        const collectionKey = config.comboCollectionKey;
+        const currentItems = Array.isArray(state.combos[collectionKey]) ? state.combos[collectionKey].slice() : [];
+        const nextItem = normalizeQuickCatalogComboItem(config, item);
+        const modalSelections = {
+            tipo: $("#cbTipoProductoServicio").val() || "",
+            categoria: $("#cbCategoriaProductoServicio").val() || "",
+            marca: $("#cbMarcaProductoServicio").val() || "",
+            unidad: $("#cbUnidadProductoServicio").val() || ""
+        };
+        const filteredItems = currentItems.filter(function (entry) {
+            return String(entry.id || "") !== String(nextItem.id || "");
+        });
+
+        filteredItems.push(nextItem);
+        filteredItems.sort(function (a, b) {
+            return String(a.nombre || "").localeCompare(String(b.nombre || ""), "es", { sensitivity: "base" });
+        });
+        state.combos[collectionKey] = filteredItems;
+
+        populateModalCombos();
+        $("#cbTipoProductoServicio").val(modalSelections.tipo).trigger("change");
+        syncCategoryOptions(modalSelections.categoria);
+        $("#cbCategoriaProductoServicio").val(modalSelections.categoria).trigger("change");
+        $("#cbMarcaProductoServicio").val(modalSelections.marca).trigger("change");
+        $("#cbUnidadProductoServicio").val(modalSelections.unidad).trigger("change");
+        if (config.key === "categoria") {
+            syncCategoryOptions(nextItem.id);
+            $("#cbCategoriaProductoServicio").val(nextItem.id).trigger("change");
+        } else {
+            $(config.selectSelector).val(nextItem.id).trigger("change");
+        }
+    }
+
+    function normalizeQuickCatalogComboItem(config, item) {
+        const normalized = {
+            id: item.id,
+            codigo: item.codigo || "",
+            nombre: item.nombre || ""
+        };
+
+        if (config.key === "categoria") {
+            normalized.aplicaA = item.aplicaA == null ? 0 : Number(item.aplicaA);
+        }
+
+        if (config.key === "unidad") {
+            normalized.abreviatura = item.abreviatura || "";
+            normalized.permiteDecimales = !!item.permiteDecimales;
+        }
+
+        return normalized;
+    }
+
+    function normalizeCatalogCompareValue(value) {
+        return String(value || "")
+            .trim()
+            .normalize("NFD")
+            .replace(/[\u0300-\u036f]/g, "")
+            .toLowerCase();
+    }
+
     function markFieldError(selector) {
         if (!selector) {
             return;
@@ -1066,6 +1403,10 @@
             show: function () { $(selector).modal("show"); },
             hide: function () { $(selector).modal("hide"); }
         };
+    }
+
+    function resolveEmpresaId() {
+        return String(window.sessionStorage ? window.sessionStorage.getItem("idEmpresa") || "" : "").trim();
     }
 
     function normalizeGuid(value) {
