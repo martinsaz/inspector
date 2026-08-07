@@ -175,6 +175,38 @@ function BuildMenu() {
 function syncCurrentMenuState() {
     var pathname = (window.location && window.location.pathname ? window.location.pathname : '').toLowerCase();
     var activosRouteMap = {
+        '/listas/creadorlistabl26': {
+            ancestors: ['01000000', '01001000'],
+            active: '01001001BL26'
+        },
+        '/detallelista/detallelista': {
+            ancestors: ['01000000', '01001000'],
+            active: '01001002'
+        },
+        '/mislistas/index': {
+            ancestors: ['01000000', '01001000'],
+            active: '01001003'
+        },
+        '/categorias/categoriasabc': {
+            ancestors: ['01000000', '01002000'],
+            active: '01002001'
+        },
+        '/subcategorias/subcategoriasabc': {
+            ancestors: ['01000000', '01002000'],
+            active: '01002002'
+        },
+        '/contestarlista/index': {
+            ancestors: ['02000000'],
+            active: '02001000'
+        },
+        '/resultados/resultados': {
+            ancestors: ['02000000'],
+            active: '02003000'
+        },
+        '/respuestas/respuestas': {
+            ancestors: ['02000000'],
+            active: '02004000'
+        },
         '/activos/index': {
             ancestors: ['menu-activos', 'menu-activos-abc'],
             active: 'menu-activos-abc-nuevo'
@@ -195,6 +227,22 @@ function syncCurrentMenuState() {
             ancestors: ['menu-activos', 'menu-activos-catalogos'],
             active: 'menu-activos-catalogos-estados'
         },
+        '/productosservicios/index': {
+            ancestors: ['menu-proveeduria', 'menu-proveeduria-productos-servicios'],
+            active: 'menu-productos-servicios-abc'
+        },
+        '/productosservicios/categorias': {
+            ancestors: ['menu-proveeduria', 'menu-proveeduria-productos-servicios', 'menu-productos-servicios-catalogos'],
+            active: 'menu-productos-servicios-categorias'
+        },
+        '/productosservicios/marcas': {
+            ancestors: ['menu-proveeduria', 'menu-proveeduria-productos-servicios', 'menu-productos-servicios-catalogos'],
+            active: 'menu-productos-servicios-marcas'
+        },
+        '/productosservicios/unidadesmedida': {
+            ancestors: ['menu-proveeduria', 'menu-proveeduria-productos-servicios', 'menu-productos-servicios-catalogos'],
+            active: 'menu-productos-servicios-unidades'
+        },
         '/activos/ordenescompra/nueva': {
             ancestors: ['menu-proveeduria', 'menu-proveeduria-ordenes-compra'],
             active: 'menu-proveeduria-ordenes-compra-nueva'
@@ -202,6 +250,10 @@ function syncCurrentMenuState() {
         '/activos/ordenescompra/index': {
             ancestors: ['menu-proveeduria', 'menu-proveeduria-ordenes-compra'],
             active: 'menu-proveeduria-ordenes-compra-nueva'
+        },
+        '/activos/ordenescompra/reporte': {
+            ancestors: ['menu-proveeduria', 'menu-proveeduria-ordenes-compra'],
+            active: 'menu-proveeduria-ordenes-compra-reporte'
         }
     };
 

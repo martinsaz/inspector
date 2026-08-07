@@ -219,13 +219,6 @@ namespace checklist.Controllers
                         StringBuilder sb = new StringBuilder();
                         foreach (var item in opciones)
                         {
-                            if (item.Opcion == "02000000")
-                            {
-                                sb.Append(BuildActivosMenu());
-                                sb.Append(BuildProductosServiciosMenu());
-                                sb.Append(BuildProveeduriaMenu());
-                            }
-
                             switch (item.Opcion)
                             {
 
@@ -234,7 +227,7 @@ namespace checklist.Controllers
                                     if (item.Permisos.Acceso == 1)
                                     {
                                         sb.Append(@"<div id=""01000000"" data-kt-menu-trigger=""click"" class=""menu-item menu-accordion"">");
-                                        sb.Append(@"<span class=""menu-link""> <span class=""menu-icon""> <i class=""ki-duotone ki-element-plus fs-2""> <span class=""path1""></span> <span class=""path2""></span> <span class=""path3""></span> <span class=""path4""></span> <span class=""path5""></span> </i> </span> <span class=""menu-title"">Listas</span> <span class=""menu-arrow""></span> </span>");
+                                        sb.Append(@"<span class=""menu-link""> <span class=""menu-icon""> <i class=""ki-duotone ki-element-plus fs-2""> <span class=""path1""></span> <span class=""path2""></span> <span class=""path3""></span> <span class=""path4""></span> <span class=""path5""></span> </i> </span> <span class=""menu-title"">Checklists</span> <span class=""menu-arrow""></span> </span>");
                                         sb.Append(@"<div class=""menu-sub menu-sub-accordion"">");
                                         // Hijos
                                         foreach (var hijo in item.Hijos)
@@ -244,7 +237,7 @@ namespace checklist.Controllers
                                                 case "01001000":
                                                     if (hijo.Permisos.Acceso == 1)
                                                     {
-                                                        sb.Append(@"<div id=""01001000"" data-kt-menu-trigger=""click"" class=""menu-item menu-accordion""> <span class=""menu-link""> <span class=""menu-bullet""> <span class=""bullet bullet-dot""></span> </span> <span class=""menu-title"">ABC Listas</span> <span class=""menu-arrow""></span> </span>");
+                                                        sb.Append(@"<div id=""01001000"" data-kt-menu-trigger=""click"" class=""menu-item menu-accordion""> <span class=""menu-link""> <span class=""menu-bullet""> <span class=""bullet bullet-dot""></span> </span> <span class=""menu-title"">ABC Checklists</span> <span class=""menu-arrow""></span> </span>");
                                                         sb.Append(@"<div class=""menu-sub menu-sub-accordion"">");
                                                         // Nietos
                                                         foreach (var nieto in hijo.Hijos)
@@ -254,25 +247,23 @@ namespace checklist.Controllers
                                                                 case "01001001":
                                                                     if (nieto.Permisos.Acceso == 1)
                                                                     {
-                                                                        sb.Append(@"<div id=""01001001"" class=""menu-item""> <a class=""menu-link"" href=""/Listas/CreadorLista""> <span class=""menu-bullet""> <span class=""bullet bullet-dot""></span> </span> <span class=""menu-title"">Nueva (creador)</span> </a> </div>");
-                                                                        sb.Append(@"<div id=""01001001BL26"" class=""menu-item""> <a class=""menu-link"" href=""/Listas/CreadorListaBL26""> <span class=""menu-bullet""> <span class=""bullet bullet-dot""></span> </span> <span class=""menu-title"">Nueva (editor)</span> </a> </div>");
+                                                                        sb.Append(@"<div id=""01001001BL26"" class=""menu-item""> <a class=""menu-link"" href=""/Listas/CreadorListaBL26""> <span class=""menu-bullet""> <span class=""bullet bullet-dot""></span> </span> <span class=""menu-title"">Nueva</span> </a> </div>");
                                                                     }
                                                                     break;
                                                                 case "01001002":
                                                                     if (nieto.Permisos.Acceso == 1)
                                                                     {
-                                                                        sb.Append(@"<div id=""01001002"" class=""menu-item""> <a class=""menu-link"" href=""/DetalleLista/DetalleLista""> <span class=""menu-bullet""> <span class=""bullet bullet-dot""></span> </span> <span class=""menu-title"">Abierta</span> </a> </div>");
+                                                                        sb.Append(@"<div id=""01001002"" class=""menu-item""> <a class=""menu-link"" href=""/DetalleLista/DetalleLista""> <span class=""menu-bullet""> <span class=""bullet bullet-dot""></span> </span> <span class=""menu-title"">Borradores</span> </a> </div>");
                                                                     }
                                                                     break;
                                                                 case "01001003":
                                                                     if (nieto.Permisos.Acceso == 1)
                                                                     {
-                                                                        sb.Append(@"<div id=""01001003"" class=""menu-item""> <a class=""menu-link"" href=""/MisListas/Index""> <span class=""menu-bullet""> <span class=""bullet bullet-dot""></span> </span> <span class=""menu-title"">Mis Listas</span> </a> </div>");
-                                                                    }
+                                                                        sb.Append(@"<div id=""01001003"" class=""menu-item""> <a class=""menu-link"" href=""/MisListas/Index""> <span class=""menu-bullet""> <span class=""bullet bullet-dot""></span> </span> <span class=""menu-title"">Vigentes</span> </a> </div>");
+                                                                }
                                                                     break;
                                                             }
                                                         }
-                                                        // End Nietos
                                                         sb.Append(@"</div>");
                                                         sb.Append(@"</div>");
                                                     }
@@ -280,7 +271,7 @@ namespace checklist.Controllers
                                                 case "01002000":
                                                     if (hijo.Permisos.Acceso == 1)
                                                     {
-                                                        sb.Append(@"<div id=""01002000"" data-kt-menu-trigger=""click"" class=""menu-item menu-accordion""> <span class=""menu-link""> <span class=""menu-bullet""> <span class=""bullet bullet-dot""></span> </span> <span class=""menu-title"">Categorización</span> <span class=""menu-arrow""></span> </span>");
+                                                        sb.Append(@"<div id=""01002000"" data-kt-menu-trigger=""click"" class=""menu-item menu-accordion""> <span class=""menu-link""> <span class=""menu-bullet""> <span class=""bullet bullet-dot""></span> </span> <span class=""menu-title"">Clasificación</span> <span class=""menu-arrow""></span> </span>");
                                                         sb.Append(@"<div class=""menu-sub menu-sub-accordion"">");
                                                         // Nietos
                                                         foreach (var nieto in hijo.Hijos)
@@ -320,7 +311,7 @@ namespace checklist.Controllers
                                     {
                                         renderedRecolecciones = true;
                                         sb.Append(@"<div id=""02000000"" data-kt-menu-trigger=""click"" class=""menu-item menu-accordion"">");
-                                        sb.Append(@"<span class=""menu-link""> <span class=""menu-icon""> <i class=""ki-duotone ki-element-plus fs-2""> <span class=""path1""></span> <span class=""path2""></span> <span class=""path3""></span> <span class=""path4""></span> <span class=""path5""></span> </i> </span> <span class=""menu-title"">Recolecciones</span> <span class=""menu-arrow""></span> </span>");
+                                        sb.Append(@"<span class=""menu-link""> <span class=""menu-icon""> <i class=""ki-duotone ki-element-plus fs-2""> <span class=""path1""></span> <span class=""path2""></span> <span class=""path3""></span> <span class=""path4""></span> <span class=""path5""></span> </i> </span> <span class=""menu-title"">Inspecciones</span> <span class=""menu-arrow""></span> </span>");
                                         sb.Append(@"<div class=""menu-sub menu-sub-accordion"">");
                                         // Hijos
                                         foreach (var hijo in item.Hijos)
@@ -371,6 +362,12 @@ namespace checklist.Controllers
                                         // End hijos
                                         sb.Append(@"</div>");
                                         sb.Append(@"</div>");
+
+                                        sb.Append(BuildStaticMenuLink("menu-ventas", "Ventas"));
+                                        sb.Append(BuildStaticMenuLink("menu-cotizaciones", "Cotizaciones"));
+                                        sb.Append(BuildClientesMenu());
+                                        sb.Append(BuildActivosMenu());
+                                        sb.Append(BuildProveeduriaMenu());
                                     }
                                     break;
                                 case "03000000":
@@ -534,7 +531,7 @@ namespace checklist.Controllers
                             if (!renderedRecolecciones)
                             {
                                 sb.Append(@"<div id=""02000000"" data-kt-menu-trigger=""click"" class=""menu-item menu-accordion"">");
-                                sb.Append(@"<span class=""menu-link""> <span class=""menu-icon""> <i class=""ki-duotone ki-element-plus fs-2""> <span class=""path1""></span> <span class=""path2""></span> <span class=""path3""></span> <span class=""path4""></span> <span class=""path5""></span> </i> </span> <span class=""menu-title"">Recolecciones</span> <span class=""menu-arrow""></span> </span>");
+                                sb.Append(@"<span class=""menu-link""> <span class=""menu-icon""> <i class=""ki-duotone ki-element-plus fs-2""> <span class=""path1""></span> <span class=""path2""></span> <span class=""path3""></span> <span class=""path4""></span> <span class=""path5""></span> </i> </span> <span class=""menu-title"">Inspecciones</span> <span class=""menu-arrow""></span> </span>");
                                 sb.Append(@"<div class=""menu-sub menu-sub-accordion"">");
                             }
 
@@ -765,7 +762,7 @@ namespace checklist.Controllers
         private static string BuildOperatorMenu()
         {
             return @"<div id=""02000000"" data-kt-menu-trigger=""click"" class=""menu-item menu-accordion here show"">
-<span class=""menu-link active""> <span class=""menu-icon""> <i class=""ki-duotone ki-element-plus fs-2""> <span class=""path1""></span> <span class=""path2""></span> <span class=""path3""></span> <span class=""path4""></span> <span class=""path5""></span> </i> </span> <span class=""menu-title"">Recolecciones</span> <span class=""menu-arrow""></span> </span>
+<span class=""menu-link active""> <span class=""menu-icon""> <i class=""ki-duotone ki-element-plus fs-2""> <span class=""path1""></span> <span class=""path2""></span> <span class=""path3""></span> <span class=""path4""></span> <span class=""path5""></span> </i> </span> <span class=""menu-title"">Inspecciones</span> <span class=""menu-arrow""></span> </span>
 <div class=""menu-sub menu-sub-accordion show"">
 <div id=""02005000BL26"" class=""menu-item here show""> <a class=""menu-link active"" href=""/ContestarLista/RecoleccionesBL26""> <span class=""menu-bullet""> <span class=""bullet bullet-dot""></span> </span> <span class=""menu-title"">Inspección en campo</span> </a> </div>
 </div>
@@ -800,11 +797,14 @@ namespace checklist.Controllers
             return sb.ToString();
         }
 
-        private static string BuildProductosServiciosMenu()
+        private static string BuildProveeduriaMenu()
         {
             StringBuilder sb = new StringBuilder();
-            sb.Append(@"<div id=""menu-productos-servicios"" data-kt-menu-trigger=""click"" class=""menu-item menu-accordion"">");
-            sb.Append(@"<span class=""menu-link""> <span class=""menu-icon""> <i class=""ki-duotone ki-element-plus fs-2""> <span class=""path1""></span> <span class=""path2""></span> <span class=""path3""></span> <span class=""path4""></span> <span class=""path5""></span> </i> </span> <span class=""menu-title"">Productos y Servicios</span> <span class=""menu-arrow""></span> </span>");
+            sb.Append(@"<div id=""menu-proveeduria"" data-kt-menu-trigger=""click"" class=""menu-item menu-accordion"">");
+            sb.Append(@"<span class=""menu-link""> <span class=""menu-icon""> <i class=""ki-duotone ki-element-plus fs-2""> <span class=""path1""></span> <span class=""path2""></span> <span class=""path3""></span> <span class=""path4""></span> <span class=""path5""></span> </i> </span> <span class=""menu-title"">Proveeduría</span> <span class=""menu-arrow""></span> </span>");
+            sb.Append(@"<div class=""menu-sub menu-sub-accordion"">");
+            sb.Append(@"<div id=""menu-proveeduria-productos-servicios"" data-kt-menu-trigger=""click"" class=""menu-item menu-accordion"">");
+            sb.Append(@"<span class=""menu-link""> <span class=""menu-bullet""> <span class=""bullet bullet-dot""></span> </span> <span class=""menu-title"">Productos y Servicios</span> <span class=""menu-arrow""></span> </span>");
             sb.Append(@"<div class=""menu-sub menu-sub-accordion"">");
             sb.Append(@"<div id=""menu-productos-servicios-abc"" class=""menu-item""> <a class=""menu-link"" href=""/ProductosServicios/Index""> <span class=""menu-bullet""> <span class=""bullet bullet-dot""></span> </span> <span class=""menu-title"">ABC Productos y Servicios</span> </a> </div>");
             sb.Append(@"<div id=""menu-productos-servicios-catalogos"" data-kt-menu-trigger=""click"" class=""menu-item menu-accordion"">");
@@ -815,18 +815,8 @@ namespace checklist.Controllers
             sb.Append(@"<div id=""menu-productos-servicios-unidades"" class=""menu-item""> <a class=""menu-link"" href=""/ProductosServicios/UnidadesMedida""> <span class=""menu-bullet""> <span class=""bullet bullet-dot""></span> </span> <span class=""menu-title"">Unidades de medida</span> </a> </div>");
             sb.Append(@"</div>");
             sb.Append(@"</div>");
-
             sb.Append(@"</div>");
             sb.Append(@"</div>");
-            return sb.ToString();
-        }
-
-        private static string BuildProveeduriaMenu()
-        {
-            StringBuilder sb = new StringBuilder();
-            sb.Append(@"<div id=""menu-proveeduria"" data-kt-menu-trigger=""click"" class=""menu-item menu-accordion"">");
-            sb.Append(@"<span class=""menu-link""> <span class=""menu-icon""> <i class=""ki-duotone ki-element-plus fs-2""> <span class=""path1""></span> <span class=""path2""></span> <span class=""path3""></span> <span class=""path4""></span> <span class=""path5""></span> </i> </span> <span class=""menu-title"">Proveeduría</span> <span class=""menu-arrow""></span> </span>");
-            sb.Append(@"<div class=""menu-sub menu-sub-accordion"">");
             sb.Append(@"<div id=""menu-proveeduria-proveedores"" class=""menu-item""> <a class=""menu-link"" href=""/Activos/Proveedores""> <span class=""menu-bullet""> <span class=""bullet bullet-dot""></span> </span> <span class=""menu-title"">Proveedores</span> </a> </div>");
             sb.Append(@"<div id=""menu-proveeduria-ordenes-compra"" data-kt-menu-trigger=""click"" class=""menu-item menu-accordion"">");
             sb.Append(@"<span class=""menu-link""> <span class=""menu-bullet""> <span class=""bullet bullet-dot""></span> </span> <span class=""menu-title"">Órdenes de compra</span> <span class=""menu-arrow""></span> </span>");
@@ -838,6 +828,24 @@ namespace checklist.Controllers
             sb.Append(@"</div>");
             sb.Append(@"</div>");
             return sb.ToString();
+        }
+
+        private static string BuildClientesMenu()
+        {
+            StringBuilder sb = new StringBuilder();
+            sb.Append(@"<div id=""menu-clientes"" data-kt-menu-trigger=""click"" class=""menu-item menu-accordion"">");
+            sb.Append(@"<span class=""menu-link""> <span class=""menu-icon""> <i class=""ki-duotone ki-element-plus fs-2""> <span class=""path1""></span> <span class=""path2""></span> <span class=""path3""></span> <span class=""path4""></span> <span class=""path5""></span> </i> </span> <span class=""menu-title"">Clientes</span> <span class=""menu-arrow""></span> </span>");
+            sb.Append(@"<div class=""menu-sub menu-sub-accordion"">");
+            sb.Append(@"<div id=""menu-clientes-abc"" class=""menu-item""> <a class=""menu-link"" href=""javascript:void(0);"" onclick=""return false;""> <span class=""menu-bullet""> <span class=""bullet bullet-dot""></span> </span> <span class=""menu-title"">ABC Clientes</span> </a> </div>");
+            sb.Append(@"<div id=""menu-clientes-reporte"" class=""menu-item""> <a class=""menu-link"" href=""javascript:void(0);"" onclick=""return false;""> <span class=""menu-bullet""> <span class=""bullet bullet-dot""></span> </span> <span class=""menu-title"">Reporte</span> </a> </div>");
+            sb.Append(@"</div>");
+            sb.Append(@"</div>");
+            return sb.ToString();
+        }
+
+        private static string BuildStaticMenuLink(string id, string title)
+        {
+            return $@"<div id=""{id}"" class=""menu-item""> <a class=""menu-link"" href=""javascript:void(0);"" onclick=""return false;""> <span class=""menu-icon""> <i class=""ki-duotone ki-element-plus fs-2""> <span class=""path1""></span> <span class=""path2""></span> <span class=""path3""></span> <span class=""path4""></span> <span class=""path5""></span> </i> </span> <span class=""menu-title"">{title}</span> </a> </div>";
         }
     }
 }
