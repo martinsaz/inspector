@@ -1,0 +1,240 @@
+@{
+    ViewBag.Title = "Clientes · Edición avanzada";
+    Layout = "~/Views/Shared/_Layout.cshtml";
+    var clienteId = (ViewBag.ClienteId as string ?? string.Empty).Trim();
+    var returnUrl = (ViewBag.ReturnUrl as string ?? "/Clientes/Index").Trim();
+}
+
+<partial name="_ClientesSessionContext" />
+<link href="~/css/checkapp-theme.css" rel="stylesheet" />
+<link href="~/css/Clientes/Clientes.css" rel="stylesheet" asp-append-version="true" />
+
+<div class="checkapp-scope checkapp-page clientes-page clientes-advanced-page" data-clientes-page="advanced">
+    <div id="clientesAdvancedContext"
+         data-cliente-id="@clienteId"
+         data-return-url="@returnUrl"
+         hidden></div>
+
+    <div class="container-fluid checkapp-shell clientes-shell clientes-advanced-shell">
+        <section class="checkapp-hero clientes-hero clientes-advanced-hero">
+            <div class="clientes-advanced-hero-copy">
+                <button id="btVolverClientesAvanzados" type="button" class="checkapp-btn checkapp-btn-ghost clientes-advanced-back">
+                    <i class="fa fa-angle-left"></i>
+                    <span>Volver</span>
+                </button>
+                <div>
+                    <h1>Edición avanzada</h1>
+                    <p>Clientes · Crédito, descuento, aval y lista por cliente</p>
+                </div>
+            </div>
+        </section>
+
+        <section class="checkapp-panel clientes-advanced-search-panel">
+            <div class="checkapp-filter-grid clientes-advanced-search-grid">
+                <label class="checkapp-field clientes-filter-field clientes-filter-field--search">
+                    <span>Búsqueda</span>
+                    <input id="txBusquedaClientesAvanzados" type="text" placeholder="Nombre, correo o teléfono" />
+                </label>
+            </div>
+            <div class="checkapp-filter-actions clientes-filter-actions clientes-advanced-search-actions">
+                <button id="btBuscarClientesAvanzados" type="button" class="checkapp-btn checkapp-btn-primary">
+                    <i class="fa fa-search"></i>
+                    <span>Buscar</span>
+                </button>
+                <button id="btLimpiarClientesAvanzados" type="button" class="checkapp-btn checkapp-btn-ghost">
+                    <i class="fa fa-eraser"></i>
+                    <span>Limpiar</span>
+                </button>
+            </div>
+            <div id="txInfoClientesAvanzadosBusqueda" class="checkapp-status-inline clientes-inline-status"></div>
+            <p id="txEstadoClientesAvanzados" class="clientes-advanced-status">Busca un cliente existente para editar crédito, descuento y lista por cliente.</p>
+            <div id="clientesAdvancedResults" class="clientes-advanced-results">
+                <div class="clientes-advanced-empty">Aún no hay resultados para edición avanzada.</div>
+            </div>
+        </section>
+
+        <section class="checkapp-panel clientes-advanced-form-panel">
+            <div class="clientes-advanced-form-head">
+                <div>
+                    <h2>Cliente seleccionado</h2>
+                    <p id="txClienteAvanzadoSeleccionado">Busca y carga un cliente existente.</p>
+                </div>
+                <button id="btGuardarClienteAvanzado" type="button" class="checkapp-btn checkapp-btn-primary" disabled>
+                    <i class="fa fa-save"></i>
+                    <span>Guardar</span>
+                </button>
+            </div>
+
+            <div id="txInfoClienteAvanzado" class="checkapp-status-inline clientes-inline-status"></div>
+
+            <div id="clientesAdvancedFormBody" class="clientes-advanced-form-body is-empty">
+                <div class="clientes-advanced-empty">
+                    Carga un cliente para revisar identidad, datos fiscales y condiciones comerciales autorizadas.
+                </div>
+            </div>
+
+            <div id="clientesAdvancedFormLayout" class="clientes-advanced-form-layout" hidden>
+                <section class="clientes-advanced-card">
+                    <header class="clientes-advanced-card-head">
+                        <h3>Identidad y contacto</h3>
+                    </header>
+                    <div class="clientes-advanced-fields">
+                        <label class="checkapp-field clientes-advanced-field-full">
+                            <span>Nombre</span>
+                            <input id="txAvanzadoNombre" type="text" maxlength="200" />
+                        </label>
+                        <div class="clientes-advanced-field-row clientes-advanced-field-row--two">
+                            <label class="checkapp-field">
+                                <span>Teléfono</span>
+                                <input id="txAvanzadoTelefono" type="text" maxlength="30" />
+                            </label>
+                            <label class="checkapp-field">
+                                <span>Celular</span>
+                                <input id="txAvanzadoCelular" type="text" maxlength="30" />
+                            </label>
+                        </div>
+                        <div class="clientes-advanced-field-row clientes-advanced-field-row--two">
+                            <label class="checkapp-field">
+                                <span>Teléfono fijo</span>
+                                <input id="txAvanzadoTelefonoFijo" type="text" maxlength="30" />
+                            </label>
+                            <label class="checkapp-field">
+                                <span>Fecha nacimiento</span>
+                                <input id="txAvanzadoFechaNacimiento" type="date" />
+                            </label>
+                        </div>
+                        <label class="checkapp-field clientes-advanced-field-full">
+                            <span>Correo electrónico</span>
+                            <input id="txAvanzadoCorreo" type="email" maxlength="200" />
+                        </label>
+                        <label class="checkapp-field clientes-advanced-field-full">
+                            <span>Cbarras</span>
+                            <input id="txAvanzadoCbarras" type="text" maxlength="80" />
+                        </label>
+                    </div>
+                </section>
+
+                <section class="clientes-advanced-card">
+                    <header class="clientes-advanced-card-head">
+                        <h3>Domicilio y datos fiscales</h3>
+                    </header>
+                    <div class="clientes-advanced-fields">
+                        <label class="checkapp-field clientes-advanced-field-full">
+                            <span>Calle</span>
+                            <input id="txAvanzadoCalle" type="text" maxlength="200" />
+                        </label>
+                        <div class="clientes-advanced-field-row clientes-advanced-field-row--two">
+                            <label class="checkapp-field">
+                                <span>Número ext.</span>
+                                <input id="txAvanzadoNumeroExt" type="text" maxlength="40" />
+                            </label>
+                            <label class="checkapp-field">
+                                <span>Número int.</span>
+                                <input id="txAvanzadoNumeroInt" type="text" maxlength="40" />
+                            </label>
+                        </div>
+                        <label class="checkapp-field clientes-advanced-field-full">
+                            <span>Colonia</span>
+                            <input id="txAvanzadoColonia" type="text" maxlength="150" />
+                        </label>
+                        <div class="clientes-advanced-field-row clientes-advanced-field-row--two">
+                            <label class="checkapp-field">
+                                <span>Ciudad</span>
+                                <input id="txAvanzadoCiudad" type="text" maxlength="150" />
+                            </label>
+                            <label class="checkapp-field">
+                                <span>Municipio</span>
+                                <input id="txAvanzadoMunicipio" type="text" maxlength="150" />
+                            </label>
+                        </div>
+                        <div class="clientes-advanced-field-row clientes-advanced-field-row--two">
+                            <label class="checkapp-field">
+                                <span>Estado</span>
+                                <input id="txAvanzadoEstado" type="text" maxlength="150" />
+                            </label>
+                            <label class="checkapp-field">
+                                <span>Código postal</span>
+                                <input id="txAvanzadoCodigoPostal" type="text" maxlength="12" />
+                            </label>
+                        </div>
+                        <label class="checkapp-field clientes-advanced-field-full">
+                            <span>Régimen fiscal</span>
+                            <select id="cbAvanzadoRegimenFiscal" class="form-select"></select>
+                        </label>
+                        <label class="checkapp-field clientes-advanced-field-full">
+                            <span>RFC</span>
+                            <input id="txAvanzadoRfc" type="text" maxlength="20" />
+                        </label>
+                        <label class="checkapp-field clientes-advanced-field-full">
+                            <span>Entre calles</span>
+                            <input id="txAvanzadoEntreCalles" type="text" maxlength="300" />
+                        </label>
+                        <label class="checkapp-field clientes-advanced-field-full">
+                            <span>Referencia</span>
+                            <input id="txAvanzadoReferencia" type="text" maxlength="300" />
+                        </label>
+                    </div>
+                </section>
+
+                <section class="clientes-advanced-card clientes-advanced-card--full">
+                    <header class="clientes-advanced-card-head">
+                        <h3>Crédito y comercial</h3>
+                    </header>
+                    <div class="clientes-advanced-fields">
+                        <div class="clientes-advanced-field-row clientes-advanced-field-row--three">
+                            <label class="checkapp-field">
+                                <span>Nombre aval</span>
+                                <input id="txAvanzadoNombreAval" type="text" maxlength="200" />
+                            </label>
+                            <label class="checkapp-field">
+                                <span>Dirección aval</span>
+                                <input id="txAvanzadoDireccionAval" type="text" maxlength="300" />
+                            </label>
+                            <label class="checkapp-field">
+                                <span>Lista de precio</span>
+                                <select id="cbAvanzadoListaPrecio" class="form-select"></select>
+                            </label>
+                        </div>
+                        <div class="clientes-advanced-field-row clientes-advanced-field-row--five">
+                            <label class="checkapp-field">
+                                <span>Límite crédito</span>
+                                <input id="txAvanzadoLimiteCredito" type="number" min="0" step="0.01" />
+                            </label>
+                            <label class="checkapp-field">
+                                <span>Plazo días</span>
+                                <input id="txAvanzadoPlazoDias" type="number" min="0" step="1" />
+                            </label>
+                            <label class="checkapp-field">
+                                <span>Descuento</span>
+                                <input id="txAvanzadoDescuento" type="number" min="0" step="0.01" />
+                            </label>
+                            <label class="checkapp-field">
+                                <span>Pagos</span>
+                                <input id="txAvanzadoPagos" type="number" min="0" step="1" />
+                            </label>
+                            <label class="checkapp-field">
+                                <span>Clasificación</span>
+                                <input id="txAvanzadoClasificacion" type="text" readonly />
+                            </label>
+                        </div>
+                        <div class="clientes-advanced-field-row clientes-advanced-field-row--two">
+                            <label class="checkapp-field">
+                                <span>Interés</span>
+                                <input id="txAvanzadoInteres" type="number" min="0" step="0.01" />
+                            </label>
+                        </div>
+                        <label class="checkapp-field clientes-advanced-field-full">
+                            <span>Observaciones</span>
+                            <textarea id="txAvanzadoObservaciones" maxlength="2000"></textarea>
+                        </label>
+                    </div>
+                </section>
+            </div>
+        </section>
+    </div>
+</div>
+
+@section Scripts {
+    <script src="~/js/checkapp-ui.js"></script>
+    <script src="~/js/Clientes/Clientes.js" asp-append-version="true"></script>
+}

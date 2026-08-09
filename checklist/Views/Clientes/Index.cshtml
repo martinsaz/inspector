@@ -1,0 +1,370 @@
+@{
+    ViewBag.Title = "Clientes";
+    Layout = "~/Views/Shared/_Layout.cshtml";
+}
+
+<partial name="_ClientesSessionContext" />
+<link href="~/css/checkapp-theme.css" rel="stylesheet" />
+<link href="~/css/Clientes/Clientes.css" rel="stylesheet" asp-append-version="true" />
+
+<div class="checkapp-scope checkapp-page clientes-page" data-clientes-page="index">
+    <div class="container-fluid checkapp-shell clientes-shell">
+        <section class="checkapp-hero clientes-hero">
+            <div>
+                <p class="checkapp-kicker">CheckApp Pro</p>
+                <h1>Clientes</h1>
+                <p>Busca, registra y administra la ficha básica de clientes dentro de una sola experiencia operativa.</p>
+            </div>
+            <div class="checkapp-hero-actions">
+                <button id="btNuevoCliente" type="button" class="checkapp-btn checkapp-btn-primary">
+                    <i class="fa fa-plus"></i>
+                    <span>Nuevo cliente</span>
+                </button>
+            </div>
+        </section>
+
+        <section class="checkapp-summary-strip clientes-summary-strip" aria-label="Resumen de clientes">
+            <article class="checkapp-summary-card">
+                <small>Total</small>
+                <strong id="txResumenClientesTotal">0</strong>
+            </article>
+            <article class="checkapp-summary-card">
+                <small>Particulares</small>
+                <strong id="txResumenClientesParticulares">0</strong>
+            </article>
+            <article class="checkapp-summary-card">
+                <small>Empresas</small>
+                <strong id="txResumenClientesEmpresas">0</strong>
+            </article>
+            <article class="checkapp-summary-card">
+                <small>Con teléfono</small>
+                <strong id="txResumenClientesTelefono">0</strong>
+            </article>
+            <article class="checkapp-summary-card">
+                <small>Con correo</small>
+                <strong id="txResumenClientesCorreo">0</strong>
+            </article>
+        </section>
+
+        <section id="accordionFiltrosClientes" class="checkapp-panel checkapp-accordion is-open">
+            <button type="button" class="checkapp-accordion-toggle" aria-expanded="true" aria-controls="accordionFiltrosClientesBody">
+                <div>
+                    <span class="checkapp-panel-eyebrow">Filtros</span>
+                    <h3>Encuentra clientes por nombre, teléfono, correo o empresa.</h3>
+                </div>
+                <span class="checkapp-accordion-summary" id="txResumenFiltrosClientes">Sin filtros activos</span>
+            </button>
+            <div class="checkapp-accordion-body" id="accordionFiltrosClientesBody">
+                <div class="checkapp-accordion-inner">
+                    <div class="checkapp-filter-grid clientes-filter-grid">
+                        <label class="checkapp-field clientes-filter-field clientes-filter-field--search">
+                            <span>Búsqueda general</span>
+                            <input id="txBusquedaClientes" type="text" placeholder="Nombre, teléfono, correo o empresa" />
+                        </label>
+                        <label class="checkapp-field clientes-filter-field">
+                            <span>Clasificación</span>
+                            <select id="cbFiltroTipoCliente" class="form-select">
+                                <option value="">Todos</option>
+                                <option value="1">Particular</option>
+                                <option value="2">Empresa</option>
+                            </select>
+                        </label>
+                    </div>
+                    <div class="checkapp-filter-actions clientes-filter-actions">
+                        <button id="btBuscarClientes" type="button" class="checkapp-btn checkapp-btn-primary clientes-filter-search-btn">
+                            <i class="fa fa-search"></i>
+                            <span>Buscar</span>
+                        </button>
+                        <button id="btLimpiarClientes" type="button" class="checkapp-btn checkapp-btn-ghost">
+                            <i class="fa fa-eraser"></i>
+                            <span>Limpiar</span>
+                        </button>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <div id="clientesWorkspace" class="clientes-workspace">
+            <section class="checkapp-panel clientes-results-panel">
+                <div class="checkapp-panel-head clientes-results-head">
+                    <div>
+                        <span class="checkapp-panel-eyebrow">Consulta</span>
+                        <h2>Listado de clientes</h2>
+                        <p class="checkapp-panel-copy">Abre la ficha del cliente y continúa su seguimiento sin salir del módulo.</p>
+                    </div>
+                    <div class="checkapp-grid-actions">
+                        <span id="txGridClientesVisibleCount" class="ca-chip ca-chip--secondary">0 visibles</span>
+                    </div>
+                </div>
+
+                <div id="gridClientesHost" class="clientes-results-shell">
+                    <div class="checkapp-grid-toolbar clientes-grid-toolbar">
+                        <label class="checkapp-grid-search" for="txBusquedaGridClientes">
+                            <i class="fa fa-search"></i>
+                            <input id="txBusquedaGridClientes" type="text" placeholder="Busca dentro del resultado filtrado" />
+                        </label>
+                        <div class="checkapp-grid-actions">
+                            <span id="txGridClientesCount" class="ca-grid-count">0 registros</span>
+                        </div>
+                    </div>
+                    <div class="clientes-grid-scroll clientes-grid-scroll--table">
+                        <table class="clientes-results-table" aria-label="Listado de clientes">
+                            <thead>
+                                <tr>
+                                    <th>Acciones</th>
+                                    <th>Nombre</th>
+                                    <th>Tipo</th>
+                                    <th>Teléfono</th>
+                                    <th>Correo</th>
+                                    <th>Empresa</th>
+                                </tr>
+                            </thead>
+                            <tbody id="clientesResultsList">
+                                <tr class="clientes-results-placeholder-row">
+                                    <td colspan="6">Sin registros disponibles</td>
+                                </tr>
+                            </tbody>
+                        </table>
+                    </div>
+                    <div id="gridClientesFooter" class="checkapp-grid-footer">
+                        <span id="txGridClientesRange" class="checkapp-grid-footer-range">Sin resultados</span>
+                        <div id="txGridClientesPageSize" class="checkapp-grid-page-size">
+                            <span class="checkapp-grid-page-size-label">Filas:</span>
+                            <button type="button" class="checkapp-grid-page-chip is-active" data-page-size="25" aria-pressed="true">25</button>
+                            <button type="button" class="checkapp-grid-page-chip" data-page-size="50" aria-pressed="false">50</button>
+                            <button type="button" class="checkapp-grid-page-chip" data-page-size="100" aria-pressed="false">100</button>
+                        </div>
+                        <div class="checkapp-grid-page-nav">
+                            <span id="txGridClientesPageIndicator" class="checkapp-grid-footer-page">Página 0 de 0</span>
+                            <button id="btGridClientesPrev" type="button" class="checkapp-grid-nav-btn" aria-label="Página anterior">‹</button>
+                            <button id="btGridClientesNext" type="button" class="checkapp-grid-nav-btn" aria-label="Página siguiente">›</button>
+                        </div>
+                    </div>
+                    <div id="clientesResultsEmpty" class="clientes-results-empty">
+                        <strong>Sin resultados</strong>
+                        <span>Busca clientes para ver el panel operativo.</span>
+                    </div>
+                </div>
+            </section>
+
+            <section id="panelClienteFicha" class="checkapp-panel clientes-ficha-panel" hidden>
+                <div class="clientes-ficha-head">
+                    <div class="clientes-ficha-heading">
+                        <span class="checkapp-panel-eyebrow">Ficha</span>
+                        <h2 id="txClienteFichaNombre">Cliente</h2>
+                        <p id="txClienteFichaResumen">Selecciona un cliente para ver su información.</p>
+                    </div>
+                    <div class="clientes-ficha-head-actions">
+                        <div class="clientes-ficha-action-group" aria-label="Acciones del cliente">
+                            <a id="lkWhatsAppCliente"
+                               class="checkapp-btn checkapp-btn-secondary clientes-ficha-action clientes-ficha-action--whatsapp is-disabled"
+                               href="#"
+                               target="_blank"
+                               rel="noopener noreferrer"
+                               aria-disabled="true">
+                                <i class="fa fa-whatsapp"></i>
+                                <span>WhatsApp</span>
+                            </a>
+                            <a id="lkCorreoCliente"
+                               class="checkapp-btn checkapp-btn-ghost clientes-ficha-action clientes-ficha-action--correo is-disabled"
+                               href="#"
+                               target="_blank"
+                               rel="noopener noreferrer"
+                               aria-disabled="true">
+                                <i class="fa fa-envelope"></i>
+                                <span>Correo</span>
+                            </a>
+                            <button id="btDatosAvanzadosCliente" type="button" class="checkapp-btn checkapp-btn-ghost clientes-ficha-action">
+                                <i class="fa fa-sliders"></i>
+                                <span>Datos avanzados</span>
+                            </button>
+                        </div>
+                        <span class="ca-chip ca-chip--secondary" id="txClienteFichaTipo">Particular</span>
+                        <button id="btCerrarFichaCliente" type="button" class="checkapp-btn checkapp-btn-ghost">
+                            <i class="fa fa-times"></i>
+                            <span>Cerrar ficha</span>
+                        </button>
+                    </div>
+                </div>
+
+                <div class="clientes-ficha-tabs" role="tablist" aria-label="Secciones de cliente">
+                    <button id="btTabDatosCliente" type="button" class="clientes-tab is-active" data-tab="datos">Datos</button>
+                    <button id="btTabNotasCliente" type="button" class="clientes-tab" data-tab="notas">
+                        <span>Notas</span>
+                        <span id="txClienteNotasCountBadge" class="clientes-tab-count">0</span>
+                    </button>
+                </div>
+
+                <section id="panelTabDatosCliente" class="clientes-tab-panel">
+                    <div class="clientes-detail-grid">
+                        <label class="checkapp-field">
+                            <span>Tipo</span>
+                            <select id="cbDetalleTipoCliente" class="form-select">
+                                <option value="1">Particular</option>
+                                <option value="2">Empresa</option>
+                            </select>
+                        </label>
+                        <label class="checkapp-field clientes-detail-field-full clientes-detail-field-emphasis">
+                            <span>Nombre *</span>
+                            <input id="txDetalleNombreCliente" type="text" maxlength="200" />
+                        </label>
+                        <label class="checkapp-field">
+                            <span>Teléfono</span>
+                            <input id="txDetalleTelefonoCliente" type="text" maxlength="30" />
+                        </label>
+                        <label class="checkapp-field">
+                            <span>Correo</span>
+                            <input id="txDetalleCorreoCliente" type="email" maxlength="200" />
+                        </label>
+                        <label id="fieldDetalleEmpresaCliente" class="checkapp-field clientes-detail-field-full" hidden>
+                            <span>Empresa *</span>
+                            <input id="txDetalleEmpresaCliente" type="text" maxlength="200" />
+                        </label>
+                    </div>
+                    <div id="txInfoClienteDetalle" class="checkapp-status-inline clientes-inline-status"></div>
+                    <div class="clientes-detail-actions">
+                        <button id="btGuardarClienteDetalle" type="button" class="checkapp-btn checkapp-btn-primary">
+                            <i class="fa fa-save"></i>
+                            <span>Guardar cliente</span>
+                        </button>
+                    </div>
+                </section>
+
+                <section id="panelTabNotasCliente" class="clientes-tab-panel" hidden>
+                    <div class="checkapp-panel-head clientes-note-head">
+                        <div>
+                            <span class="checkapp-panel-eyebrow">Seguimiento</span>
+                            <h2>Notas y tareas</h2>
+                            <p class="checkapp-panel-copy">Conserva el historial administrativo del cliente en orden cronológico.</p>
+                        </div>
+                        <div class="checkapp-panel-actions">
+                            <button id="btNuevaNotaCliente" type="button" class="checkapp-btn checkapp-btn-primary">
+                                <i class="fa fa-sticky-note"></i>
+                                <span>Nueva nota</span>
+                            </button>
+                        </div>
+                    </div>
+                    <div id="txInfoNotasCliente" class="checkapp-status-inline clientes-inline-status"></div>
+                    <div id="clientesNotasList" class="clientes-notes-list">
+                        <div class="clientes-notes-empty">Selecciona un cliente para comenzar su seguimiento.</div>
+                    </div>
+                </section>
+            </section>
+        </div>
+    </div>
+</div>
+
+<div class="modal fade checkapp-modal" tabindex="-1" id="modalCliente">
+    <div class="modal-dialog modal-lg modal-dialog-centered">
+        <div class="modal-content clientes-modal-content">
+            <form id="frmClienteModal">
+                <div class="modal-header">
+                    <div>
+                        <span class="checkapp-panel-eyebrow">Administración</span>
+                        <h3 class="modal-title" id="txTituloClienteModal">Nuevo cliente</h3>
+                    </div>
+                    <button type="button" class="checkapp-modal-close" data-bs-dismiss="modal" aria-label="Close">
+                        <i class="fa fa-times"></i>
+                    </button>
+                </div>
+                <div class="modal-body clientes-modal-body">
+                    <div class="clientes-type-switch">
+                        <label class="clientes-type-option">
+                            <input type="radio" name="rbTipoClienteModal" value="1" checked />
+                            <span>Particular</span>
+                        </label>
+                        <label class="clientes-type-option">
+                            <input type="radio" name="rbTipoClienteModal" value="2" />
+                            <span>Empresa</span>
+                        </label>
+                    </div>
+                    <div class="checkapp-filter-grid clientes-modal-grid">
+                        <label class="checkapp-field clientes-detail-field-full">
+                            <span>Nombre *</span>
+                            <input id="txNombreClienteModal" type="text" maxlength="200" />
+                        </label>
+                        <label class="checkapp-field">
+                            <span>Teléfono</span>
+                            <input id="txTelefonoClienteModal" type="text" maxlength="30" />
+                        </label>
+                        <label class="checkapp-field">
+                            <span>Correo</span>
+                            <input id="txCorreoClienteModal" type="email" maxlength="200" />
+                        </label>
+                        <label id="fieldEmpresaClienteModal" class="checkapp-field clientes-detail-field-full" hidden>
+                            <span>Empresa *</span>
+                            <input id="txEmpresaClienteModal" type="text" maxlength="200" />
+                        </label>
+                    </div>
+                    <div id="txInfoClienteModal" class="checkapp-status-inline clientes-inline-status"></div>
+                </div>
+                <div class="modal-footer">
+                    <button id="btGuardarClienteModal" type="button" class="checkapp-btn checkapp-btn-primary">
+                        <i class="fa fa-save"></i>
+                        <span>Guardar cliente</span>
+                    </button>
+                    <button type="button" class="checkapp-btn checkapp-btn-ghost" data-bs-dismiss="modal">Cancelar</button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+
+<div class="modal fade checkapp-modal" tabindex="-1" id="modalNotaCliente">
+    <div class="modal-dialog modal-lg modal-dialog-centered">
+        <div class="modal-content clientes-modal-content">
+            <form id="frmNotaCliente">
+                <div class="modal-header">
+                    <div>
+                        <span class="checkapp-panel-eyebrow">Seguimiento</span>
+                        <h3 class="modal-title">Nueva nota o tarea</h3>
+                        <p id="txNotaClienteContexto" class="clientes-modal-context">Cliente seleccionado</p>
+                    </div>
+                    <button type="button" class="checkapp-modal-close" data-bs-dismiss="modal" aria-label="Close">
+                        <i class="fa fa-times"></i>
+                    </button>
+                </div>
+                <div class="modal-body clientes-modal-body">
+                    <div class="clientes-note-modal-intro">
+                        <span class="checkapp-panel-eyebrow">Seguimiento</span>
+                        <p>Registra una nota simple o conviértela en una tarea programada sin salir del módulo.</p>
+                    </div>
+                    <label class="checkapp-field clientes-detail-field-full">
+                        <span>Texto *</span>
+                        <textarea id="txTextoNotaCliente" rows="4" maxlength="2000"></textarea>
+                    </label>
+
+                    <label class="clientes-checkbox-line">
+                        <input id="chkEsTareaCliente" type="checkbox" />
+                        <span>Programarla como tarea</span>
+                    </label>
+
+                    <div id="panelCamposTareaCliente" class="checkapp-filter-grid clientes-modal-grid" hidden>
+                        <label class="checkapp-field">
+                            <span>Fecha *</span>
+                            <input id="txFechaTareaCliente" type="date" />
+                        </label>
+                        <label class="checkapp-field">
+                            <span>Hora *</span>
+                            <input id="txHoraTareaCliente" type="time" />
+                        </label>
+                    </div>
+
+                    <div id="txInfoNotaCliente" class="checkapp-status-inline clientes-inline-status"></div>
+                </div>
+                <div class="modal-footer">
+                    <button id="btGuardarNotaCliente" type="button" class="checkapp-btn checkapp-btn-primary">
+                        <i class="fa fa-save"></i>
+                        <span>Guardar nota</span>
+                    </button>
+                    <button type="button" class="checkapp-btn checkapp-btn-ghost" data-bs-dismiss="modal">Cancelar</button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+
+@section Scripts {
+    <script src="~/js/checkapp-ui.js"></script>
+    <script src="~/js/Clientes/Clientes.js" asp-append-version="true"></script>
+}

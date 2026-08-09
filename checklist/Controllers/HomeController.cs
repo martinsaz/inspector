@@ -836,7 +836,7 @@ namespace checklist.Controllers
             sb.Append(@"<div id=""menu-clientes"" data-kt-menu-trigger=""click"" class=""menu-item menu-accordion"">");
             sb.Append(@"<span class=""menu-link""> <span class=""menu-icon""> <i class=""ki-duotone ki-element-plus fs-2""> <span class=""path1""></span> <span class=""path2""></span> <span class=""path3""></span> <span class=""path4""></span> <span class=""path5""></span> </i> </span> <span class=""menu-title"">Clientes</span> <span class=""menu-arrow""></span> </span>");
             sb.Append(@"<div class=""menu-sub menu-sub-accordion"">");
-            sb.Append(@"<div id=""menu-clientes-abc"" class=""menu-item""> <a class=""menu-link"" href=""javascript:void(0);"" onclick=""return false;""> <span class=""menu-bullet""> <span class=""bullet bullet-dot""></span> </span> <span class=""menu-title"">ABC Clientes</span> </a> </div>");
+            sb.Append(@"<div id=""menu-clientes-abc"" class=""menu-item""> <a class=""menu-link"" href=""/Clientes/Index""> <span class=""menu-bullet""> <span class=""bullet bullet-dot""></span> </span> <span class=""menu-title"">ABC Clientes</span> </a> </div>");
             sb.Append(@"<div id=""menu-clientes-reporte"" class=""menu-item""> <a class=""menu-link"" href=""javascript:void(0);"" onclick=""return false;""> <span class=""menu-bullet""> <span class=""bullet bullet-dot""></span> </span> <span class=""menu-title"">Reporte</span> </a> </div>");
             sb.Append(@"</div>");
             sb.Append(@"</div>");
