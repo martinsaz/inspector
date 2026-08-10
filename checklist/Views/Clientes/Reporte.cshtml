@@ -1,0 +1,161 @@
+@{
+    ViewBag.Title = "Clientes · Reportes";
+    Layout = "~/Views/Shared/_Layout.cshtml";
+}
+
+<partial name="~/Views/Clientes/_ClientesSessionContext.cshtml" />
+<link href="~/css/checkapp-theme.css" rel="stylesheet" />
+<link href="~/css/Clientes/ClientesReporte.css" rel="stylesheet" asp-append-version="true" />
+
+<div class="checkapp-scope checkapp-page clientes-reportes-page" data-clientes-reportes-page="index">
+    <div class="container-fluid checkapp-shell clientes-reportes-shell">
+        <section class="checkapp-hero clientes-reportes-hero">
+            <div class="clientes-reportes-hero-copy">
+                <p class="checkapp-kicker">Clientes</p>
+                <h1>Reportes de clientes</h1>
+                <p>Consulta altas, seguimiento y recencia del cliente con datos reales del vertical, sin inventar métricas comerciales que hoy no existen.</p>
+            </div>
+        </section>
+
+        <section id="accordionFiltrosClientesReporte" class="checkapp-panel checkapp-accordion is-open">
+            <button type="button" class="checkapp-accordion-toggle" aria-expanded="true" aria-controls="accordionFiltrosClientesReporteBody">
+                <div>
+                    <span class="checkapp-panel-eyebrow">Filtros</span>
+                    <h3>Encuentra clientes por nombre, teléfono, correo o empresa.</h3>
+                </div>
+                <span class="checkapp-accordion-summary">Sin filtros activos</span>
+            </button>
+            <div class="checkapp-accordion-body" id="accordionFiltrosClientesReporteBody">
+                <div class="checkapp-accordion-inner">
+                    <div class="checkapp-filter-grid clientes-reportes-filter-grid">
+                        <label class="checkapp-field">
+                            <span>Reporte</span>
+                            <select id="cbReporteClientes" class="form-select"></select>
+                        </label>
+                        <label class="checkapp-field clientes-reportes-field-search">
+                            <span>Búsqueda general</span>
+                            <input id="txBusquedaClientesReporte" type="text" placeholder="Nombre, teléfono, correo o empresa" />
+                        </label>
+                        <label class="checkapp-field">
+                            <span>Clasificación</span>
+                            <select id="cbClasificacionClientesReporte" class="form-select"></select>
+                        </label>
+                        <label class="checkapp-field" data-filter-group="top">
+                            <span>Top</span>
+                            <input id="txTopClientesReporte" type="number" min="1" max="200" step="1" value="100" />
+                        </label>
+                        <label class="checkapp-field" data-filter-group="single-range">
+                            <span>Fecha inicial</span>
+                            <input id="txFechaInicialClientesReporte" type="date" />
+                        </label>
+                        <label class="checkapp-field" data-filter-group="single-range">
+                            <span>Fecha final</span>
+                            <input id="txFechaFinalClientesReporte" type="date" />
+                        </label>
+                        <label class="checkapp-field" data-filter-group="cutoff">
+                            <span>Fecha de corte</span>
+                            <input id="txFechaCorteClientesReporte" type="date" />
+                        </label>
+                        <label class="checkapp-field" data-filter-group="period-1">
+                            <span>Periodo 1 inicial</span>
+                            <input id="txPeriodo1InicialClientesReporte" type="date" />
+                        </label>
+                        <label class="checkapp-field" data-filter-group="period-1">
+                            <span>Periodo 1 final</span>
+                            <input id="txPeriodo1FinalClientesReporte" type="date" />
+                        </label>
+                        <label class="checkapp-field" data-filter-group="period-2">
+                            <span>Periodo 2 inicial</span>
+                            <input id="txPeriodo2InicialClientesReporte" type="date" />
+                        </label>
+                        <label class="checkapp-field" data-filter-group="period-2">
+                            <span>Periodo 2 final</span>
+                            <input id="txPeriodo2FinalClientesReporte" type="date" />
+                        </label>
+                    </div>
+
+                    <div class="clientes-reportes-actions">
+                        <button id="btGenerarReporteClientes" type="button" class="checkapp-btn checkapp-btn-primary">
+                            <i class="fa fa-bar-chart"></i>
+                            <span>Generar reporte</span>
+                        </button>
+                        <button id="btLimpiarReporteClientes" type="button" class="checkapp-btn checkapp-btn-ghost">
+                            <i class="fa fa-eraser"></i>
+                            <span>Limpiar</span>
+                        </button>
+                        <button id="btExportarReporteClientes" type="button" class="checkapp-btn checkapp-btn-excel" disabled>
+                            <i class="fa fa-file-excel-o"></i>
+                            <span>Exportar Excel</span>
+                        </button>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <section class="checkapp-panel clientes-reportes-panel">
+            <div class="checkapp-panel-head">
+                <div>
+                    <span class="checkapp-panel-eyebrow">Consulta</span>
+                    <h2 id="txClientesReporteTitulo">Selecciona un reporte</h2>
+                    <p id="txClientesReporteDescripcion" class="checkapp-panel-copy">Ajusta filtros y genera un reporte sustentado por datos reales del vertical Clientes.</p>
+                </div>
+                <div class="checkapp-grid-actions">
+                    <span id="txClientesReporteRango" class="ca-chip ca-chip--secondary">Sin rango</span>
+                    <span id="txClientesReporteVisibleCount" class="ca-chip ca-chip--secondary">0 visibles</span>
+                </div>
+            </div>
+
+            <div id="clientesReporteIndicadores" class="clientes-reportes-indicators"></div>
+            <div id="txInfoClientesReporte" class="checkapp-status-inline clientes-reportes-status"></div>
+
+            <div id="gridClientesReporteHost">
+                <div class="checkapp-grid-toolbar">
+                    <label class="checkapp-grid-search" for="txBusquedaGridClientesReporte">
+                        <i class="fa fa-search"></i>
+                        <input id="txBusquedaGridClientesReporte" type="text" placeholder="Busca dentro del resultado filtrado" />
+                    </label>
+                    <div class="checkapp-grid-actions">
+                        <span id="txClientesReporteCount" class="ca-grid-count">0 registros</span>
+                    </div>
+                </div>
+                <div class="checkapp-grid-scroll">
+                    <table id="grClientesReporte" class="table table-row-bordered align-middle checkapp-grid-table clientes-reportes-grid">
+                        <thead>
+                            <tr>
+                                <th class="clientes-reportes-col-action">Acción</th>
+                                <th data-grid-col="1">Columna 1</th>
+                                <th data-grid-col="2">Columna 2</th>
+                                <th data-grid-col="3">Columna 3</th>
+                                <th data-grid-col="4">Columna 4</th>
+                                <th data-grid-col="5">Columna 5</th>
+                                <th data-grid-col="6">Columna 6</th>
+                                <th data-grid-col="7">Columna 7</th>
+                                <th data-grid-col="8">Columna 8</th>
+                            </tr>
+                        </thead>
+                        <tbody></tbody>
+                    </table>
+                </div>
+                <div id="gridClientesReporteFooter" class="checkapp-grid-footer">
+                    <span id="txClientesReporteRange" class="checkapp-grid-footer-range">Sin resultados</span>
+                    <div id="txClientesReportePageSize" class="checkapp-grid-page-size">
+                        <span class="checkapp-grid-page-size-label">Filas:</span>
+                        <button type="button" class="checkapp-grid-page-chip is-active" data-page-size="25" aria-pressed="true">25</button>
+                        <button type="button" class="checkapp-grid-page-chip" data-page-size="50" aria-pressed="false">50</button>
+                        <button type="button" class="checkapp-grid-page-chip" data-page-size="100" aria-pressed="false">100</button>
+                    </div>
+                    <div class="checkapp-grid-page-nav">
+                        <span id="txClientesReportePageIndicator" class="checkapp-grid-footer-page">Página 1 de 1</span>
+                        <button id="btClientesReportePrev" type="button" class="checkapp-grid-nav-btn" aria-label="Página anterior">‹</button>
+                        <button id="btClientesReporteNext" type="button" class="checkapp-grid-nav-btn" aria-label="Página siguiente">›</button>
+                    </div>
+                </div>
+            </div>
+        </section>
+    </div>
+</div>
+
+@section Scripts {
+    <script src="~/js/checkapp-ui.js"></script>
+    <script src="~/js/Clientes/ClientesReporte.js" asp-append-version="true"></script>
+}
