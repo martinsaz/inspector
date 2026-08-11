@@ -363,8 +363,10 @@ namespace checklist.Controllers
                                         sb.Append(@"</div>");
                                         sb.Append(@"</div>");
 
+                                        string currentMenuPath = ResolveCurrentMenuPath();
+
                                         sb.Append(BuildStaticMenuLink("menu-ventas", "Ventas"));
-                                        sb.Append(BuildStaticMenuLink("menu-cotizaciones", "Cotizaciones"));
+                                        sb.Append(BuildCotizacionesMenu(currentMenuPath));
                                         sb.Append(BuildClientesMenu());
                                         sb.Append(BuildActivosMenu());
                                         sb.Append(BuildProveeduriaMenu());
@@ -590,6 +592,19 @@ namespace checklist.Controllers
         private bool CanAdmin()
         {
             return string.Equals(HttpContext.Session.GetString("canAdminMode"), "true", StringComparison.OrdinalIgnoreCase);
+        }
+
+        private string ResolveCurrentMenuPath()
+        {
+            string referer = Request.Headers.Referer.ToString();
+            if (string.IsNullOrWhiteSpace(referer))
+            {
+                return string.Empty;
+            }
+
+            return Uri.TryCreate(referer, UriKind.Absolute, out Uri refererUri)
+                ? refererUri.AbsolutePath
+                : string.Empty;
         }
 
         private bool CanOperate()
@@ -846,6 +861,32 @@ namespace checklist.Controllers
         private static string BuildStaticMenuLink(string id, string title)
         {
             return $@"<div id=""{id}"" class=""menu-item""> <a class=""menu-link"" href=""javascript:void(0);"" onclick=""return false;""> <span class=""menu-icon""> <i class=""ki-duotone ki-element-plus fs-2""> <span class=""path1""></span> <span class=""path2""></span> <span class=""path3""></span> <span class=""path4""></span> <span class=""path5""></span> </i> </span> <span class=""menu-title"">{title}</span> </a> </div>";
+        }
+
+        private static string BuildCotizacionesMenu(string currentPath)
+        {
+            bool isCotizacionesRoute = string.Equals(currentPath, "/Cotizaciones/Index", StringComparison.OrdinalIgnoreCase);
+            string parentClasses = isCotizacionesRoute
+                ? @"menu-item menu-accordion show here"
+                : @"menu-item menu-accordion";
+            string submenuClasses = isCotizacionesRoute
+                ? @"menu-sub menu-sub-accordion show"
+                : @"menu-sub menu-sub-accordion";
+            string childClasses = isCotizacionesRoute
+                ? @"menu-item show here"
+                : @"menu-item";
+            string childLinkClasses = isCotizacionesRoute
+                ? @"menu-link active"
+                : @"menu-link";
+
+            StringBuilder sb = new StringBuilder();
+            sb.Append($@"<div id=""menu-cotizaciones"" data-kt-menu-trigger=""click"" class=""{parentClasses}"">");
+            sb.Append(@"<span class=""menu-link""> <span class=""menu-icon""> <i class=""ki-duotone ki-element-plus fs-2""> <span class=""path1""></span> <span class=""path2""></span> <span class=""path3""></span> <span class=""path4""></span> <span class=""path5""></span> </i> </span> <span class=""menu-title"">Cotizaciones</span> <span class=""menu-arrow""></span> </span>");
+            sb.Append($@"<div class=""{submenuClasses}"">");
+            sb.Append($@"<div id=""menu-cotizaciones-abc"" class=""{childClasses}""> <a class=""{childLinkClasses}"" href=""/Cotizaciones/Index""> <span class=""menu-bullet""> <span class=""bullet bullet-dot""></span> </span> <span class=""menu-title"">ABC Cotizaciones</span> </a> </div>");
+            sb.Append(@"</div>");
+            sb.Append(@"</div>");
+            return sb.ToString();
         }
     }
 }

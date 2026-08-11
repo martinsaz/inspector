@@ -1,0 +1,243 @@
+@{
+    ViewBag.Title = "Cotización";
+    Layout = "~/Views/Shared/_Layout.cshtml";
+    var pageMode = (ViewData["CotizacionesPageMode"]?.ToString() ?? "new").Trim().ToLowerInvariant();
+    var detailId = (ViewData["CotizacionesDetailId"]?.ToString() ?? string.Empty).Trim();
+}
+
+<partial name="~/Views/Cotizaciones/_CotizacionesSessionContext.cshtml" />
+
+<link href="~/css/checkapp-theme.css" rel="stylesheet" asp-append-version="true" />
+<link href="~/css/Cotizaciones/Cotizaciones.css" rel="stylesheet" asp-append-version="true" />
+
+<div class="checkapp-scope checkapp-page cot-page" data-cot-page="editor" data-cot-mode="@pageMode" data-cot-id="@detailId">
+    <div class="container-fluid checkapp-shell cot-shell">
+        <section class="checkapp-hero cot-hero">
+            <div class="cot-hero-copy">
+                <p class="checkapp-kicker">Ventas</p>
+                <h1 id="txCotHeroTitle">Cotización</h1>
+                <p id="txCotHeroDescription">Captura al cliente, agrega productos y guarda la cotización dentro del alcance aprobado.</p>
+            </div>
+            <div class="cot-hero-actions">
+                <a class="checkapp-btn checkapp-btn-ghost" href="/Cotizaciones/Reporte" title="Volver al reporte de cotizaciones" aria-label="Volver al reporte de cotizaciones">
+                    <i class="fa fa-arrow-left"></i>
+                    <span>Volver al reporte</span>
+                </a>
+            </div>
+        </section>
+
+        <div id="txCotFormStatus" class="checkapp-status-inline"></div>
+
+        <div class="cot-editor-layout">
+            <main class="cot-editor-main">
+                <section class="checkapp-panel cot-panel cot-panel--summary-flow">
+                    <div class="checkapp-panel-head">
+                        <div>
+                            <span class="checkapp-panel-eyebrow">Resumen</span>
+                            <h2>Totales</h2>
+                        </div>
+                    </div>
+                    <div class="cot-summary-flow-grid">
+                        <article class="checkapp-summary-card cot-summary-card">
+                            <small>Folio</small>
+                            <strong id="txCotResumenFolio">Nuevo</strong>
+                        </article>
+                        <article class="checkapp-summary-card cot-summary-card">
+                            <small>Estado</small>
+                            <strong id="txCotResumenEstado">Borrador</strong>
+                        </article>
+                        <article class="checkapp-summary-card cot-summary-card">
+                            <small>Piezas</small>
+                            <strong id="txCotResumenPiezas">0</strong>
+                        </article>
+                        <article class="checkapp-summary-card cot-summary-card">
+                            <small>Subtotal</small>
+                            <strong id="txCotResumenSubtotal">$0.00</strong>
+                        </article>
+                        <article class="checkapp-summary-card cot-summary-card">
+                            <small>Descuento</small>
+                            <strong id="txCotResumenDescuento">$0.00</strong>
+                        </article>
+                        <article class="checkapp-summary-card cot-summary-card cot-summary-card--amount">
+                            <small>Total</small>
+                            <strong id="txCotResumenTotal">$0.00</strong>
+                        </article>
+                    </div>
+                </section>
+
+                <section class="checkapp-panel cot-panel">
+                    <div class="checkapp-panel-head">
+                        <div>
+                            <span class="checkapp-panel-eyebrow">Cliente</span>
+                            <h2>Selecciona al cliente</h2>
+                            <p class="checkapp-panel-copy">La cotización requiere cliente antes de capturar partidas.</p>
+                        </div>
+                    </div>
+                    <div class="checkapp-filter-grid cot-form-grid">
+                        <label class="checkapp-field cot-field cot-field--search cot-field--full">
+                            <span>Buscar cliente</span>
+                            <input id="txCotBuscarCliente" type="text" placeholder="Nombre, correo o teléfono" />
+                        </label>
+                    </div>
+                    <div class="checkapp-grid-scroll cot-search-scroll cot-results-table-wrap">
+                        <table class="table table-row-bordered align-middle checkapp-grid-table cot-grid-table">
+                            <thead>
+                                <tr>
+                                    <th>Seleccionar</th>
+                                    <th>Cliente</th>
+                                    <th>Teléfono</th>
+                                    <th>Correo</th>
+                                    <th>Empresa</th>
+                                </tr>
+                            </thead>
+                            <tbody id="tbCotClientesResultados"></tbody>
+                        </table>
+                    </div>
+                    <div id="cardsCotClientesResultados" class="cot-mobile-results" hidden></div>
+                    <div id="txCotClientesBusquedaStatus" class="checkapp-status-inline"></div>
+                    <div id="panelCotClienteSeleccionado" class="cot-selected-card" hidden>
+                        <div>
+                            <small>Cliente seleccionado</small>
+                            <strong id="txCotClienteSeleccionadoNombre">—</strong>
+                            <p id="txCotClienteSeleccionadoMeta">—</p>
+                        </div>
+                        <span id="txCotClienteSeleccionadoDescuento" class="ca-chip ca-chip--secondary">Descuento 0%</span>
+                    </div>
+                </section>
+
+                <section class="checkapp-panel cot-panel">
+                    <div class="checkapp-panel-head">
+                        <div>
+                            <span class="checkapp-panel-eyebrow">Encabezado</span>
+                            <h2>Datos de la cotización</h2>
+                            <p class="checkapp-panel-copy">Configura sucursal, vigencia, caja y observaciones.</p>
+                        </div>
+                    </div>
+                    <div class="checkapp-filter-grid cot-form-grid">
+                        <label class="checkapp-field cot-field">
+                            <span>Sucursal</span>
+                            <select id="cbCotSucursal" class="form-select"></select>
+                        </label>
+                        <label class="checkapp-field cot-field">
+                            <span>Vigencia (días)</span>
+                            <input id="txCotVigenciaDias" type="number" min="0" max="365" placeholder="0" />
+                        </label>
+                        <label class="checkapp-field cot-field">
+                            <span>Caja</span>
+                            <input id="txCotCaja" type="text" maxlength="100" placeholder="Caja operativa" />
+                        </label>
+                        <label class="checkapp-field cot-field cot-field--full">
+                            <span>Observaciones</span>
+                            <textarea id="txCotObservaciones" maxlength="1000" placeholder="Agrega una referencia útil para el cliente o el equipo comercial."></textarea>
+                        </label>
+                    </div>
+                </section>
+
+                <section class="checkapp-panel cot-panel">
+                    <div class="checkapp-panel-head">
+                        <div>
+                            <span class="checkapp-panel-eyebrow">Productos</span>
+                            <h2>Buscar productos o servicios</h2>
+                            <p class="checkapp-panel-copy">Se reutiliza el catálogo de `ProductosServicios` sin tallas ni curvas comerciales.</p>
+                        </div>
+                    </div>
+                    <div class="checkapp-filter-grid cot-form-grid">
+                        <label class="checkapp-field cot-field cot-field--search cot-field--wide">
+                            <span>Buscar producto</span>
+                            <input id="txCotBuscarProducto" type="text" placeholder="Código, nombre o descripción" />
+                        </label>
+                    </div>
+                    <div class="checkapp-grid-scroll cot-search-scroll cot-results-table-wrap">
+                        <table class="table table-row-bordered align-middle checkapp-grid-table cot-grid-table">
+                            <thead>
+                                <tr>
+                                    <th>Agregar</th>
+                                    <th>Código</th>
+                                    <th>Producto o servicio</th>
+                                    <th>Unidad</th>
+                                    <th>Existencia</th>
+                                    <th>Precio público</th>
+                                </tr>
+                            </thead>
+                            <tbody id="tbCotProductosResultados"></tbody>
+                        </table>
+                    </div>
+                    <div id="cardsCotProductosResultados" class="cot-mobile-results" hidden></div>
+                    <div id="txCotProductosBusquedaStatus" class="checkapp-status-inline"></div>
+                </section>
+
+                <section class="checkapp-panel cot-panel">
+                    <div class="checkapp-panel-head">
+                        <div>
+                            <span class="checkapp-panel-eyebrow">Partidas</span>
+                            <h2>Detalle operativo</h2>
+                            <p class="checkapp-panel-copy">Ajusta cantidad, precio y descuento antes de guardar.</p>
+                        </div>
+                    </div>
+                    <div class="checkapp-grid-scroll cot-results-table-wrap cot-results-table-wrap--partidas">
+                        <table class="table table-row-bordered align-middle checkapp-grid-table cot-grid-table">
+                            <thead>
+                                <tr>
+                                    <th>#</th>
+                                    <th>Código</th>
+                                    <th>Producto o servicio</th>
+                                    <th>Unidad</th>
+                                    <th>Cantidad</th>
+                                    <th>Precio</th>
+                                    <th>Desc. %</th>
+                                    <th>Total</th>
+                                    <th>Acción</th>
+                                </tr>
+                            </thead>
+                            <tbody id="tbCotPartidas"></tbody>
+                        </table>
+                    </div>
+                    <div id="cardsCotPartidas" class="cot-mobile-results" hidden></div>
+                    <div id="txCotPartidasStatus" class="checkapp-status-inline"></div>
+                </section>
+
+                <section class="checkapp-panel cot-panel cot-panel--actions-flow">
+                    <div class="checkapp-panel-head">
+                        <div>
+                            <span class="checkapp-panel-eyebrow">Acciones</span>
+                            <h2>Guardar o cancelar</h2>
+                            <p class="checkapp-panel-copy">Confirma la captura para guardar la cotización o cancélala si ya no procede.</p>
+                        </div>
+                    </div>
+                    <div class="cot-summary-actions cot-summary-actions--flow">
+                        <button id="btCotGuardar" type="button" class="checkapp-btn checkapp-btn-primary" title="Guardar cotización" aria-label="Guardar cotización"><i class="fa fa-save"></i><span>Guardar cotización</span></button>
+                        <button id="btCotCancelar" type="button" class="checkapp-btn checkapp-btn-secondary" title="Cancelar cotización" aria-label="Cancelar cotización"><i class="fa fa-ban"></i><span>Cancelar cotización</span></button>
+                        <button id="btCotExportarPdf" type="button" class="checkapp-btn checkapp-btn-ghost" title="Exportar cotización en PDF" aria-label="Exportar cotización en PDF"><i class="fa fa-download"></i><span>Exportar PDF</span></button>
+                    </div>
+                </section>
+            </main>
+        </div>
+    </div>
+
+    <div class="modal fade checkapp-modal" id="modalCotCancelarEditor" tabindex="-1" aria-labelledby="txCotCancelarEditorTitulo" aria-hidden="true">
+        <div class="modal-dialog modal-dialog-centered">
+            <div class="modal-content cot-modal-content">
+                <div class="modal-header">
+                    <h2 id="txCotCancelarEditorTitulo">Cancelar cotización</h2>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Cerrar"></button>
+                </div>
+                <div class="modal-body">
+                    <label class="checkapp-field cot-field cot-field--full">
+                        <span>Motivo *</span>
+                        <textarea id="txCotCancelarEditorMotivo" maxlength="500" placeholder="Describe el motivo de cancelación."></textarea>
+                    </label>
+                    <div id="txCotCancelarEditorStatus" class="checkapp-status-inline"></div>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="checkapp-btn checkapp-btn-ghost" data-bs-dismiss="modal" title="Cerrar modal de cancelación" aria-label="Cerrar modal de cancelación"><i class="fa fa-times"></i><span>Cerrar</span></button>
+                    <button id="btCotConfirmarCancelarEditor" type="button" class="checkapp-btn checkapp-btn-primary" title="Confirmar cancelación de la cotización" aria-label="Confirmar cancelación de la cotización"><i class="fa fa-ban"></i><span>Cancelar cotización</span></button>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+@section Scripts {
+    <script src="~/js/checkapp-ui.js"></script>
+    <script src="~/js/Cotizaciones/Cotizaciones.js" asp-append-version="true"></script>
+}
