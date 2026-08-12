@@ -1,9 +1,17 @@
 ﻿using checklist.Models.Firebase;
 using MailKit.Net.Smtp;
 using MimeKit;
+using MimeKit.Utils;
 
 namespace checklist.Services
 {
+    public sealed class EmailAttachment
+    {
+        public string FileName { get; set; } = "archivo";
+        public byte[] Content { get; set; } = Array.Empty<byte>();
+        public string ContentType { get; set; } = "application/octet-stream";
+    }
+
     public class EmailServices
     {
         private readonly IConfiguration _configuration;
@@ -15,7 +23,7 @@ namespace checklist.Services
             _logger = logger;
         }
 
-        public async Task<string> EnviarCorreoAsync(string nombre, string destinatario, MailRegistro mailRegistro)
+        public async Task<string> EnviarCorreoAsync(string nombre, string destinatario, MailRegistro mailRegistro, IEnumerable<EmailAttachment>? attachments = null)
         {
             string result = "Ok";
             try
@@ -26,6 +34,7 @@ namespace checklist.Services
                 oMail.Subject = mailRegistro.asunto;
                 var builder = new BodyBuilder();
                 builder.HtmlBody = mailRegistro.bodyHTML;  // cuerpo;
+                AddAttachments(builder, attachments);
                 oMail.Body = builder.ToMessageBody();
                 oMail.Priority = MessagePriority.Normal;
                 using (var smtp = new SmtpClient())
@@ -56,6 +65,7 @@ namespace checklist.Services
                     oMail.Subject = mailRegistro.asunto;
                     var builder = new BodyBuilder();
                     builder.HtmlBody = mailRegistro.bodyHTML;  // cuerpo;
+                    AddAttachments(builder, attachments);
                     oMail.Body = builder.ToMessageBody();
                     oMail.Priority = MessagePriority.Normal;
                     using (var smtp = new SmtpClient())
@@ -83,6 +93,26 @@ namespace checklist.Services
                 }
             }
             return result;
+        }
+
+        private static void AddAttachments(BodyBuilder builder, IEnumerable<EmailAttachment>? attachments)
+        {
+            if (attachments == null)
+            {
+                return;
+            }
+
+            foreach (EmailAttachment attachment in attachments)
+            {
+                if (attachment == null || attachment.Content == null || attachment.Content.Length == 0)
+                {
+                    continue;
+                }
+
+                string fileName = string.IsNullOrWhiteSpace(attachment.FileName) ? "archivo" : attachment.FileName.Trim();
+                string mimeType = string.IsNullOrWhiteSpace(attachment.ContentType) ? "application/octet-stream" : attachment.ContentType.Trim();
+                builder.Attachments.Add(fileName, attachment.Content, ContentType.Parse(mimeType));
+            }
         }
     }
 }

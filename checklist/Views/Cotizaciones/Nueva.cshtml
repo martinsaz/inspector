@@ -205,6 +205,10 @@
                         </div>
                     </div>
                     <div class="cot-summary-actions cot-summary-actions--flow">
+                        <button id="btCotCompartir" type="button" class="checkapp-btn checkapp-btn-ghost" title="Compartir cotización" aria-label="Compartir cotización"><i class="fa fa-share-alt"></i><span>Compartir</span></button>
+                        <button id="btCotEnviarWhatsApp" type="button" class="checkapp-btn checkapp-btn-ghost" title="Enviar cotización por WhatsApp" aria-label="Enviar cotización por WhatsApp"><i class="fa fa-whatsapp"></i><span>WhatsApp</span></button>
+                        <button id="btCotEnviarCorreo" type="button" class="checkapp-btn checkapp-btn-ghost" title="Enviar cotización por correo" aria-label="Enviar cotización por correo"><i class="fa fa-envelope"></i><span>Correo</span></button>
+                        <button id="btCotAutorizar" type="button" class="checkapp-btn checkapp-btn-secondary" title="Autorizar cotización" aria-label="Autorizar cotización"><i class="fa fa-check-circle"></i><span>Autorizar</span></button>
                         <button id="btCotGuardar" type="button" class="checkapp-btn checkapp-btn-primary" title="Guardar cotización" aria-label="Guardar cotización"><i class="fa fa-save"></i><span>Guardar cotización</span></button>
                         <button id="btCotCancelar" type="button" class="checkapp-btn checkapp-btn-secondary" title="Cancelar cotización" aria-label="Cancelar cotización"><i class="fa fa-ban"></i><span>Cancelar cotización</span></button>
                         <button id="btCotExportarPdf" type="button" class="checkapp-btn checkapp-btn-ghost" title="Exportar cotización en PDF" aria-label="Exportar cotización en PDF"><i class="fa fa-download"></i><span>Exportar PDF</span></button>
@@ -231,6 +235,99 @@
                 <div class="modal-footer">
                     <button type="button" class="checkapp-btn checkapp-btn-ghost" data-bs-dismiss="modal" title="Cerrar modal de cancelación" aria-label="Cerrar modal de cancelación"><i class="fa fa-times"></i><span>Cerrar</span></button>
                     <button id="btCotConfirmarCancelarEditor" type="button" class="checkapp-btn checkapp-btn-primary" title="Confirmar cancelación de la cotización" aria-label="Confirmar cancelación de la cotización"><i class="fa fa-ban"></i><span>Cancelar cotización</span></button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="modal fade checkapp-modal" id="modalCotCompartirFallback" tabindex="-1" aria-labelledby="txCotCompartirFallbackTitulo" aria-hidden="true">
+        <div class="modal-dialog modal-dialog-centered">
+            <div class="modal-content cot-modal-content">
+                <div class="modal-header">
+                    <h2 id="txCotCompartirFallbackTitulo">Compartir cotización</h2>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Cerrar"></button>
+                </div>
+                <div class="modal-body">
+                    <p id="txCotCompartirFallbackPrompt">Selecciona cómo deseas continuar.</p>
+                    <div class="cot-summary-actions cot-summary-actions--flow">
+                        <button id="btCotFallbackPdf" type="button" class="checkapp-btn checkapp-btn-primary"><i class="fa fa-download"></i><span>Abrir PDF</span></button>
+                        <button id="btCotFallbackWhatsApp" type="button" class="checkapp-btn checkapp-btn-ghost"><i class="fa fa-whatsapp"></i><span>WhatsApp</span></button>
+                        <button id="btCotFallbackCorreo" type="button" class="checkapp-btn checkapp-btn-ghost"><i class="fa fa-envelope"></i><span>Correo</span></button>
+                        <button id="btCotFallbackCopiar" type="button" class="checkapp-btn checkapp-btn-ghost"><i class="fa fa-link"></i><span>Copiar enlace</span></button>
+                    </div>
+                    <div id="txCotCompartirFallbackStatus" class="checkapp-status-inline"></div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="modal fade checkapp-modal" id="modalCotWhatsApp" tabindex="-1" aria-labelledby="txCotWhatsAppTitulo" aria-hidden="true">
+        <div class="modal-dialog modal-dialog-centered">
+            <div class="modal-content cot-modal-content">
+                <div class="modal-header">
+                    <h2 id="txCotWhatsAppTitulo">Enviar por WhatsApp</h2>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Cerrar"></button>
+                </div>
+                <div class="modal-body">
+                    <p id="txCotWhatsAppPrompt">Captura el teléfono a 10 dígitos.</p>
+                    <label class="checkapp-field cot-field cot-field--full">
+                        <span>Teléfono</span>
+                        <input id="txCotWhatsAppTelefono" type="tel" maxlength="10" inputmode="numeric" placeholder="5512345678" />
+                    </label>
+                    <div id="txCotWhatsAppStatus" class="checkapp-status-inline"></div>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="checkapp-btn checkapp-btn-ghost" data-bs-dismiss="modal"><i class="fa fa-times"></i><span>Cancelar</span></button>
+                    <button id="btCotConfirmarWhatsApp" type="button" class="checkapp-btn checkapp-btn-primary"><i class="fa fa-whatsapp"></i><span>Enviar</span></button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="modal fade checkapp-modal" id="modalCotCorreo" tabindex="-1" aria-labelledby="txCotCorreoTitulo" aria-hidden="true">
+        <div class="modal-dialog modal-dialog-centered">
+            <div class="modal-content cot-modal-content">
+                <div class="modal-header">
+                    <h2 id="txCotCorreoTitulo">Enviar por correo</h2>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Cerrar"></button>
+                </div>
+                <div class="modal-body">
+                    <label class="checkapp-field cot-field cot-field--full">
+                        <span>Correo</span>
+                        <input id="txCotCorreoDestino" type="email" maxlength="200" placeholder="cliente@correo.com" />
+                    </label>
+                    <label class="checkapp-field cot-field cot-field--full">
+                        <span>Asunto</span>
+                        <input id="txCotCorreoAsunto" type="text" maxlength="200" placeholder="Cotización" />
+                    </label>
+                    <label class="checkapp-field cot-field cot-field--full">
+                        <span>Mensaje</span>
+                        <textarea id="txCotCorreoMensaje" maxlength="1000" placeholder="Escribe el mensaje de envío."></textarea>
+                    </label>
+                    <div id="txCotCorreoStatus" class="checkapp-status-inline"></div>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="checkapp-btn checkapp-btn-ghost" data-bs-dismiss="modal"><i class="fa fa-times"></i><span>Cancelar</span></button>
+                    <button id="btCotConfirmarCorreo" type="button" class="checkapp-btn checkapp-btn-primary"><i class="fa fa-envelope"></i><span>Enviar</span></button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="modal fade checkapp-modal" id="modalCotAutorizar" tabindex="-1" aria-labelledby="txCotAutorizarTitulo" aria-hidden="true">
+        <div class="modal-dialog modal-dialog-centered">
+            <div class="modal-content cot-modal-content">
+                <div class="modal-header">
+                    <h2 id="txCotAutorizarTitulo">Autorizar cotización</h2>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Cerrar"></button>
+                </div>
+                <div class="modal-body">
+                    <p id="txCotAutorizarPrompt">Confirma si deseas autorizar esta cotización.</p>
+                    <div id="txCotAutorizarStatus" class="checkapp-status-inline"></div>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="checkapp-btn checkapp-btn-ghost" data-bs-dismiss="modal"><i class="fa fa-times"></i><span>Cancelar</span></button>
+                    <button id="btCotConfirmarAutorizar" type="button" class="checkapp-btn checkapp-btn-primary"><i class="fa fa-check-circle"></i><span>Autorizar</span></button>
                 </div>
             </div>
         </div>

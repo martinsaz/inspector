@@ -12,6 +12,7 @@
 
     const estadoBorrador = 1;
     const estadoCancelada = 2;
+    const estadoAutorizada = 3;
     const gridId = "cotizaciones-grid";
     const pageType = String(root.getAttribute("data-cot-page") || "").trim().toLowerCase();
 
@@ -26,6 +27,10 @@
             detailId: "",
             detail: null,
             cancellingId: ""
+        },
+        action: {
+            detailId: "",
+            detail: null
         },
         editor: {
             mode: String(root.getAttribute("data-cot-mode") || "new").trim().toLowerCase(),
@@ -144,12 +149,53 @@
             openReportCancelModal(String($(this).attr("data-cot-cancel") || ""), String($(this).attr("data-cot-folio") || ""));
         });
 
+        $("#gridCotizacionesHost").on("click", "[data-cot-share]", function () {
+            shareCotizacion(String($(this).attr("data-cot-share") || ""));
+        });
+
+        $("#gridCotizacionesHost").on("click", "[data-cot-whatsapp]", function () {
+            openWhatsAppModal(String($(this).attr("data-cot-whatsapp") || ""));
+        });
+
+        $("#gridCotizacionesHost").on("click", "[data-cot-email]", function () {
+            openCorreoModal(String($(this).attr("data-cot-email") || ""));
+        });
+
+        $("#gridCotizacionesHost").on("click", "[data-cot-authorize]", function () {
+            openAutorizarModal(String($(this).attr("data-cot-authorize") || ""), String($(this).attr("data-cot-folio") || ""));
+        });
+
         $("#btCotConfirmarCancelar").on("click", cancelReportCotizacion);
         $("#btCotDetallePdf").on("click", function () {
             if (state.report.detailId) {
                 window.open("/Cotizaciones/ExportarCotizacionPdf?idCotizacion=" + encodeURIComponent(state.report.detailId), "_blank");
             }
         });
+        $("#btCotDetalleCompartir").on("click", function () {
+            shareCotizacion(state.report.detailId);
+        });
+        $("#btCotDetalleWhatsApp").on("click", function () {
+            openWhatsAppModal(state.report.detailId);
+        });
+        $("#btCotDetalleCorreo").on("click", function () {
+            openCorreoModal(state.report.detailId);
+        });
+        $("#btCotDetalleAutorizar").on("click", function () {
+            openAutorizarModal(state.report.detailId, state.report.detail && state.report.detail.folio);
+        });
+        $("#btCotFallbackPdf").on("click", openFallbackPdf);
+        $("#btCotFallbackWhatsApp").on("click", function () {
+            resolveModalApi("#modalCotCompartirFallback").hide();
+            openWhatsAppModal(state.action.detailId);
+        });
+        $("#btCotFallbackCorreo").on("click", function () {
+            resolveModalApi("#modalCotCompartirFallback").hide();
+            openCorreoModal(state.action.detailId);
+        });
+        $("#btCotFallbackCopiar").on("click", copyFallbackLink);
+        $("#btCotConfirmarWhatsApp").on("click", sendCotizacionWhatsApp);
+        $("#btCotConfirmarCorreo").on("click", sendCotizacionCorreo);
+        $("#btCotConfirmarAutorizar").on("click", confirmAutorizarCotizacion);
     }
 
     function initReportGrid() {
@@ -177,6 +223,10 @@
             mobileCardTemplate: function (row) {
                 const actions = [
                     "<button type='button' class='checkapp-btn checkapp-btn-secondary' data-cot-detail='" + escapeHtml(row.id || "") + "' title='Ver detalle de la cotizacion' aria-label='Ver detalle de la cotizacion'><i class='fa fa-eye'></i><span>Ver detalle</span></button>",
+                    "<button type='button' class='checkapp-btn checkapp-btn-ghost' data-cot-share='" + escapeHtml(row.id || "") + "' title='Compartir cotizacion " + escapeHtml(row.folio || "") + "' aria-label='Compartir cotizacion " + escapeHtml(row.folio || "") + "'><i class='fa fa-share-alt'></i><span>Compartir</span></button>",
+                    "<button type='button' class='checkapp-btn checkapp-btn-ghost' data-cot-whatsapp='" + escapeHtml(row.id || "") + "' title='Enviar cotizacion por WhatsApp " + escapeHtml(row.folio || "") + "' aria-label='Enviar cotizacion por WhatsApp " + escapeHtml(row.folio || "") + "'><i class='fa fa-whatsapp'></i><span>WhatsApp</span></button>",
+                    "<button type='button' class='checkapp-btn checkapp-btn-ghost' data-cot-email='" + escapeHtml(row.id || "") + "' title='Enviar cotizacion por correo " + escapeHtml(row.folio || "") + "' aria-label='Enviar cotizacion por correo " + escapeHtml(row.folio || "") + "'><i class='fa fa-envelope'></i><span>Correo</span></button>",
+                    row.puedeAutorizar ? "<button type='button' class='checkapp-btn checkapp-btn-primary' data-cot-authorize='" + escapeHtml(row.id || "") + "' data-cot-folio='" + escapeHtml(row.folio || "") + "' title='Autorizar cotizacion " + escapeHtml(row.folio || "") + "' aria-label='Autorizar cotizacion " + escapeHtml(row.folio || "") + "'><i class='fa fa-check-circle'></i><span>Autorizar</span></button>" : "",
                     row.puedeCancelar ? "<button type='button' class='checkapp-btn checkapp-btn-ghost' data-cot-cancel='" + escapeHtml(row.id || "") + "' data-cot-folio='" + escapeHtml(row.folio || "") + "' title='Cancelar cotizacion " + escapeHtml(row.folio || "") + "' aria-label='Cancelar cotizacion " + escapeHtml(row.folio || "") + "'><i class='fa fa-ban'></i><span>Cancelar</span></button>" : ""
                 ].filter(Boolean).join("");
 
@@ -224,6 +274,14 @@
 
                         if (row.puedeExportarPdf) {
                             actions.push("<a class='checkapp-btn checkapp-btn-ghost checkapp-btn-inline' target='_blank' href='/Cotizaciones/ExportarCotizacionPdf?idCotizacion=" + encodeURIComponent(row.id || "") + "' title='Descargar PDF de la cotizacion " + escapeHtml(row.folio || "") + "' aria-label='Descargar PDF de la cotizacion " + escapeHtml(row.folio || "") + "'><i class='fa fa-download'></i></a>");
+                        }
+
+                        actions.push("<button type='button' class='checkapp-btn checkapp-btn-ghost checkapp-btn-inline' data-cot-share='" + escapeHtml(row.id || "") + "' title='Compartir cotizacion " + escapeHtml(row.folio || "") + "' aria-label='Compartir cotizacion " + escapeHtml(row.folio || "") + "'><i class='fa fa-share-alt'></i></button>");
+                        actions.push("<button type='button' class='checkapp-btn checkapp-btn-ghost checkapp-btn-inline' data-cot-whatsapp='" + escapeHtml(row.id || "") + "' title='Enviar cotizacion por WhatsApp " + escapeHtml(row.folio || "") + "' aria-label='Enviar cotizacion por WhatsApp " + escapeHtml(row.folio || "") + "'><i class='fa fa-whatsapp'></i></button>");
+                        actions.push("<button type='button' class='checkapp-btn checkapp-btn-ghost checkapp-btn-inline' data-cot-email='" + escapeHtml(row.id || "") + "' title='Enviar cotizacion por correo " + escapeHtml(row.folio || "") + "' aria-label='Enviar cotizacion por correo " + escapeHtml(row.folio || "") + "'><i class='fa fa-envelope'></i></button>");
+
+                        if (row.puedeAutorizar) {
+                            actions.push("<button type='button' class='checkapp-btn checkapp-btn-primary checkapp-btn-inline' data-cot-authorize='" + escapeHtml(row.id || "") + "' data-cot-folio='" + escapeHtml(row.folio || "") + "' title='Autorizar cotizacion " + escapeHtml(row.folio || "") + "' aria-label='Autorizar cotizacion " + escapeHtml(row.folio || "") + "'><i class='fa fa-check-circle'></i></button>");
                         }
 
                         if (row.puedeCancelar) {
@@ -392,6 +450,9 @@
         $("#tbCotDetallePartidas").html(html || "<tr><td colspan='8'>Sin partidas.</td></tr>");
         $("#btCotDetalleEditar").attr("href", "/Cotizaciones/Editar/" + encodeURIComponent(detail.id || ""));
         $("#btCotDetalleClonar").attr("href", "/Cotizaciones/Clonar/" + encodeURIComponent(detail.id || ""));
+        const canAuthorize = Number(detail.estado || 0) === estadoBorrador;
+        $("#btCotDetalleEditar").prop("hidden", !canAuthorize);
+        $("#btCotDetalleAutorizar").prop("hidden", !canAuthorize);
     }
 
     function openReportCancelModal(id, folio) {
@@ -521,6 +582,18 @@
         });
 
         $("#btCotConfirmarCancelarEditor").on("click", cancelEditorCotizacion);
+        $("#btCotCompartir").on("click", function () {
+            shareCotizacion(state.editor.cotizacionId);
+        });
+        $("#btCotEnviarWhatsApp").on("click", function () {
+            openWhatsAppModal(state.editor.cotizacionId);
+        });
+        $("#btCotEnviarCorreo").on("click", function () {
+            openCorreoModal(state.editor.cotizacionId);
+        });
+        $("#btCotAutorizar").on("click", function () {
+            openAutorizarModal(state.editor.cotizacionId, state.editor.detail && state.editor.detail.folio);
+        });
     }
 
     function loadSucursales() {
@@ -912,12 +985,18 @@
     function syncEditorState(folio) {
         const detail = state.editor.detail || {};
         const totals = computeTotals();
-        const estadoNombre = state.editor.readOnly ? (detail.estadoNombre || "Consulta") : "Borrador";
+        const hasPersistedCotizacion = !!state.editor.cotizacionId;
+        const isDraft = Number(detail.estado || 0) === estadoBorrador || !hasPersistedCotizacion;
+        const estadoNombre = state.editor.readOnly ? (detail.estadoNombre || "Consulta") : (detail.estadoNombre || "Borrador");
         $("#txCotResumenFolio").text(folio || detail.folio || (state.editor.mode === "clone" ? "Clon nueva" : "Nuevo"));
         $("#txCotResumenEstado").text(estadoNombre);
         $("#btCotGuardar").prop("disabled", state.editor.readOnly);
         $("#btCotCancelar").prop("disabled", state.editor.readOnly || !state.editor.cotizacionId);
         $("#btCotExportarPdf").prop("disabled", !state.editor.cotizacionId);
+        $("#btCotCompartir, #btCotEnviarWhatsApp, #btCotEnviarCorreo").prop("disabled", !hasPersistedCotizacion);
+        $("#btCotAutorizar").prop("disabled", !hasPersistedCotizacion || !isDraft || state.editor.readOnly);
+        $("#btCotGuardar, #btCotCancelar").prop("hidden", state.editor.readOnly);
+        $("#btCotAutorizar").prop("hidden", !hasPersistedCotizacion || !isDraft || state.editor.readOnly);
 
         if (state.editor.partidas.length && !state.editor.readOnly) {
             $("#txCotPartidasStatus").text("");
@@ -959,9 +1038,8 @@
                 };
             })
         };
-        const shouldRedirectToReport = !state.editor.cotizacionId && state.editor.mode === "new";
-
         state.editor.isSaving = true;
+        const pdfPreviewWindow = tryOpenPendingWindow();
         const $saveButton = $("#btCotGuardar");
         const $cancelButton = $("#btCotCancelar");
         const saveButtonHtml = $saveButton.html();
@@ -976,30 +1054,19 @@
                 setStatus("#txCotFormStatus", "success", response.mensaje || "La cotización se guardó correctamente.");
                 $("#txCotResumenFolio").text(response.folio || "Borrador");
                 $("#txCotResumenEstado").text(response.estadoNombre || "Borrador");
-                if (shouldRedirectToReport) {
-                    return new Promise(function (resolve) {
-                        window.setTimeout(function () {
-                            window.location.assign("/Cotizaciones/Reporte");
-                            resolve();
-                        }, 700);
-                    });
-                }
-
                 if (state.editor.cotizacionId) {
                     return loadEditorDetail(state.editor.cotizacionId)
                         .then(function () {
-                            return new Promise(function (resolve) {
-                                window.setTimeout(function () {
-                                    window.location.assign("/Cotizaciones/Editar/" + encodeURIComponent(state.editor.cotizacionId));
-                                    resolve();
-                                }, 700);
-                            });
+                            syncEditorUrl();
+                            openPendingWindow(pdfPreviewWindow, buildPdfUrl(state.editor.cotizacionId));
+                            return null;
                         });
                 }
 
                 return null;
             })
             .catch(function (error) {
+                closePendingWindow(pdfPreviewWindow);
                 setStatus("#txCotFormStatus", "danger", resolveErrorMessage(error));
             })
             .finally(function () {
@@ -1027,6 +1094,332 @@
         }).catch(function (error) {
             setStatus("#txCotCancelarEditorStatus", "danger", resolveErrorMessage(error));
         });
+    }
+
+    function buildPdfUrl(id) {
+        return "/Cotizaciones/ExportarCotizacionPdf?idCotizacion=" + encodeURIComponent(id || "");
+    }
+
+    function buildPdfAbsoluteUrl(id) {
+        return window.location.origin + buildPdfUrl(id);
+    }
+
+    function buildPdfFileName(folio) {
+        const clean = String(folio || "").replace(/[^A-Za-z0-9_-]+/g, "");
+        return "cotizacion_" + (clean || "archivo") + ".pdf";
+    }
+
+    function resolveCotizacionDetail(id) {
+        const normalizedId = normalizeGuid(id);
+        if (!normalizedId) {
+            return Promise.reject(new Error("La cotización no está disponible."));
+        }
+
+        if (state.editor.detail && String(state.editor.detail.id || "") === normalizedId) {
+            return Promise.resolve(state.editor.detail);
+        }
+
+        if (state.report.detail && String(state.report.detail.id || "") === normalizedId) {
+            return Promise.resolve(state.report.detail);
+        }
+
+        return fetchJson("/Cotizaciones/ObtenerCotizacion?idCotizacion=" + encodeURIComponent(normalizedId));
+    }
+
+    function setActionDetail(detail) {
+        state.action.detail = detail || null;
+        state.action.detailId = detail && detail.id ? detail.id : "";
+    }
+
+    function buildCotizacionShareMessage(detail) {
+        return [
+            "Te comparto la cotización " + (detail.folio || "sin folio"),
+            "Cliente: " + (detail.cliente || "Sin cliente"),
+            "Total: " + formatCurrency(detail.total || 0)
+        ].join(" · ");
+    }
+
+    function fetchPdfBlob(id) {
+        return window.fetch(buildPdfUrl(id), {
+            method: "GET",
+            headers: {
+                "X-Requested-With": "XMLHttpRequest"
+            }
+        }).then(function (response) {
+            if (!response.ok) {
+                throw new Error("No fue posible obtener el PDF.");
+            }
+
+            return response.blob();
+        });
+    }
+
+    function shareCotizacion(id) {
+        resolveCotizacionDetail(id)
+            .then(function (detail) {
+                if (!detail || !detail.id) {
+                    throw new Error("La cotización no está disponible.");
+                }
+
+                setActionDetail(detail);
+                return shareCotizacionDetail(detail);
+            })
+            .catch(function (error) {
+                if (error && error.name === "AbortError") {
+                    return;
+                }
+
+                setStatus("#txCotFormStatus", "danger", resolveErrorMessage(error));
+            });
+    }
+
+    function shareCotizacionDetail(detail) {
+        const shareData = {
+            title: "Cotización " + (detail.folio || ""),
+            text: buildCotizacionShareMessage(detail)
+        };
+
+        if (!navigator.share) {
+            openShareFallback(detail);
+            return Promise.resolve();
+        }
+
+        return fetchPdfBlob(detail.id)
+            .then(function (blob) {
+                const file = new window.File([blob], buildPdfFileName(detail.folio), { type: "application/pdf" });
+                if (navigator.canShare && navigator.canShare({ files: [file] })) {
+                    return navigator.share({
+                        title: shareData.title,
+                        text: shareData.text,
+                        files: [file]
+                    });
+                }
+
+                return navigator.share(Object.assign({}, shareData, {
+                    url: buildPdfAbsoluteUrl(detail.id)
+                }));
+            })
+            .catch(function (error) {
+                if (error && error.name === "AbortError") {
+                    throw error;
+                }
+
+                openShareFallback(detail);
+                return null;
+            });
+    }
+
+    function openShareFallback(detail) {
+        setActionDetail(detail);
+        setStatus("#txCotCompartirFallbackStatus", "", "");
+        $("#txCotCompartirFallbackPrompt").text("Continúa con PDF, WhatsApp, correo o copia el enlace de la cotización " + (detail.folio || "seleccionada") + ".");
+        resolveModalApi("#modalCotCompartirFallback").show();
+    }
+
+    function openFallbackPdf() {
+        if (!state.action.detailId) {
+            return;
+        }
+
+        window.open(buildPdfUrl(state.action.detailId), "_blank");
+    }
+
+    function copyFallbackLink() {
+        if (!state.action.detailId) {
+            setStatus("#txCotCompartirFallbackStatus", "danger", "La cotización no está disponible.");
+            return;
+        }
+
+        const link = buildPdfAbsoluteUrl(state.action.detailId);
+        if (!navigator.clipboard || typeof navigator.clipboard.writeText !== "function") {
+            setStatus("#txCotCompartirFallbackStatus", "danger", "Tu navegador no permite copiar el enlace automáticamente.");
+            return;
+        }
+
+        navigator.clipboard.writeText(link)
+            .then(function () {
+                setStatus("#txCotCompartirFallbackStatus", "success", "Enlace copiado correctamente.");
+            })
+            .catch(function () {
+                setStatus("#txCotCompartirFallbackStatus", "danger", "No fue posible copiar el enlace.");
+            });
+    }
+
+    function openWhatsAppModal(id) {
+        resolveCotizacionDetail(id)
+            .then(function (detail) {
+                setActionDetail(detail);
+                const digits = normalizePhoneDigits(detail.clienteTelefono || "").slice(-10);
+                $("#txCotWhatsAppTelefono").val(digits);
+                $("#txCotWhatsAppPrompt").text("Captura el teléfono a 10 dígitos para enviar la cotización " + (detail.folio || "") + ".");
+                setStatus("#txCotWhatsAppStatus", "", "");
+                resolveModalApi("#modalCotWhatsApp").show();
+            })
+            .catch(function (error) {
+                setStatus("#txCotFormStatus", "danger", resolveErrorMessage(error));
+            });
+    }
+
+    function sendCotizacionWhatsApp() {
+        const detail = state.action.detail || {};
+        const digits = normalizePhoneDigits($("#txCotWhatsAppTelefono").val()).slice(-10);
+        if (digits.length !== 10) {
+            setStatus("#txCotWhatsAppStatus", "danger", "Captura un teléfono válido de 10 dígitos.");
+            return;
+        }
+
+        if (!detail.id) {
+            setStatus("#txCotWhatsAppStatus", "danger", "La cotización no está disponible.");
+            return;
+        }
+
+        const message = buildCotizacionShareMessage(detail) + " · PDF: " + buildPdfAbsoluteUrl(detail.id);
+        const whatsappWindow = tryOpenPendingWindow();
+        triggerPdfDownload(detail.id, buildPdfFileName(detail.folio))
+            .finally(function () {
+                openPendingWindow(whatsappWindow, "https://wa.me/52" + digits + "?text=" + encodeURIComponent(message));
+                resolveModalApi("#modalCotWhatsApp").hide();
+            });
+    }
+
+    function openCorreoModal(id) {
+        resolveCotizacionDetail(id)
+            .then(function (detail) {
+                setActionDetail(detail);
+                $("#txCotCorreoDestino").val(String(detail.clienteCorreo || "").trim());
+                $("#txCotCorreoAsunto").val("Cotización " + (detail.folio || ""));
+                $("#txCotCorreoMensaje").val("Hola,\n\nTe comparto la cotización " + (detail.folio || "") + " por un total de " + formatCurrency(detail.total || 0) + ".\n");
+                setStatus("#txCotCorreoStatus", "", "");
+                resolveModalApi("#modalCotCorreo").show();
+            })
+            .catch(function (error) {
+                setStatus("#txCotFormStatus", "danger", resolveErrorMessage(error));
+            });
+    }
+
+    function sendCotizacionCorreo() {
+        const detail = state.action.detail || {};
+        const correo = String($("#txCotCorreoDestino").val() || "").trim();
+        const asunto = String($("#txCotCorreoAsunto").val() || "").trim();
+        const mensaje = String($("#txCotCorreoMensaje").val() || "").trim();
+
+        if (!detail.id) {
+            setStatus("#txCotCorreoStatus", "danger", "La cotización no está disponible.");
+            return;
+        }
+
+        if (!isValidEmail(correo) || !asunto || !mensaje) {
+            setStatus("#txCotCorreoStatus", "danger", "Captura correo, asunto y mensaje válidos.");
+            return;
+        }
+
+        setStatus("#txCotCorreoStatus", "", "");
+        postJson("/Cotizaciones/EnviarCotizacionCorreo", {
+            idCotizacion: detail.id,
+            correo: correo,
+            asunto: asunto,
+            mensaje: mensaje,
+            folio: detail.folio || "",
+            clienteNombre: detail.cliente || ""
+        }).then(function (response) {
+            resolveModalApi("#modalCotCorreo").hide();
+            setStatus("#txCotFormStatus", "success", response.mensaje || "La cotización se envió por correo correctamente.");
+        }).catch(function (error) {
+            setStatus("#txCotCorreoStatus", "danger", resolveErrorMessage(error));
+        });
+    }
+
+    function openAutorizarModal(id, folio) {
+        const normalizedId = normalizeGuid(id);
+        if (!normalizedId) {
+            setStatus("#txCotFormStatus", "danger", "La cotización no está disponible.");
+            return;
+        }
+
+        state.action.detailId = normalizedId;
+        $("#txCotAutorizarPrompt").text("Confirma si deseas autorizar la cotización " + (folio || "seleccionada") + ".");
+        setStatus("#txCotAutorizarStatus", "", "");
+        resolveModalApi("#modalCotAutorizar").show();
+    }
+
+    function confirmAutorizarCotizacion() {
+        if (!state.action.detailId) {
+            setStatus("#txCotAutorizarStatus", "danger", "La cotización no está disponible.");
+            return;
+        }
+
+        postJson("/Cotizaciones/AutorizarCotizacion", {
+            idCotizacion: state.action.detailId
+        }).then(function (response) {
+            resolveModalApi("#modalCotAutorizar").hide();
+            if (pageType === "report") {
+                if (state.report.detailId === state.action.detailId) {
+                    return fetchJson("/Cotizaciones/ObtenerCotizacion?idCotizacion=" + encodeURIComponent(state.action.detailId))
+                        .then(function (detail) {
+                            state.report.detail = detail || null;
+                            fillReportDetail(detail || {});
+                            return runReportSearch();
+                        }).then(function () {
+                            setStatus("#txCotListadoStatus", "success", response.mensaje || "La cotización se autorizó correctamente.");
+                        });
+                }
+
+                return runReportSearch().then(function () {
+                    setStatus("#txCotListadoStatus", "success", response.mensaje || "La cotización se autorizó correctamente.");
+                });
+            }
+
+            return loadEditorDetail(state.action.detailId).then(function () {
+                setStatus("#txCotFormStatus", "success", response.mensaje || "La cotización se autorizó correctamente.");
+            });
+        }).catch(function (error) {
+            setStatus("#txCotAutorizarStatus", "danger", resolveErrorMessage(error));
+        });
+    }
+
+    function triggerPdfDownload(id, fileName) {
+        return fetchPdfBlob(id)
+            .then(function (blob) {
+                const objectUrl = window.URL.createObjectURL(blob);
+                const link = document.createElement("a");
+                link.href = objectUrl;
+                link.download = fileName || "cotizacion.pdf";
+                document.body.appendChild(link);
+                link.click();
+                document.body.removeChild(link);
+                window.setTimeout(function () {
+                    window.URL.revokeObjectURL(objectUrl);
+                }, 1000);
+            });
+    }
+
+    function tryOpenPendingWindow() {
+        try {
+            return window.open("about:blank", "_blank");
+        } catch (_error) {
+            return null;
+        }
+    }
+
+    function openPendingWindow(targetWindow, url) {
+        if (targetWindow && !targetWindow.closed) {
+            targetWindow.location.replace(url);
+            return;
+        }
+
+        window.open(url, "_blank");
+    }
+
+    function closePendingWindow(targetWindow) {
+        if (!targetWindow || targetWindow.closed) {
+            return;
+        }
+
+        try {
+            targetWindow.close();
+        } catch (_error) {
+            // Ignore close errors for user-managed tabs.
+        }
     }
 
     function validateEditor() {
@@ -1272,6 +1665,15 @@
     function toNullableNumber(value) {
         const raw = String(value == null ? "" : value).trim();
         return raw ? toNumber(raw) : null;
+    }
+
+    function normalizePhoneDigits(value) {
+        return String(value || "").replace(/\D+/g, "");
+    }
+
+    function isValidEmail(value) {
+        const email = String(value || "").trim();
+        return !!email && /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email);
     }
 
     function normalizeGuid(value) {
