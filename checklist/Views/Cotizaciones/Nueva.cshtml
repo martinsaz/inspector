@@ -65,105 +65,121 @@
                     </div>
                 </section>
 
-                <section class="checkapp-panel cot-panel">
+                <section class="checkapp-panel cot-panel cot-panel--collapsible" data-cot-section="cliente">
                     <div class="checkapp-panel-head">
                         <div>
                             <span class="checkapp-panel-eyebrow">Cliente</span>
                             <h2>Selecciona al cliente</h2>
                             <p class="checkapp-panel-copy">La cotización requiere cliente antes de capturar partidas.</p>
                         </div>
+                        <button type="button" class="checkapp-btn checkapp-btn-ghost cot-panel-toggle" data-cot-toggle-section="cliente" aria-expanded="true" title="Mostrar u ocultar cliente" aria-label="Mostrar u ocultar cliente">
+                            <i class="fa fa-chevron-up"></i>
+                            <span>Contraer</span>
+                        </button>
                     </div>
-                    <div class="checkapp-filter-grid cot-form-grid">
-                        <label class="checkapp-field cot-field cot-field--search cot-field--full">
-                            <span>Buscar cliente</span>
-                            <input id="txCotBuscarCliente" type="text" placeholder="Nombre, correo o teléfono" />
-                        </label>
-                    </div>
-                    <div class="checkapp-grid-scroll cot-search-scroll cot-results-table-wrap">
-                        <table class="table table-row-bordered align-middle checkapp-grid-table cot-grid-table">
-                            <thead>
-                                <tr>
-                                    <th>Seleccionar</th>
-                                    <th>Cliente</th>
-                                    <th>Teléfono</th>
-                                    <th>Correo</th>
-                                    <th>Empresa</th>
-                                </tr>
-                            </thead>
-                            <tbody id="tbCotClientesResultados"></tbody>
-                        </table>
-                    </div>
-                    <div id="cardsCotClientesResultados" class="cot-mobile-results" hidden></div>
-                    <div id="txCotClientesBusquedaStatus" class="checkapp-status-inline"></div>
-                    <div id="panelCotClienteSeleccionado" class="cot-selected-card" hidden>
-                        <div>
-                            <small>Cliente seleccionado</small>
-                            <strong id="txCotClienteSeleccionadoNombre">—</strong>
-                            <p id="txCotClienteSeleccionadoMeta">—</p>
+                    <div class="cot-panel-body">
+                        <div class="checkapp-filter-grid cot-form-grid">
+                            <label class="checkapp-field cot-field cot-field--search cot-field--full">
+                                <span>Buscar cliente</span>
+                                <input id="txCotBuscarCliente" type="text" placeholder="Nombre, correo o teléfono" />
+                            </label>
                         </div>
-                        <span id="txCotClienteSeleccionadoDescuento" class="ca-chip ca-chip--secondary">Descuento 0%</span>
+                        <div class="checkapp-grid-scroll cot-search-scroll cot-results-table-wrap">
+                            <table class="table table-row-bordered align-middle checkapp-grid-table cot-grid-table">
+                                <thead>
+                                    <tr>
+                                        <th>Seleccionar</th>
+                                        <th>Cliente</th>
+                                        <th>Teléfono</th>
+                                        <th>Correo</th>
+                                        <th>Empresa</th>
+                                    </tr>
+                                </thead>
+                                <tbody id="tbCotClientesResultados"></tbody>
+                            </table>
+                        </div>
+                        <div id="cardsCotClientesResultados" class="cot-mobile-results" hidden></div>
+                        <div id="txCotClientesBusquedaStatus" class="checkapp-status-inline"></div>
+                        <div id="panelCotClienteSeleccionado" class="cot-selected-card" hidden>
+                            <div class="cot-selected-card__copy">
+                                <small>Cliente seleccionado</small>
+                                <strong id="txCotClienteSeleccionadoNombre">—</strong>
+                                <p id="txCotClienteSeleccionadoMeta">—</p>
+                            </div>
+                            <span id="txCotClienteSeleccionadoDescuento" class="ca-chip ca-chip--secondary">Descuento 0%</span>
+                        </div>
                     </div>
                 </section>
 
-                <section class="checkapp-panel cot-panel">
+                <section class="checkapp-panel cot-panel cot-panel--collapsible" data-cot-section="datos">
                     <div class="checkapp-panel-head">
                         <div>
                             <span class="checkapp-panel-eyebrow">Encabezado</span>
                             <h2>Datos de la cotización</h2>
-                            <p class="checkapp-panel-copy">Configura sucursal, vigencia, caja y observaciones.</p>
+                            <p class="checkapp-panel-copy">Configura sucursal, vigencia y observaciones de la cotización.</p>
                         </div>
+                        <button type="button" class="checkapp-btn checkapp-btn-ghost cot-panel-toggle" data-cot-toggle-section="datos" aria-expanded="true" title="Mostrar u ocultar datos de la cotización" aria-label="Mostrar u ocultar datos de la cotización">
+                            <i class="fa fa-chevron-up"></i>
+                            <span>Contraer</span>
+                        </button>
                     </div>
-                    <div class="checkapp-filter-grid cot-form-grid">
-                        <label class="checkapp-field cot-field">
-                            <span>Sucursal</span>
-                            <select id="cbCotSucursal" class="form-select"></select>
-                        </label>
-                        <label class="checkapp-field cot-field">
-                            <span>Vigencia (días)</span>
-                            <input id="txCotVigenciaDias" type="number" min="0" max="365" placeholder="0" />
-                        </label>
-                        <label class="checkapp-field cot-field">
-                            <span>Caja</span>
-                            <input id="txCotCaja" type="text" maxlength="100" placeholder="Caja operativa" />
-                        </label>
-                        <label class="checkapp-field cot-field cot-field--full">
-                            <span>Observaciones</span>
-                            <textarea id="txCotObservaciones" maxlength="1000" placeholder="Agrega una referencia útil para el cliente o el equipo comercial."></textarea>
-                        </label>
+                    <div class="cot-panel-body">
+                        <div class="checkapp-filter-grid cot-form-grid cot-form-grid--quote-data">
+                            <label class="checkapp-field cot-field">
+                                <span>Sucursal</span>
+                                <select id="cbCotSucursal" class="form-select"></select>
+                            </label>
+                            <label class="checkapp-field cot-field">
+                                <span>Vigencia (días)</span>
+                                <input id="txCotVigenciaDias" type="number" min="0" max="365" placeholder="0" />
+                            </label>
+                            <label class="checkapp-field cot-field cot-field--quote-observations">
+                                <span>Observaciones</span>
+                                <input id="txCotObservaciones" type="text" maxlength="1000" placeholder="Agrega una referencia útil para el cliente o el equipo comercial." />
+                            </label>
+                            <input id="txCotCaja" type="hidden" value="" />
+                        </div>
                     </div>
                 </section>
 
-                <section class="checkapp-panel cot-panel">
+                <section class="checkapp-panel cot-panel cot-panel--collapsible" data-cot-section="productos">
                     <div class="checkapp-panel-head">
                         <div>
                             <span class="checkapp-panel-eyebrow">Productos</span>
                             <h2>Buscar productos o servicios</h2>
-                            <p class="checkapp-panel-copy">Se reutiliza el catálogo de `ProductosServicios` sin tallas ni curvas comerciales.</p>
+                            <p class="checkapp-panel-copy">Encuentra rápidamente el producto o servicio para integrarlo a la cotización.</p>
                         </div>
+                        <button type="button" class="checkapp-btn checkapp-btn-ghost cot-panel-toggle" data-cot-toggle-section="productos" aria-expanded="true" title="Mostrar u ocultar productos" aria-label="Mostrar u ocultar productos">
+                            <i class="fa fa-chevron-up"></i>
+                            <span>Contraer</span>
+                        </button>
                     </div>
-                    <div class="checkapp-filter-grid cot-form-grid">
-                        <label class="checkapp-field cot-field cot-field--search cot-field--wide">
-                            <span>Buscar producto</span>
-                            <input id="txCotBuscarProducto" type="text" placeholder="Código, nombre o descripción" />
-                        </label>
+                    <div class="cot-panel-body">
+                        <div class="checkapp-filter-grid cot-form-grid">
+                            <label class="checkapp-field cot-field cot-field--search cot-field--wide">
+                                <span>Buscar producto</span>
+                                <input id="txCotBuscarProducto" type="text" placeholder="Código, nombre o descripción" />
+                            </label>
+                        </div>
+                        <div class="checkapp-grid-scroll cot-search-scroll cot-results-table-wrap">
+                            <table class="table table-row-bordered align-middle checkapp-grid-table cot-grid-table cot-grid-table--productos">
+                                <thead>
+                                    <tr>
+                                        <th>Código</th>
+                                        <th>Imagen</th>
+                                        <th>Producto o servicio</th>
+                                        <th>Unidad</th>
+                                        <th>Existencia</th>
+                                        <th>Precio público</th>
+                                        <th>Agregar</th>
+                                    </tr>
+                                </thead>
+                                <tbody id="tbCotProductosResultados"></tbody>
+                            </table>
+                        </div>
+                        <div id="cardsCotProductosResultados" class="cot-mobile-results" hidden></div>
+                        <div id="txCotProductosBusquedaStatus" class="checkapp-status-inline"></div>
                     </div>
-                    <div class="checkapp-grid-scroll cot-search-scroll cot-results-table-wrap">
-                        <table class="table table-row-bordered align-middle checkapp-grid-table cot-grid-table">
-                            <thead>
-                                <tr>
-                                    <th>Agregar</th>
-                                    <th>Código</th>
-                                    <th>Producto o servicio</th>
-                                    <th>Unidad</th>
-                                    <th>Existencia</th>
-                                    <th>Precio público</th>
-                                </tr>
-                            </thead>
-                            <tbody id="tbCotProductosResultados"></tbody>
-                        </table>
-                    </div>
-                    <div id="cardsCotProductosResultados" class="cot-mobile-results" hidden></div>
-                    <div id="txCotProductosBusquedaStatus" class="checkapp-status-inline"></div>
                 </section>
 
                 <section class="checkapp-panel cot-panel">
@@ -175,11 +191,12 @@
                         </div>
                     </div>
                     <div class="checkapp-grid-scroll cot-results-table-wrap cot-results-table-wrap--partidas">
-                        <table class="table table-row-bordered align-middle checkapp-grid-table cot-grid-table">
+                        <table class="table table-row-bordered align-middle checkapp-grid-table cot-grid-table cot-grid-table--partidas">
                             <thead>
                                 <tr>
                                     <th>#</th>
                                     <th>Código</th>
+                                    <th>Imagen</th>
                                     <th>Producto o servicio</th>
                                     <th>Unidad</th>
                                     <th>Cantidad</th>
@@ -205,13 +222,8 @@
                         </div>
                     </div>
                     <div class="cot-summary-actions cot-summary-actions--flow">
-                        <button id="btCotCompartir" type="button" class="checkapp-btn checkapp-btn-ghost" title="Compartir cotización" aria-label="Compartir cotización"><i class="fa fa-share-alt"></i><span>Compartir</span></button>
-                        <button id="btCotEnviarWhatsApp" type="button" class="checkapp-btn checkapp-btn-ghost" title="Enviar cotización por WhatsApp" aria-label="Enviar cotización por WhatsApp"><i class="fa fa-whatsapp"></i><span>WhatsApp</span></button>
-                        <button id="btCotEnviarCorreo" type="button" class="checkapp-btn checkapp-btn-ghost" title="Enviar cotización por correo" aria-label="Enviar cotización por correo"><i class="fa fa-envelope"></i><span>Correo</span></button>
-                        <button id="btCotAutorizar" type="button" class="checkapp-btn checkapp-btn-secondary" title="Autorizar cotización" aria-label="Autorizar cotización"><i class="fa fa-check-circle"></i><span>Autorizar</span></button>
                         <button id="btCotGuardar" type="button" class="checkapp-btn checkapp-btn-primary" title="Guardar cotización" aria-label="Guardar cotización"><i class="fa fa-save"></i><span>Guardar cotización</span></button>
                         <button id="btCotCancelar" type="button" class="checkapp-btn checkapp-btn-secondary" title="Cancelar cotización" aria-label="Cancelar cotización"><i class="fa fa-ban"></i><span>Cancelar cotización</span></button>
-                        <button id="btCotExportarPdf" type="button" class="checkapp-btn checkapp-btn-ghost" title="Exportar cotización en PDF" aria-label="Exportar cotización en PDF"><i class="fa fa-download"></i><span>Exportar PDF</span></button>
                     </div>
                 </section>
             </main>
@@ -328,6 +340,29 @@
                 <div class="modal-footer">
                     <button type="button" class="checkapp-btn checkapp-btn-ghost" data-bs-dismiss="modal"><i class="fa fa-times"></i><span>Cancelar</span></button>
                     <button id="btCotConfirmarAutorizar" type="button" class="checkapp-btn checkapp-btn-primary"><i class="fa fa-check-circle"></i><span>Autorizar</span></button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="modal fade checkapp-modal" id="modalCotPdfViewer" tabindex="-1" aria-labelledby="txCotPdfViewerTitulo" aria-hidden="true">
+        <div class="modal-dialog modal-xl modal-dialog-centered modal-dialog-scrollable cot-pdf-modal-dialog">
+            <div class="modal-content cot-modal-content cot-pdf-modal-content">
+                <div class="modal-header">
+                    <div>
+                        <h2 id="txCotPdfViewerTitulo">Vista previa de la cotización</h2>
+                        <p id="txCotPdfViewerPrompt" class="cot-modal-subtitle">Revisa el PDF dentro de CheckApp antes de cerrar.</p>
+                    </div>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Cerrar"></button>
+                </div>
+                <div class="modal-body cot-pdf-modal-body">
+                    <div class="cot-pdf-viewer-shell">
+                        <iframe id="frCotPdfViewer" class="cot-pdf-viewer-frame" title="Vista previa PDF de la cotización" loading="lazy"></iframe>
+                    </div>
+                    <div id="txCotPdfViewerStatus" class="checkapp-status-inline"></div>
+                </div>
+                <div class="modal-footer">
+                    <button id="btCotCerrarPdfViewer" type="button" class="checkapp-btn checkapp-btn-primary"><i class="fa fa-times"></i><span>Cerrar</span></button>
                 </div>
             </div>
         </div>

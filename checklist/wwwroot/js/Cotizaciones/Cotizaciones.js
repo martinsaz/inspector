@@ -15,6 +15,7 @@
     const estadoAutorizada = 3;
     const gridId = "cotizaciones-grid";
     const pageType = String(root.getAttribute("data-cot-page") || "").trim().toLowerCase();
+    const productImagePlaceholder = "/assets/media/svg/files/blank-image.svg";
 
     const state = {
         pageType: pageType,
@@ -44,7 +45,15 @@
             sucursales: [],
             partidas: [],
             searchClienteTimer: 0,
-            searchProductoTimer: 0
+            searchProductoTimer: 0,
+            quoteDataTouched: false,
+            pdfViewerReturnToReport: false,
+            activePdfUrl: "",
+            sections: {
+                cliente: false,
+                datos: false,
+                productos: false
+            }
         }
     };
 
@@ -65,6 +74,8 @@
         addProducto({
             id: String($button.attr("data-cot-add-product") || ""),
             codigo: String($button.attr("data-cot-product-code") || ""),
+            imagenUrl: String($button.attr("data-cot-product-image-url") || ""),
+            imagenNombre: String($button.attr("data-cot-product-image-name") || ""),
             nombre: String($button.attr("data-cot-product-name") || ""),
             descripcion: String($button.attr("data-cot-product-description") || ""),
             unidadMedida: String($button.attr("data-cot-product-unit") || ""),
@@ -489,6 +500,7 @@
     function initEditorPage() {
         bindEditorEvents();
         populateSucursales([]);
+        syncEditorPanels();
         syncEditorState();
 
         loadSucursales()
@@ -508,6 +520,17 @@
     function bindEditorEvents() {
         $("#txCotBuscarCliente").on("input", scheduleClienteSearch);
         $("#txCotBuscarProducto").on("input", scheduleProductoSearch);
+        $("#cbCotSucursal, #txCotVigenciaDias, #txCotObservaciones").on("input change", function () {
+            state.editor.quoteDataTouched = true;
+        });
+        $("[data-cot-toggle-section]").on("click", function () {
+            const section = String($(this).attr("data-cot-toggle-section") || "");
+            if (!section) {
+                return;
+            }
+
+            setSectionCollapsed(section, !state.editor.sections[section]);
+        });
 
         $("#tbCotClientesResultados").on("click", "[data-cot-select-client]", function () {
             const id = String($(this).attr("data-cot-select-client") || "");
@@ -568,7 +591,10 @@
                 return;
             }
 
-            window.open("/Cotizaciones/ExportarCotizacionPdf?idCotizacion=" + encodeURIComponent(state.editor.cotizacionId), "_blank");
+            openCotizacionPdfViewer(state.editor.cotizacionId, {
+                returnToReport: false,
+                title: state.editor.detail && state.editor.detail.folio ? state.editor.detail.folio : ""
+            });
         });
 
         $("#btCotCancelar").on("click", function () {
@@ -594,6 +620,10 @@
         $("#btCotAutorizar").on("click", function () {
             openAutorizarModal(state.editor.cotizacionId, state.editor.detail && state.editor.detail.folio);
         });
+        $("#btCotCerrarPdfViewer").on("click", function () {
+            resolveModalApi("#modalCotPdfViewer").hide();
+        });
+        $("#modalCotPdfViewer").on("hidden.bs.modal", handleCotPdfViewerHidden);
     }
 
     function loadSucursales() {
@@ -641,11 +671,14 @@
         $("#txCotVigenciaDias").val(detail.vigenciaDias == null ? "" : detail.vigenciaDias);
         $("#txCotCaja").val(detail.caja || "");
         $("#txCotObservaciones").val(detail.observaciones || "");
+        state.editor.quoteDataTouched = !!(detail.idSucursal || detail.vigenciaDias != null || String(detail.observaciones || "").trim());
 
         state.editor.partidas = (Array.isArray(detail.partidas) ? detail.partidas : []).map(function (partida) {
             return {
                 idProductoServicio: partida.idProductoServicio,
                 codigo: partida.codigo || "",
+                imagenUrl: partida.imagenUrl || partida.ImagenUrl || "",
+                imagenNombre: partida.imagenNombre || partida.ImagenNombre || "",
                 nombre: partida.nombre || "",
                 descripcion: partida.descripcion || "",
                 unidadMedida: partida.unidadMedida || "",
@@ -655,7 +688,9 @@
                 existenciaActual: partida.existenciaActual,
                 cantidad: Number(partida.cantidad || 0),
                 precioUnitario: Number(partida.precioUnitario || 0),
-                descuentoPct: Number(partida.descuentoPct || 0)
+                descuentoBasePct: Number(partida.descuentoPct || 0),
+                descuentoPct: Number(partida.descuentoPct || 0),
+                descuentoManual: false
             };
         });
 
@@ -748,6 +783,10 @@
             return;
         }
 
+        if (state.editor.quoteDataTouched) {
+            setSectionCollapsed("datos", true);
+        }
+
         const query = new URLSearchParams({ busqueda: term, estatus: "activos", take: "20" });
         fetchJson("/ProductosServicios/ObtenerProductosServicios?" + query.toString())
             .then(function (data) {
@@ -787,10 +826,19 @@
     function renderProductos(items) {
         const html = (items || []).map(function (producto) {
             const unidad = producto.unidadAbreviatura ? (producto.unidadMedida + " (" + producto.unidadAbreviatura + ")") : (producto.unidadMedida || "—");
+            const thumb = renderProductThumb(producto, producto.nombre || "Producto");
             return [
                 "<tr>",
+                "<td data-label='Código'>", escapeHtml(producto.codigo || "—"), "</td>",
+                "<td data-label='Imagen' class='cot-grid-thumb-cell'>", thumb, "</td>",
+                "<td data-label='Producto o servicio'><strong>", escapeHtml(producto.nombre || "—"), "</strong><div class='cot-row-muted'>", escapeHtml(producto.descripcion || ""), "</div></td>",
+                "<td data-label='Unidad'>", escapeHtml(unidad), "</td>",
+                "<td data-label='Existencia'>", escapeHtml(producto.existenciaActual == null ? "—" : formatNumber(producto.existenciaActual)), "</td>",
+                "<td data-label='Precio público'>", escapeHtml(formatCurrency(producto.precioPublico || 0)), "</td>",
                 "<td data-label='Agregar'><button type='button' class='checkapp-btn checkapp-btn-secondary cot-action-btn cot-action-btn--add' data-cot-add-product='", escapeHtml(producto.id || ""),
                 "' data-cot-product-code='", escapeHtml(producto.codigo || ""),
+                "' data-cot-product-image-url='", escapeHtml(resolveProductImageUrl(producto)),
+                "' data-cot-product-image-name='", escapeHtml(resolveProductImageName(producto)),
                 "' data-cot-product-name='", escapeHtml(producto.nombre || ""),
                 "' data-cot-product-description='", escapeHtml(producto.descripcion || ""),
                 "' data-cot-product-unit='", escapeHtml(producto.unidadMedida || ""),
@@ -801,16 +849,11 @@
                 "' data-cot-product-price='", escapeHtml(producto.precioPublico || 0),
                 "' title='Agregar partida' aria-label='Agregar partida'",
                 "'><i class='fa fa-plus'></i><span>Agregar</span></button></td>",
-                "<td data-label='Código'>", escapeHtml(producto.codigo || "—"), "</td>",
-                "<td data-label='Producto o servicio'><strong>", escapeHtml(producto.nombre || "—"), "</strong><div class='cot-row-muted'>", escapeHtml(producto.descripcion || ""), "</div></td>",
-                "<td data-label='Unidad'>", escapeHtml(unidad), "</td>",
-                "<td data-label='Existencia'>", escapeHtml(producto.existenciaActual == null ? "—" : formatNumber(producto.existenciaActual)), "</td>",
-                "<td data-label='Precio público'>", escapeHtml(formatCurrency(producto.precioPublico || 0)), "</td>",
                 "</tr>"
             ].join("");
         }).join("");
 
-        $("#tbCotProductosResultados").html(html || "<tr><td colspan='6'>Sin resultados.</td></tr>");
+        $("#tbCotProductosResultados").html(html || "<tr><td colspan='7'>Sin resultados.</td></tr>");
         renderProductoCards(items);
     }
 
@@ -828,6 +871,9 @@
             state.editor.cliente.correo || "Sin correo"
         ].join(" · "));
         $("#txCotClienteSeleccionadoDescuento").text("Descuento " + formatNumber(state.editor.cliente.descuento || 0) + "%");
+        applyClientDiscountToPartidas();
+        setSectionCollapsed("cliente", true);
+        setSectionCollapsed("datos", false);
 
         if (!silent) {
             setStatus("#txCotFormStatus", "", "");
@@ -842,6 +888,8 @@
         state.editor.partidas.push({
             idProductoServicio: producto.id,
             codigo: producto.codigo || "",
+            imagenUrl: producto.imagenUrl || "",
+            imagenNombre: producto.imagenNombre || "",
             nombre: producto.nombre || "",
             descripcion: producto.descripcion || "",
             unidadMedida: producto.unidadMedida || "",
@@ -851,10 +899,15 @@
             existenciaActual: producto.existenciaActual,
             cantidad: 1,
             precioUnitario: Number(producto.precioPublico || 0),
-            descuentoPct: Number(state.editor.cliente && state.editor.cliente.descuento ? state.editor.cliente.descuento : 0)
+            descuentoBasePct: Number(producto.descuentoPct || 0),
+            descuentoPct: calculateClientDiscount(Number(producto.descuentoPct || 0)),
+            descuentoManual: false
         });
 
+        state.editor.quoteDataTouched = true;
         renderPartidas();
+        setSectionCollapsed("datos", true);
+        setSectionCollapsed("productos", true);
         setStatus("#txCotProductosBusquedaStatus", "", "");
     }
 
@@ -876,6 +929,7 @@
 
         if (field === "descuentoPct") {
             partida.descuentoPct = Math.max(0, Math.min(100, numeric));
+            partida.descuentoManual = true;
         }
 
         refreshPartidaComputedUi(index);
@@ -897,11 +951,13 @@
             const total = computePartidaTotal(partida);
             const unidad = partida.unidadAbreviatura ? (partida.unidadMedida + " (" + partida.unidadAbreviatura + ")") : (partida.unidadMedida || "—");
             const disabled = state.editor.readOnly ? " disabled" : "";
+            const thumb = renderProductThumb(partida, partida.nombre || "Partida");
 
             return [
                 "<tr>",
                 "<td data-label='#'>", escapeHtml(index + 1), "</td>",
                 "<td data-label='Código'>", escapeHtml(partida.codigo || "—"), "</td>",
+                "<td data-label='Imagen' class='cot-grid-thumb-cell'>", thumb, "</td>",
                 "<td data-label='Producto o servicio'><strong>", escapeHtml(partida.nombre || "—"), "</strong><div class='cot-row-muted'>", escapeHtml(partida.descripcion || ""), "</div></td>",
                 "<td data-label='Unidad'>", escapeHtml(unidad), "</td>",
                 "<td data-label='Cantidad'><input class='form-control cot-partida-input' data-cot-index='", index, "' data-cot-field='cantidad' data-cot-qty='1' type='number' min='0' step='0.01' value='", escapeHtml(partida.cantidad), "'", disabled, " /></td>",
@@ -913,7 +969,7 @@
             ].join("");
         }).join("");
 
-        $("#tbCotPartidas").html(html || "<tr><td colspan='9'>Agrega al menos un producto para comenzar.</td></tr>");
+        $("#tbCotPartidas").html(html || "<tr><td colspan='10'>Agrega al menos un producto para comenzar.</td></tr>");
         $("#txCotResumenPiezas").text(formatNumber(totals.totalPiezas));
         $("#txCotResumenSubtotal").text(formatCurrency(totals.subtotal));
         $("#txCotResumenDescuento").text(formatCurrency(totals.descuentoTotal));
@@ -1039,7 +1095,6 @@
             })
         };
         state.editor.isSaving = true;
-        const pdfPreviewWindow = tryOpenPendingWindow();
         const $saveButton = $("#btCotGuardar");
         const $cancelButton = $("#btCotCancelar");
         const saveButtonHtml = $saveButton.html();
@@ -1058,15 +1113,16 @@
                     return loadEditorDetail(state.editor.cotizacionId)
                         .then(function () {
                             syncEditorUrl();
-                            openPendingWindow(pdfPreviewWindow, buildPdfUrl(state.editor.cotizacionId));
-                            return null;
+                            return openCotizacionPdfViewer(state.editor.cotizacionId, {
+                                returnToReport: true,
+                                title: response.folio || (state.editor.detail && state.editor.detail.folio) || ""
+                            });
                         });
                 }
 
                 return null;
             })
             .catch(function (error) {
-                closePendingWindow(pdfPreviewWindow);
                 setStatus("#txCotFormStatus", "danger", resolveErrorMessage(error));
             })
             .finally(function () {
@@ -1107,6 +1163,57 @@
     function buildPdfFileName(folio) {
         const clean = String(folio || "").replace(/[^A-Za-z0-9_-]+/g, "");
         return "cotizacion_" + (clean || "archivo") + ".pdf";
+    }
+
+    function openCotizacionPdfViewer(id, options) {
+        const cotizacionId = normalizeGuid(id);
+        if (!cotizacionId) {
+            setStatus("#txCotFormStatus", "danger", "La cotización no está disponible.");
+            return Promise.resolve();
+        }
+
+        const config = Object.assign({
+            returnToReport: false,
+            title: ""
+        }, options || {});
+
+        state.editor.pdfViewerReturnToReport = !!config.returnToReport;
+        $("#txCotPdfViewerTitulo").text(config.title ? ("Vista previa " + config.title) : "Vista previa de la cotización");
+        $("#txCotPdfViewerPrompt").text(config.returnToReport
+            ? "Revisa el PDF dentro de CheckApp y cierra para volver automáticamente al reporte."
+            : "Revisa el PDF dentro de CheckApp antes de cerrar.");
+        setStatus("#txCotPdfViewerStatus", "info", "Preparando vista previa...");
+        $("#frCotPdfViewer").attr("src", "about:blank");
+        resolveModalApi("#modalCotPdfViewer").show();
+
+        return fetchPdfBlob(cotizacionId)
+            .then(function (blob) {
+                if (state.editor.activePdfUrl) {
+                    window.URL.revokeObjectURL(state.editor.activePdfUrl);
+                }
+
+                state.editor.activePdfUrl = window.URL.createObjectURL(blob);
+                $("#frCotPdfViewer").attr("src", state.editor.activePdfUrl + "#toolbar=1&navpanes=0");
+                setStatus("#txCotPdfViewerStatus", "", "");
+            })
+            .catch(function (error) {
+                setStatus("#txCotPdfViewerStatus", "danger", resolveErrorMessage(error));
+            });
+    }
+
+    function handleCotPdfViewerHidden() {
+        const shouldReturn = !!state.editor.pdfViewerReturnToReport;
+        state.editor.pdfViewerReturnToReport = false;
+        $("#frCotPdfViewer").attr("src", "about:blank");
+        if (state.editor.activePdfUrl) {
+            window.URL.revokeObjectURL(state.editor.activePdfUrl);
+            state.editor.activePdfUrl = "";
+        }
+
+        setStatus("#txCotPdfViewerStatus", "", "");
+        if (shouldReturn) {
+            window.location.assign("/Cotizaciones/Reporte");
+        }
     }
 
     function resolveCotizacionDetail(id) {
@@ -1393,6 +1500,59 @@
             });
     }
 
+    function calculateClientDiscount(baseDiscount) {
+        const base = Math.max(0, Number(baseDiscount || 0));
+        if (!state.editor.cliente || !state.editor.cliente.id) {
+            return base;
+        }
+
+        const clientDiscount = Math.max(0, Number(state.editor.cliente.descuento || 0));
+        return Math.min(10, Math.max(base, clientDiscount));
+    }
+
+    function applyClientDiscountToPartidas() {
+        if (!state.editor.partidas.length) {
+            return;
+        }
+
+        let changed = false;
+        state.editor.partidas.forEach(function (partida) {
+            if (partida.descuentoManual) {
+                return;
+            }
+
+            const nextDiscount = calculateClientDiscount(partida.descuentoBasePct);
+            if (Math.abs(Number(partida.descuentoPct || 0) - nextDiscount) > 0.0001) {
+                partida.descuentoPct = nextDiscount;
+                changed = true;
+            }
+        });
+
+        if (changed) {
+            renderPartidas();
+        }
+    }
+
+    function setSectionCollapsed(section, collapsed) {
+        if (!Object.prototype.hasOwnProperty.call(state.editor.sections, section)) {
+            return;
+        }
+
+        state.editor.sections[section] = !!collapsed;
+        syncEditorPanels();
+    }
+
+    function syncEditorPanels() {
+        Object.keys(state.editor.sections).forEach(function (section) {
+            const collapsed = !!state.editor.sections[section];
+            const $panel = $("[data-cot-section='" + escapeSelectorValue(section) + "']");
+            const $button = $panel.find("[data-cot-toggle-section='" + escapeSelectorValue(section) + "']");
+            $panel.toggleClass("is-collapsed", collapsed);
+            $button.attr("aria-expanded", collapsed ? "false" : "true");
+            $button.find("span").text(collapsed ? "Expandir" : "Contraer");
+        });
+    }
+
     function tryOpenPendingWindow() {
         try {
             return window.open("about:blank", "_blank");
@@ -1420,6 +1580,14 @@
         } catch (_error) {
             // Ignore close errors for user-managed tabs.
         }
+    }
+
+    function escapeSelectorValue(value) {
+        if (window.CSS && typeof window.CSS.escape === "function") {
+            return window.CSS.escape(String(value || ""));
+        }
+
+        return String(value || "").replace(/['"\\]/g, "\\$&");
     }
 
     function validateEditor() {
@@ -1477,8 +1645,10 @@
         const html = (items || []).map(function (producto) {
             const unidad = producto.unidadAbreviatura ? (producto.unidadMedida + " (" + producto.unidadAbreviatura + ")") : (producto.unidadMedida || "—");
             const existencia = producto.existenciaActual == null ? "—" : formatNumber(producto.existenciaActual);
+            const thumb = renderProductThumb(producto, producto.nombre || "Producto");
             return [
                 "<article class='cot-mobile-card'>",
+                "<div class='cot-mobile-card__media'>", thumb, "</div>",
                 "<div class='cot-mobile-card__head'>",
                 "<div class='cot-mobile-card__title'>", escapeHtml(producto.nombre || "Producto o servicio"), "</div>",
                 "<div class='cot-mobile-card__subtitle'>Código: ", escapeHtml(producto.codigo || "—"), "</div>",
@@ -1492,6 +1662,8 @@
                 "<div class='cot-mobile-card__actions'>",
                 "<button type='button' class='checkapp-btn checkapp-btn-secondary' data-cot-add-product='", escapeHtml(producto.id || ""),
                 "' data-cot-product-code='", escapeHtml(producto.codigo || ""),
+                "' data-cot-product-image-url='", escapeHtml(resolveProductImageUrl(producto)),
+                "' data-cot-product-image-name='", escapeHtml(resolveProductImageName(producto)),
                 "' data-cot-product-name='", escapeHtml(producto.nombre || ""),
                 "' data-cot-product-description='", escapeHtml(producto.descripcion || ""),
                 "' data-cot-product-unit='", escapeHtml(producto.unidadMedida || ""),
@@ -1516,9 +1688,11 @@
             const total = computePartidaTotal(partida);
             const unidad = partida.unidadAbreviatura ? (partida.unidadMedida + " (" + partida.unidadAbreviatura + ")") : (partida.unidadMedida || "—");
             const disabled = state.editor.readOnly ? " disabled" : "";
+            const thumb = renderProductThumb(partida, partida.nombre || "Partida");
 
             return [
                 "<article class='cot-mobile-card'>",
+                "<div class='cot-mobile-card__media'>", thumb, "</div>",
                 "<div class='cot-mobile-card__head'>",
                 "<div class='cot-mobile-card__eyebrow'>#", escapeHtml(index + 1), "</div>",
                 "<div class='cot-mobile-card__title'>", escapeHtml(partida.nombre || "Partida"), "</div>",
@@ -1558,6 +1732,22 @@
             empresa: item.empresa || item.Empresa || "",
             descuento: Number(item.descuento || item.Descuento || 0)
         };
+    }
+
+    function resolveProductImageUrl(item) {
+        const imageUrl = String((item && (item.imagenUrl || item.ImagenUrl || "")) || "").trim();
+        return imageUrl || productImagePlaceholder;
+    }
+
+    function resolveProductImageName(item) {
+        return String((item && (item.imagenNombre || item.ImagenNombre || item.nombre || item.Nombre || "Producto")) || "Producto").trim();
+    }
+
+    function renderProductThumb(item, altLabel) {
+        const imageUrl = resolveProductImageUrl(item);
+        const fallback = escapeHtml(productImagePlaceholder);
+        const alt = escapeHtml(altLabel || resolveProductImageName(item));
+        return "<span class='cot-grid-thumb'><img src='" + escapeHtml(imageUrl) + "' alt='" + alt + "' loading='lazy' decoding='async' onerror=\"this.onerror=null;this.src='" + fallback + "';\" /></span>";
     }
 
     function resolveModalApi(selector) {
