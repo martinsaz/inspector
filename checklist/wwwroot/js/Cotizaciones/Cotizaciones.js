@@ -1246,6 +1246,10 @@
         ].join(" · ");
     }
 
+    function buildWhatsAppShareMessage(detail) {
+        return "Hola, te comparto la cotización " + (detail.folio || "sin folio") + " por un total de " + formatCurrency(detail.total || 0) + ".";
+    }
+
     function fetchPdfBlob(id) {
         return window.fetch(buildPdfUrl(id), {
             method: "GET",
@@ -1302,9 +1306,8 @@
                     });
                 }
 
-                return navigator.share(Object.assign({}, shareData, {
-                    url: buildPdfAbsoluteUrl(detail.id)
-                }));
+                openShareFallback(detail);
+                return null;
             })
             .catch(function (error) {
                 if (error && error.name === "AbortError") {
@@ -1319,7 +1322,8 @@
     function openShareFallback(detail) {
         setActionDetail(detail);
         setStatus("#txCotCompartirFallbackStatus", "", "");
-        $("#txCotCompartirFallbackPrompt").text("Continúa con PDF, WhatsApp, correo o copia el enlace de la cotización " + (detail.folio || "seleccionada") + ".");
+        $("#txCotCompartirFallbackPrompt").text("Continúa con PDF, WhatsApp, correo o copia el mensaje de la cotización " + (detail.folio || "seleccionada") + ".");
+        $("#btCotFallbackCopiar").text("Copiar mensaje");
         resolveModalApi("#modalCotCompartirFallback").show();
     }
 
@@ -1332,23 +1336,23 @@
     }
 
     function copyFallbackLink() {
-        if (!state.action.detailId) {
+        const detail = state.action.detail || {};
+        if (!detail.id) {
             setStatus("#txCotCompartirFallbackStatus", "danger", "La cotización no está disponible.");
             return;
         }
 
-        const link = buildPdfAbsoluteUrl(state.action.detailId);
         if (!navigator.clipboard || typeof navigator.clipboard.writeText !== "function") {
-            setStatus("#txCotCompartirFallbackStatus", "danger", "Tu navegador no permite copiar el enlace automáticamente.");
+            setStatus("#txCotCompartirFallbackStatus", "danger", "Tu navegador no permite copiar el mensaje automáticamente.");
             return;
         }
 
-        navigator.clipboard.writeText(link)
+        navigator.clipboard.writeText(buildCotizacionShareMessage(detail))
             .then(function () {
-                setStatus("#txCotCompartirFallbackStatus", "success", "Enlace copiado correctamente.");
+                setStatus("#txCotCompartirFallbackStatus", "success", "Mensaje copiado correctamente.");
             })
             .catch(function () {
-                setStatus("#txCotCompartirFallbackStatus", "danger", "No fue posible copiar el enlace.");
+                setStatus("#txCotCompartirFallbackStatus", "danger", "No fue posible copiar el mensaje.");
             });
     }
 
@@ -1380,8 +1384,9 @@
             return;
         }
 
-        const message = buildCotizacionShareMessage(detail) + " · PDF: " + buildPdfAbsoluteUrl(detail.id);
+        const message = buildWhatsAppShareMessage(detail);
         const whatsappWindow = tryOpenPendingWindow();
+        setStatus("#txCotWhatsAppStatus", "info", "Preparando el PDF para adjuntarlo manualmente en WhatsApp...");
         triggerPdfDownload(detail.id, buildPdfFileName(detail.folio))
             .finally(function () {
                 openPendingWindow(whatsappWindow, "https://wa.me/52" + digits + "?text=" + encodeURIComponent(message));

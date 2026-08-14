@@ -188,3 +188,280 @@
   - `docs/ui/CHECKAPP_COMPONENTES.md`
 - La primera implementación real del patrón es el módulo `Activos`.
 - Cuando una nueva pantalla adopte el patrón, debe reutilizar `CheckAppDynamicGrid` y `CheckAppFilterAccordion`; no crear variantes locales paralelas salvo autorización expresa.
+
+## Regla documental permanente
+
+- Todo trabajo, decisión de Product Owner, regla de negocio, restricción, arquitectura, estado de QA, funcionalidad aprobada, brecha pendiente y cierre de etapa del proyecto debe registrarse en `AGENTS.md` y `CLAUDE.md` dentro de la misma iteración.
+- `AGENTS.md` y `CLAUDE.md` deben mantenerse sincronizados y no pueden contradecirse.
+- Si una corrida solo confirma el estado real de una funcionalidad, ese resultado también debe quedar asentado en ambos documentos.
+
+## Ajustes > Configuración > Correo saliente
+
+- Desde el `2026-08-13`, `Ajustes > Configuración > Correo saliente` se define como un subsistema exclusivo para correo saliente de documentos de negocio.
+- Su alcance funcional autorizado incluye únicamente:
+  - cotizaciones
+  - órdenes de compra
+  - documentos comerciales u operativos destinados al cliente autorizados explícitamente por Product Owner
+- No pertenece a la infraestructura base de autenticación ni al correo técnico interno.
+- Debe permanecer aislado de:
+  - `LoginController`
+  - registro
+  - recuperación de contraseña
+  - Firebase Authentication
+  - `MailRegistro`
+  - `EmailServices` cuando opere como servicio compartido legacy de autenticación o correo base
+  - `mail.supervisores.mx`
+- La auditoría previa confirmó que el modelo actual basado en `MailRegistro` es global y compartido; ese hallazgo debe tratarse como evidencia de riesgo y no como invitación a reutilizar esa arquitectura para el nuevo módulo.
+- Regla arquitectónica vigente:
+  - el nuevo correo saliente documental debe tener persistencia, prueba y configuración aisladas por empresa
+  - no debe sustituir ni refactorizar la infraestructura base protegida en la misma iteración
+  - no debe modificar consumidores legacy fuera de alcance mientras el Product Owner no lo autorice
+- La empresa QA autorizada para este subsistema es `163`.
+- El alta visual aprobada en menú es aditiva:
+  - `Ajustes`
+  - `Configuración`
+  - `Correo saliente`
+  - `Configuración` debe insertarse después de `Operadores`
+- QA Google Workspace del `2026-08-14`:
+  - configuración visible en sesión reutilizada:
+    - cuenta `denisse@checkapp.com.mx`
+    - host `smtp.gmail.com`
+    - puerto `465`
+    - seguridad `SSL/TLS`
+  - verificación de infraestructura desde terminal:
+    - `smtp.gmail.com` resolvió por DNS
+    - `smtp.gmail.com:465` negoció TLS válido con certificado para `smtp.gmail.com`
+  - resultado funcional real desde la pantalla:
+    - la UI permaneció mostrando `La respuesta del servidor no pudo interpretarse.`
+    - no se observó evidencia de conexión saliente del backend hacia `smtp.gmail.com:465` durante la corrida
+  - dictamen actual:
+    - `Correo saliente documental` con Google Workspace no quedó certificado en esta iteración
+    - la causa raíz probable queda aguas arriba de SMTP, entre disparo útil de UI y/o proxy MVC/API, y debe auditarse sin exponer secretos
+  - corrección parcial aplicada en la misma fecha:
+    - `checklist/Controllers/Configuracion/ConfiguracionController.cs` ahora fuerza contrato JSON en el proxy MVC para `Obtener/Probar/GuardarCorreoSaliente`
+    - el proxy agrega `Accept: application/json`, envía `application/json` explícito y sanea respuestas vacías, no JSON o excepciones internas con payload JSON controlado
+    - el texto `La respuesta del servidor no pudo interpretarse.` quedó identificado como error del cliente en `wwwroot/js/Configuracion/CorreoSaliente.js -> readJson(response)` cuando recibe algo no parseable como JSON
+  - estado real posterior a la corrección parcial:
+    - `localhost:5200` compiló y quedó relanzado con el proxy endurecido
+    - la pestaña real de Chrome permitió ubicar el botón `Enviar correo de prueba`, pero la automatización disponible no reprodujo una corrida completa con las mismas capacidades de un navegador interactivo normal
+    - no quedó evidencia concluyente de POST útil entrando a `ProbarCorreoSaliente` ni de SMTP certificado desde la UI en esta iteración
+  - QA manual asistido concluido el `2026-08-14`:
+    - Denisse ejecutó manualmente un único clic real en `Enviar correo de prueba`
+    - evidencia técnica observada en `localhost:5200`:
+      - `POST /Configuracion/ProbarCorreoSaliente` sí salió de UI a MVC
+      - MVC llamó `POST http://localhost:5127/api/CorreoSaliente/ProbarConfiguracion?...`
+      - MVC recibió `200 OK` con `Content-Type: application/json` y longitud `479`
+    - evidencia funcional observada en la pantalla:
+      - mensaje UI `Correo de prueba enviado correctamente.`
+      - estado `Verificada`
+      - `Guardar configuración` habilitado
+    - guardado y persistencia:
+      - se ejecutó un único guardado posterior con `POST /Configuracion/GuardarCorreoSaliente`
+      - MVC recibió `200 OK` con `Content-Type: application/json` y longitud `480`
+      - tras recarga, `ObtenerConfiguracion` respondió `200 OK` con `application/json` y longitud `331`
+      - persistieron cuenta, host `smtp.gmail.com`, puerto `465`, seguridad `SSL/TLS` y estado `Verificada`
+    - seguridad:
+      - la contraseña no regresó visible al navegador
+      - tras guardar/recargar, la UI mostró únicamente `Contraseña configurada. Déjala vacía para conservarla.`
+    - certificación:
+      - `Correo saliente documental` con Google Workspace quedó certificado a nivel UI/MVC/API y persistencia local del módulo
+      - la recepción en buzón externo queda pendiente de validación manual de Denisse
+  - microcorrección final de fecha/hora concluida el `2026-08-14`:
+    - causa raíz exacta:
+      - `ProbarConfiguracion` y `GuardarConfiguracion` generaban `FechaUltimaPrueba` con `DateTime.UtcNow`
+      - SQL la persistía en `dbo.ConfiguracionCorreoSaliente.FechaUltimaPrueba` como `datetime2`, sin offset
+      - al releer desde SQL, `SqlDataReader.GetDateTime()` devolvía `Kind=Unspecified`
+      - `System.Text.Json` serializaba ese valor rerecuperado sin sufijo `Z`
+      - `wwwroot/js/Configuracion/CorreoSaliente.js -> formatDate()` hacía `new Date(value)`, por lo que el valor rerecuperado se interpretaba como hora local y mostraba `8:59 p.m.` en lugar del mismo instante local `2:59 p.m.`
+    - estrategia final:
+      - el módulo conserva persistencia UTC
+      - el API vuelve a marcar explícitamente como UTC las fechas rerecuperadas desde SQL antes de serializarlas
+      - el frontend sigue convirtiendo el instante a zona local del navegador para presentación
+    - archivo modificado:
+      - `inspectorapi/checklistWs/Controllers/Configuracion/CorreoSalienteController.cs`
+    - resultado QA:
+      - tras recargar la pantalla con la configuración ya guardada, `Última prueba` volvió a mostrarse como `14 ago 2026, 2:59 p.m.`
+      - desapareció el desplazamiento visual de `+6` horas
+      - SMTP, `Verificada`, `Guardar`, persistencia y protección de contraseña permanecieron intactos
+
+## Vertical Cotizaciones
+
+### Alcance y reglas globales
+
+- El vertical oficial vive en `checklist` bajo MVC `http://localhost:5200` y API `http://localhost:5127`.
+- La referencia visual obligatoria del proyecto es `Activos`; Cotizaciones debe usar el Patrón CheckApp sin modificar `Activos`.
+- `Sazmobile26` es fuente legacy de solo lectura para auditoría funcional; no se modifica.
+- Está prohibido introducir tallas o curvas comerciales en Cotizaciones; la regla es `NO TALLAS`.
+- No crear roles ni permisos nuevos para Cotizaciones sin autorización expresa del Product Owner.
+- No modificar `Login`, `Firebase`, `Sesión`, `SQL`, `otros verticales` ni contratos de API fuera de alcance explícito.
+- QA manual del Product Owner prevalece sobre cualquier certificación automática.
+- Las microiteraciones posteriores no deben romper funcionalidades ya aprobadas del vertical.
+- Si Codex inicia procesos locales para QA, solo esos procesos deben detenerse al finalizar; listeners preexistentes no se tocan.
+
+### Etapa 00
+
+- Se preparó el vertical con entrada de menú `Cotizaciones` y operación `ABC Cotizaciones`.
+- Ruta base documentada: `/Cotizaciones/Index`.
+- No se autorizaron roles ni permisos nuevos para esta etapa base.
+
+### Etapa 01
+
+- Se migró la funcionalidad base desde `Sazmobile26` en modo solo lectura.
+- Cobertura funcional migrada o adaptada:
+  - listado
+  - nueva cotización
+  - cliente
+  - sucursal
+  - vigencia
+  - observaciones
+  - productos
+  - servicios
+  - partidas
+  - cantidad
+  - precio
+  - descuento
+  - subtotal
+  - total
+  - guardado
+  - borrador
+  - edición
+  - clonación
+  - cancelación
+  - PDF
+- La regla operativa explícita desde esta etapa es `NO TALLAS`.
+
+### Etapa 02
+
+- Se implementó la distribución y autorización de cotizaciones.
+- Cobertura documentada:
+  - autorización
+  - PDF
+  - WhatsApp
+  - correo
+  - compartir
+  - estados `Borrador`, `Autorizada` y `Cancelada`
+  - modo solo lectura cuando corresponde
+
+### Etapa 03
+
+- Se ejecutaron mejoras UX/UI de `Nueva cotización` siguiendo el Patrón CheckApp.
+- Áreas intervenidas y aprobadas dentro del alcance:
+  - resumen
+  - colapsado inteligente
+  - cliente
+  - descuento
+  - datos de cotización
+  - observaciones
+  - productos y servicios
+  - imágenes
+  - detalle operativo
+  - responsive
+  - popup PDF
+  - regreso al Reporte
+
+### Etapa 03.1
+
+- Se auditó la diferencia entre `descuento cliente` y `descuento partida`.
+- Regla heredada validada contra legacy Android:
+  - descuento automático por partida = `max(descuentoProductoBase, descuentoCliente)`
+  - tope automático de `10%`
+  - salvo edición manual autorizada por el flujo operativo
+
+### Etapa 03.2
+
+- Se corrigió el payload de clientes para exponer `Descuento` en el flujo de cotización.
+- Caso de control documentado:
+  - cliente `Sadie Sink`: `5%`
+  - producto `$680`
+  - descuento automático `$34`
+  - total de partida `$646`
+- Cliente control alterno con `0%` validado como referencia.
+
+### Etapa 03.3
+
+- Se compactó exclusivamente el `Detalle Operativo` en desktop.
+- Ajustes permitidos y aplicados:
+  - `Unidad`
+  - `Cantidad`
+  - `Precio`
+- Restricción documentada:
+  - no romper `tablet`
+  - no romper `mobile`
+
+### Etapa 04
+
+- Se auditó y corrigió el problema de `localhost` en la distribución por WhatsApp.
+- Estado real certificado después de la corrección:
+  - WhatsApp abre el chat correcto
+  - usa el teléfono correcto
+  - mensaje limpio
+  - no contiene `localhost`
+  - no contiene `GUID`
+  - no contiene endpoints internos
+  - el PDF se genera
+  - el PDF se descarga o queda preparado
+- Pendiente real de WhatsApp:
+  - el PDF no queda adjunto automáticamente al chat
+  - este punto queda `pendiente de definición técnica web`
+- Estado real de correo:
+  - frontend funcional
+  - destinatario, asunto y mensaje funcionales
+  - PDF generado y adjunto preparado correctamente
+  - `EmailServices` invocado correctamente
+  - bloqueo actual: `mail.supervisores.mx` no resuelve por DNS
+  - correo queda `bloqueado por infraestructura/configuración SMTP`
+  - no tocar SMTP hasta identificar la infraestructura oficial
+
+### Etapa 04.2
+
+- La auditoría final de distribución diferencia explícitamente dos flujos:
+  - `Web Share API` con archivos
+  - apertura de chat mediante `wa.me`
+- El navegador real auditado en esta etapa no expone:
+  - `navigator.share`
+  - `navigator.canShare`
+  - soporte `files` para compartir PDF como archivo
+- Con el navegador actual, `wa.me` solo puede transportar texto; no existe evidencia real de adjunto automático de PDF al chat.
+- La clasificación técnica vigente del flujo WhatsApp es:
+  - PDF preparado o descargado
+  - WhatsApp abierto con texto limpio
+  - adjunto manual requerido por el usuario
+- Recomendación UX pendiente de autorización posterior:
+  - informar explícitamente que el PDF quedó preparado para adjuntarlo manualmente en WhatsApp
+
+## Ajustes > Configuración > Correo saliente
+
+- El `2026-08-13` se cerró la auditoría preimplementación del nuevo nodo transversal `Ajustes > Configuración > Correo saliente`.
+- Alcance de esa corrida:
+  - solo auditoría y planeación
+  - sin implementación
+  - sin SQL
+  - sin cambios a `EmailServices`
+  - sin cambios a `Firebase`
+  - sin cambios a menú real
+- Árbol aprobado por Product Owner para futura implementación:
+  - `Ajustes`
+  - `Configuración`
+  - `Correo saliente`
+- Regla confirmada:
+  - `Configuración` debe insertarse después de `Operadores`
+  - `Correo saliente` será el único hijo inicial
+- Hallazgos reales de auditoría:
+  - el servicio vigente es `checklist/Services/EmailServices.cs`
+  - `EmailServices` no resuelve SMTP por sí mismo; consume un `MailRegistro` ya hidratado
+  - la fuente actual real de SMTP es `MailRegistro` en Firebase Realtime Database
+  - los consumidores reales auditados son `LoginController` y `CotizacionesController`
+  - no se encontró configuración SMTP por empresa en SQL, API, `appsettings` ni variables de entorno operativas
+  - el modelo actual es global y no multitenant
+  - por eso Cotizaciones hereda el bloqueo documentado de `mail.supervisores.mx`
+- Riesgo arquitectónico confirmado:
+  - hoy un tenant puede quedar atado a la misma cuenta SMTP global que otros tenants
+- Decisión técnica propuesta, pendiente de Product Owner:
+  - reutilizar `EmailServices` como servicio único
+  - reemplazar la fuente global `MailRegistro` por una fuente oficial tenant por empresa
+  - no crear un segundo sistema de correo
+  - no devolver la contraseña real al navegador después de guardarla
+- Recomendación de comportamiento, pendiente de Product Owner:
+  - permitir `Guardar` sin prueba y marcar estado `No verificada`
+- Entregable documental oficial:
+  - `docs/configuracion/CORREO_SALIENTE_AUDITORIA_PREIMPLEMENTACION.md`

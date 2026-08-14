@@ -1,0 +1,89 @@
+@{
+    ViewBag.Title = "Correo saliente";
+    Layout = "~/Views/Shared/_Layout.cshtml";
+}
+
+<link href="~/css/checkapp-theme.css" rel="stylesheet" asp-append-version="true" />
+<link href="~/css/Configuracion/CorreoSaliente.css" rel="stylesheet" asp-append-version="true" />
+
+<div class="checkapp-scope checkapp-page mailcfg-page" data-mailcfg-page="correo-saliente">
+    <div class="container-fluid checkapp-shell mailcfg-shell">
+        <section class="checkapp-hero mailcfg-hero">
+            <div>
+                <p class="checkapp-kicker">Ajustes</p>
+                <h1>Correo saliente</h1>
+                <p>Configura la cuenta que CheckApp utilizará para enviar documentos a clientes.</p>
+            </div>
+        </section>
+
+        <div id="txMailCfgGlobalStatus" class="checkapp-status-inline" aria-live="polite"></div>
+
+        <section class="checkapp-panel mailcfg-panel">
+            <div class="checkapp-panel-head">
+                <div>
+                    <span class="checkapp-panel-eyebrow">Configuración SMTP</span>
+                    <h2>Cuenta documental por empresa</h2>
+                    <p class="checkapp-panel-copy">Esta cuenta se utilizará exclusivamente para documentos de negocio como cotizaciones y órdenes de compra.</p>
+                </div>
+                <div class="mailcfg-panel-state">
+                    <span id="txMailCfgEstadoChip" class="mailcfg-chip mailcfg-chip--muted">No verificada</span>
+                    <small id="txMailCfgUltimaPrueba">Sin prueba ejecutada.</small>
+                </div>
+            </div>
+
+            <div class="mailcfg-grid">
+                <label class="checkapp-field">
+                    <span>Cuenta / correo remitente</span>
+                    <input id="txMailCfgCuenta" type="email" maxlength="200" autocomplete="off" placeholder="ejemplo@dominio.com" />
+                </label>
+                <label class="checkapp-field">
+                    <span>Servidor SMTP</span>
+                    <input id="txMailCfgServidor" type="text" maxlength="200" autocomplete="off" placeholder="smtp.dominio.com" />
+                </label>
+                <label class="checkapp-field">
+                    <span>Contraseña</span>
+                    <input id="txMailCfgContrasena" type="password" maxlength="200" autocomplete="new-password" placeholder="Captura o reemplaza la contraseña" />
+                    <small id="txMailCfgPasswordHint" class="mailcfg-help"></small>
+                </label>
+                <label class="checkapp-field">
+                    <span>Puerto</span>
+                    <input id="txMailCfgPuerto" type="number" min="1" max="65535" inputmode="numeric" placeholder="465" />
+                </label>
+                <label class="checkapp-field">
+                    <span>Seguridad</span>
+                    <select id="cbMailCfgSeguridad">
+                        <option value="SSL/TLS">SSL/TLS</option>
+                        <option value="STARTTLS">STARTTLS</option>
+                    </select>
+                </label>
+                <label class="checkapp-field mailcfg-field--wide">
+                    <span>Correo destinatario de prueba</span>
+                    <input id="txMailCfgDestinatario" type="email" maxlength="200" autocomplete="off" placeholder="destinatario@dominio.com" />
+                </label>
+            </div>
+
+            <div class="mailcfg-inline-status">
+                <span id="txMailCfgVerificationState" class="mailcfg-state">Completa la configuración y ejecuta una prueba para habilitar el guardado.</span>
+            </div>
+
+            <div class="checkapp-panel-actions mailcfg-actions">
+                <button id="btMailCfgProbar" type="button" class="checkapp-btn checkapp-btn-secondary">
+                    <i class="fa fa-paper-plane"></i>
+                    <span>Enviar correo de prueba</span>
+                </button>
+                <button id="btMailCfgCancelar" type="button" class="checkapp-btn checkapp-btn-ghost">
+                    <i class="fa fa-ban"></i>
+                    <span>Cancelar</span>
+                </button>
+                <button id="btMailCfgGuardar" type="button" class="checkapp-btn checkapp-btn-primary" disabled>
+                    <i class="fa fa-save"></i>
+                    <span>Guardar configuración</span>
+                </button>
+            </div>
+        </section>
+    </div>
+</div>
+
+@section Scripts {
+    <script src="~/js/Configuracion/CorreoSaliente.js" asp-append-version="true"></script>
+}

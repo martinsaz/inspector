@@ -520,6 +520,12 @@ namespace checklist.Controllers
                                         {
                                             sb.Append(@"<div id=""04001001OPERADORES"" class=""menu-item""> <a class=""menu-link"" href=""/Operadores/Index""> <span class=""menu-bullet""> <span class=""bullet bullet-dot""></span> </span> <span class=""menu-title"">Operadores</span> </a> </div>");
                                         }
+                                        sb.Append(@"<div id=""04009000CONFIGURACION"" data-kt-menu-trigger=""click"" class=""menu-item menu-accordion"">");
+                                        sb.Append(@"<span class=""menu-link""> <span class=""menu-bullet""> <span class=""bullet bullet-dot""></span> </span> <span class=""menu-title"">Configuración</span> <span class=""menu-arrow""></span> </span>");
+                                        sb.Append(@"<div class=""menu-sub menu-sub-accordion"">");
+                                        sb.Append(@"<div id=""04009001CORREOSALIENTE"" class=""menu-item""> <a class=""menu-link"" href=""/Configuracion/CorreoSaliente""> <span class=""menu-bullet""> <span class=""bullet bullet-dot""></span> </span> <span class=""menu-title"">Correo saliente</span> </a> </div>");
+                                        sb.Append(@"</div>");
+                                        sb.Append(@"</div>");
                                         // End hijos
                                         sb.Append(@"</div>");
                                         sb.Append(@"</div>");
