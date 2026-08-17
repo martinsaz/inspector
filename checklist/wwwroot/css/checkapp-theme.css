@@ -261,6 +261,32 @@
     border-color: var(--ca-primary-dark);
 }
 
+.ca-btn-primary i,
+.ca-btn-primary span,
+.checkapp-btn-primary i,
+.checkapp-btn-primary span,
+.ca-btn-primary:hover i,
+.ca-btn-primary:hover span,
+.ca-btn-primary:focus-visible i,
+.ca-btn-primary:focus-visible span,
+.ca-btn-primary:active i,
+.ca-btn-primary:active span,
+.checkapp-btn-primary:hover i,
+.checkapp-btn-primary:hover span,
+.checkapp-btn-primary:focus-visible i,
+.checkapp-btn-primary:focus-visible span,
+.checkapp-btn-primary:active i,
+.checkapp-btn-primary:active span {
+    color: #FAFAFA;
+}
+
+.ca-btn-primary:disabled i,
+.ca-btn-primary:disabled span,
+.checkapp-btn-primary:disabled i,
+.checkapp-btn-primary:disabled span {
+    color: #FAFAFA;
+}
+
 .ca-btn-secondary,
 .checkapp-btn-secondary {
     color: var(--ca-text-strong);

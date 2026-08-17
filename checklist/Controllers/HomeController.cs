@@ -365,7 +365,8 @@ namespace checklist.Controllers
 
                                         string currentMenuPath = ResolveCurrentMenuPath();
 
-                                        sb.Append(BuildStaticMenuLink("menu-ventas", "Ventas"));
+                                        sb.Append(BuildVentasMenu());
+                                        sb.Append(BuildFacturacionMenu());
                                         sb.Append(BuildCotizacionesMenu(currentMenuPath));
                                         sb.Append(BuildClientesMenu());
                                         sb.Append(BuildActivosMenu());
@@ -526,6 +527,8 @@ namespace checklist.Controllers
                                         sb.Append(@"<div id=""04009001CORREOSALIENTE"" class=""menu-item""> <a class=""menu-link"" href=""/Configuracion/CorreoSaliente""> <span class=""menu-bullet""> <span class=""bullet bullet-dot""></span> </span> <span class=""menu-title"">Correo saliente</span> </a> </div>");
                                         sb.Append(@"</div>");
                                         sb.Append(@"</div>");
+                                        sb.Append(@"<div id=""04010000AJUSTESPV"" class=""menu-item""> <a class=""menu-link"" href=""/Ajustes/AjustesPvPorTienda""> <span class=""menu-bullet""> <span class=""bullet bullet-dot""></span> </span> <span class=""menu-title"">Ajustes PV por tienda</span> </a> </div>");
+                                        sb.Append(@"<div id=""04011000FORMASPAGO"" class=""menu-item""> <a class=""menu-link"" href=""/Ajustes/FormasPago""> <span class=""menu-bullet""> <span class=""bullet bullet-dot""></span> </span> <span class=""menu-title"">Formas de pago</span> </a> </div>");
                                         // End hijos
                                         sb.Append(@"</div>");
                                         sb.Append(@"</div>");
@@ -864,9 +867,29 @@ namespace checklist.Controllers
             return sb.ToString();
         }
 
-        private static string BuildStaticMenuLink(string id, string title)
+        private static string BuildVentasMenu()
         {
-            return $@"<div id=""{id}"" class=""menu-item""> <a class=""menu-link"" href=""javascript:void(0);"" onclick=""return false;""> <span class=""menu-icon""> <i class=""ki-duotone ki-element-plus fs-2""> <span class=""path1""></span> <span class=""path2""></span> <span class=""path3""></span> <span class=""path4""></span> <span class=""path5""></span> </i> </span> <span class=""menu-title"">{title}</span> </a> </div>";
+            StringBuilder sb = new StringBuilder();
+            sb.Append(@"<div id=""menu-ventas"" data-kt-menu-trigger=""click"" class=""menu-item menu-accordion"">");
+            sb.Append(@"<span class=""menu-link""> <span class=""menu-icon""> <i class=""ki-duotone ki-element-plus fs-2""> <span class=""path1""></span> <span class=""path2""></span> <span class=""path3""></span> <span class=""path4""></span> <span class=""path5""></span> </i> </span> <span class=""menu-title"">Ventas</span> <span class=""menu-arrow""></span> </span>");
+            sb.Append(@"<div class=""menu-sub menu-sub-accordion"">");
+            sb.Append(@"<div id=""menu-ventas-nueva"" class=""menu-item""> <a class=""menu-link"" href=""/Ventas/Nueva""> <span class=""menu-bullet""> <span class=""bullet bullet-dot""></span> </span> <span class=""menu-title"">Nueva Venta</span> </a> </div>");
+            sb.Append(@"<div id=""menu-ventas-devoluciones"" class=""menu-item""> <a class=""menu-link"" href=""/Ventas/Devoluciones""> <span class=""menu-bullet""> <span class=""bullet bullet-dot""></span> </span> <span class=""menu-title"">Devoluciones</span> </a> </div>");
+            sb.Append(@"</div>");
+            sb.Append(@"</div>");
+            return sb.ToString();
+        }
+
+        private static string BuildFacturacionMenu()
+        {
+            StringBuilder sb = new StringBuilder();
+            sb.Append(@"<div id=""menu-facturacion"" data-kt-menu-trigger=""click"" class=""menu-item menu-accordion"">");
+            sb.Append(@"<span class=""menu-link""> <span class=""menu-icon""> <i class=""ki-duotone ki-element-plus fs-2""> <span class=""path1""></span> <span class=""path2""></span> <span class=""path3""></span> <span class=""path4""></span> <span class=""path5""></span> </i> </span> <span class=""menu-title"">Facturación</span> <span class=""menu-arrow""></span> </span>");
+            sb.Append(@"<div class=""menu-sub menu-sub-accordion"">");
+            sb.Append(@"<div id=""menu-facturacion-panel"" class=""menu-item""> <a class=""menu-link"" href=""/Facturacion/Panel""> <span class=""menu-bullet""> <span class=""bullet bullet-dot""></span> </span> <span class=""menu-title"">Panel de facturación</span> </a> </div>");
+            sb.Append(@"</div>");
+            sb.Append(@"</div>");
+            return sb.ToString();
         }
 
         private static string BuildCotizacionesMenu(string currentPath)

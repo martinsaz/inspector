@@ -60,6 +60,10 @@
 - Estan prohibidos colores hardcodeados en vistas, scripts de render y hojas de estilo nuevas cuando exista token equivalente.
 - Los grids nuevos o intervenidos deben converger a `CheckAppDynamicGrid` y no crear inicializaciones aisladas de DataTables con look-and-feel local.
 - Los paneles de filtros plegables deben usar `CheckAppFilterAccordion` o mantener su misma filosofia de resumen visible, apertura segura y persistencia de contexto.
+- Regla visual global obligatoria para el Patron CheckApp:
+  - todo icono contenido en un boton primario con fondo rojo debe renderizarse en `#FAFAFA`
+  - nunca debe heredar gris, muted, secondary ni otro color que reduzca su contraste
+  - esta regla aplica a cualquier pantalla nueva o modificada que utilice el Patron CheckApp
 - Responsive no es opcional:
   - sin overflow horizontal accidental
   - filtros y acciones principales visibles
@@ -214,6 +218,80 @@
 - La auditoría previa confirmó que el modelo actual basado en `MailRegistro` es global y compartido; ese hallazgo debe tratarse como evidencia de riesgo y no como invitación a reutilizar esa arquitectura para el nuevo módulo.
 - Regla arquitectónica vigente:
   - el nuevo correo saliente documental debe tener persistencia, prueba y configuración aisladas por empresa
+
+## Cotizaciones > WhatsApp y correo
+
+- Auditoría técnica cerrada el `2026-08-15` para `Cotizaciones > WhatsApp` y `Cotizaciones > Correo` con fuentes primarias oficiales.
+- Conclusiones obligatorias de producto e integración:
+  - `Web Share API` comparte hacia un selector arbitrario del sistema y no permite forzar WhatsApp como destino único.
+  - `https://wa.me/<numero>` sí permite abrir un chat oficial de WhatsApp con destinatario específico y texto precargado.
+  - no quedó evidencia oficial aprobada para preadjuntar automáticamente un PDF local a WhatsApp Web, WhatsApp Desktop o el esquema `whatsapp://` desde una app web estándar.
+  - el envío oficial de documentos PDF por WhatsApp sí existe en `WhatsApp Business Platform / Cloud API`, pero requiere número empresarial, cuenta empresarial, credenciales, token e infraestructura adicional autorizada.
+- Decisión vigente del proyecto:
+  - el flujo actual no debe volver a presentarse como selector genérico del sistema bajo la etiqueta `WhatsApp`
+  - la UX aprobada abre el chat oficial de WhatsApp con `wa.me`, descarga/prepara el PDF real y comunica con honestidad que el adjunto del archivo sigue siendo manual
+  - el envío directo de PDF dentro del chat queda reservado para una futura integración formal con `WhatsApp Business Platform / Cloud API`
+- UX aprobada desde el `2026-08-15`:
+  - el modal de WhatsApp solo muestra la tarea esencial: teléfono + acción de enviar
+  - el icono de WhatsApp debe ser inequívoco y visible en grid, acciones rápidas y botones primarios
+  - el modal de correo debe permanecer abierto mientras envía
+  - al éxito de correo no debe autocerrarse; debe mostrar confirmación explícita y cerrar solo por acción del usuario
+- Certificación final post-QA manual del `2026-08-15` para `Cotizaciones > Distribución`:
+  - `Correo` queda aprobado end-to-end por Product Owner con recepción real en Gmail, remitente documental correcto, folio `COT-000018`, PDF adjunto correcto y apertura correcta del PDF
+  - la única microcorrección UX pendiente era dejar exactamente un solo botón `Cerrar` después del éxito
+  - `WhatsApp` queda estable únicamente para apertura de chat y precarga de texto
+  - el no-adjunto automático del PDF se clasifica como limitación de arquitectura del mecanismo web actual y no debe seguir parchándose con `wa.me`, `api.whatsapp.com`, `Web Share` ni deep links
+  - la siguiente etapa funcional autorizable queda documentada como `Integración WhatsApp Business Platform para distribución documental`
+- Auditoría preimplementación cerrada el `2026-08-15` para `WhatsApp Business Platform`:
+  - la API oficial recomendada para la siguiente etapa es `WhatsApp Business Platform / Cloud API`
+  - Meta sí soporta envío de documentos PDF y documentos con caption
+  - la integración recomendada para CheckApp es `backend -> Media Upload API -> media_id -> document message`
+  - el PDF actual de cotizaciones debe reutilizarse desde `ObtenerDocumentoCotizacionAsync` + `BuildPdfDocument`; está prohibido duplicarlo
+  - fuera de la ventana de servicio de `24` horas, solo se puede iniciar contacto con template aprobado
+  - si el cliente nunca escribió antes, además del template, se requiere opt-in válido del usuario
+  - la configuración futura debe ser por empresa y separada de `Correo saliente`
+  - ningún secreto de WhatsApp puede salir al frontend; `access token`, `phone number ID`, `WABA ID`, `app secret` y `verify token` deben vivir protegidos en backend
+  - la siguiente etapa requiere webhooks y trazabilidad de estados (`enviado`, `entregado`, `leído`, `error`)
+  - complejidad estimada: `ALTA`
+- Cierre definitivo de producto para `Cotizaciones > Distribución > WhatsApp` desde el `2026-08-15`:
+  - `Correo` es distribución automática con PDF adjunto
+  - `WhatsApp` es distribución asistida y no debe prometer adjunto automático en desktop
+  - en `desktop`, CheckApp prepara/descarga el PDF existente y abre directamente el chat del cliente con mensaje limpio; el usuario adjunta el PDF manualmente
+  - en `mobile/tablet`, solo si el entorno realmente soporta compartir `File`, CheckApp usa el share nativo del PDF
+
+## Menú principal > actualización controlada
+
+- Implementación controlada cerrada el `2026-08-15` para la nueva estructura parcial de `Ventas`, `Facturación` y `Ajustes`, sin tocar roles ni permisos.
+- Auditoría previa documentada en `docs/ui/MENU_CHECKAPP_ACTUALIZACION_CONTROLADA_20260815.md`.
+- Hallazgos obligatorios previos:
+  - `Ventas` existía solo como nodo visual estático en `HomeController.BuildMenu` y no tenía ruta funcional real
+  - no se encontró reutilización MVC equivalente para `Devoluciones`, `Panel de facturación`, `Ajustes PV por tienda` ni `Formas de pago`
+  - `Roles y Permisos` ya estaba como hija directa protegida de `Ajustes` y no debía moverse
+  - `Configuración > Correo saliente` ya existía como rama aprobada y debía permanecer intacta
+- Implementación aplicada:
+  - `Ventas` quedó como padre desplegable con `Nueva Venta` y `Devoluciones`
+  - `Facturación` quedó como nuevo padre desplegable con `Panel de facturación`
+  - `Ajustes` conservó en el mismo orden relativo `Usuarios`, `Roles y Permisos`, `Sucursales`, `Razones Sociales`, `Regiones`, `Operadores`, `Configuración -> Correo saliente`
+  - se agregaron `Ajustes PV por tienda` y `Formas de pago` después de `Configuración` y en ese orden
+  - las opciones nuevas sin implementación existente quedaron como placeholders MVC mínimos:
+    - `/Ventas/Nueva`
+    - `/Ventas/Devoluciones`
+    - `/Facturacion/Panel`
+    - `/Ajustes/AjustesPvPorTienda`
+    - `/Ajustes/FormasPago`
+- Restricciones respetadas:
+  - no se crearon permisos nuevos
+  - no se modificó la ruta de `Roles y Permisos`
+  - no se modificó la ruta `/Configuracion/CorreoSaliente`
+  - no se alteró el comportamiento condicional de `Inspección en campo`
+- Sincronización visual aplicada:
+  - `wwwroot/js/Utilerias.js` ahora marca `active/here/show` para las rutas nuevas y para los nodos custom de `Cotizaciones`, `Clientes` y `Ajustes`
+- Validación técnica prevista para este cierre:
+  - `dotnet build inspector/checklist/checklist.csproj`
+  - si `mobile/tablet` no soporta compartir `File`, cae automáticamente al mismo fallback asistido de desktop
+  - la decisión de usar share nativo no debe depender solo del ancho de pantalla; debe basarse principalmente en capacidades reales del navegador y el tipo de dispositivo
+  - queda prohibido seguir intentando resolver el adjunto automático desktop con parches frontend sobre `wa.me`, `api.whatsapp.com`, deep links o automatización del navegador
+  - `WhatsApp Business Platform` permanece solo como evolución futura opcional y no forma parte del alcance actual
   - no debe sustituir ni refactorizar la infraestructura base protegida en la misma iteración
   - no debe modificar consumidores legacy fuera de alcance mientras el Product Owner no lo autorice
 - La empresa QA autorizada para este subsistema es `163`.
@@ -283,6 +361,28 @@
       - tras recargar la pantalla con la configuración ya guardada, `Última prueba` volvió a mostrarse como `14 ago 2026, 2:59 p.m.`
       - desapareció el desplazamiento visual de `+6` horas
       - SMTP, `Verificada`, `Guardar`, persistencia y protección de contraseña permanecieron intactos
+  - microcorrección UX/UI concluida el `2026-08-14`:
+    - alcance exacto:
+      - mejora de claridad UX del campo `Contraseña` cuando ya existe password guardado
+      - corrección definitiva del color del icono en el botón primario `Guardar configuración`
+    - ajuste UX de contraseña:
+      - la UI ya no muestra un campo aparentemente vacío como si faltara capturar la clave
+      - cuando existe password guardado, la vista renderiza una máscara ficticia `••••••••••••••••`
+      - esa máscara no proviene del backend, no revela el secreto y no guarda relación con la longitud real
+      - el helper final para usuario quedó como `Tu contraseña ya está guardada. Escribe una nueva solo si deseas cambiarla.`
+      - si el usuario no escribe nada, o escribe y luego borra, el flujo conserva la contraseña existente
+    - ajuste visual del patrón:
+      - la regla del icono `#FAFAFA` para botones primarios rojos quedó reforzada en `wwwroot/css/checkapp-theme.css`
+      - el módulo `Correo saliente` dejó de depender de un parche local aislado para ese icono
+    - archivos modificados:
+      - `checklist/Views/Configuracion/CorreoSaliente.cshtml`
+      - `checklist/wwwroot/js/Configuracion/CorreoSaliente.js`
+      - `checklist/wwwroot/css/Configuracion/CorreoSaliente.css`
+      - `checklist/wwwroot/css/checkapp-theme.css`
+    - resultado QA:
+      - la pantalla mantuvo `smtp.gmail.com`, puerto `465`, `SSL/TLS`, estado `Verificada` y fecha `14 ago 2026, 3:16 p.m.`
+      - el campo de contraseña ahora comunica correctamente que la clave ya existe sin exponerla
+      - el boton `Guardar configuración` conserva icono y texto en `#FAFAFA`
 
 ## Vertical Cotizaciones
 
@@ -297,12 +397,88 @@
 - QA manual del Product Owner prevalece sobre cualquier certificación automática.
 - Las microiteraciones posteriores no deben romper funcionalidades ya aprobadas del vertical.
 - Si Codex inicia procesos locales para QA, solo esos procesos deben detenerse al finalizar; listeners preexistentes no se tocan.
+- Integración documental obligatoria desde el `2026-08-14`:
+  - `Cotizaciones > Enviar por correo` debe consumir exclusivamente la configuración de `Ajustes > Configuración > Correo saliente`
+  - el envío debe salir por `DocumentEmailService`
+  - queda prohibido usar `EmailServices`, `MailRegistro`, Firebase o la configuración SMTP legacy de autenticación para este flujo
 
 ### Etapa 00
 
 - Se preparó el vertical con entrada de menú `Cotizaciones` y operación `ABC Cotizaciones`.
 - Ruta base documentada: `/Cotizaciones/Index`.
 - No se autorizaron roles ni permisos nuevos para esta etapa base.
+
+### Integración correo documental
+
+- Integración concluida el `2026-08-14` para `Cotizaciones > Enviar por correo`.
+- Auditoría corta del flujo anterior:
+  - frontend: `wwwroot/js/Cotizaciones/Cotizaciones.js -> sendCotizacionCorreo()`
+  - endpoint MVC: `checklist/Controllers/Cotizaciones/CotizacionesController.cs -> EnviarCotizacionCorreo`
+  - servicio legacy anterior: `EmailServices`
+  - configuración SMTP anterior: `MailRegistro` desde Firebase
+  - PDF anterior y vigente: `api/Cotizaciones/ExportarCotizacionPdf`
+- Arquitectura final aplicada:
+  - el frontend conserva el modal aprobado de correo
+  - MVC `CotizacionesController` ya no envía SMTP; solo hace proxy al API
+  - API `CotizacionesController` resuelve la empresa activa server-side
+  - API carga `ConfiguracionCorreoSaliente` de la empresa activa
+  - API desbloquea la credencial protegida con `IDataProtector`
+  - API reutiliza `DocumentEmailService`
+  - API adjunta el PDF existente como `cotizacion_{FOLIO}.pdf` con `application/pdf`
+- Reglas funcionales aplicadas:
+  - si no existe configuración documental activa o la credencial protegida no es válida, el flujo responde `No hay una cuenta de correo configurada para enviar documentos.`
+  - si la cuenta existe pero no está verificada, el flujo responde `La cuenta de correo debe verificarse antes de enviar documentos.`
+  - no se acepta `idEmpresa` del navegador como autoridad para resolver la cuenta documental
+  - no se duplicó SMTP ni se creó un servicio paralelo
+- Ajuste UX aplicado en el modal:
+  - asunto sugerido: `Cotización {FOLIO}`
+  - mensaje sugerido:
+    - `Hola,`
+    - `Te compartimos la cotización {FOLIO} por un total de {TOTAL}.`
+    - `Adjuntamos el documento en formato PDF.`
+    - `Saludos.`
+- Archivos intervenidos:
+  - `checklist/Controllers/Cotizaciones/CotizacionesController.cs`
+  - `checklist/wwwroot/js/Cotizaciones/Cotizaciones.js`
+  - `checklistWs/Controllers/Cotizaciones/CotizacionesController.cs`
+  - `checklistWs/Models/Cotizaciones/CotizacionesModels.cs`
+  - `checklistWs/Services/DocumentEmailService.cs`
+- Validación técnica:
+  - `node --check checklist/wwwroot/js/Cotizaciones/Cotizaciones.js`
+  - `dotnet build inspector/checklist/checklist.csproj`
+  - `dotnet build inspectorapi/checklistWs/checklistWs.csproj`
+  - ambas compilaciones cerraron con `0` errores y warnings preexistentes del proyecto
+- Certificación E2E auditada el `2026-08-14` en sesión real autenticada:
+  - usuario observado: `Denisse Martinez Mendiola`
+  - empresa observada: `UMBRELLA`
+  - modo observado: `Administración`
+  - `Ajustes > Configuración > Correo saliente` quedó `Verificada` con `smtp.gmail.com`, puerto `465`, seguridad `SSL/TLS` y password enmascarado
+  - cotización auditada: `COT-000018`, cliente `Sadie Sink`, correo precargado `alltoowell@song.com`, total `$1,302.00`
+  - el modal precarga asunto `Cotización COT-000018` y mensaje documental aprobado
+  - durante la corrida automatizada no se obtuvo evidencia suficiente de aceptación SMTP ni de cierre exitoso del modal; el dictamen funcional queda pendiente de QA manual del Product Owner
+  - sí se confirmó comunicación local `MVC 5200 -> API 5127` durante la prueba y la arquitectura vigente por código sigue resolviendo empresa server-side, `IDataProtector`, `DocumentEmailService` y adjunto `cotizacion_{FOLIO}.pdf`
+  - hallazgo pendiente: `wwwroot/js/Cotizaciones/Cotizaciones.js -> sendCotizacionCorreo()` no deshabilita `#btCotConfirmarCorreo` durante el submit, por lo que la protección contra doble clic no está certificada
+- Corrección post-QA manual aplicada el `2026-08-14` para `Cotizaciones > WhatsApp` y `Cotizaciones > Enviar por correo`:
+  - causa raíz del PDF en WhatsApp: `wa.me` solo transporta texto; el flujo anterior descargaba el PDF y abría WhatsApp en un `.finally()`, por lo que nunca podía adjuntar el archivo automáticamente
+  - capacidad soportada por diseño final:
+    - si `navigator.share` + `navigator.canShare({ files })` + `File` + contexto seguro están disponibles, el flujo usa `Web Share` con `application/pdf`
+    - si esa capacidad no existe, el flujo hace fallback honesto: descarga/prepara `cotizacion_{FOLIO}.pdf`, abre WhatsApp con texto limpio y avisa que el usuario debe adjuntar el archivo manualmente
+  - queda prohibido insertar `localhost`, `GUID`, rutas internas o afirmar adjunto automático cuando el navegador no lo soporta
+  - causa raíz del cruce WhatsApp -> Correo: ambos flujos reutilizaban `state.action` como estado mutable compartido; la corrección separó estado y busy flags por canal
+  - regla operativa nueva:
+    - WhatsApp usa estado independiente `distribution.whatsapp`
+    - Correo usa estado independiente `distribution.email`
+    - un clic en WhatsApp no puede disparar Correo
+    - un clic en Correo no puede disparar WhatsApp
+  - UX obligatoria:
+    - WhatsApp muestra feedback inmediato `Preparando cotización...`
+    - Correo muestra feedback inmediato `Enviando...`
+    - ambos bloquean doble clic mientras la operación está en curso
+    - Correo solo cierra después de mostrar `Correo enviado correctamente.`
+  - iconografía aprobada:
+    - se reemplazó el pseudo-icono anterior por SVG explícito de WhatsApp, sin introducir una librería nueva
+    - tooltip aprobado: `Enviar por WhatsApp`
+    - aria-label aprobado: `Enviar cotización por WhatsApp`
 
 ### Etapa 01
 
@@ -465,3 +641,29 @@
   - permitir `Guardar` sin prueba y marcar estado `No verificada`
 - Entregable documental oficial:
   - `docs/configuracion/CORREO_SALIENTE_AUDITORIA_PREIMPLEMENTACION.md`
+
+## Auditoría preimplementación Legacy Ventas / Devoluciones / Ajustes PV / Formas de pago
+
+- El `2026-08-17` se abrió la auditoría preimplementación de cuatro módulos Legacy fuente:
+  - `/ventas/nueva`
+  - `/ventas/devoluciones`
+  - `/ajustes/pv/tiendas-ajustes`
+  - `/ajustes-pv/formas-pago`
+- Repos fuente auditados en solo lectura:
+  - `/Users/denissemendiola/dev/Raramuri.blzr`
+  - `/Users/denissemendiola/dev/sazapi`
+- Entregable documental creado:
+  - `docs/qa/AUDITORIA_PREIMPLEMENTACION_LEGACY_VENTAS_DEVOLUCIONES_AJUSTES_PV_FORMAS_PAGO_2026-08-17.md`
+- Hallazgos arquitectónicos confirmados:
+  - `Raramuri.blzr` usa perfiles locales oficiales `http-local-api` y `https-local-api` para forzar `SazApi__BaseUrl=http://localhost:5082`
+  - `sazapi` expone perfiles locales oficiales en `http://localhost:5082`
+  - `/ventas/nueva` depende operativamente de `configuracion/formas-pago` para validar facturación por forma fiscal
+  - `/ventas/devoluciones` ya consume política real de `DiasParaDevolver` resuelta server-side
+  - `/ajustes/pv/tiendas-ajustes` y `/ajustes-pv/formas-pago` no son pantallas aisladas; gobiernan reglas reales de operación
+- Estado operativo real de la corrida:
+  - `Raramuri.blzr` sí levantó localmente en `http://localhost:5022` con perfil `http-local-api`
+  - `sazapi` no levantó en esta máquina porque faltan secretos Development autorizados, al menos `Jwt:Key`
+  - no se inventaron secretos ni se modificó configuración sensible para forzar el arranque
+- Bloqueo formal para la siguiente corrida:
+  - solicitar y cargar solo por `user-secrets` los valores autorizados de `Jwt:Key` y, si aplica, `ConnectionStrings:Central`
+  - después completar login QA real y captura de requests/responses auténticas

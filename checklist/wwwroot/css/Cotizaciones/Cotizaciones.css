@@ -436,6 +436,43 @@
     width: 0.95rem;
 }
 
+.cot-page .cot-action-btn--whatsapp {
+    color: #15803d;
+}
+
+.cot-page .cot-action-btn--whatsapp:hover,
+.cot-page .cot-action-btn--whatsapp:focus-visible {
+    color: #166534;
+}
+
+.cot-page .cot-action-btn--whatsapp i,
+.cot-page #btCotDetalleWhatsApp i,
+.cot-page #btCotFallbackWhatsApp i {
+    font-size: 1.05rem;
+}
+
+.cot-page .checkapp-btn-primary .fa-whatsapp {
+    color: #fafafa;
+}
+
+.cot-distribution-success {
+    display: grid;
+    gap: 0.5rem;
+    padding: 0.25rem 0;
+}
+
+.cot-distribution-success h3 {
+    margin: 0;
+    color: var(--ca-text);
+    font-size: 1.05rem;
+    font-weight: 700;
+}
+
+.cot-distribution-success p {
+    margin: 0;
+    color: var(--ca-text-muted);
+}
+
 .cot-page[data-cot-page='report'] .cot-grid-actions .checkapp-btn-inline span {
     display: none;
 }

@@ -16,6 +16,7 @@
     const gridId = "cotizaciones-grid";
     const pageType = String(root.getAttribute("data-cot-page") || "").trim().toLowerCase();
     const productImagePlaceholder = "/assets/media/svg/files/blank-image.svg";
+    const whatsappIconHtml = "<i class='fa fa-whatsapp' aria-hidden='true'></i>";
 
     const state = {
         pageType: pageType,
@@ -32,6 +33,18 @@
         action: {
             detailId: "",
             detail: null
+        },
+        distribution: {
+            whatsapp: {
+                detailId: "",
+                detail: null,
+                busy: false
+            },
+            email: {
+                detailId: "",
+                detail: null,
+                busy: false
+            }
         },
         editor: {
             mode: String(root.getAttribute("data-cot-mode") || "new").trim().toLowerCase(),
@@ -105,6 +118,7 @@
         });
 
         setDefaultTodayRange("#txCotFiltroFechaDesde", "#txCotFiltroFechaHasta");
+        bindDistributionEvents();
         bindReportEvents();
         initReportGrid()
             .then(function () {
@@ -164,11 +178,15 @@
             shareCotizacion(String($(this).attr("data-cot-share") || ""));
         });
 
-        $("#gridCotizacionesHost").on("click", "[data-cot-whatsapp]", function () {
+        $("#gridCotizacionesHost").on("click", "[data-cot-whatsapp]", function (event) {
+            event.preventDefault();
+            event.stopPropagation();
             openWhatsAppModal(String($(this).attr("data-cot-whatsapp") || ""));
         });
 
-        $("#gridCotizacionesHost").on("click", "[data-cot-email]", function () {
+        $("#gridCotizacionesHost").on("click", "[data-cot-email]", function (event) {
+            event.preventDefault();
+            event.stopPropagation();
             openCorreoModal(String($(this).attr("data-cot-email") || ""));
         });
 
@@ -204,9 +222,14 @@
             openCorreoModal(state.action.detailId);
         });
         $("#btCotFallbackCopiar").on("click", copyFallbackLink);
+        $("#btCotConfirmarAutorizar").on("click", confirmAutorizarCotizacion);
+    }
+
+    function bindDistributionEvents() {
         $("#btCotConfirmarWhatsApp").on("click", sendCotizacionWhatsApp);
         $("#btCotConfirmarCorreo").on("click", sendCotizacionCorreo);
-        $("#btCotConfirmarAutorizar").on("click", confirmAutorizarCotizacion);
+        $("#modalCotWhatsApp").on("hidden.bs.modal", resetWhatsAppUi);
+        $("#modalCotCorreo").on("hidden.bs.modal", resetCorreoUi);
     }
 
     function initReportGrid() {
@@ -235,7 +258,7 @@
                 const actions = [
                     "<button type='button' class='checkapp-btn checkapp-btn-secondary' data-cot-detail='" + escapeHtml(row.id || "") + "' title='Ver detalle de la cotizacion' aria-label='Ver detalle de la cotizacion'><i class='fa fa-eye'></i><span>Ver detalle</span></button>",
                     "<button type='button' class='checkapp-btn checkapp-btn-ghost' data-cot-share='" + escapeHtml(row.id || "") + "' title='Compartir cotizacion " + escapeHtml(row.folio || "") + "' aria-label='Compartir cotizacion " + escapeHtml(row.folio || "") + "'><i class='fa fa-share-alt'></i><span>Compartir</span></button>",
-                    "<button type='button' class='checkapp-btn checkapp-btn-ghost' data-cot-whatsapp='" + escapeHtml(row.id || "") + "' title='Enviar cotizacion por WhatsApp " + escapeHtml(row.folio || "") + "' aria-label='Enviar cotizacion por WhatsApp " + escapeHtml(row.folio || "") + "'><i class='fa fa-whatsapp'></i><span>WhatsApp</span></button>",
+                    "<button type='button' class='checkapp-btn checkapp-btn-ghost cot-action-btn--whatsapp' data-cot-whatsapp='" + escapeHtml(row.id || "") + "' title='Enviar por WhatsApp' aria-label='Enviar cotización por WhatsApp'>" + whatsappIconHtml + "<span>WhatsApp</span></button>",
                     "<button type='button' class='checkapp-btn checkapp-btn-ghost' data-cot-email='" + escapeHtml(row.id || "") + "' title='Enviar cotizacion por correo " + escapeHtml(row.folio || "") + "' aria-label='Enviar cotizacion por correo " + escapeHtml(row.folio || "") + "'><i class='fa fa-envelope'></i><span>Correo</span></button>",
                     row.puedeAutorizar ? "<button type='button' class='checkapp-btn checkapp-btn-primary' data-cot-authorize='" + escapeHtml(row.id || "") + "' data-cot-folio='" + escapeHtml(row.folio || "") + "' title='Autorizar cotizacion " + escapeHtml(row.folio || "") + "' aria-label='Autorizar cotizacion " + escapeHtml(row.folio || "") + "'><i class='fa fa-check-circle'></i><span>Autorizar</span></button>" : "",
                     row.puedeCancelar ? "<button type='button' class='checkapp-btn checkapp-btn-ghost' data-cot-cancel='" + escapeHtml(row.id || "") + "' data-cot-folio='" + escapeHtml(row.folio || "") + "' title='Cancelar cotizacion " + escapeHtml(row.folio || "") + "' aria-label='Cancelar cotizacion " + escapeHtml(row.folio || "") + "'><i class='fa fa-ban'></i><span>Cancelar</span></button>" : ""
@@ -288,7 +311,7 @@
                         }
 
                         actions.push("<button type='button' class='checkapp-btn checkapp-btn-ghost checkapp-btn-inline' data-cot-share='" + escapeHtml(row.id || "") + "' title='Compartir cotizacion " + escapeHtml(row.folio || "") + "' aria-label='Compartir cotizacion " + escapeHtml(row.folio || "") + "'><i class='fa fa-share-alt'></i></button>");
-                        actions.push("<button type='button' class='checkapp-btn checkapp-btn-ghost checkapp-btn-inline' data-cot-whatsapp='" + escapeHtml(row.id || "") + "' title='Enviar cotizacion por WhatsApp " + escapeHtml(row.folio || "") + "' aria-label='Enviar cotizacion por WhatsApp " + escapeHtml(row.folio || "") + "'><i class='fa fa-whatsapp'></i></button>");
+                        actions.push("<button type='button' class='checkapp-btn checkapp-btn-ghost checkapp-btn-inline cot-action-btn--whatsapp' data-cot-whatsapp='" + escapeHtml(row.id || "") + "' title='Enviar por WhatsApp' aria-label='Enviar cotización por WhatsApp'>" + whatsappIconHtml + "</button>");
                         actions.push("<button type='button' class='checkapp-btn checkapp-btn-ghost checkapp-btn-inline' data-cot-email='" + escapeHtml(row.id || "") + "' title='Enviar cotizacion por correo " + escapeHtml(row.folio || "") + "' aria-label='Enviar cotizacion por correo " + escapeHtml(row.folio || "") + "'><i class='fa fa-envelope'></i></button>");
 
                         if (row.puedeAutorizar) {
@@ -518,6 +541,7 @@
     }
 
     function bindEditorEvents() {
+        bindDistributionEvents();
         $("#txCotBuscarCliente").on("input", scheduleClienteSearch);
         $("#txCotBuscarProducto").on("input", scheduleProductoSearch);
         $("#cbCotSucursal, #txCotVigenciaDias, #txCotObservaciones").on("input change", function () {
@@ -1250,6 +1274,125 @@
         return "Hola, te comparto la cotización " + (detail.folio || "sin folio") + " por un total de " + formatCurrency(detail.total || 0) + ".";
     }
 
+    function canNativeSharePdfFile() {
+        if (!navigator.share || typeof window.File !== "function") {
+            return false;
+        }
+
+        if (typeof navigator.canShare !== "function") {
+            return false;
+        }
+
+        try {
+            const probeFile = new window.File(["checkapp"], "cotizacion.pdf", { type: "application/pdf" });
+            return navigator.canShare({ files: [probeFile] });
+        } catch {
+            return false;
+        }
+    }
+
+    function isLikelyMobileOrTabletEnvironment() {
+        const userAgent = String(navigator.userAgent || "");
+        const uaData = navigator.userAgentData || null;
+        const isMobileHint = !!(uaData && typeof uaData.mobile === "boolean" && uaData.mobile);
+        const mobileRegex = /Android|iPhone|iPad|iPod|Mobile|Tablet/i;
+        const hasTouch = typeof navigator.maxTouchPoints === "number" && navigator.maxTouchPoints > 0;
+        const coarsePointer = typeof window.matchMedia === "function" && window.matchMedia("(pointer: coarse)").matches;
+
+        if (isMobileHint || mobileRegex.test(userAgent)) {
+            return true;
+        }
+
+        return hasTouch && coarsePointer;
+    }
+
+    function shouldUseNativeWhatsAppShare() {
+        return canNativeSharePdfFile() && isLikelyMobileOrTabletEnvironment();
+    }
+
+    function setDistributionDetail(channel, detail) {
+        const bucket = state.distribution[channel];
+        if (!bucket) {
+            return;
+        }
+
+        bucket.detail = detail || null;
+        bucket.detailId = detail && detail.id ? String(detail.id) : "";
+    }
+
+    function getDistributionDetail(channel) {
+        const bucket = state.distribution[channel];
+        return bucket ? (bucket.detail || {}) : {};
+    }
+
+    function setActionButtonBusy(selector, busy, label, iconMarkup) {
+        const button = document.querySelector(selector);
+        if (!button) {
+            return;
+        }
+
+        if (!button.dataset.defaultLabel) {
+            const span = button.querySelector("span");
+            button.dataset.defaultLabel = span ? span.textContent || "" : "";
+        }
+
+        if (!button.dataset.defaultIcon) {
+            const iconNode = button.querySelector(".cot-whatsapp-icon, i");
+            button.dataset.defaultIcon = iconNode ? iconNode.outerHTML : "";
+        }
+
+        button.disabled = !!busy;
+        const span = button.querySelector("span");
+        if (span) {
+            span.textContent = label || button.dataset.defaultLabel || "";
+        }
+
+        const currentIcon = button.querySelector(".cot-whatsapp-icon, i");
+        const nextIconMarkup = busy
+            ? "<i class='fa fa-spinner fa-spin' aria-hidden='true'></i>"
+            : (iconMarkup || button.dataset.defaultIcon || "");
+
+        if (currentIcon && nextIconMarkup) {
+            currentIcon.outerHTML = nextIconMarkup;
+        } else if (!currentIcon && nextIconMarkup) {
+            button.insertAdjacentHTML("afterbegin", nextIconMarkup);
+        }
+    }
+
+    function resetWhatsAppUi() {
+        state.distribution.whatsapp.busy = false;
+        setActionButtonBusy("#btCotConfirmarWhatsApp", false, "Enviar", whatsappIconHtml);
+        if ($("#txCotWhatsAppStatus").hasClass("is-success")) {
+            setStatus("#txCotWhatsAppStatus", "", "");
+        }
+    }
+
+    function resetCorreoUi() {
+        state.distribution.email.busy = false;
+        setActionButtonBusy("#btCotConfirmarCorreo", false, "Enviar", "<i class='fa fa-envelope' aria-hidden='true'></i>");
+        setStatus("#txCotCorreoStatus", "", "");
+        $("#panelCotCorreoForm").prop("hidden", false);
+        $("#panelCotCorreoSuccess").prop("hidden", true);
+        $("#btCotConfirmarCorreo").prop("hidden", false);
+        $("#btCotCancelarCorreo").attr("data-bs-dismiss", "modal");
+        $("#btCotCancelarCorreo i").attr("class", "fa fa-times");
+        $("#btCotCancelarCorreo span").text("Cancelar");
+    }
+
+    function setCorreoSuccessState(detail, correo) {
+        const folio = detail && detail.folio ? detail.folio : "la cotización";
+        const destinatario = correo || "el correo capturado";
+        $("#panelCotCorreoForm").prop("hidden", true);
+        $("#panelCotCorreoSuccess").prop("hidden", false);
+        $("#txCotCorreoSuccessTitle").text("Correo enviado correctamente");
+        $("#txCotCorreoSuccessBody").text("Se envió la cotización " + folio + " a: " + destinatario);
+        $("#btCotConfirmarCorreo").prop("hidden", true);
+        $("#btCotCancelarCorreo").attr("data-bs-dismiss", "modal");
+        $("#btCotCancelarCorreo i").attr("class", "fa fa-check");
+        $("#btCotCancelarCorreo span").text("Cerrar");
+        setStatus("#txCotCorreoStatus", "", "");
+    }
+
     function fetchPdfBlob(id) {
         return window.fetch(buildPdfUrl(id), {
             method: "GET",
@@ -1359,10 +1502,13 @@
     function openWhatsAppModal(id) {
         resolveCotizacionDetail(id)
             .then(function (detail) {
-                setActionDetail(detail);
+                setDistributionDetail("whatsapp", detail);
                 const digits = normalizePhoneDigits(detail.clienteTelefono || "").slice(-10);
                 $("#txCotWhatsAppTelefono").val(digits);
-                $("#txCotWhatsAppPrompt").text("Captura el teléfono a 10 dígitos para enviar la cotización " + (detail.folio || "") + ".");
+                const prompt = shouldUseNativeWhatsAppShare()
+                    ? "La cotización está lista. Compartiremos el PDF para que lo envíes por WhatsApp."
+                    : "La cotización está lista. Abriremos el chat del cliente con el mensaje preparado. Recuerda adjuntar el PDF de la cotización antes de enviarlo.";
+                $("#txCotWhatsAppPrompt").text(prompt);
                 setStatus("#txCotWhatsAppStatus", "", "");
                 resolveModalApi("#modalCotWhatsApp").show();
             })
@@ -1372,35 +1518,94 @@
     }
 
     function sendCotizacionWhatsApp() {
-        const detail = state.action.detail || {};
-        const digits = normalizePhoneDigits($("#txCotWhatsAppTelefono").val()).slice(-10);
-        if (digits.length !== 10) {
-            setStatus("#txCotWhatsAppStatus", "danger", "Captura un teléfono válido de 10 dígitos.");
+        const detail = getDistributionDetail("whatsapp");
+        if (state.distribution.whatsapp.busy) {
             return;
         }
 
+        const digits = normalizePhoneDigits($("#txCotWhatsAppTelefono").val()).slice(-10);
         if (!detail.id) {
             setStatus("#txCotWhatsAppStatus", "danger", "La cotización no está disponible.");
             return;
         }
 
+        state.distribution.whatsapp.busy = true;
+        setActionButtonBusy("#btCotConfirmarWhatsApp", true, "Preparando...", whatsappIconHtml);
+        setStatus("#txCotWhatsAppStatus", "info", "Preparando cotización...");
+
         const message = buildWhatsAppShareMessage(detail);
+        const fileName = buildPdfFileName(detail.folio);
+        if (digits.length !== 10) {
+            state.distribution.whatsapp.busy = false;
+            setActionButtonBusy("#btCotConfirmarWhatsApp", false, "Enviar", whatsappIconHtml);
+            setStatus("#txCotWhatsAppStatus", "danger", "Captura un teléfono válido de 10 dígitos.");
+            return;
+        }
+
+        if (shouldUseNativeWhatsAppShare()) {
+            fetchPdfBlob(detail.id)
+                .then(function (blob) {
+                    const file = new window.File([blob], fileName, { type: "application/pdf" });
+                    return navigator.share({
+                        title: "Cotización " + (detail.folio || ""),
+                        text: message,
+                        files: [file]
+                    });
+                })
+                .then(function () {
+                    setStatus("#txCotFormStatus", "success", "PDF listo para compartir por WhatsApp.");
+                    resolveModalApi("#modalCotWhatsApp").hide();
+                })
+                .catch(function (error) {
+                    if (error && error.name === "AbortError") {
+                        setStatus("#txCotWhatsAppStatus", "", "");
+                        return;
+                    }
+
+                    setStatus("#txCotWhatsAppStatus", "danger", resolveErrorMessage(error));
+                })
+                .finally(function () {
+                    state.distribution.whatsapp.busy = false;
+                    setActionButtonBusy("#btCotConfirmarWhatsApp", false, "Enviar", whatsappIconHtml);
+                });
+            return;
+        }
+
         const whatsappWindow = tryOpenPendingWindow();
-        setStatus("#txCotWhatsAppStatus", "info", "Preparando el PDF para adjuntarlo manualmente en WhatsApp...");
-        triggerPdfDownload(detail.id, buildPdfFileName(detail.folio))
-            .finally(function () {
+        triggerPdfDownload(detail.id, fileName)
+            .then(function () {
                 openPendingWindow(whatsappWindow, "https://wa.me/52" + digits + "?text=" + encodeURIComponent(message));
+                setStatus("#txCotWhatsAppStatus", "success", "WhatsApp listo. Adjunta el PDF descargado.");
+                setStatus("#txCotFormStatus", "success", "WhatsApp abierto correctamente.");
                 resolveModalApi("#modalCotWhatsApp").hide();
+            })
+            .catch(function (error) {
+                setStatus("#txCotWhatsAppStatus", "danger", resolveErrorMessage(error));
+            })
+            .finally(function () {
+                state.distribution.whatsapp.busy = false;
+                setActionButtonBusy("#btCotConfirmarWhatsApp", false, "Enviar", whatsappIconHtml);
             });
     }
 
     function openCorreoModal(id) {
         resolveCotizacionDetail(id)
             .then(function (detail) {
-                setActionDetail(detail);
+                setDistributionDetail("email", detail);
                 $("#txCotCorreoDestino").val(String(detail.clienteCorreo || "").trim());
                 $("#txCotCorreoAsunto").val("Cotización " + (detail.folio || ""));
-                $("#txCotCorreoMensaje").val("Hola,\n\nTe comparto la cotización " + (detail.folio || "") + " por un total de " + formatCurrency(detail.total || 0) + ".\n");
+                $("#txCotCorreoMensaje").val(
+                    "Hola,\n\n" +
+                    "Te compartimos la cotización " + (detail.folio || "") + " por un total de " + formatCurrency(detail.total || 0) + ".\n\n" +
+                    "Adjuntamos el documento en formato PDF.\n\n" +
+                    "Saludos."
+                );
+                $("#panelCotCorreoForm").prop("hidden", false);
+                $("#panelCotCorreoSuccess").prop("hidden", true);
+                $("#btCotConfirmarCorreo").prop("hidden", false);
+                $("#btCotCancelarCorreo").attr("data-bs-dismiss", "modal");
+                $("#btCotCancelarCorreo i").attr("class", "fa fa-times");
+                $("#btCotCancelarCorreo span").text("Cancelar");
                 setStatus("#txCotCorreoStatus", "", "");
                 resolveModalApi("#modalCotCorreo").show();
             })
@@ -1410,7 +1615,11 @@
     }
 
     function sendCotizacionCorreo() {
-        const detail = state.action.detail || {};
+        const detail = getDistributionDetail("email");
+        if (state.distribution.email.busy) {
+            return;
+        }
+
         const correo = String($("#txCotCorreoDestino").val() || "").trim();
         const asunto = String($("#txCotCorreoAsunto").val() || "").trim();
         const mensaje = String($("#txCotCorreoMensaje").val() || "").trim();
@@ -1425,7 +1634,9 @@
             return;
         }
 
-        setStatus("#txCotCorreoStatus", "", "");
+        state.distribution.email.busy = true;
+        setActionButtonBusy("#btCotConfirmarCorreo", true, "Enviando...", "<i class='fa fa-envelope' aria-hidden='true'></i>");
+        setStatus("#txCotCorreoStatus", "info", "Enviando...");
         postJson("/Cotizaciones/EnviarCotizacionCorreo", {
             idCotizacion: detail.id,
             correo: correo,
@@ -1434,10 +1645,15 @@
             folio: detail.folio || "",
             clienteNombre: detail.cliente || ""
         }).then(function (response) {
-            resolveModalApi("#modalCotCorreo").hide();
-            setStatus("#txCotFormStatus", "success", response.mensaje || "La cotización se envió por correo correctamente.");
+            setStatus("#txCotFormStatus", "success", response.mensaje || "Correo enviado correctamente.");
+            setCorreoSuccessState(detail, correo);
         }).catch(function (error) {
             setStatus("#txCotCorreoStatus", "danger", resolveErrorMessage(error));
+        }).finally(function () {
+            state.distribution.email.busy = false;
+            if ($("#panelCotCorreoSuccess").prop("hidden")) {
+                setActionButtonBusy("#btCotConfirmarCorreo", false, "Enviar", "<i class='fa fa-envelope' aria-hidden='true'></i>");
+            }
         });
     }
 

@@ -67,6 +67,31 @@
     grid-column: 1 / -1;
 }
 
+.mailcfg-password-shell {
+    position: relative;
+}
+
+.mailcfg-password-mask {
+    position: absolute;
+    inset: 50% auto auto 0.95rem;
+    transform: translateY(-50%);
+    color: var(--ca-text-strong);
+    font-size: 1.05rem;
+    font-weight: 700;
+    letter-spacing: 0.12em;
+    pointer-events: none;
+    user-select: none;
+}
+
+.mailcfg-password-shell--stored input {
+    color: transparent;
+    caret-color: var(--ca-text-strong);
+}
+
+.mailcfg-password-shell--stored input::placeholder {
+    color: transparent;
+}
+
 .mailcfg-inline-status {
     margin-top: 1rem;
 }
@@ -107,5 +132,11 @@
     .mailcfg-actions {
         display: grid;
         grid-template-columns: 1fr;
+    }
+
+    .mailcfg-password-mask {
+        left: 0.85rem;
+        font-size: 1rem;
+        letter-spacing: 0.1em;
     }
 }

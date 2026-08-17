@@ -40,9 +40,12 @@
                     <span>Servidor SMTP</span>
                     <input id="txMailCfgServidor" type="text" maxlength="200" autocomplete="off" placeholder="smtp.dominio.com" />
                 </label>
-                <label class="checkapp-field">
+                <label class="checkapp-field mailcfg-password-field">
                     <span>Contraseña</span>
-                    <input id="txMailCfgContrasena" type="password" maxlength="200" autocomplete="new-password" placeholder="Captura o reemplaza la contraseña" />
+                    <div id="txMailCfgPasswordShell" class="mailcfg-password-shell">
+                        <input id="txMailCfgContrasena" type="password" maxlength="200" autocomplete="new-password" placeholder="Ingresa la contraseña de la cuenta" />
+                        <span id="txMailCfgPasswordMask" class="mailcfg-password-mask" aria-hidden="true">••••••••••••••••</span>
+                    </div>
                     <small id="txMailCfgPasswordHint" class="mailcfg-help"></small>
                 </label>
                 <label class="checkapp-field">

@@ -263,7 +263,7 @@
                     <p id="txCotCompartirFallbackPrompt">Selecciona cómo deseas continuar.</p>
                     <div class="cot-summary-actions cot-summary-actions--flow">
                         <button id="btCotFallbackPdf" type="button" class="checkapp-btn checkapp-btn-primary"><i class="fa fa-download"></i><span>Abrir PDF</span></button>
-                        <button id="btCotFallbackWhatsApp" type="button" class="checkapp-btn checkapp-btn-ghost"><i class="fa fa-whatsapp"></i><span>WhatsApp</span></button>
+                        <button id="btCotFallbackWhatsApp" type="button" class="checkapp-btn checkapp-btn-ghost cot-action-btn--whatsapp"><i class="fa fa-whatsapp" aria-hidden="true"></i><span>WhatsApp</span></button>
                         <button id="btCotFallbackCorreo" type="button" class="checkapp-btn checkapp-btn-ghost"><i class="fa fa-envelope"></i><span>Correo</span></button>
                         <button id="btCotFallbackCopiar" type="button" class="checkapp-btn checkapp-btn-ghost"><i class="fa fa-link"></i><span>Copiar enlace</span></button>
                     </div>
@@ -281,7 +281,7 @@
                     <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Cerrar"></button>
                 </div>
                 <div class="modal-body">
-                    <p id="txCotWhatsAppPrompt">Captura el teléfono a 10 dígitos.</p>
+                    <p id="txCotWhatsAppPrompt">La cotización está lista. Abriremos el chat del cliente con el mensaje preparado. Recuerda adjuntar el PDF de la cotización antes de enviarlo.</p>
                     <label class="checkapp-field cot-field cot-field--full">
                         <span>Teléfono</span>
                         <input id="txCotWhatsAppTelefono" type="tel" maxlength="10" inputmode="numeric" placeholder="5512345678" />
@@ -290,7 +290,7 @@
                 </div>
                 <div class="modal-footer">
                     <button type="button" class="checkapp-btn checkapp-btn-ghost" data-bs-dismiss="modal"><i class="fa fa-times"></i><span>Cancelar</span></button>
-                    <button id="btCotConfirmarWhatsApp" type="button" class="checkapp-btn checkapp-btn-primary"><i class="fa fa-whatsapp"></i><span>Enviar</span></button>
+                    <button id="btCotConfirmarWhatsApp" type="button" class="checkapp-btn checkapp-btn-primary"><i class="fa fa-whatsapp" aria-hidden="true"></i><span>Enviar</span></button>
                 </div>
             </div>
         </div>
@@ -304,22 +304,28 @@
                     <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Cerrar"></button>
                 </div>
                 <div class="modal-body">
-                    <label class="checkapp-field cot-field cot-field--full">
-                        <span>Correo</span>
-                        <input id="txCotCorreoDestino" type="email" maxlength="200" placeholder="cliente@correo.com" />
-                    </label>
-                    <label class="checkapp-field cot-field cot-field--full">
-                        <span>Asunto</span>
-                        <input id="txCotCorreoAsunto" type="text" maxlength="200" placeholder="Cotización" />
-                    </label>
-                    <label class="checkapp-field cot-field cot-field--full">
-                        <span>Mensaje</span>
-                        <textarea id="txCotCorreoMensaje" maxlength="1000" placeholder="Escribe el mensaje de envío."></textarea>
-                    </label>
+                    <div id="panelCotCorreoForm">
+                        <label class="checkapp-field cot-field cot-field--full">
+                            <span>Correo</span>
+                            <input id="txCotCorreoDestino" type="email" maxlength="200" placeholder="cliente@correo.com" />
+                        </label>
+                        <label class="checkapp-field cot-field cot-field--full">
+                            <span>Asunto</span>
+                            <input id="txCotCorreoAsunto" type="text" maxlength="200" placeholder="Cotización" />
+                        </label>
+                        <label class="checkapp-field cot-field cot-field--full">
+                            <span>Mensaje</span>
+                            <textarea id="txCotCorreoMensaje" maxlength="1000" placeholder="Escribe el mensaje de envío."></textarea>
+                        </label>
+                    </div>
+                    <div id="panelCotCorreoSuccess" class="cot-distribution-success" hidden>
+                        <h3 id="txCotCorreoSuccessTitle">Correo enviado correctamente</h3>
+                        <p id="txCotCorreoSuccessBody">La cotización se envió correctamente.</p>
+                    </div>
                     <div id="txCotCorreoStatus" class="checkapp-status-inline"></div>
                 </div>
                 <div class="modal-footer">
-                    <button type="button" class="checkapp-btn checkapp-btn-ghost" data-bs-dismiss="modal"><i class="fa fa-times"></i><span>Cancelar</span></button>
+                    <button id="btCotCancelarCorreo" type="button" class="checkapp-btn checkapp-btn-ghost" data-bs-dismiss="modal"><i class="fa fa-times"></i><span>Cancelar</span></button>
                     <button id="btCotConfirmarCorreo" type="button" class="checkapp-btn checkapp-btn-primary"><i class="fa fa-envelope"></i><span>Enviar</span></button>
                 </div>
             </div>

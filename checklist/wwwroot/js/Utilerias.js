@@ -199,6 +199,34 @@ function syncCurrentMenuState() {
             ancestors: ['02000000'],
             active: '02001000'
         },
+        '/ventas/nueva': {
+            ancestors: ['menu-ventas'],
+            active: 'menu-ventas-nueva'
+        },
+        '/ventas/devoluciones': {
+            ancestors: ['menu-ventas'],
+            active: 'menu-ventas-devoluciones'
+        },
+        '/facturacion/panel': {
+            ancestors: ['menu-facturacion'],
+            active: 'menu-facturacion-panel'
+        },
+        '/cotizaciones/index': {
+            ancestors: ['menu-cotizaciones'],
+            active: 'menu-cotizaciones-abc'
+        },
+        '/cotizaciones/reporte': {
+            ancestors: ['menu-cotizaciones'],
+            active: 'menu-cotizaciones-abc'
+        },
+        '/clientes/index': {
+            ancestors: ['menu-clientes'],
+            active: 'menu-clientes-abc'
+        },
+        '/clientes/reporte': {
+            ancestors: ['menu-clientes'],
+            active: 'menu-clientes-reporte'
+        },
         '/resultados/resultados': {
             ancestors: ['02000000'],
             active: '02003000'
@@ -254,6 +282,42 @@ function syncCurrentMenuState() {
         '/activos/ordenescompra/reporte': {
             ancestors: ['menu-proveeduria', 'menu-proveeduria-ordenes-compra'],
             active: 'menu-proveeduria-ordenes-compra-reporte'
+        },
+        '/configuracion/correosaliente': {
+            ancestors: ['04000000', '04009000CONFIGURACION'],
+            active: '04009001CORREOSALIENTE'
+        },
+        '/ajustes/ajustespvportienda': {
+            ancestors: ['04000000'],
+            active: '04010000AJUSTESPV'
+        },
+        '/ajustes/formaspago': {
+            ancestors: ['04000000'],
+            active: '04011000FORMASPAGO'
+        },
+        '/usuario/index': {
+            ancestors: ['04000000', '04001000'],
+            active: '04001001'
+        },
+        '/rolespermisos/rolespermisos': {
+            ancestors: ['04000000'],
+            active: '04002000'
+        },
+        '/sucursales/sucursalesabc': {
+            ancestors: ['04000000'],
+            active: '04003000'
+        },
+        '/razonessociales/index': {
+            ancestors: ['04000000'],
+            active: '04004000'
+        },
+        '/regiones/index': {
+            ancestors: ['04000000'],
+            active: '04005000'
+        },
+        '/operadores/index': {
+            ancestors: ['04000000'],
+            active: '04001001OPERADORES'
         }
     };
 

@@ -3,15 +3,8 @@ using System.Security.Claims;
 using System.Security.Cryptography;
 using System.Text;
 using checklist.Clases;
-using checklist.Models.Firebase;
-using checklist.Services;
-using Firebase.Auth;
-using Firebase.Auth.Providers;
-using Firebase.Database;
-using Firebase.Database.Query;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
-using System.Net;
 
 namespace checklist.Controllers.Cotizaciones
 {
@@ -28,13 +21,11 @@ namespace checklist.Controllers.Cotizaciones
 
         private readonly IHttpClientFactory _clientFactory;
         private readonly IConfiguration _configuration;
-        private readonly EmailServices _emailServices;
 
-        public CotizacionesController(IHttpClientFactory clientFactory, IConfiguration configuration, EmailServices emailServices)
+        public CotizacionesController(IHttpClientFactory clientFactory, IConfiguration configuration)
         {
             _clientFactory = clientFactory;
             _configuration = configuration;
-            _emailServices = emailServices;
         }
 
         [HttpGet("Index")]
@@ -103,65 +94,7 @@ namespace checklist.Controllers.Cotizaciones
         public Task<IActionResult> ExportarCotizacionPdf() => ProxyGetAsync("ExportarCotizacionPdf");
 
         [HttpPost("EnviarCotizacionCorreo")]
-        public async Task<IActionResult> EnviarCotizacionCorreo([FromBody] CotizacionCorreoRequest request)
-        {
-            if (request == null || request.IdCotizacion == Guid.Empty)
-            {
-                return BadRequest(new { mensaje = "La cotización no está disponible." });
-            }
-
-            string correo = (request.Correo ?? string.Empty).Trim();
-            string asunto = (request.Asunto ?? string.Empty).Trim();
-            string mensaje = (request.Mensaje ?? string.Empty).Trim();
-            if (string.IsNullOrWhiteSpace(correo) || string.IsNullOrWhiteSpace(asunto) || string.IsNullOrWhiteSpace(mensaje))
-            {
-                return BadRequest(new { mensaje = "Correo, asunto y mensaje son obligatorios." });
-            }
-
-            if (!IsValidEmail(correo))
-            {
-                return BadRequest(new { mensaje = "Captura un correo válido." });
-            }
-
-            MailRegistro mailRegistro = await LoadMailRegistroAsync();
-            if (string.IsNullOrWhiteSpace(mailRegistro.smtpServer) || string.IsNullOrWhiteSpace(mailRegistro.correo) || string.IsNullOrWhiteSpace(mailRegistro.password))
-            {
-                return StatusCode(500, new { mensaje = "La configuración de correo no está disponible." });
-            }
-
-            byte[] pdfBytes = await DownloadApiBytesAsync("ExportarCotizacionPdf", new[]
-            {
-                new KeyValuePair<string, string?>("idCotizacion", request.IdCotizacion.ToString())
-            });
-
-            if (pdfBytes.Length == 0)
-            {
-                return StatusCode(500, new { mensaje = "No fue posible adjuntar el PDF de la cotización." });
-            }
-
-            mailRegistro.asunto = asunto;
-            mailRegistro.bodyHTML = BuildEmailBodyHtml(mensaje, request.Folio);
-            string result = await _emailServices.EnviarCorreoAsync(
-                request.ClienteNombre?.Trim() ?? correo,
-                correo,
-                mailRegistro,
-                new[]
-                {
-                    new EmailAttachment
-                    {
-                        FileName = BuildPdfFileName(request.Folio),
-                        Content = pdfBytes,
-                        ContentType = "application/pdf"
-                    }
-                });
-
-            if (!string.Equals(result, "Ok", StringComparison.OrdinalIgnoreCase))
-            {
-                return StatusCode(500, new { mensaje = "No fue posible enviar el correo.", detalle = result });
-            }
-
-            return Ok(new { exito = true, mensaje = "La cotización se envió por correo correctamente." });
-        }
+        public Task<IActionResult> EnviarCotizacionCorreo() => ProxyJsonAsync(HttpMethod.Post, "EnviarCotizacionCorreo");
 
         [HttpGet("ObtenerSucursalesCotizacion")]
         public async Task<IActionResult> ObtenerSucursalesCotizacion()
@@ -390,108 +323,5 @@ namespace checklist.Controllers.Cotizaciones
             return trimmed;
         }
 
-        private async Task<byte[]> DownloadApiBytesAsync(string actionName, IEnumerable<KeyValuePair<string, string?>> extraQuery)
-        {
-            using HttpRequestMessage request = CreateApiRequest(HttpMethod.Get, actionName, extraQuery);
-            using HttpClient client = _clientFactory.CreateClient();
-            using HttpResponseMessage response = await client.SendAsync(request, HttpCompletionOption.ResponseHeadersRead);
-            if (!response.IsSuccessStatusCode)
-            {
-                return Array.Empty<byte>();
-            }
-
-            return await response.Content.ReadAsByteArrayAsync();
-        }
-
-        private async Task<MailRegistro> LoadMailRegistroAsync()
-        {
-            string fireUser = _configuration.GetValue<string>("fireBdata:fireUser") ?? string.Empty;
-            string fireClave = _configuration.GetValue<string>("fireBdata:fireClave") ?? string.Empty;
-            var config = new FirebaseAuthConfig
-            {
-                ApiKey = _configuration.GetValue<string>("fireBdata:fireApiKey"),
-                AuthDomain = _configuration.GetValue<string>("fireBdata:fireAuthDomain"),
-                Providers = new FirebaseAuthProvider[] { new EmailProvider() }
-            };
-            var authClient = new FirebaseAuthClient(config);
-            await authClient.SignInWithEmailAndPasswordAsync(fireUser, fireClave);
-            var firebaseClient = new FirebaseClient(
-                _configuration.GetValue<string>("fireBdata:fireDatabaseUrl"),
-                new FirebaseOptions { AuthTokenAsyncFactory = () => Task.FromResult(authClient.User.Credential.IdToken) });
-
-            MailRegistro mailRegistro = new MailRegistro();
-            var datosMail = await firebaseClient.Child("MailRegistro").OnceAsync<object>();
-            foreach (var mail in datosMail)
-            {
-                switch ((mail.Key ?? string.Empty).Trim().ToLowerInvariant())
-                {
-                    case "asunto":
-                        mailRegistro.asunto = mail.Object?.ToString();
-                        break;
-                    case "bodyhtml":
-                        mailRegistro.bodyHTML = mail.Object?.ToString();
-                        break;
-                    case "correo":
-                        mailRegistro.correo = mail.Object?.ToString();
-                        break;
-                    case "password":
-                        mailRegistro.password = mail.Object?.ToString();
-                        break;
-                    case "puerto":
-                        mailRegistro.puerto = mail.Object == null ? null : Convert.ToInt32(mail.Object);
-                        break;
-                    case "smtpserver":
-                        mailRegistro.smtpServer = mail.Object?.ToString();
-                        break;
-                    case "ssl":
-                        mailRegistro.ssl = mail.Object != null && Convert.ToBoolean(mail.Object);
-                        break;
-                }
-            }
-
-            authClient.SignOut();
-            return mailRegistro;
-        }
-
-        private static string BuildEmailBodyHtml(string mensaje, string? folio)
-        {
-            string safeMessage = WebUtility.HtmlEncode(mensaje ?? string.Empty).Replace("\r\n", "<br/>").Replace("\n", "<br/>");
-            string safeFolio = WebUtility.HtmlEncode(folio ?? string.Empty);
-            return $"<p>{safeMessage}</p><p><strong>Cotización:</strong> {safeFolio}</p>";
-        }
-
-        private static string BuildPdfFileName(string? folio)
-        {
-            string cleanFolio = new string((folio ?? string.Empty).Where(ch => char.IsLetterOrDigit(ch) || ch == '-' || ch == '_').ToArray());
-            if (string.IsNullOrWhiteSpace(cleanFolio))
-            {
-                cleanFolio = "cotizacion";
-            }
-
-            return $"cotizacion_{cleanFolio}.pdf";
-        }
-
-        private static bool IsValidEmail(string correo)
-        {
-            try
-            {
-                _ = new System.Net.Mail.MailAddress(correo);
-                return true;
-            }
-            catch
-            {
-                return false;
-            }
-        }
-
-        public sealed class CotizacionCorreoRequest
-        {
-            public Guid IdCotizacion { get; set; }
-            public string Correo { get; set; } = string.Empty;
-            public string Asunto { get; set; } = string.Empty;
-            public string Mensaje { get; set; } = string.Empty;
-            public string Folio { get; set; } = string.Empty;
-            public string ClienteNombre { get; set; } = string.Empty;
-        }
     }
 }

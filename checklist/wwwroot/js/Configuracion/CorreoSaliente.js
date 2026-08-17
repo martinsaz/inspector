@@ -38,6 +38,8 @@
         elements.seguridad = document.getElementById('cbMailCfgSeguridad');
         elements.destinatario = document.getElementById('txMailCfgDestinatario');
         elements.passwordHint = document.getElementById('txMailCfgPasswordHint');
+        elements.passwordShell = document.getElementById('txMailCfgPasswordShell');
+        elements.passwordMask = document.getElementById('txMailCfgPasswordMask');
         elements.btProbar = document.getElementById('btMailCfgProbar');
         elements.btCancelar = document.getElementById('btMailCfgCancelar');
         elements.btGuardar = document.getElementById('btMailCfgGuardar');
@@ -53,6 +55,10 @@
                 element.addEventListener('input', onCoreConfigurationChanged);
                 element.addEventListener('change', onCoreConfigurationChanged);
             });
+
+        elements.contrasena?.addEventListener('focus', syncPasswordPresentation);
+        elements.contrasena?.addEventListener('blur', syncPasswordPresentation);
+        elements.contrasena?.addEventListener('input', syncPasswordPresentation);
 
         elements.btProbar?.addEventListener('click', () => {
             void sendTestEmail();
@@ -111,7 +117,7 @@
         elements.seguridad.value = normalizeSecurity(data.seguridad);
         elements.destinatario.value = data.destinatarioPrueba || '';
         elements.contrasena.value = '';
-        elements.passwordHint.textContent = state.passwordConfigured ? 'Contraseña configurada. Déjala vacía para conservarla.' : 'Captura la contraseña de la cuenta remitente.';
+        syncPasswordPresentation();
 
         state.baselineCoreSignature = buildCoreSignature();
         renderVerificationState(state.verified, data.fechaUltimaPrueba);
@@ -287,6 +293,29 @@
             dateStyle: 'medium',
             timeStyle: 'short'
         }).format(date);
+    }
+
+    function syncPasswordPresentation() {
+        const hasStoredPassword = state.passwordConfigured;
+        const hasTypedPassword = !!(elements.contrasena.value || '').trim();
+        const isFocused = document.activeElement === elements.contrasena;
+        const showStoredMask = hasStoredPassword && !hasTypedPassword && !isFocused;
+
+        if (elements.passwordShell) {
+            elements.passwordShell.classList.toggle('mailcfg-password-shell--stored', showStoredMask);
+        }
+
+        if (elements.passwordMask) {
+            elements.passwordMask.hidden = !showStoredMask;
+        }
+
+        elements.contrasena.placeholder = hasStoredPassword
+            ? ''
+            : 'Ingresa la contraseña de la cuenta';
+
+        elements.passwordHint.textContent = hasStoredPassword
+            ? 'Tu contraseña ya está guardada. Escribe una nueva solo si deseas cambiarla.'
+            : 'Se utilizará para enviar correos desde esta cuenta.';
     }
 
     function setStatus(message, tone) {
