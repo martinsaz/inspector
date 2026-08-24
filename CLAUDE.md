@@ -28,6 +28,190 @@
 - Toda decision de Product Owner, regla de negocio, restriccion, cambio relevante, estado de QA, pendiente real y cierre de etapa debe quedar registrado en `AGENTS.md` y `CLAUDE.md` en la misma iteracion.
 - `AGENTS.md` y `CLAUDE.md` deben permanecer consistentes y no pueden contradecirse.
 
+## Productos y Servicios
+
+- TICKET 03 — Última corrección definitiva auditada el `2026-08-21`.
+- Resultado real de la iteración:
+  - `Atributos` quedó en flujo SKNC compacto:
+    - header sin botones funcionales
+    - combos `Atributo [+]` y `Elemento [+]`
+    - `Elemento` solo se habilita después de seleccionar atributo
+    - `Nuevo elemento` abre modal contextual con atributo solo lectura
+    - UI real validó dependencia correcta:
+      - `Sabor` -> `Fresa`, `Chocolate`
+      - `Material` -> `Acero`
+    - persistencia reabierta en UI real:
+      - `Sabor -> Fresa`
+      - `Material -> Acero`
+  - `Variantes` quedó en flujo Shopify inline:
+    - se retiró la UX de `Generar variantes`
+    - el foco ya no se pierde al agregar valores
+    - la tabla se recalcula en tiempo real
+    - UI real validó:
+      - `CH/M/G` -> `3` variantes
+      - `CH/M` + `Negro/Blanco` -> `4` variantes en orden `CH/Negro`, `CH/Blanco`, `M/Negro`, `M/Blanco`
+      - al eliminar `Blanco` permanecen `CH/Negro` y `M/Negro`
+      - al reabrir persistieron `CH/Negro = 411` y `M/Negro = 421`
+  - `Multimedia` siguió operando sin regresión visible en UI real:
+    - `0` fotos
+    - `1` video
+    - `1` documento
+  - Defecto real pendiente:
+    - `Variantes` todavía no expone columna ni flujo de `Imagen`
+    - no existe `Agregar/Cambiar imagen` por fila
+    - el modelo/contrato activo no entrega persistencia independiente de imagen por variante
+- Dictamen real del `2026-08-21`:
+  - `TICKET 03 SIGUE FALLANDO — falta imagen propia por variante obligatoria en la matriz; hoy la variante no tiene columna ni persistencia de imagen independiente de la multimedia general del ProductoServicio.`
+- TICKET 03 — Reimplementación controlada cerrada técnicamente el `2026-08-21`.
+- Regla obligatoria:
+  - `Inventario` ya estaba aprobado y no se toca fuera de regresión básica.
+  - `Atributos` y `Variantes` no comparten flujo funcional ni catálogo obligatorio.
+  - `Multimedia` debe validarse sobre su dueño real dentro de `ProductosServicios`.
+- Auditoría obligatoria completada:
+  - legacy auditado en `/Users/denissemendiola/dev/skncCreator/skncCreator`
+  - SKNC confirma modelo `Atributo -> Elemento dependiente -> Asociación al producto`
+  - esa asociación descriptiva no genera matriz de variantes
+  - la mezcla original en CheckApp venía del frontend y no del concepto legacy
+- Reimplementación final:
+  - `Atributos` queda homologado a SKNC:
+    - atributo existente o alta rápida
+    - elementos dependientes por atributo
+    - alta rápida de elemento ligada al atributo
+    - asociación persistida `ProductoServicio -> Atributo -> Elemento`
+  - `Variantes` queda homologado al modelo Shopify:
+    - opciones propias del producto
+    - valores por opción
+    - generación de matriz a partir de esas opciones
+    - independencia total respecto a `ProductosServiciosAtributos`
+  - Persistencia nueva/documentada:
+    - `ProductosServiciosOpcionesVariante`
+    - `ProductosServiciosOpcionesVarianteValores`
+    - `ProductosServiciosVariantes`
+    - `ProductosServiciosVarianteValores` con soporte para ids de opción/valor de variante
+  - Endpoints relevantes:
+    - `GuardarValorAtributoProductoServicio`
+    - `ObtenerValoresAtributoProductoServicio`
+    - detalle de producto incluye `opcionesVariante`
+  - Multimedia certificada como propia de `ProductosServicios`:
+    - tabla `ProductosServiciosMultimedia`
+    - relación por `idProductoServicio`
+    - almacenamiento temporal/final bajo carpeta `ProductosServicios`
+    - no depende de `Activos`
+- Validación técnica del `2026-08-21`:
+  - `node --check` del JS de `ProductosServicios` sin error
+  - `dotnet build` MVC con `0` errores y warnings preexistentes
+  - `dotnet build` API con `0` errores y warnings preexistentes
+- Estado real de QA browser:
+  - la sesión autenticada previa fue expulsada y redirigida a `Login/Index`
+  - el bloqueo fue de sesión QA y no de compilación ni de arquitectura
+  - Ticket 03 queda listo para QA manual de Denisse
+- Microcorrección de alta rápida auditada el `2026-08-20` para `Colección`, con revisión acotada del mismo patrón en `Paquete` y `Atributo`.
+- Causa raíz confirmada:
+  - el frontend asumía éxito con cualquier `200 OK`, incluso con respuesta vacía o sin entidad válida
+  - el modal se cerraba y mostraba confirmación antes de comprobar persistencia real y actualización del combo
+- Corrección aplicada:
+  - la API de altas rápidas ahora devuelve la entidad creada con identificador válido para `Colección`, `Paquete` y `Atributo`
+  - el frontend solo cierra el modal y muestra éxito cuando existe entidad válida y el combo confirma el item creado/seleccionable
+  - si la respuesta es vacía, ambigua o inválida, el modal permanece abierto, conserva la captura y muestra error funcional
+- Regla global obligatoria para altas rápidas:
+  - `No mostrar éxito ni cerrar modal hasta confirmar persistencia real y obtener entidad válida.`
+- QA final acotado de `Productos y Servicios` ejecutado el `2026-08-20`:
+  - variantes simples certificadas con `3` resultados `CH`, `M` y `G`, sin duplicados y con persistencia SQL validada
+  - variantes combinadas certificadas con `4` combinaciones `CH / Negro`, `M / Negro`, `CH / Blanco` y `M / Blanco`, con precios por variante persistidos sin pisar el precio base
+  - `QA-SERVICIO-AMPLIADO-20260819` reabrió correctamente con estatus, colección, precios, SAT y `Producto físico = No`
+  - registros históricos previos a la ampliación cargan y siguen siendo editables con `null/default` seguros
+  - regresión transversal breve validada en navegador real autenticado para `Home`, `Roles y Permisos`, `Cotizaciones`, `Órdenes de compra`, `ContestarLista` y `Activos`, sin `404` ni `500` visibles
+  - multimedia validó persistencia real en Firebase para `1 foto`, `1 video` y `1 documento`, con metadatos y contadores reflejados en API y listado
+  - defectos reales reproducidos y corregidos dentro de la misma corrida:
+    - el API aceptaba `idAtributoValor` ajeno/cruzado en variantes; ahora rechaza referencias que no pertenezcan al atributo y empresa activos
+    - al eliminar toda la multimedia el guardado fallaba por `STRING_SPLIT` vacío; ahora desactiva correctamente todas las evidencias cuando la lista final queda vacía
+  - cobertura pendiente no clasificada como defecto real:
+    - validación visual manual de responsive real `768` y `390` en la sesión autenticada
+    - validación visual manual de preview/mensajes UI de multimedia en navegador, limitada en esta corrida por la superficie de automatización disponible
+- Cierre documental definitivo del `TICKET 02` registrado el `2026-08-21` por QA manual final del Product Owner:
+  - `Ticket 01` quedó previamente aprobado
+  - `Configuración comercial 2+1+1+1+1` quedó aprobada
+  - `placeholders` monetarios quedaron aprobados
+  - `Precio unitario` quedó aprobado
+  - `SAT` quedó aprobado
+  - `Configuración física` quedó aprobada
+  - `Logística/Paquete` quedó aprobada
+  - las altas rápidas de `Categoría`, `Marca`, `Colección` y `Unidad` quedaron corregidas
+  - las validaciones distinguen exactamente `código/número` vs `nombre`
+  - el backend impide nuevos duplicados lógicos
+  - causa raíz real de `Select2` confirmada:
+    - `dropdownParent` incorrecto provocaba superposición y autoselección
+    - `clear` dejaba el dropdown abierto
+  - corrección definitiva aplicada y aprobada en QA:
+    - `dropdownParent` normalizado a `.modal-body`
+    - `clear` limpia y cierra
+    - `seleccionar -> X -> reseleccionar` quedó estable
+  - `Tipo` ya no se fuerza automáticamente a `Producto` al abrir `Nuevo`
+  - no modificar los backlogs congelados
+  - no avanzar a `Ticket 03` hasta nueva instrucción del Product Owner
+- TICKET 01 — Diseño ProductosServicios ejecutado el `2026-08-20` con alcance solo UX/UI.
+- Restricciones permanentes del ticket:
+  - no tocar backend, API, SQL, Firebase, persistencia ni reglas de negocio
+  - conservar exacta la lógica funcional de `producto físico`, inventario, atributos, variantes y multimedia
+  - reutilizar el patrón existente de colapsables de `Cotizaciones/Nueva`
+- Resultado de diseño aplicado:
+  - retícula superior de `6` columnas en desktop
+  - `Imagen principal` a `2` columnas y altura limitada hasta `Descripción`
+  - orden superior: `Tipo | Nombre`, `Estatus | Código | Tag`, `Descripción`, `Categoría | Marca | Colección`
+  - secciones inferiores convertidas a colapsables compactos sin aire residual al cerrar
+- Validación técnica del ticket:
+  - `node --check` del JS de `ProductosServicios` sin error
+  - `dotnet build` MVC con `0` errores y warnings preexistentes
+- Estado local al cierre:
+  - `localhost:5200` activo en PID `56251`
+  - `localhost:5127` activo en PID `56250`
+- Bloqueo real de la corrida automática:
+  - la navegación automática a `ProductosServicios/Index` cayó en login por falta de sesión autenticada reutilizable
+  - la validación visual final del modal autenticado y del responsive real queda pendiente de QA manual de Denisse
+- TICKET 01 — Microcorrección QA Manual ejecutada el `2026-08-21` con alcance solo UX/UI.
+- Restricciones permanentes de esta microcorrección:
+  - no tocar backend, API, SQL, Firebase, persistencia ni reglas de negocio
+  - conservar intacta la retícula ya aprobada del bloque superior
+  - usar el mismo patrón de colapsables ya aplicado en el modal
+- Resultado aplicado:
+  - `Información general` ahora existe como card colapsable y contiene `Imagen principal`, `Tipo`, `Nombre`, `Estatus`, `Código`, `Tag`, `Descripción`, `Categoría`, `Marca` y `Colección`
+  - `Información general` inicia abierta
+  - `Configuración comercial` inicia abierta
+  - el resto de secciones del modal inicia cerrado
+  - el encabezado completo de cada sección del modal quedó clicable y soporta teclado, manteniendo el indicador derecho `Expandir / Contraer`
+  - colapsar es un comportamiento exclusivamente visual y no altera datos, combos, variantes, multimedia ni flujo funcional
+- Validación técnica:
+  - `node --check` del JS de `ProductosServicios` sin error
+  - `dotnet build` MVC con `0` errores y warnings preexistentes
+- TICKET 02 — Diseño y Validaciones ejecutado el `2026-08-21` con alcance acotado a catálogos rápidos, SAT, precio unitario y paquete.
+- Reglas permanentes del ticket:
+  - no avanzar a Ticket 03 automáticamente
+  - no tocar secciones posteriores ni backlogs congelados
+  - `Configuración física y de control` no se rediseña
+  - no cambiar SQL cuando el modelo actual ya soporte el comportamiento requerido
+- UX obligatoria desde `2026-08-21` para `Categoría`, `Marca`, `Colección`, `Unidad` y `Paquete`:
+  - validar obligatorios conocidos antes del POST con mensaje específico
+  - ante error funcional, el modal sigue abierto y conserva captura
+  - solo cerrar modal cuando exista persistencia real y selección confirmada del item creado
+  - no mostrar mensajes técnicos al usuario final
+- Modelo final de `Precio unitario`:
+  - se reutiliza el modelo SQL existente `Monto + BaseCantidad + Unidad`
+  - la UI final usa editor compacto en español; ya no deja tres inputs sueltos permanentes en desktop
+  - si existe captura parcial de precio unitario, frontend y API deben exigir la terna completa
+- Fuente SAT auditada el `2026-08-21`:
+  - `Raramuri.blzr` consume `_opcionesProd` y `_opcionesUnidad`
+  - `sazapi` resuelve el catálogo SAT desde servicio externo y no desde listas hardcodeadas
+  - CheckApp debe consultar SAT vía `MVC -> API CheckApp -> catálogo SAT externo`
+  - `H87` se conserva como unidad segura por defecto
+- Regla logística vigente:
+  - `Peso del producto` y `peso vacío del paquete` son conceptos distintos
+  - las dimensiones visibles del paquete viven en el catálogo de paquetes
+  - las dimensiones del producto se mantienen solo por compatibilidad backend y pueden ocultarse en UI si el modelo auditado demuestra redundancia
+- Paquete predeterminado:
+  - la API actual ya soporta `EsPredeterminado` por empresa
+  - si se marca un nuevo predeterminado, debe desactivar el anterior
+  - en alta nueva de producto físico, el frontend debe preferir el paquete predeterminado cuando exista y el selector siga vacío
+
 ## Vertical Cotizaciones
 
 ### Reglas globales
@@ -218,6 +402,67 @@
     - `Controllers/Configuracion/ConfiguracionController.cs` quedó endurecido para mantener contrato JSON consistente en `Obtener/Probar/GuardarCorreoSaliente`
     - el proxy MVC ahora fuerza `Accept: application/json`, envía `application/json` explícito y devuelve JSON controlado ante contenido vacío, no JSON o excepciones del proxy
     - `La respuesta del servidor no pudo interpretarse.` quedó clasificado como error del cliente en `wwwroot/js/Configuracion/CorreoSaliente.js -> readJson(response)`
+
+## Productos y Servicios
+
+- Microcorrección bloqueante aplicada el `2026-08-19` solo para `ProductosServicios/Index`, sin ampliar alcance funcional.
+- Hallazgo QA raíz del bootstrap:
+  - primera request real: `GET /ProductosServicios/ObtenerCombosProductosServicios`
+  - el proxy MVC enviaba `idEmpresa = 163`, mientras la API del módulo exige `Guid`
+  - evidencia HTTP reproducible directa en API local: `400 Bad Request` con `errors.idEmpresa[0] = "The value '163' is not valid."`
+- Corrección aplicada:
+  - MVC normaliza `idEmpresa` legacy numérico a `Guid` canónico antes de construir query y firma proxy
+  - MVC reescribe `idEmpresa` en cuerpos JSON server-side para que el navegador no sea autoridad tenant
+  - frontend elimina `idEmpresa` desde payloads de producto/servicio, catálogos rápidos, colección, paquete y atributo
+  - `fetchJson` interpreta `problem+json` y prioriza el mensaje útil de validación
+  - variantes dejan de usar `min-width: 980px`; en `390px` se presentan apiladas sin overflow horizontal accidental
+- Validación técnica del `2026-08-19`:
+  - `node --check checklist/wwwroot/js/ProductosServicios/ProductosServicios.js`: correcto
+  - `dotnet build checklist/checklist.csproj`: correcto con warnings legacy preexistentes
+  - `dotnet build checklistWs/checklistWs.csproj`: correcto con warnings legacy preexistentes
+- Pendiente real:
+  - falta recertificación manual autenticada en navegador contra procesos locales ya recargados para comprobar `F5`, nueva pestaña y limpieza de `sessionStorage` sin perder funcionamiento del módulo
+- Rerregresión post-microcorrección ejecutada el `2026-08-20` con sesión real de Chrome:
+  - `GET /ProductosServicios/Index` respondió `200`, pero la UI continuó en estado bloqueado con `No fue posible cargar la información`
+  - evidencia visible:
+    - grid en `0 registros`
+    - combos del listado y del modal en `0` opciones
+    - `sessionStorage.idEmpresa = null`
+  - el contexto server-side sí llegó a la vista:
+    - `data-id-empresa = b17aaece-2b78-4e35-b554-9e694eeb15a7`
+    - `data-empresa = 163`
+    - `data-correo = denisse@checkapp.com.mx`
+  - primera request bloqueante aislada con firma equivalente al proxy MVC:
+    - `GET /api/ProductosServicios/ObtenerCombosProductosServicios?idEmpresa=b17aaece-2b78-4e35-b554-9e694eeb15a7`
+    - `500 Internal Server Error`
+    - payload: `{"mensaje":"No fue posible cargar los catálogos del módulo."}`
+  - catálogos base auditados por separado sí responden `200`:
+    - categorías
+    - marcas
+    - unidades
+  - causa raíz confirmada en esquema activo:
+    - existen tablas legacy base del módulo
+    - faltan tablas nuevas de colección, paquete, atributos, variantes y multimedia
+  - dictamen técnico:
+    - el tenant server-side no depende de `sessionStorage`
+    - el bloqueo real vigente está en el bootstrap porque el agregado de combos no tolera ausencia de tablas nuevas en la base activa
+    - no se modificó código en esta corrida de QA
+- Corrección SQL bloqueante ejecutada el `2026-08-20` para `ProductosServicios`:
+  - `UP` real localizado y auditado en `inspectorapi/checklistWs/Scripts/productos-servicios-up.sql`
+  - `DOWN` localizado en `inspectorapi/checklistWs/Scripts/productos-servicios-down.sql`; no se ejecutó
+  - la desalineación confirmada estaba en el esquema activo `db_a883c3_checklist`, no en la API ni en la sesión autenticada
+  - el propio `UP` traía una inconsistencia de integridad:
+    - varias FK compuestas `(idEmpresa, id)` referenciaban tablas nuevas sin índice único candidato equivalente
+    - se corrigió quirúrgicamente el `UP` agregando `UX_*_Empresa_Id` para `Colecciones`, `Paquetes`, `Atributos`, `AtributosValores`, `ProductoAtributos` y `Variantes`
+  - el `UP` aplicado alineó:
+    - columnas nuevas de `ProductosServicios` para precio de comparación, precio unitario, SAT, control físico, dimensiones, serialización, colección y paquete
+    - tablas `ProductosServiciosColecciones`, `ProductosServiciosPaquetes`, `ProductosServiciosAtributos`, `ProductosServiciosAtributosValores`, `ProductosServiciosProductoAtributos`, `ProductosServiciosProductoAtributoValores`, `ProductosServiciosVariantes`, `ProductosServiciosVarianteValores` y `ProductosServiciosMultimedia`
+    - PK, FK e índices por `idEmpresa` compatibles con la implementación ampliada
+  - resultado funcional después del `UP`:
+    - `GET /ProductosServicios/ObtenerCombosProductosServicios` volvió a responder `200 OK` con JSON sano
+    - la recarga estable de `ProductosServicios/Index` en Chrome mostró KPIs `17 / 5 / 12`, combos cargados y grid con `17 registros`
+    - desapareció el mensaje `No fue posible cargar la información`
+    - la validación rápida de `F5`, pestaña nueva y operación sin `sessionStorage.idEmpresa` quedó positiva
   - estado posterior a la corrección parcial:
     - `localhost:5200` compiló y se relanzó con la corrección
     - la pestaña real de Chrome permitió localizar `Enviar correo de prueba`, pero la automatización disponible no reprodujo todavía una corrida UI end-to-end concluyente
@@ -258,6 +503,45 @@
       - `Controllers/Configuracion/CorreoSalienteController.cs`
     - resultado QA:
       - después de recargar, `Última prueba` volvió a mostrarse como `14 ago 2026, 2:59 p.m.`
+
+## Auditoría SKNC Órdenes de compra 2026-08-18
+
+- Se completó auditoría integral de solo lectura sobre `/Users/denissemendiola/dev/skncCreator/skncCreator` sin modificar el legacy.
+- El backlog comercial congelado continuó intacto.
+- Hallazgos estructurales:
+  - el vertical corre en `ASP.NET MVC 5` sobre `.NET Framework 4.6.1`
+  - la capa dominante es SQL directo desde controllers/models; no un servicio desacoplado
+  - `/OrdenesCompra/Index` es captura de OC
+  - `/OrdenesCompra/ReporteOC` mezcla consulta y operación
+  - `/OrdenesCompra/Aprobaciones` usa supervisores por departamento en `OrdendeCompraSupervisores`
+  - `OrdendeCompraPT` concentra detalle y cabecera repetida por folio
+  - la OC nace `0` o `6` según si el departamento exige aprobación
+  - la aprobación positiva cambia la OC a `6`, pero no entra inventario
+  - la recepción posterior vive en `RecepcionGController` y es el punto que actualiza existencias reales
+  - el flujo soporta recepción parcial y sobrerecepción
+  - no quedó confirmado un flujo formal de rechazo de OC con motivo dentro del motor auditado
+- Estado local observado:
+  - `http://localhost:8080` respondió `200 OK`
+  - proceso en escucha observado: `mono-sgen`
+  - PID observado: `31350`
+- Artefactos documentales generados:
+  - `docs/compras/legacy-sknc/01_ARQUITECTURA_SKNC_OC.md`
+  - `docs/compras/legacy-sknc/02_ORDENES_COMPRA_INDEX.md`
+  - `docs/compras/legacy-sknc/03_REPORTE_OC.md`
+  - `docs/compras/legacy-sknc/04_APROBACIONES_OC.md`
+  - `docs/compras/legacy-sknc/05_CICLO_ESTADOS_OC.md`
+  - `docs/compras/legacy-sknc/06_MODELO_DATOS_OC.md`
+  - `docs/compras/legacy-sknc/07_APROBACIONES_REGLAS.md`
+  - `docs/compras/legacy-sknc/08_RECEPCION_OC.md`
+  - `docs/compras/legacy-sknc/09_INVENTARIO_DESDE_OC.md`
+  - `docs/compras/legacy-sknc/10_USUARIOS_PERMISOS_OC.md`
+  - `docs/compras/legacy-sknc/11_REGLAS_NEGOCIO_OC.md`
+  - `docs/compras/legacy-sknc/12_MAPA_ENDPOINTS_TABLAS.md`
+  - `docs/compras/legacy-sknc/13_PROCESO_E2E_OC.md`
+  - `docs/compras/legacy-sknc/14_GAP_LEGACY_OC_VS_CHECKAPP.md`
+  - `docs/compras/AUDITORIA_INTEGRAL_OC_SKNC_LEGACY_2026-08-18.md`
+- Pendiente real:
+  - si se necesita evidencia de network autenticada de las tres pantallas, debe hacerse en sesión QA real y sin aprobar/cancelar/recibir registros reales sin autorización expresa
       - desapareció el desfase visual entre prueba, guardado y `F5`
       - SMTP, `Verificada`, `Guardar`, persistencia y password protegido permanecieron intactos
   - microcorrección UX/UI concluida el `2026-08-14`:
@@ -346,3 +630,334 @@
   - no improvisar secretos
   - cargar solo `user-secrets` autorizados
   - reintentar arranque local y entonces capturar requests reales autenticadas antes de diseñar la implementación CheckApp
+
+## Continuación auditoría runtime Legacy Ventas / PV
+
+- El `2026-08-17` se cerró una continuación de auditoría enfocada únicamente en:
+  - runtime
+  - network
+  - trazabilidad
+  - GAP analysis
+  - roadmap
+- Restricciones respetadas:
+  - no se usaron `user-secrets`
+  - no se creó `Jwt:Key`
+  - no se creó `ConnectionStrings:Central`
+  - no se modificó autenticación ni login
+- Hechos runtime confirmados:
+  - `Raramuri.blzr` sí levanta con perfil `http` en `http://localhost:5022`
+  - `GET /login` y `GET /ventas/nueva` respondieron `200` desde el listener local del frontend
+  - en modo normal el frontend usa bootstrap contra `http://174.138.180.181:5000` y luego espera resolver `Tenant.Api`
+  - `sazapi` local sigue bloqueado por el propio mecanismo oficial del repo:
+    - `run-local.sh -> setup-local.sh --check-only`
+    - faltantes exactos: `Jwt:Key` y `ConnectionStrings:Central`
+- Hechos funcionales nuevos confirmados:
+  - `Días para devolver` ya tiene trazabilidad cerrada `TiendasAjustes -> GetDiasParaDevolverAsync -> /ventas/devoluciones/ticket`
+  - `Formas de pago` ya tiene trazabilidad cerrada `configuracion/formas-pago -> ValidarFormasPagoFacturaAsync -> bloqueo de facturación en checkout`
+  - `/ventas/nueva` construye `VentaPosCobroRequestDto` y desemboca en `POST /ventas/cobrar`
+  - `POST /ventas/cobrar` declara persistencia en `detnotas + fma` y descuento de existencias vía `act_exis25`
+- Documento fuente ampliado:
+  - `docs/qa/AUDITORIA_PREIMPLEMENTACION_LEGACY_VENTAS_DEVOLUCIONES_AJUSTES_PV_FORMAS_PAGO_2026-08-17.md`
+
+## Cierre definitivo auditoría Legacy Ventas / PV
+
+- El `2026-08-17` se cerró definitivamente la auditoría con `Raramuri.blzr` contra WS publicado y `sazapi` solo como referencia de código.
+- Restricción ya consolidada:
+  - no volver a intentar levantar `sazapi` local
+  - no buscar `Jwt:Key`
+  - no buscar `ConnectionStrings:Central`
+  - no usar `user-secrets`
+- Runtime real confirmado:
+  - `dotnet run --launch-profile http`
+  - listener `http://localhost:5022`
+  - PID `71810`
+  - `GET /login` -> `200`
+  - `GET /ventas/nueva` -> `200`
+  - logs: `MODO SAZ API: NORMAL`, `LOGIN-BOOTSTRAP ORIGIN: http://174.138.180.181:5000`, `API EFECTIVA ESPERADA POST-LOGIN: TENANT.API`
+- Login real QA confirmado:
+  - bootstrap `POST /app/login-bootstrap` -> `200`
+  - `Empresa=4993`
+  - `EmpleadoTiendaAsignadaId=2`
+  - `Tenant.Api=http://153.75.231.11:5082`
+  - `Tenant.Database=db_aab1b5_babicora`
+  - `Tenant.EmpresaNombre=BABICORA`
+  - `MenuAcceso.Acceso=true`
+- Network autenticada confirmada en `Tenant.Api`:
+  - cliente QA `Daniel X` sí existe
+  - `ventas/formas-pago` devuelve `5` formas operativas
+  - `ventas/devoluciones/motivos` devuelve `10` motivos
+  - `configuracion/tiendas-ajustes/tiendas` devuelve `4` sucursales
+  - `configuracion/tiendas-ajustes?tienda=2` devuelve campos `null` válidos como fallback
+  - `configuracion/formas-pago?tiendaId=2` devuelve `26` filas para `ALTACIA`
+  - `configuracion/formas-pago/catalogos/formas-fiscales` devolvió arreglo vacío en esta sesión
+- Implicaciones para futuras iteraciones:
+  - separar bootstrap de autenticación y `tenantApi` operativo
+  - separar catálogo administrativo de formas de pago y catálogo operativo POS
+  - modelar explícitamente configuración vacía/default en `TiendasAjustes`
+  - migrar `Nueva venta` al final del bloque por su acoplamiento transaccional y fiscal
+
+## Planeación única de migración Ventas / PV
+
+- El `2026-08-17` quedó cerrada la única iteración de planeación para migrar:
+  - `Ajustes PV por tienda`
+  - `Formas de pago`
+  - `Devoluciones`
+  - `Nueva venta`
+- Documento rector creado:
+  - `docs/ventas/VENTAS_DEVOLUCIONES_AJUSTES_PV_FORMAS_PAGO_PLAN_MIGRACION_2026-08-17.md`
+- Orden aprobado técnicamente:
+  1. `Ajustes PV por tienda`
+  2. `Formas de pago`
+  3. `Devoluciones`
+  4. `Nueva venta`
+- Motivo del orden:
+  - `Devoluciones` necesita política por sucursal
+  - `Nueva venta` necesita configuración operativa/fiscal de formas de pago
+  - `Nueva venta` es la frontera más compleja del bloque
+- Decisiones clave propuestas a PO:
+  - no migrar todas las opciones Legacy de `Ajustes PV`
+  - sí migrar primero:
+    - `DiasParaDevolver`
+    - `DiasValidezNotaCredito`
+    - `DiasValidezValeCambio`
+    - `MostrarPrevioCobro`
+  - separar `Formas de pago` en maestro, configuración por sucursal y catálogo operativo
+  - mantener `FormaFiscal` como regla obligatoria de facturación
+  - implementar `Devoluciones` antes de `Nueva venta`
+
+## Blueprint técnico final Ventas / PV
+
+- El `2026-08-17` quedó cerrada la iteración documental final de blueprint previo a implementación.
+- Documentos creados:
+  - `docs/ventas/10_BLUEPRINT_TECNICO_AJUSTES_PV.md`
+  - `docs/ventas/11_BLUEPRINT_TECNICO_FORMAS_PAGO.md`
+  - `docs/ventas/12_BLUEPRINT_TECNICO_DEVOLUCIONES.md`
+  - `docs/ventas/13_BLUEPRINT_TECNICO_NUEVA_VENTA.md`
+  - `docs/ventas/14_MATRIZ_LEGACY_CHECKAPP_TABLAS.md`
+  - `docs/ventas/15_MATRIZ_ENDPOINTS_DTO_REGLAS.md`
+  - `docs/ventas/16_DEPENDENCIAS_TRANSVERSALES_POS.md`
+- Hallazgos documentales finales:
+  - `TiendasAjustes` sí tiene estructura SQL confirmada desde código
+  - `formaspago` sí concentra maestro/configuración Legacy de pagos
+  - `devoluciones/crear` sí genera nota de crédito y escribe en `detdev`
+  - `ventas/cobrar` sí persiste ticket/venta y toca múltiples dominios transversales
+  - CheckApp sí aporta reutilización real de `Clientes`, `ProductosServicios`, `Sucursales` y `RazonesSociales`
+  - CheckApp no tiene todavía equivalentes confirmados de caja POS, venta POS, devoluciones POS ni catálogo SAT de formas de pago
+
+## Auditoría integral ciclo comercial
+
+- El `2026-08-17` quedó cerrada la auditoría integral del ciclo comercial `Cotización -> Pedido -> Venta -> Postventa`, solo documental.
+- Documentos creados en `docs/comercial/`:
+  - `01_CICLO_COMERCIAL_INTEGRAL_LEGACY.md`
+  - `02_USUARIOS_PERFILES_POS.md`
+  - `03_ASISTENCIA_OPERACION_POS.md`
+  - `04_CAJA_APERTURA_CIERRE.md`
+  - `05_COTIZACION_A_PEDIDO.md`
+  - `06_PEDIDOS.md`
+  - `07_VENTA_DESDE_PEDIDO.md`
+  - `08_VENTAS_COBRAR_TRANSACCION.md`
+  - `09_INVENTARIO_EXISTEN_NEGATIVOS.md`
+  - `10_PRODUCTOS_SERVICIOS_ACTIVOS_FLETES.md`
+  - `11_FORMAS_PAGO_CREDITO.md`
+  - `12_NOTAS_CREDITO_VALES.md`
+  - `13_FACTURACION_EN_VENTA.md`
+  - `14_MATRIZ_PROCESOS_TABLAS.md`
+  - `15_MATRIZ_PERFILES_RESPONSABILIDADES.md`
+  - `16_MAPA_CICLO_COMERCIAL.md`
+  - `17_GAP_CHECKAPP_COMERCIAL.md`
+  - `18_RECOMENDACION_ARQUITECTURA_CHECKAPP.md`
+- Hallazgos integrales nuevos:
+  - `Pedido` sí existe como entidad real en Legacy
+  - `POST /cotizaciones/{id}/convertir-pedido` sí existe y exige cotización `AUTORIZADA`
+  - la conversión sí escribe `pedidos_clientes*` y sincroniza `orders/detorder`
+  - `POST /ventas/cobrar` sí consume pedidos y los marca `SURTIDO`
+  - `logdia` sí gobierna asistencia y elegibilidad de vendedor
+  - `CajaId` sí cruza cotización, pedido, venta, devolución y corte
+  - `notascre` y `vales` sí son documentos reutilizables como pago
+  - CheckApp sí reutiliza `Cotizaciones`, `Clientes`, `ProductosServicios`, `Sucursales`, `RazonesSociales`, `Operadores` y `Correo saliente`
+  - CheckApp no tiene todavía `Pedido`, `Venta POS`, `Caja POS`, `Asistencia POS` ni checkout comercial real
+
+## Cierre final de gaps comerciales
+
+- El `2026-08-17` quedó cerrado el bloque final de gaps previo al plan de trabajo definitivo, sin implementación.
+- Documentos nuevos creados en `docs/comercial/`:
+  - `19_DECISIONES_PO_CICLO_COMERCIAL.md`
+  - `20_CIERRE_GAPS_PRE_PLAN.md`
+- Gaps finales resueltos con evidencia:
+  - pedido parcial Legacy: `NO CONFIRMADO`
+  - múltiples ventas sobre mismo pedido: `NO CONFIRMADO`
+  - regla observable actual: pedido referenciado termina como `SURTIDO`
+  - caja formal de apertura/cierre obligatoria para vender: `NO CONFIRMADA`
+  - vendedor y cajero son identidades separadas en runtime actual
+  - asistencia sí bloquea elegibilidad del vendedor
+  - flete se comporta como cargo financiero, no como partida inventariable confirmada
+  - activos no quedaron confirmados como partida POS Legacy
+- Decisiones PO abiertas para Denisse:
+  - venta libre vs venta obligatoria desde pedido
+  - surtido total vs pedido parcial real
+  - caja contextual vs caja con sesión formal
+  - separación vendedor/cajero
+  - modelo de perfil POS por capacidades
+  - alcance de bloqueos por asistencia
+  - semántica comercial de flete
+  - papel comercial de activos
+  - modelo unificado o separado de `NC/VALE`
+- Restricción vigente:
+  - queda prohibido implementar comercial en CheckApp hasta cerrar decisiones PO y construir después el plan definitivo.
+
+## Auditoría destino CheckApp ciclo comercial
+
+- El `2026-08-18` quedó cerrada la auditoría profunda del sistema destino CheckApp para ciclo comercial, solo documental.
+- Documento nuevo creado:
+  - `docs/comercial/21_AUDITORIA_CHECKAPP_DESTINO_CICLO_COMERCIAL.md`
+- Hallazgos obligatorios nuevos:
+  - `ProductosServicios` sí existe como módulo real reusable con inventario base propio
+  - `ProductosServiciosExistencias` y `ProductosServiciosMovimientosInventario` sí son parte viva del backend actual
+  - `Cotizaciones` sí existe ya como vertical funcional en CheckApp con MVC + API + tablas propias
+  - la premisa vieja de `Cotizaciones` como placeholder total queda superada por el código vigente auditado el `2026-08-18`
+  - `Cotización` sí admite productos y servicios juntos y no afecta inventario
+  - la existencia mostrada hoy en cotización es solo `ExistenciaActual`; no existen todavía `ComprometidoPedido` ni `Disponible`
+  - no existe aún `Pedido`, `Venta`, `Caja POS` ni `Asistencia POS` operativas en CheckApp
+  - `Ventas/Nueva` y `Ventas/Devoluciones` continúan como placeholders visuales sin backend comercial
+  - tampoco existen todavía `Fecha Instalación`, `Observaciones para instalador`, `Flete` ni asignación de `Operador instalador` en la cotización actual
+- Regla de continuidad:
+  - cualquier planeación posterior del comercial CheckApp debe partir de `docs/comercial/21_AUDITORIA_CHECKAPP_DESTINO_CICLO_COMERCIAL.md` y no volver a tratar `Cotizaciones` ni `ProductosServicios` como si fueran gaps vacíos.
+
+## Corrección y cierre de auditoría destino CheckApp
+
+- El `2026-08-18` quedó cerrada la corrección documental de la auditoría destino CheckApp para ciclo comercial, sin implementación y por instrucción directa del Product Owner.
+- Alcance obligatorio respetado:
+  - completar solo los bloques omitidos;
+  - no reabrir auditoría base de `ProductosServicios`, inventario físico propio, estructura básica de `Cotizaciones` ni gaps generales `Pedido` / `Venta`.
+- Documentos nuevos creados en `docs/comercial/checkapp/`:
+  - `01_AUDITORIA_CHECKAPP_DOMINIOS_ACTUALES.md`
+  - `02_PRODUCTOSSERVICIOS_INVENTARIO.md`
+  - `03_OC_RECEPCION_EXISTENCIAS.md`
+  - `04_COTIZACIONES_ESTADO_ACTUAL.md`
+  - `05_PRODUCTO_NO_CATALOGADO.md`
+  - `06_FECHA_INSTALACION_SERVICIOS.md`
+  - `07_SERVICIOS_OPERADORES.md`
+  - `08_USUARIOS_CAPACIDADES_ASISTENCIA.md`
+  - `09_FORMAS_PAGO_DOCUMENTOS.md`
+  - `10_PEDIDO_MODELO_OBJETIVO.md`
+  - `11_COMPROMISO_INVENTARIO.md`
+  - `12_VENTA_DESDE_PEDIDO.md`
+  - `13_SURTIMIENTO_PARCIAL.md`
+  - `14_FLETE_ACTIVOS_FISCAL.md`
+  - `15_MAPA_DATOS_COMERCIAL_CHECKAPP.md`
+  - `16_GAP_FINAL_CHECKAPP_COMERCIAL.md`
+  - `17_PROPUESTA_FUNCIONAL_COMERCIAL.md`
+- Hallazgos de cierre nuevos:
+  - `OrdenesCompra` existe como vertical activo pero sin recepción integrada a inventario
+  - no se localizaron tablas ni endpoints de recepción sobre OC; la trazabilidad `OC -> Recepción -> Movimiento -> Existencia` queda como `GAP REAL`
+  - recomendación arquitectónica respaldada por código actual: inventario físico por empresa + compromiso comercial por sucursal
+  - `CotizacionesPartidas` requiere producto catalogado; el concepto pendiente de catálogo es una adaptación futura, no un comportamiento vigente
+  - `FechaInstalacion` y `ObservacionesInstalador` deben modelarse por partida de servicio, con opción global solo como referencia comercial
+  - `Operadores` es reutilizable para ejecución, pero no existe hoy asignación operativa comercial a servicio / pedido
+  - no existe módulo general reusable de asistencia comercial; solo contexto operativo parcial en checklist
+  - `Formas de pago`, `Facturación`, `NC` y `Vale` siguen faltando en destino
+  - `Clientes` y `RazonesSociales` sí cubren fiscal básico reusable; faltan catálogos y contratos SAT comerciales completos
+  - `Activos` debe entrar como contexto o evidencia del servicio, no como producto comercial por defecto
+- Restricción vigente:
+  - sigue prohibido pasar a plan de implementación o tocar código funcional comercial hasta revisión final de Denisse.
+
+## Auditoría CheckApp actual de Órdenes de Compra
+
+- El `2026-08-19` quedó cerrada la auditoría integral solo documental del módulo actual de `OrdenesCompra` y su `Reporte` en CheckApp, usando la auditoría legacy SKNC del `2026-08-18` solo como fuente comparativa.
+- Documentos nuevos creados en `docs/compras/`:
+  - `AUDITORIA_INTEGRAL_OC_CHECKAPP_ACTUAL_2026-08-19.md`
+  - `checkapp-actual/01_ARQUITECTURA_CHECKAPP_OC.md`
+  - `checkapp-actual/02_PANTALLA_ACTUAL_OC.md`
+  - `checkapp-actual/03_REPORTE_OC_ACTUAL.md`
+  - `checkapp-actual/04_MODELO_DATOS_OC_ACTUAL.md`
+  - `checkapp-actual/05_COMPARATIVO_CHECKAPP_VS_SKNC.md`
+- Hallazgos obligatorios nuevos:
+  - CheckApp actual sí tiene módulo real de OC con wizard, reporte, persistencia normalizada, folio seguro por empresa, exportación PDF/Excel y validación backend
+  - los estados confirmados actuales son `Borrador`, `Generada` y `Cancelada`
+  - `GenerarOrdenCompra` solo formaliza documentalmente la OC; no ejecuta recepción ni inventario
+  - no se localizaron aprobación formal, recepción, recepción parcial, pendientes por recibir, seriales ni movimiento automático a `ProductosServiciosExistencias` o `ProductosServiciosMovimientosInventario`
+  - la cadena `OC -> Recepción -> Movimiento -> Existencia` sigue siendo un `GAP REAL` del destino actual
+  - `Fecha minima` y `Fecha maxima` aparecen en la UI de captura, pero no se localizaron en request, tabla ni persistencia del backend auditado
+  - CheckApp actual supera a SKNC en arquitectura técnica y modelo de datos de captura, pero SKNC sigue cubriendo mejor la vida posterior `Generada -> Recepción -> Inventario`
+- Restricción vigente:
+  - queda prohibido interpretar esta auditoría como autorización de implementación; el backlog comercial continúa congelado y la evolución posterior debe respetar la arquitectura actual de CheckApp.
+
+## Actualización Productos y Servicios 2026-08-19
+
+- El `2026-08-19` se amplió `ProductosServicios` con implementación real sobre UI, MVC proxy, API y SQL de soporte, manteniendo fuera de alcance los demás dominios comerciales y de seguridad.
+- La ficha de alta / edición ahora contempla:
+  - `Estatus` operativo respaldado por `Activo`
+  - `Colección` multitenant con alta rápida
+  - `PrecioComparacion`
+  - `PrecioUnitarioMonto`, `PrecioUnitarioBaseCantidad` y `PrecioUnitarioUnidad`
+  - bloque SAT: `ObjetoImpuesto`, `ClaveProductoSat`, `ClaveUnidadSat`
+  - `EsProductoFisico`, `UsaNumeroSerie`, peso y dimensiones
+  - `Paquete` multitenant con alta rápida
+  - `Atributos` y `Variantes` normalizadas
+  - `Multimedia` con patrón de `Activos`
+- Persistencia nueva o ampliada:
+  - columnas nuevas en `ProductosServicios` para precios extendidos, SAT, logística, serialización, colección y paquete
+  - tablas nuevas para colecciones, paquetes, atributos, valores, atributos por producto, variantes y multimedia
+- Regla de continuidad:
+  - cualquier cambio posterior de este módulo debe partir del documento `docs/productos-servicios/PRODUCTOS_SERVICIOS_AMPLIACION_20260819.md` y preservar la separación entre producto físico, inventario, variantes y multimedia temporal/final.
+
+## QA Productos y Servicios 2026-08-20
+
+- El `2026-08-20` se ejecutó QA funcional ampliada en navegador real autenticado sobre `ProductosServicios/Index` con la sesión QA de `denisse@checkapp.com.mx` y empresa visible `UMBRELLA`.
+- Validaciones confirmadas antes del bloqueo:
+  - listeners activos: `5200 -> PID 41621`, `5127 -> PID 41626`
+  - `GET /ProductosServicios/ObtenerCombosProductosServicios` siguió cargando bootstrap útil
+  - el grid siguió mostrando `17 registros`, sin error visual general de carga
+  - el tenant visible del módulo siguió siendo `UMBRELLA`
+- Bloqueo funcional reproducible:
+  - al usar alta rápida de colección desde el formulario web de `ProductosServicios`, la UI acepta captura, cierra modal y muestra mensaje de éxito
+  - reproducción validada con `QA-COL-20260820-WEB2 / Colección QA Web 2`
+  - resultado real: no queda seleccionada y no existe fila en `dbo.ProductosServiciosColecciones`
+  - el mismo alta directo al API firmado sí funcionó y persistió `QA-COL-20260820-DIRECT2`, que luego sí apareció en el combo al recargar la pantalla
+- Lectura práctica:
+  - el SQL ya no es el bloqueo
+  - el bloqueo se movió al flujo web/proxy de alta rápida de catálogos
+  - el falso positivo de éxito nace al menos en `ProductosServicios.js`, porque `saveCollection()` comunica éxito aunque el item creado no exista en combos ni en base
+- Restricción respetada:
+  - no se tocó código en esta corrida QA porque el defecto quedó reproducido pero no suficientemente aislado todavía para un parche mínimo seguro dentro de la misma vuelta.
+- Continuación QA del `2026-08-20`:
+  - regla permanente ratificada: el mensaje `Se inició sesión en otro dispositivo con su usuario` es comportamiento conocido del proyecto; la acción correcta es reingresar y continuar QA, sin volver a tratarlo como bloqueo ni pedir credenciales al Product Owner
+  - altas rápidas certificadas con evidencia de UI, MVC, API y SQL:
+    - colección `QA-COL-RUNTIME-20260819 / Colección QA Runtime`
+    - paquete `Paquete QA Runtime 20260819`
+    - atributos `Talla QA Runtime` y `Color QA Runtime`
+  - microcorrección frontend aplicada:
+    - `saveCollection`, `savePackage` y `saveAttributeCatalog` ya preservan selecciones del modal al refrescar combos
+    - validación posterior: colección y paquete permanecen seleccionados después de un alta rápida adicional de atributo
+  - bloqueo de guardado completo identificado y corregido en API:
+    - `GuardarProductoServicio` devolvía `500`
+    - causa raíz: consulta de multimedia sin `SqlTransaction` activa dentro de `SynchronizeProductoMultimediaAsync`
+    - ajuste aplicado: `ObtenerMultimediaProductoAsync` acepta transacción opcional y la reutiliza cuando el guardado corre dentro de una transacción abierta
+  - resultado funcional posterior:
+    - `POST /GuardarProductoServicio` volvió a responder `200`
+    - producto QA persistido: `QA-PRODUCTO-AMPLIADO-20260819`
+    - servicio QA persistido: `QA-SERVICIO-AMPLIADO-20260819`
+    - reapertura post-F5 del producto validada con colección, paquete, peso y precios extendidos persistidos
+  - pendiente real fuera de esta vuelta:
+    - variantes completas
+    - multimedia real
+    - regresión transversal de módulos congelados
+- Continuación QA del `2026-08-21` sobre catálogos y combos:
+  - sesión real del PO reutilizada en Chrome sobre `ProductosServicios/Index`
+  - doble `Gramo` reproducido y trazado hasta SQL real, no a un bug extra de Select2
+  - filas activas encontradas en `ProductosServiciosUnidadesMedida` para `UMBRELLA`:
+    - `Codigo=001`, `Nombre=Gramo`, `Abreviatura=g`
+    - `Codigo=002`, `Nombre=Gramo`, `Abreviatura=g`
+    - ambas sin referencias en `ProductosServicios`
+  - conclusión operativa:
+    - el combo sí estaba mostrando datos reales duplicados
+    - la brecha estaba en reglas de unicidad por nombre, no solo por código
+  - corrección aplicada:
+    - API bloquea nuevos duplicados por nombre en categoría, marca, colección y unidad
+    - frontend desambigüa duplicados históricos en combos con sufijo de código, por ejemplo `Gramo · 001`
+  - QA posterior validada en navegador real:
+    - mensajes correctos para duplicado por nombre y por código/número
+    - alta válida correcta para categoría, marca, colección y unidad
+    - `select / clear / reselect` correcto en tipo, categoría, marca, colección, unidad, objeto de impuesto y paquete
+  - todavía no certificar como cerrado:
+    - SAT producto / SAT unidad requieren QA manual adicional antes de decir `sí`
