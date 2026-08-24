@@ -2,10 +2,13 @@ using System.Net.Http.Headers;
 using System.Security.Claims;
 using System.Security.Cryptography;
 using System.Text;
+using System.Text.Json;
+using System.Text.Json.Nodes;
 using checklist.Clases;
 using checklist.Extensions;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
+using System.Globalization;
 
 namespace checklist.Controllers.ProductosServicios
 {
@@ -21,6 +24,7 @@ namespace checklist.Controllers.ProductosServicios
 
         private readonly IHttpClientFactory _clientFactory;
         private readonly IConfiguration _configuration;
+        private static readonly JsonSerializerOptions ProxyJsonOptions = new JsonSerializerOptions(JsonSerializerDefaults.Web);
 
         public ProductosServiciosController(IHttpClientFactory clientFactory, IConfiguration configuration)
         {
@@ -61,8 +65,14 @@ namespace checklist.Controllers.ProductosServicios
         [HttpPost("SubirImagenTemporal")]
         public Task<IActionResult> SubirImagenTemporal() => ProxyMultipartAsync("SubirImagenTemporal");
 
+        [HttpPost("SubirMultimediaTemporal")]
+        public Task<IActionResult> SubirMultimediaTemporal() => ProxyMultipartAsync("SubirMultimediaTemporal");
+
         [HttpPost("LimpiarImagenTemporal")]
         public Task<IActionResult> LimpiarImagenTemporal() => ProxyJsonAsync(HttpMethod.Post, "LimpiarImagenTemporal");
+
+        [HttpPost("LimpiarMultimediaTemporal")]
+        public Task<IActionResult> LimpiarMultimediaTemporal() => ProxyJsonAsync(HttpMethod.Post, "LimpiarMultimediaTemporal");
 
         [HttpPost("GuardarProductoServicio")]
         public Task<IActionResult> GuardarProductoServicio() => ProxyJsonAsync(HttpMethod.Post, "GuardarProductoServicio");
@@ -75,6 +85,9 @@ namespace checklist.Controllers.ProductosServicios
 
         [HttpGet("ObtenerCombosProductosServicios")]
         public Task<IActionResult> ObtenerCombosProductosServicios() => ProxyGetAsync("ObtenerCombosProductosServicios");
+
+        [HttpGet("BuscarCatalogosSatProductoServicio")]
+        public Task<IActionResult> BuscarCatalogosSatProductoServicio() => ProxyGetAsync("BuscarCatalogosSatProductoServicio");
 
         [HttpGet("ObtenerResumenProductosServicios")]
         public Task<IActionResult> ObtenerResumenProductosServicios() => ProxyGetAsync("ObtenerResumenProductosServicios");
@@ -133,6 +146,21 @@ namespace checklist.Controllers.ProductosServicios
         [HttpPost("GuardarUnidadMedidaProductoServicio")]
         public Task<IActionResult> GuardarUnidadMedidaProductoServicio() => ProxyJsonAsync(HttpMethod.Post, "GuardarUnidadMedidaProductoServicio");
 
+        [HttpPost("GuardarColeccionProductoServicio")]
+        public Task<IActionResult> GuardarColeccionProductoServicio() => ProxyJsonAsync(HttpMethod.Post, "GuardarColeccionProductoServicio");
+
+        [HttpPost("GuardarPaqueteProductoServicio")]
+        public Task<IActionResult> GuardarPaqueteProductoServicio() => ProxyJsonAsync(HttpMethod.Post, "GuardarPaqueteProductoServicio");
+
+        [HttpPost("GuardarAtributoProductoServicio")]
+        public Task<IActionResult> GuardarAtributoProductoServicio() => ProxyJsonAsync(HttpMethod.Post, "GuardarAtributoProductoServicio");
+
+        [HttpPost("GuardarValorAtributoProductoServicio")]
+        public Task<IActionResult> GuardarValorAtributoProductoServicio() => ProxyJsonAsync(HttpMethod.Post, "GuardarValorAtributoProductoServicio");
+
+        [HttpGet("ObtenerValoresAtributoProductoServicio")]
+        public Task<IActionResult> ObtenerValoresAtributoProductoServicio() => ProxyGetAsync("ObtenerValoresAtributoProductoServicio");
+
         [HttpPost("BajaUnidadMedidaProductoServicio")]
         public Task<IActionResult> BajaUnidadMedidaProductoServicio() => ProxyJsonAsync(HttpMethod.Post, "BajaUnidadMedidaProductoServicio");
 
@@ -173,7 +201,8 @@ namespace checklist.Controllers.ProductosServicios
         {
             using HttpRequestMessage request = CreateApiRequest(method, actionName);
             string body = await ReadBodyAsync();
-            request.Content = new StringContent(string.IsNullOrWhiteSpace(body) ? "{}" : body, Encoding.UTF8, Request.ContentType ?? "application/json");
+            string rewrittenBody = RewriteJsonBodyWithServerEmpresa(body);
+            request.Content = new StringContent(rewrittenBody, Encoding.UTF8, "application/json");
             return await SendAsync(request);
         }
 
@@ -244,6 +273,26 @@ namespace checklist.Controllers.ProductosServicios
             query.Add(new KeyValuePair<string, string?>("idEmpresa", idEmpresa));
             string queryString = QueryString.Create(query).ToUriComponent();
             return $"{Utilerias.UrlBase}api/ProductosServicios/{actionName}{queryString}";
+        }
+
+        private string RewriteJsonBodyWithServerEmpresa(string? body)
+        {
+            JsonNode? parsedBody = null;
+            if (!string.IsNullOrWhiteSpace(body))
+            {
+                try
+                {
+                    parsedBody = JsonNode.Parse(body);
+                }
+                catch (JsonException)
+                {
+                    parsedBody = null;
+                }
+            }
+
+            JsonObject payload = parsedBody as JsonObject ?? new JsonObject();
+            payload["idEmpresa"] = ResolveIdEmpresa();
+            return payload.ToJsonString(ProxyJsonOptions);
         }
 
         private void AddProxyHeaders(HttpRequestMessage request)
@@ -328,9 +377,9 @@ namespace checklist.Controllers.ProductosServicios
 
         private string ResolveIdEmpresa()
         {
-            return ResolveSessionValue("idEmpresa")
-                ?? User.FindFirstValue(ClaimTypes.SerialNumber)
-                ?? Request.Query["idEmpresa"].FirstOrDefault()
+            return NormalizeEmpresaId(ResolveSessionValue("idEmpresa"))
+                ?? NormalizeEmpresaId(User.FindFirstValue(ClaimTypes.SerialNumber))
+                ?? NormalizeEmpresaId(Request.Query["idEmpresa"].FirstOrDefault())
                 ?? string.Empty;
         }
 
@@ -373,6 +422,30 @@ namespace checklist.Controllers.ProductosServicios
             if (trimmed.Length >= 2 && trimmed.StartsWith('"') && trimmed.EndsWith('"'))
             {
                 return trimmed.Substring(1, trimmed.Length - 2);
+            }
+
+            return trimmed;
+        }
+
+        private static string? NormalizeEmpresaId(string? value)
+        {
+            if (string.IsNullOrWhiteSpace(value))
+            {
+                return null;
+            }
+
+            string trimmed = value.Trim();
+            if (Guid.TryParse(trimmed, out Guid parsed) && parsed != Guid.Empty)
+            {
+                return parsed.ToString("D");
+            }
+
+            if (trimmed.All(char.IsDigit) &&
+                trimmed.Length <= 12 &&
+                ulong.TryParse(trimmed, NumberStyles.None, CultureInfo.InvariantCulture, out ulong numericEmpresaId) &&
+                numericEmpresaId > 0)
+            {
+                return $"00000000-0000-0000-0000-{numericEmpresaId.ToString(CultureInfo.InvariantCulture).PadLeft(12, '0')}";
             }
 
             return trimmed;

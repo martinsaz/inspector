@@ -187,128 +187,425 @@
                 <div class="modal-body ps-modal-body">
                     <input id="hdProductoServicioId" type="hidden" />
                     <div class="ps-form-layout">
-                        <div class="ps-form-header-layout">
-                            <section class="checkapp-panel ps-image-panel">
-                                <div class="checkapp-panel-head">
-                                    <div>
-                                        <span class="checkapp-panel-eyebrow">Imagen</span>
-                                        <h2>Imagen principal</h2>
-                                        <p class="checkapp-panel-copy">Carga una sola imagen con vista previa, cambio y eliminación.</p>
+                        <section class="checkapp-panel ps-block-panel cot-panel cot-panel--collapsible ps-collapsible-panel ps-general-panel" data-ps-section="general">
+                            <div class="checkapp-panel-head" data-ps-toggle-header="general" tabindex="0" aria-expanded="true">
+                                <div>
+                                    <span class="checkapp-panel-eyebrow">Registro</span>
+                                    <h2>Información general</h2>
+                                    <p class="checkapp-panel-copy">Datos principales, clasificación e imagen del producto o servicio.</p>
+                                </div>
+                                <button type="button" class="checkapp-btn checkapp-btn-ghost cot-panel-toggle ps-panel-toggle" data-ps-toggle-section="general" aria-expanded="true" title="Mostrar u ocultar información general" aria-label="Mostrar u ocultar información general">
+                                    <i class="fa fa-chevron-up"></i>
+                                    <span>Contraer</span>
+                                </button>
+                            </div>
+                            <div class="cot-panel-body">
+                                <div class="ps-modal-top-grid">
+                                    <section class="checkapp-panel ps-image-panel">
+                                        <div class="checkapp-panel-head">
+                                            <div>
+                                                <span class="checkapp-panel-eyebrow">Imagen</span>
+                                                <h2>Imagen principal</h2>
+                                                <p class="checkapp-panel-copy">Carga una sola imagen con vista previa, cambio y eliminación.</p>
+                                            </div>
+                                            <div class="ps-image-actions">
+                                                <button id="btCambiarImagenProductoServicio" type="button" class="checkapp-btn checkapp-btn-secondary">
+                                                    <i class="fa fa-picture-o"></i>
+                                                    <span>Cambiar</span>
+                                                </button>
+                                                <button id="btEliminarImagenProductoServicio" type="button" class="checkapp-btn checkapp-btn-ghost">
+                                                    <i class="fa fa-trash"></i>
+                                                    <span>Eliminar</span>
+                                                </button>
+                                                <input id="flImagenProductoServicio" type="file" accept="image/png,image/jpeg,image/webp" hidden />
+                                            </div>
+                                        </div>
+                                        <div class="ps-image-editor">
+                                            <div id="psImagePreview" class="ps-image-preview"></div>
+                                            <div id="txInfoImagenProductoServicio" class="checkapp-status-inline"></div>
+                                        </div>
+                                    </section>
+
+                                    <div class="ps-modal-top-fields">
+                                        <div class="checkapp-filter-grid ps-form-grid ps-form-grid--hero">
+                                            <label class="checkapp-field ps-form-field ps-form-field--type">
+                                                <span>Tipo *</span>
+                                                <select id="cbTipoProductoServicio" class="form-select"></select>
+                                            </label>
+                                            <label class="checkapp-field ps-form-field ps-form-field--name">
+                                                <span>Nombre *</span>
+                                                <input id="txNombreProductoServicio" maxlength="150" type="text" />
+                                            </label>
+                                            <label class="checkapp-field ps-form-field ps-form-field--status">
+                                                <span>Estatus *</span>
+                                                <select id="cbEstatusProductoServicio" class="form-select">
+                                                    <option value="true">Activo</option>
+                                                    <option value="false">Inactivo</option>
+                                                </select>
+                                            </label>
+                                            <label class="checkapp-field ps-form-field ps-form-field--code">
+                                                <span>Código *</span>
+                                                <input id="txCodigoProductoServicio" maxlength="50" type="text" />
+                                            </label>
+                                            <label class="checkapp-field ps-form-field ps-form-field--tag">
+                                                <span>Tag</span>
+                                                <input id="txTagProductoServicio" maxlength="100" type="text" />
+                                            </label>
+                                            <label class="checkapp-field ps-form-field ps-form-field--description">
+                                                <span>Descripción</span>
+                                                <textarea id="txDescripcionProductoServicio" maxlength="1000"></textarea>
+                                            </label>
+                                        </div>
                                     </div>
-                                    <div class="ps-image-actions">
-                                        <button id="btCambiarImagenProductoServicio" type="button" class="checkapp-btn checkapp-btn-secondary">
-                                            <i class="fa fa-picture-o"></i>
-                                            <span>Cambiar</span>
-                                        </button>
-                                        <button id="btEliminarImagenProductoServicio" type="button" class="checkapp-btn checkapp-btn-ghost">
-                                            <i class="fa fa-trash"></i>
-                                            <span>Eliminar</span>
-                                        </button>
-                                        <input id="flImagenProductoServicio" type="file" accept="image/png,image/jpeg,image/webp" hidden />
+
+                                    <div class="checkapp-filter-grid ps-form-grid ps-form-grid--catalogs">
+                                        <label class="checkapp-field ps-form-field ps-form-field--category">
+                                            <span>Categoría *</span>
+                                            <span class="activos-select-with-action ps-select-with-action">
+                                                <select id="cbCategoriaProductoServicio" class="form-select"></select>
+                                                <button id="btQuickAddCategoriaProductoServicio" type="button" class="activos-inline-add" title="Agregar categoría" aria-label="Agregar categoría">
+                                                    <span aria-hidden="true">+</span>
+                                                </button>
+                                            </span>
+                                        </label>
+                                        <label class="checkapp-field ps-form-field ps-form-field--brand" id="fieldMarcaProductoServicio">
+                                            <span>Marca</span>
+                                            <span class="activos-select-with-action ps-select-with-action">
+                                                <select id="cbMarcaProductoServicio" class="form-select"></select>
+                                                <button id="btQuickAddMarcaProductoServicio" type="button" class="activos-inline-add" title="Agregar marca" aria-label="Agregar marca">
+                                                    <span aria-hidden="true">+</span>
+                                                </button>
+                                            </span>
+                                        </label>
+                                        <label class="checkapp-field ps-form-field ps-form-field--collection">
+                                            <span>Colección</span>
+                                            <span class="activos-select-with-action ps-select-with-action">
+                                                <select id="cbColeccionProductoServicio" class="form-select"></select>
+                                                <button id="btQuickAddColeccionProductoServicio" type="button" class="activos-inline-add" title="Agregar colección" aria-label="Agregar colección">
+                                                    <span aria-hidden="true">+</span>
+                                                </button>
+                                            </span>
+                                        </label>
                                     </div>
                                 </div>
-                                <div class="ps-image-editor">
-                                    <div id="psImagePreview" class="ps-image-preview"></div>
-                                    <div id="txInfoImagenProductoServicio" class="checkapp-status-inline"></div>
-                                </div>
-                            </section>
+                            </div>
+                        </section>
 
-                            <div class="ps-form-stack">
-                                <div class="checkapp-filter-grid ps-form-grid ps-form-grid--top">
-                                    <label class="checkapp-field ps-form-field ps-form-field--type">
-                                        <span>Tipo *</span>
-                                        <select id="cbTipoProductoServicio" class="form-select"></select>
-                                    </label>
-                                    <label class="checkapp-field ps-form-field ps-form-field--code">
-                                        <span>Código *</span>
-                                        <input id="txCodigoProductoServicio" maxlength="50" type="text" />
-                                    </label>
-                                    <label class="checkapp-field ps-form-field ps-form-field--tag">
-                                        <span>Tag</span>
-                                        <input id="txTagProductoServicio" maxlength="100" type="text" />
-                                    </label>
-                                    <label class="checkapp-field ps-form-field ps-form-field--name">
-                                        <span>Nombre *</span>
-                                        <input id="txNombreProductoServicio" maxlength="150" type="text" />
-                                    </label>
-                                </div>
+                        <div class="ps-form-stack">
+                                <section class="checkapp-panel ps-block-panel cot-panel cot-panel--collapsible ps-collapsible-panel" data-ps-section="comercial">
+                                    <div class="checkapp-panel-head" data-ps-toggle-header="comercial" tabindex="0" aria-expanded="true">
+                                        <div>
+                                            <span class="checkapp-panel-eyebrow">Precios</span>
+                                            <h2>Configuración comercial</h2>
+                                            <p class="checkapp-panel-copy">Define el precio base y los datos visibles para venta y comparación.</p>
+                                        </div>
+                                        <button type="button" class="checkapp-btn checkapp-btn-ghost cot-panel-toggle ps-panel-toggle" data-ps-toggle-section="comercial" aria-expanded="true" title="Mostrar u ocultar configuración comercial" aria-label="Mostrar u ocultar configuración comercial">
+                                            <i class="fa fa-chevron-up"></i>
+                                            <span>Contraer</span>
+                                        </button>
+                                    </div>
+                                    <div class="cot-panel-body">
+                                        <div class="checkapp-filter-grid ps-form-grid ps-form-grid--pricing">
+                                        <label class="checkapp-field ps-form-field ps-form-field--unit">
+                                            <span>Unidad *</span>
+                                            <span class="activos-select-with-action ps-select-with-action">
+                                                <select id="cbUnidadProductoServicio" class="form-select"></select>
+                                                <button id="btQuickAddUnidadProductoServicio" type="button" class="activos-inline-add" title="Agregar unidad de medida" aria-label="Agregar unidad de medida">
+                                                    <span aria-hidden="true">+</span>
+                                                </button>
+                                            </span>
+                                        </label>
+                                        <label class="checkapp-field ps-form-field ps-form-field--cost">
+                                            <span>Costo</span>
+                                            <input id="txCostoProductoServicio" type="number" min="0" step="0.0001" inputmode="decimal" placeholder="$0.00" />
+                                        </label>
+                                        <label class="checkapp-field ps-form-field ps-form-field--price">
+                                            <span>Precio Público *</span>
+                                            <input id="txPrecioPublicoProductoServicio" type="number" min="0" step="0.0001" inputmode="decimal" placeholder="$0.00" />
+                                        </label>
+                                        <label class="checkapp-field ps-form-field ps-form-field--compare">
+                                            <span>Precio de comparación</span>
+                                            <input id="txPrecioComparacionProductoServicio" type="number" min="0" step="0.0001" inputmode="decimal" placeholder="$0.00" />
+                                        </label>
+                                        <div class="checkapp-field ps-form-field ps-form-field--unit-price">
+                                            <span>Precio unitario</span>
+                                            <div class="ps-unit-price-shell">
+                                                <button id="btPrecioUnitarioResumenProductoServicio" type="button" class="ps-unit-price-trigger" aria-expanded="false" aria-controls="panelPrecioUnitarioProductoServicio">
+                                                    <span id="txPrecioUnitarioResumenProductoServicio">$0.00</span>
+                                                    <i class="fa fa-chevron-down" aria-hidden="true"></i>
+                                                </button>
+                                                <div id="panelPrecioUnitarioProductoServicio" class="ps-unit-price-popover" hidden>
+                                                    <div class="ps-unit-price-popover__grid">
+                                                        <label class="checkapp-field ps-form-field">
+                                                            <span>Importe total</span>
+                                                            <input id="txPrecioUnitarioMontoProductoServicio" type="number" min="0" step="0.0001" inputmode="decimal" placeholder="$0.00" />
+                                                        </label>
+                                                        <label class="checkapp-field ps-form-field">
+                                                            <span>Medida base</span>
+                                                            <input id="txPrecioUnitarioBaseProductoServicio" type="number" min="0.0001" step="0.0001" inputmode="decimal" placeholder="1" />
+                                                        </label>
+                                                        <label class="checkapp-field ps-form-field ps-field-full">
+                                                            <span>Unidad base</span>
+                                                            <select id="cbPrecioUnitarioUnidadProductoServicio" class="form-select"></select>
+                                                        </label>
+                                                    </div>
+                                                    <div class="ps-unit-price-popover__actions">
+                                                        <button id="btLimpiarPrecioUnitarioProductoServicio" type="button" class="checkapp-btn checkapp-btn-ghost">Limpiar</button>
+                                                        <button id="btCancelarPrecioUnitarioProductoServicio" type="button" class="checkapp-btn checkapp-btn-secondary">Cancelar</button>
+                                                        <button id="btAceptarPrecioUnitarioProductoServicio" type="button" class="checkapp-btn checkapp-btn-primary">Aceptar</button>
+                                                    </div>
+                                                </div>
+                                            </div>
+                                        </div>
+                                    </div>
+                                    </div>
+                                </section>
 
-                                <div class="checkapp-filter-grid ps-form-grid">
-                                    <label class="checkapp-field ps-form-field ps-form-field--description">
-                                        <span>Descripción</span>
-                                        <textarea id="txDescripcionProductoServicio" maxlength="1000"></textarea>
-                                    </label>
-                                </div>
+                                <section class="checkapp-panel ps-block-panel cot-panel cot-panel--collapsible ps-collapsible-panel" data-ps-section="fiscal">
+                                    <div class="checkapp-panel-head" data-ps-toggle-header="fiscal" tabindex="0" aria-expanded="true">
+                                        <div>
+                                            <span class="checkapp-panel-eyebrow">SAT</span>
+                                            <h2>Datos fiscales y de facturación</h2>
+                                            <p class="checkapp-panel-copy">Captura los campos SAT sin depender de catálogos duros en frontend.</p>
+                                        </div>
+                                        <button type="button" class="checkapp-btn checkapp-btn-ghost cot-panel-toggle ps-panel-toggle" data-ps-toggle-section="fiscal" aria-expanded="true" title="Mostrar u ocultar datos fiscales y de facturación" aria-label="Mostrar u ocultar datos fiscales y de facturación">
+                                            <i class="fa fa-chevron-up"></i>
+                                            <span>Contraer</span>
+                                        </button>
+                                    </div>
+                                    <div class="cot-panel-body">
+                                        <div class="checkapp-filter-grid ps-form-grid ps-form-grid--sat">
+                                        <label class="checkapp-field ps-form-field">
+                                            <span>Objeto de impuesto</span>
+                                            <select id="cbObjetoImpuestoProductoServicio" class="form-select"></select>
+                                        </label>
+                                        <label class="checkapp-field ps-form-field">
+                                            <span>Clave de producto SAT</span>
+                                            <select id="cbClaveProductoSatProductoServicio" class="form-select"></select>
+                                        </label>
+                                        <label class="checkapp-field ps-form-field">
+                                            <span>Clave de unidad SAT</span>
+                                            <select id="cbClaveUnidadSatProductoServicio" class="form-select"></select>
+                                        </label>
+                                    </div>
+                                    </div>
+                                </section>
 
-                                <div class="checkapp-filter-grid ps-form-grid ps-form-grid--catalogs">
-                                    <label class="checkapp-field ps-form-field ps-form-field--category">
-                                        <span>Categoría *</span>
-                                        <span class="activos-select-with-action ps-select-with-action">
-                                            <select id="cbCategoriaProductoServicio" class="form-select"></select>
-                                            <button id="btQuickAddCategoriaProductoServicio" type="button" class="activos-inline-add" title="Agregar categoría" aria-label="Agregar categoría">
-                                                <span aria-hidden="true">+</span>
-                                            </button>
-                                        </span>
-                                    </label>
-                                    <label class="checkapp-field ps-form-field ps-form-field--brand" id="fieldMarcaProductoServicio">
-                                        <span>Marca</span>
-                                        <span class="activos-select-with-action ps-select-with-action">
-                                            <select id="cbMarcaProductoServicio" class="form-select"></select>
-                                            <button id="btQuickAddMarcaProductoServicio" type="button" class="activos-inline-add" title="Agregar marca" aria-label="Agregar marca">
-                                                <span aria-hidden="true">+</span>
-                                            </button>
-                                        </span>
-                                    </label>
-                                </div>
+                                <section class="checkapp-panel ps-block-panel cot-panel cot-panel--collapsible ps-collapsible-panel" data-ps-section="control">
+                                    <div class="checkapp-panel-head" data-ps-toggle-header="control" tabindex="0" aria-expanded="true">
+                                        <div>
+                                            <span class="checkapp-panel-eyebrow">Operación</span>
+                                            <h2>Configuración física y de control</h2>
+                                            <p class="checkapp-panel-copy">Activa la logística física y el control por serie solo cuando aplique.</p>
+                                        </div>
+                                        <button type="button" class="checkapp-btn checkapp-btn-ghost cot-panel-toggle ps-panel-toggle" data-ps-toggle-section="control" aria-expanded="true" title="Mostrar u ocultar configuración física y de control" aria-label="Mostrar u ocultar configuración física y de control">
+                                            <i class="fa fa-chevron-up"></i>
+                                            <span>Contraer</span>
+                                        </button>
+                                    </div>
+                                    <div class="cot-panel-body">
+                                        <div class="checkapp-filter-grid ps-operation-grid">
+                                        <label class="checkapp-field ps-checkbox-field ps-switch-card">
+                                            <span>¿Es producto físico?</span>
+                                            <input id="chkEsProductoFisicoProductoServicio" type="checkbox" />
+                                        </label>
+                                        <label class="checkapp-field ps-checkbox-field ps-switch-card">
+                                            <span>¿Maneja número de serie?</span>
+                                            <input id="chkUsaNumeroSerieProductoServicio" type="checkbox" />
+                                        </label>
+                                    </div>
+                                    </div>
+                                </section>
 
-                                <div class="checkapp-filter-grid ps-form-grid ps-form-grid--pricing">
-                                    <label class="checkapp-field ps-form-field ps-form-field--unit">
-                                        <span>Unidad *</span>
-                                        <span class="activos-select-with-action ps-select-with-action">
-                                            <select id="cbUnidadProductoServicio" class="form-select"></select>
-                                            <button id="btQuickAddUnidadProductoServicio" type="button" class="activos-inline-add" title="Agregar unidad de medida" aria-label="Agregar unidad de medida">
-                                                <span aria-hidden="true">+</span>
-                                            </button>
-                                        </span>
-                                    </label>
-                                    <label class="checkapp-field ps-form-field ps-form-field--cost">
-                                        <span>Costo</span>
-                                        <input id="txCostoProductoServicio" type="number" min="0" step="0.0001" inputmode="decimal" />
-                                    </label>
-                                    <label class="checkapp-field ps-form-field ps-form-field--price">
-                                        <span>Precio Público *</span>
-                                        <input id="txPrecioPublicoProductoServicio" type="number" min="0" step="0.0001" inputmode="decimal" />
-                                    </label>
-                                </div>
+                                <section class="checkapp-panel ps-block-panel cot-panel cot-panel--collapsible ps-collapsible-panel" id="panelLogisticaProductoServicio" data-ps-section="logistica">
+                                    <div class="checkapp-panel-head" data-ps-toggle-header="logistica" tabindex="0" aria-expanded="true">
+                                        <div>
+                                            <span class="checkapp-panel-eyebrow">Logística</span>
+                                            <h2>Peso, dimensiones y paquete</h2>
+                                            <p class="checkapp-panel-copy">Estos campos se usan solo para productos físicos.</p>
+                                        </div>
+                                        <button type="button" class="checkapp-btn checkapp-btn-ghost cot-panel-toggle ps-panel-toggle" data-ps-toggle-section="logistica" aria-expanded="true" title="Mostrar u ocultar peso, dimensiones y paquete" aria-label="Mostrar u ocultar peso, dimensiones y paquete">
+                                            <i class="fa fa-chevron-up"></i>
+                                            <span>Contraer</span>
+                                        </button>
+                                    </div>
+                                    <div class="cot-panel-body">
+                                        <div class="checkapp-filter-grid ps-form-grid ps-form-grid--physical">
+                                        <label class="checkapp-field ps-form-field ps-form-field--package">
+                                            <span>Paquete</span>
+                                            <span class="activos-select-with-action ps-select-with-action">
+                                                <select id="cbPaqueteProductoServicio" class="form-select"></select>
+                                                <button id="btQuickAddPaqueteProductoServicio" type="button" class="activos-inline-add" title="Agregar paquete" aria-label="Agregar paquete">
+                                                    <span aria-hidden="true">+</span>
+                                                </button>
+                                            </span>
+                                        </label>
+                                        <label class="checkapp-field ps-form-field">
+                                            <span>Peso del producto (kg)</span>
+                                            <input id="txPesoKgProductoServicio" type="number" min="0" step="0.00001" inputmode="decimal" />
+                                        </label>
+                                        <div class="ps-logistics-note ps-field-full">
+                                            El paquete define largo, ancho, alto y peso vacío. Aquí solo capturamos el peso real del producto.
+                                        </div>
+                                        <div class="ps-hidden-compat" hidden aria-hidden="true">
+                                            <input id="txLargoCmProductoServicio" type="number" min="0" step="0.01" inputmode="decimal" />
+                                            <input id="txAnchoCmProductoServicio" type="number" min="0" step="0.01" inputmode="decimal" />
+                                            <input id="txAltoCmProductoServicio" type="number" min="0" step="0.01" inputmode="decimal" />
+                                        </div>
+                                    </div>
+                                    </div>
+                                </section>
 
-                                <section class="checkapp-panel ps-inventory-panel" id="panelInventarioProductoServicio">
-                                    <div class="checkapp-panel-head">
+                                <section class="checkapp-panel ps-inventory-panel cot-panel cot-panel--collapsible ps-collapsible-panel" id="panelInventarioProductoServicio" data-ps-section="inventario">
+                                    <div class="checkapp-panel-head" data-ps-toggle-header="inventario" tabindex="0" aria-expanded="true">
                                         <div>
                                             <span class="checkapp-panel-eyebrow">Inventario</span>
                                             <h2>Configuración de inventario</h2>
                                             <p class="checkapp-panel-copy">Activa solo los campos que correspondan al tipo de registro.</p>
                                         </div>
+                                        <button type="button" class="checkapp-btn checkapp-btn-ghost cot-panel-toggle ps-panel-toggle" data-ps-toggle-section="inventario" aria-expanded="true" title="Mostrar u ocultar configuración de inventario" aria-label="Mostrar u ocultar configuración de inventario">
+                                            <i class="fa fa-chevron-up"></i>
+                                            <span>Contraer</span>
+                                        </button>
                                     </div>
-                                    <div class="checkapp-filter-grid ps-inventory-grid">
-                                        <label class="checkapp-field ps-checkbox-field">
-                                            <span>Causa inventario</span>
-                                            <input id="chkCausaInventarioProductoServicio" type="checkbox" />
-                                        </label>
-                                        <label class="checkapp-field ps-checkbox-field" id="fieldPermiteVentaSinExistencia">
-                                            <span>Permite venta sin existencia</span>
-                                            <input id="chkPermiteVentaSinExistencia" type="checkbox" />
-                                        </label>
-                                        <label class="checkapp-field ps-form-field" id="fieldExistenciaInicial">
-                                            <span>Existencia inicial</span>
-                                            <input id="txExistenciaInicialProductoServicio" type="number" min="0" step="0.0001" inputmode="decimal" />
-                                        </label>
-                                        <label class="checkapp-field ps-form-field" id="fieldExistenciaMinima">
-                                            <span>Existencia mínima</span>
-                                            <input id="txExistenciaMinimaProductoServicio" type="number" min="0" step="0.0001" inputmode="decimal" />
-                                        </label>
+                                    <div class="cot-panel-body">
+                                        <div class="checkapp-filter-grid ps-inventory-grid">
+                                            <label class="checkapp-field ps-checkbox-field" id="fieldCausaInventarioProductoServicio">
+                                                <span class="ps-checkbox-inline">
+                                                    <input id="chkCausaInventarioProductoServicio" type="checkbox" />
+                                                    <span>Causa inventario</span>
+                                                </span>
+                                            </label>
+                                            <label class="checkapp-field ps-checkbox-field" id="fieldPermiteVentaSinExistencia">
+                                                <span class="ps-checkbox-inline">
+                                                    <input id="chkPermiteVentaSinExistencia" type="checkbox" />
+                                                    <span>Permite venta sin existencia</span>
+                                                </span>
+                                            </label>
+                                            <label class="checkapp-field ps-form-field" id="fieldExistenciaInicial">
+                                                <span>Existencia inicial</span>
+                                                <input id="txExistenciaInicialProductoServicio" type="number" min="0" step="0.0001" inputmode="decimal" />
+                                            </label>
+                                            <label class="checkapp-field ps-form-field" id="fieldExistenciaMinima">
+                                                <span>Existencia mínima</span>
+                                                <input id="txExistenciaMinimaProductoServicio" type="number" min="0" step="0.0001" inputmode="decimal" />
+                                            </label>
+                                        </div>
                                     </div>
                                 </section>
-                            </div>
+
+                                <section class="checkapp-panel ps-block-panel cot-panel cot-panel--collapsible ps-collapsible-panel" data-ps-section="atributos">
+                                    <div class="checkapp-panel-head" data-ps-toggle-header="atributos" tabindex="0" aria-expanded="true">
+                                        <div>
+                                            <span class="checkapp-panel-eyebrow">Atributos</span>
+                                            <h2>Configuración de atributos</h2>
+                                            <p class="checkapp-panel-copy">Asocia atributos descriptivos y selecciona solo los elementos dependientes del atributo elegido.</p>
+                                        </div>
+                                        <button type="button" class="checkapp-btn checkapp-btn-ghost cot-panel-toggle ps-panel-toggle" data-ps-toggle-section="atributos" aria-expanded="true" title="Mostrar u ocultar configuración de atributos" aria-label="Mostrar u ocultar configuración de atributos">
+                                            <i class="fa fa-chevron-up"></i>
+                                            <span>Contraer</span>
+                                        </button>
+                                    </div>
+                                    <div class="cot-panel-body">
+                                        <div id="contenedorAtributosProductoServicio" class="ps-attributes-editor"></div>
+                                    </div>
+                                </section>
+
+                                <section class="checkapp-panel ps-block-panel cot-panel cot-panel--collapsible ps-collapsible-panel" data-ps-section="variantes">
+                                    <div class="checkapp-panel-head" data-ps-toggle-header="variantes" tabindex="0" aria-expanded="true">
+                                        <div>
+                                            <span class="checkapp-panel-eyebrow">Variantes</span>
+                                            <h2>Matriz de variantes</h2>
+                                            <p class="checkapp-panel-copy">Configura opciones vendibles como talla o color con un flujo independiente del catálogo de atributos.</p>
+                                        </div>
+                                        <button type="button" class="checkapp-btn checkapp-btn-ghost cot-panel-toggle ps-panel-toggle" data-ps-toggle-section="variantes" aria-expanded="true" title="Mostrar u ocultar matriz de variantes" aria-label="Mostrar u ocultar matriz de variantes">
+                                            <i class="fa fa-chevron-up"></i>
+                                            <span>Contraer</span>
+                                        </button>
+                                    </div>
+                                    <div class="cot-panel-body">
+                                        <div id="contenedorOpcionesVariantesProductoServicio" class="ps-variant-options-editor"></div>
+                                        <div class="ps-variants-summary" id="txResumenVariantesProductoServicio">Sin variantes configuradas.</div>
+                                        <div id="contenedorVariantesProductoServicio" class="ps-variants-editor"></div>
+                                    </div>
+                                </section>
+
+                                <section class="checkapp-panel ps-block-panel ps-multimedia-panel cot-panel cot-panel--collapsible ps-collapsible-panel" data-ps-section="evidencia">
+                                    <div class="checkapp-panel-head" data-ps-toggle-header="evidencia" tabindex="0" aria-expanded="true">
+                                        <div>
+                                            <span class="checkapp-panel-eyebrow">Multimedia</span>
+                                            <h2>Evidencia del producto o servicio</h2>
+                                            <p class="checkapp-panel-copy">Agrega hasta 3 fotos, 1 video y 3 documentos para identificar este registro.</p>
+                                        </div>
+                                        <button type="button" class="checkapp-btn checkapp-btn-ghost cot-panel-toggle ps-panel-toggle" data-ps-toggle-section="evidencia" aria-expanded="true" title="Mostrar u ocultar evidencia del producto o servicio" aria-label="Mostrar u ocultar evidencia del producto o servicio">
+                                            <i class="fa fa-chevron-up"></i>
+                                            <span>Contraer</span>
+                                        </button>
+                                    </div>
+                                    <div class="cot-panel-body">
+                                        <div class="ps-multimedia-grid">
+                                        <article class="ps-media-card">
+                                            <div class="ps-media-card-head">
+                                                <div>
+                                                    <h3>Fotos</h3>
+                                                    <p>Puedes agregar hasta 3 fotografías.</p>
+                                                </div>
+                                                <div class="ps-media-card-actions">
+                                                    <button id="btTomarFotoProductoServicio" type="button" class="checkapp-btn checkapp-btn-secondary">
+                                                        <i class="fa fa-camera"></i>
+                                                        <span>Tomar foto</span>
+                                                    </button>
+                                                    <button id="btElegirFotoProductoServicio" type="button" class="checkapp-btn checkapp-btn-ghost">
+                                                        <span>Elegir foto</span>
+                                                    </button>
+                                                </div>
+                                            </div>
+                                            <div id="txResumenFotosProductoServicio" class="ps-media-summary">0 de 3 listos</div>
+                                            <div id="contenedorFotosProductoServicio" class="ps-media-items"></div>
+                                        </article>
+                                        <article class="ps-media-card">
+                                            <div class="ps-media-card-head">
+                                                <div>
+                                                    <h3>Video</h3>
+                                                    <p>Puedes agregar un video.</p>
+                                                </div>
+                                                <div class="ps-media-card-actions">
+                                                    <button id="btGrabarVideoProductoServicio" type="button" class="checkapp-btn checkapp-btn-secondary">
+                                                        <i class="fa fa-video-camera"></i>
+                                                        <span>Grabar video</span>
+                                                    </button>
+                                                    <button id="btElegirVideoProductoServicio" type="button" class="checkapp-btn checkapp-btn-ghost">
+                                                        <span>Elegir video</span>
+                                                    </button>
+                                                </div>
+                                            </div>
+                                            <div id="txResumenVideoProductoServicio" class="ps-media-summary">Sin video</div>
+                                            <div id="contenedorVideoProductoServicio" class="ps-media-items"></div>
+                                        </article>
+                                        <article class="ps-media-card">
+                                            <div class="ps-media-card-head">
+                                                <div>
+                                                    <h3>Documentos</h3>
+                                                    <p>Puedes agregar hasta 3 archivos PDF o Word.</p>
+                                                </div>
+                                                <div class="ps-media-card-actions">
+                                                    <button id="btAgregarDocumentosProductoServicio" type="button" class="checkapp-btn checkapp-btn-secondary">
+                                                        <i class="fa fa-file-text-o"></i>
+                                                        <span>Agregar</span>
+                                                    </button>
+                                                </div>
+                                            </div>
+                                            <div id="txResumenDocumentosProductoServicio" class="ps-media-summary">0 de 3 listos</div>
+                                            <div id="contenedorDocumentosProductoServicio" class="ps-media-items"></div>
+                                        </article>
+                                    </div>
+                                    <input id="flFotosProductoServicio" type="file" accept="image/png,image/jpeg,image/webp" multiple hidden />
+                                    <input id="flFotosCapturaProductoServicio" type="file" accept="image/*" capture="environment" hidden />
+                                    <input id="flVideoProductoServicio" type="file" accept="video/mp4,video/webm,video/quicktime" hidden />
+                                    <input id="flVideoCapturaProductoServicio" type="file" accept="video/*" capture="environment" hidden />
+                                    <input id="flDocumentosProductoServicio" type="file" accept=".pdf,.doc,.docx,application/pdf,application/msword,application/vnd.openxmlformats-officedocument.wordprocessingml.document" multiple hidden />
+                                    </div>
+                                </section>
                         </div>
                     </div>
 
@@ -369,6 +666,7 @@
                         <label class="checkapp-field ps-catalog-field ps-catalog-field--aplica" id="fieldQuickCatalogoAplicaA" hidden>
                             <span>Aplica a *</span>
                             <select id="cbQuickCatalogoAplicaA" class="form-select">
+                                <option value="">Selecciona una opción</option>
                                 <option value="0">Todos</option>
                                 <option value="1">Producto</option>
                                 <option value="2">Servicio</option>
@@ -402,6 +700,176 @@
                             <p id="txQuickCatalogoSaveStatus">Preparando información del catálogo...</p>
                         </div>
                     </div>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+
+<div class="modal fade checkapp-modal" tabindex="-1" id="modalColeccionProductoServicio">
+    <div class="modal-dialog modal-lg modal-dialog-centered">
+        <div class="modal-content">
+            <form id="frmColeccionProductoServicio">
+                <div class="modal-header">
+                    <div>
+                        <p class="checkapp-kicker">Colección</p>
+                        <h3 class="modal-title">Nueva colección</h3>
+                    </div>
+                    <button type="button" class="btn btn-icon btn-sm btn-active-light-primary" data-bs-dismiss="modal" aria-label="Close">
+                        <i class="ki-duotone ki-cross fs-1"><span class="path1"></span><span class="path2"></span></i>
+                    </button>
+                </div>
+                <div class="modal-body">
+                    <div class="checkapp-filter-grid ps-catalog-simple-grid">
+                        <label class="checkapp-field">
+                            <span>Número *</span>
+                            <input id="txColeccionNumeroProductoServicio" type="text" maxlength="50" />
+                        </label>
+                        <label class="checkapp-field">
+                            <span>Nombre *</span>
+                            <input id="txColeccionNombreProductoServicio" type="text" maxlength="150" />
+                        </label>
+                        <label class="checkapp-field ps-field-full">
+                            <span>Descripción</span>
+                            <textarea id="txColeccionDescripcionProductoServicio" maxlength="500"></textarea>
+                        </label>
+                    </div>
+                    <div class="checkapp-status-inline" id="txInfoColeccionProductoServicio" style="margin-top:1rem;"></div>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="checkapp-btn checkapp-btn-ghost" data-bs-dismiss="modal">Cancelar</button>
+                    <button id="btGuardarColeccionProductoServicio" type="button" class="checkapp-btn checkapp-btn-primary">
+                        <i class="fa fa-save"></i>
+                        <span>Guardar</span>
+                    </button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+
+<div class="modal fade checkapp-modal" tabindex="-1" id="modalPaqueteProductoServicio">
+    <div class="modal-dialog modal-lg modal-dialog-centered">
+        <div class="modal-content">
+            <form id="frmPaqueteProductoServicio">
+                <div class="modal-header">
+                    <div>
+                        <p class="checkapp-kicker">Paquete</p>
+                        <h3 class="modal-title">Nuevo paquete</h3>
+                    </div>
+                    <button type="button" class="btn btn-icon btn-sm btn-active-light-primary" data-bs-dismiss="modal" aria-label="Close">
+                        <i class="ki-duotone ki-cross fs-1"><span class="path1"></span><span class="path2"></span></i>
+                    </button>
+                </div>
+                <div class="modal-body">
+                    <div class="checkapp-filter-grid ps-catalog-simple-grid ps-package-grid">
+                        <label class="checkapp-field">
+                            <span>Nombre *</span>
+                            <input id="txPaqueteNombreProductoServicio" type="text" maxlength="150" />
+                        </label>
+                        <label class="checkapp-field">
+                            <span>Tipo de paquete *</span>
+                            <select id="cbTipoPaqueteProductoServicio" class="form-select"></select>
+                        </label>
+                        <label class="checkapp-field">
+                            <span>Largo (cm)</span>
+                            <input id="txPaqueteLargoProductoServicio" type="number" min="0" step="0.01" inputmode="decimal" />
+                        </label>
+                        <label class="checkapp-field">
+                            <span>Ancho (cm)</span>
+                            <input id="txPaqueteAnchoProductoServicio" type="number" min="0" step="0.01" inputmode="decimal" />
+                        </label>
+                        <label class="checkapp-field">
+                            <span>Alto (cm)</span>
+                            <input id="txPaqueteAltoProductoServicio" type="number" min="0" step="0.01" inputmode="decimal" />
+                        </label>
+                        <label class="checkapp-field">
+                            <span>Peso vacío (kg)</span>
+                            <input id="txPaquetePesoProductoServicio" type="number" min="0" step="0.00001" inputmode="decimal" />
+                        </label>
+                        <label class="checkapp-field ps-checkbox-field ps-switch-card">
+                            <span>Usar como paquete predeterminado</span>
+                            <input id="chkPaquetePredeterminadoProductoServicio" type="checkbox" />
+                        </label>
+                    </div>
+                    <div class="checkapp-status-inline" id="txInfoPaqueteProductoServicio" style="margin-top:1rem;"></div>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="checkapp-btn checkapp-btn-ghost" data-bs-dismiss="modal">Cancelar</button>
+                    <button id="btGuardarPaqueteProductoServicio" type="button" class="checkapp-btn checkapp-btn-primary">
+                        <i class="fa fa-save"></i>
+                        <span>Guardar</span>
+                    </button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+
+<div class="modal fade checkapp-modal" tabindex="-1" id="modalAtributoProductoServicio">
+    <div class="modal-dialog modal-md modal-dialog-centered">
+        <div class="modal-content">
+            <form id="frmAtributoProductoServicio">
+                <div class="modal-header">
+                    <div>
+                        <p class="checkapp-kicker">Atributo</p>
+                        <h3 class="modal-title">Nuevo atributo</h3>
+                    </div>
+                    <button type="button" class="btn btn-icon btn-sm btn-active-light-primary" data-bs-dismiss="modal" aria-label="Close">
+                        <i class="ki-duotone ki-cross fs-1"><span class="path1"></span><span class="path2"></span></i>
+                    </button>
+                </div>
+                <div class="modal-body">
+                    <label class="checkapp-field">
+                        <span>Nombre *</span>
+                        <input id="txAtributoNombreProductoServicio" type="text" maxlength="120" />
+                    </label>
+                    <div class="checkapp-status-inline" id="txInfoAtributoProductoServicio" style="margin-top:1rem;"></div>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="checkapp-btn checkapp-btn-ghost" data-bs-dismiss="modal">Cancelar</button>
+                    <button id="btGuardarAtributoProductoServicio" type="button" class="checkapp-btn checkapp-btn-primary">
+                        <i class="fa fa-save"></i>
+                        <span>Guardar</span>
+                    </button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+
+<div class="modal fade checkapp-modal" tabindex="-1" id="modalAtributoValorProductoServicio">
+    <div class="modal-dialog modal-md modal-dialog-centered">
+        <div class="modal-content">
+            <form id="frmAtributoValorProductoServicio">
+                <div class="modal-header">
+                    <div>
+                        <p class="checkapp-kicker">Elemento</p>
+                        <h3 class="modal-title">Nuevo elemento de atributo</h3>
+                    </div>
+                    <button type="button" class="btn btn-icon btn-sm btn-active-light-primary" data-bs-dismiss="modal" aria-label="Close">
+                        <i class="ki-duotone ki-cross fs-1"><span class="path1"></span><span class="path2"></span></i>
+                    </button>
+                </div>
+                <div class="modal-body">
+                    <input id="hdAtributoValorRowKeyProductoServicio" type="hidden" />
+                    <input id="hdAtributoValorCatalogoProductoServicio" type="hidden" />
+                    <label class="checkapp-field">
+                        <span>Atributo seleccionado</span>
+                        <input id="txAtributoValorAtributoNombreProductoServicio" type="text" readonly />
+                    </label>
+                    <label class="checkapp-field" style="margin-top:1rem;">
+                        <span>Elemento *</span>
+                        <input id="txAtributoValorNombreProductoServicio" type="text" maxlength="120" />
+                    </label>
+                    <div class="checkapp-status-inline" id="txInfoAtributoValorProductoServicio" style="margin-top:1rem;"></div>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="checkapp-btn checkapp-btn-ghost" data-bs-dismiss="modal">Cancelar</button>
+                    <button id="btGuardarAtributoValorProductoServicio" type="button" class="checkapp-btn checkapp-btn-primary">
+                        <i class="fa fa-save"></i>
+                        <span>Guardar</span>
+                    </button>
                 </div>
             </form>
         </div>
