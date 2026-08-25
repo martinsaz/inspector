@@ -62,6 +62,12 @@ namespace checklist.Controllers.ProductosServicios
         [HttpGet("ObtenerProductoServicio")]
         public Task<IActionResult> ObtenerProductoServicio() => ProxyGetAsync("ObtenerProductoServicio");
 
+        [HttpGet("ObtenerFichaTecnicaProductoServicio")]
+        public Task<IActionResult> ObtenerFichaTecnicaProductoServicio() => ProxyGetAsync("ObtenerFichaTecnicaProductoServicio");
+
+        [HttpGet("ExportarFichaTecnicaProductoServicioPdf")]
+        public Task<IActionResult> ExportarFichaTecnicaProductoServicioPdf() => ProxyFileAsync("ExportarFichaTecnicaProductoServicioPdf");
+
         [HttpPost("SubirImagenTemporal")]
         public Task<IActionResult> SubirImagenTemporal() => ProxyMultipartAsync("SubirImagenTemporal");
 
@@ -124,6 +130,9 @@ namespace checklist.Controllers.ProductosServicios
 
         [HttpPost("GuardarMarcaProductoServicio")]
         public Task<IActionResult> GuardarMarcaProductoServicio() => ProxyJsonAsync(HttpMethod.Post, "GuardarMarcaProductoServicio");
+
+        [HttpPost("GuardarTagProductoServicio")]
+        public Task<IActionResult> GuardarTagProductoServicio() => ProxyJsonAsync(HttpMethod.Post, "GuardarTagProductoServicio");
 
         [HttpPost("BajaMarcaProductoServicio")]
         public Task<IActionResult> BajaMarcaProductoServicio() => ProxyJsonAsync(HttpMethod.Post, "BajaMarcaProductoServicio");

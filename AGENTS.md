@@ -201,6 +201,40 @@
 
 ## Productos y Servicios
 
+- TICKET 07.1 — Cierre por QA del Product Owner registrado el `2026-08-25`.
+- Dictamen oficial vigente:
+  - `TICKET 07.1 CERRADO POR QA DEL PRODUCT OWNER — DOCUMENTACIÓN ACTUALIZADA`
+- Alcance funcional aprobado por QA manual del Product Owner:
+  - `Producto > Editar` abre correctamente
+  - datos existentes cargan correctamente
+  - `Peso del producto` carga y persiste
+  - `Paquete` carga y persiste
+  - `Peso físico total` correcto
+  - `Peso volumétrico` correcto
+  - `Peso facturable` correcto
+  - `Guardar` funciona
+  - `F5 + Editar` conserva información
+  - la `Ficha técnica` muestra correctamente los valores logísticos
+  - el `PDF` funciona
+  - `Servicio` sigue respetando `Ticket 04` y no muestra logística no aplicable
+  - `Ticket 06` permanece intacto
+  - `Tags` intactos
+  - `Variantes` intactas
+- Regla logística aprobada y congelada desde el `2026-08-25`:
+  - factor volumétrico aprobado: `5000`
+  - `Peso físico total = PesoKg + PesoEmpaqueVacioKg`
+  - `Peso volumétrico = (LargoCm × AnchoCm × AltoCm) / 5000`
+  - `Peso facturable = MAX(PesoFisicoTotalKg, PesoVolumetricoKg)`
+  - los valores derivados `NO` se persisten
+  - la fuente de verdad oficial es `backend`
+  - la UI solo puede previsualizar, sin reemplazar la regla server-side
+- Fuente logística vigente del módulo:
+  - peso de producto: `ProductosServicios.PesoKg`
+  - peso vacío del empaque: `ProductosServiciosPaquetes.PesoEmpaqueVacioKg`
+  - dimensiones logísticas: `ProductosServiciosPaquetes.LargoCm`, `AnchoCm`, `AltoCm`
+- Restricción documental obligatoria:
+  - no reabrir `Ticket 03`, `Ticket 04`, `Ticket 05`, `Ticket 06` ni `Ticket 07` Ficha Técnica por este cierre
+  - no modificar código ni SQL de `Ticket 07.1` sin nueva instrucción del Product Owner
 - TICKET 05 — Cierre definitivo por Product Owner registrado el `2026-08-25`.
 - Dictamen oficial vigente:
   - `TICKET 05 CERRADO POR PRODUCT OWNER — 100% APROBADO Y CONGELADO`
@@ -1457,3 +1491,82 @@
     - la automatización disponible en navegador cayó a login en `http://localhost:5200/`
     - no se localizaron credenciales reutilizables seguras en el repo
     - por lo tanto la validación UI real de readonly/cancel/combos/regresión de Ticket 05 no puede marcarse cerrada sin sesión autenticada activa
+- Ticket 06 — actualización alta Productos y Servicios ejecutado el `2026-08-25` (`Tuesday, August 25, 2026`):
+  - alcance implementado sin salir de Ticket 06:
+    - redistribución de `Información general` en `ProductosServicios/Index`
+    - `Estatus` cambió de combo a switch visual `Activo/Inactivo`
+    - `Tags` migró a catálogo relacional + relación `ProductoServicio ↔ Tag`, con multiselección, chips y alta inline
+    - `Variantes` agregó `Costo` inmediatamente antes de `Precio`
+  - backend / SQL ajustados:
+    - nuevos DTO/request para `Tags` y `Costo` por variante
+    - nuevo endpoint `GuardarTagProductoServicio`
+    - persistencia relacional en `dbo.ProductosServiciosTags` y `dbo.ProductosServiciosProductoTags`
+    - `productos-servicios-up.sql` quedó idempotente con tablas, índices y columna `ProductosServiciosVariantes.Costo`
+  - defecto adicional real encontrado durante la validación del `2026-08-25`:
+    - `ObtenerProductosServicios` disparó `SqlException 8649`
+    - mensaje: `The query has been canceled because the estimated cost of this query (4645) exceeds the configured threshold of 3000`
+    - causa raíz: el listado seguía usando `OUTER APPLY` correlacionados para multimedia, variantes y tags tras la ampliación de Ticket 06
+    - corrección mínima aplicada:
+      - el listado pasó a `LEFT JOIN` sobre agregados por `idEmpresa + idProductoServicio`
+      - después del relanzamiento del API en `http://localhost:5127`, la recarga real de `ProductosServicios/Index` volvió a mostrar encabezados y acciones del grid sin repetir el error en logs del API
+  - estado real de QA al `2026-08-25`:
+    - `BUILD`:
+      - `dotnet build inspectorapi/checklistWs/checklistWs.csproj` correcto con warnings legacy preexistentes
+      - `dotnet build inspector/checklist/checklist.csproj` correcto con warnings legacy preexistentes
+    - `REAL UI`:
+      - sesión real reutilizada en Chrome con empresa visible `UMBRELLA`
+      - la pantalla `ProductosServicios/Index` cargó shell, contadores y grid
+      - persistió el overlay heredado `Se inició sesión en otro dispositivo con su usuario`
+      - el wrapper de automatización no permitió abrir el modal `Nuevo` ni editar detrás del overlay, por lo que la cobertura UI completa de altas/edición/tags/variantes quedó pendiente
+    - `REAL HTTP`:
+      - el módulo real volvió a consumir el listado después de corregir el costo del query
+      - no quedó certificada una corrida completa de guardado autenticado vía navegador automatizado en esta vuelta
+    - `REAL SQL`:
+      - el esquema de Ticket 06 quedó aplicado previamente en la base compartida
+      - en esta vuelta del `2026-08-25` no fue posible reabrir la conexión SQL directa desde shell con `db_a883c3_checklist_admin` porque el servidor devolvió `Login failed`, así que no se infló evidencia SQL adicional
+  - dictamen honesto al cierre de esta corrida:
+    - Ticket 06 quedó implementado y endurecido técnicamente
+    - Ticket 06 todavía no puede marcarse `CERTIFICADO` mientras la QA UI autenticada completa siga bloqueada por la limitación real del overlay/sesión en la automatización disponible
+- Ticket 07 — ficha técnica de producto / servicio ejecutado el `2026-08-25` (`Tuesday, August 25, 2026`):
+  - alcance implementado sin crear tabla nueva ni duplicar motor PDF:
+    - nueva acción `Ficha técnica` en el listado `ProductosServicios/Index`
+    - modal real dentro de CheckApp con vista previa de ficha técnica
+    - descarga PDF reutilizando el patrón documental vigente de MVC proxy + API + `QuestPDF`
+    - soporte real para `Producto` y `Servicio` con ocultamiento de secciones no aplicables
+  - datos reutilizados desde el modelo actual:
+    - `ProductosServicios`
+    - `ProductosServiciosVariantes`
+    - `ProductosServiciosMultimedia`
+    - atributos, tags, existencias, SAT, colección, unidad y marca según corresponda
+    - no se creó tabla `FichaTecnica`
+  - archivos principales tocados:
+    - `checklist/Controllers/ProductosServicios/ProductosServiciosController.cs`
+    - `checklist/Views/ProductosServicios/Index.cshtml`
+    - `checklist/wwwroot/js/ProductosServicios/ProductosServicios.js`
+    - `checklist/wwwroot/css/ProductosServicios/ProductosServicios.css`
+    - `checklistWs/Controllers/ProductosServicios/ProductosServiciosController.cs`
+    - `checklistWs/Models/ProductosServicios/ProductosServiciosModels.cs`
+  - defectos reales encontrados y corregidos en la misma corrida:
+    - el click en `Ficha técnica` no abría modal por referencia nula al modal API; se corrigió resolviendo el modal de forma perezosa al momento del click
+    - el PDF fallaba en `QuestPDF` por escribir múltiples hijos sobre el mismo contenedor en:
+      - imagen principal de `ComposeFichaGeneralSection`
+      - imagen por fila en `ComposeFichaVariantsSection`
+    - ambas correcciones se limitaron a composición PDF; no se alteró login, sesión, Firebase ni tickets congelados
+  - validación real cerrada:
+    - modal producto real abierto en Chrome: `Aceite Motor Sintetico`
+    - modal servicio real abierto en Chrome: `Cambio de Aceite`
+    - descarga real iniciada desde la UI en ambos casos
+    - PDFs generados en `Downloads`:
+      - `FichaTecnica_001_Aceite Motor Sintetico.pdf`
+      - `FichaTecnica_002_Cambio de Aceite.pdf`
+    - render visual verificado:
+      - producto conserva secciones de fiscal, físico, inventario, atributos y variantes
+      - servicio solo muestra contenido aplicable y oculta secciones no correspondientes
+  - compilación final:
+    - `dotnet build inspectorapi/checklistWs/checklistWs.csproj` correcto con warnings legacy
+    - `dotnet build inspector/checklist/checklist.csproj` correcto con warnings legacy
+  - restricciones respetadas:
+    - sin refactor transversal
+    - sin nueva librería PDF
+    - sin tabla nueva para ficha técnica
+    - sin cambios a autenticación o sesión

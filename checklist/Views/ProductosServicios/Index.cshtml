@@ -228,33 +228,39 @@
 
                                     <div class="ps-modal-top-fields">
                                         <div class="checkapp-filter-grid ps-form-grid ps-form-grid--hero">
-                                            <label class="checkapp-field ps-form-field ps-form-field--type">
-                                                <span>Tipo *</span>
-                                                <select id="cbTipoProductoServicio" class="form-select"></select>
-                                            </label>
                                             <label class="checkapp-field ps-form-field ps-form-field--name">
                                                 <span>Nombre *</span>
                                                 <input id="txNombreProductoServicio" maxlength="150" type="text" />
                                             </label>
-                                            <label class="checkapp-field ps-form-field ps-form-field--status">
+                                            <label class="checkapp-field ps-form-field ps-form-field--type">
+                                                <span>Tipo *</span>
+                                                <select id="cbTipoProductoServicio" class="form-select"></select>
+                                            </label>
+                                            <label class="checkapp-field ps-form-field ps-form-field--status" id="fieldEstatusProductoServicio">
                                                 <span>Estatus *</span>
-                                                <select id="cbEstatusProductoServicio" class="form-select">
-                                                    <option value="true">Activo</option>
-                                                    <option value="false">Inactivo</option>
-                                                </select>
+                                                <span class="ps-switch-card ps-status-switch">
+                                                    <span class="form-check form-switch">
+                                                        <input id="swActivoProductoServicio" class="form-check-input" type="checkbox" role="switch" checked />
+                                                    </span>
+                                                    <span id="txEstadoProductoServicio" class="ps-status-switch-copy">Activo</span>
+                                                </span>
                                             </label>
                                             <label class="checkapp-field ps-form-field ps-form-field--code">
                                                 <span>Código *</span>
                                                 <input id="txCodigoProductoServicio" maxlength="50" type="text" />
                                             </label>
-                                            <label class="checkapp-field ps-form-field ps-form-field--tag">
-                                                <span>Tag</span>
-                                                <input id="txTagProductoServicio" maxlength="100" type="text" />
-                                            </label>
                                             <label class="checkapp-field ps-form-field ps-form-field--description">
                                                 <span>Descripción</span>
                                                 <textarea id="txDescripcionProductoServicio" maxlength="1000"></textarea>
                                             </label>
+                                        </div>
+                                    </div>
+
+                                    <div class="checkapp-filter-grid ps-form-grid ps-form-grid--tags-row">
+                                        <div class="checkapp-field ps-form-field ps-form-field--tag">
+                                            <span>Tags</span>
+                                            <input id="txTagProductoServicioLegacy" type="hidden" />
+                                            <div id="psTagsControlProductoServicio" class="ps-tags-control"></div>
                                         </div>
                                     </div>
 
@@ -447,6 +453,23 @@
                                         <div class="ps-logistics-note ps-field-full">
                                             El paquete define largo, ancho, alto y peso vacío. Aquí solo capturamos el peso real del producto.
                                         </div>
+                                        <div id="psLogisticsSummaryProductoServicio" class="ps-logistics-summary ps-field-full" aria-live="polite">
+                                            <article class="ps-logistics-summary-card">
+                                                <small>Peso físico total</small>
+                                                <strong id="txPesoFisicoTotalProductoServicio">No disponible</strong>
+                                            </article>
+                                            <article class="ps-logistics-summary-card">
+                                                <small>Peso volumétrico</small>
+                                                <strong id="txPesoVolumetricoProductoServicio">No disponible</strong>
+                                            </article>
+                                            <article class="ps-logistics-summary-card ps-logistics-summary-card--accent">
+                                                <small>Peso facturable</small>
+                                                <strong id="txPesoFacturableProductoServicio">No disponible</strong>
+                                            </article>
+                                            <p class="ps-logistics-summary-help">
+                                                El peso facturable corresponde al mayor entre el peso físico total y el peso volumétrico.
+                                            </p>
+                                        </div>
                                         <div class="ps-hidden-compat" hidden aria-hidden="true">
                                             <input id="txLargoCmProductoServicio" type="number" min="0" step="0.01" inputmode="decimal" />
                                             <input id="txAnchoCmProductoServicio" type="number" min="0" step="0.01" inputmode="decimal" />
@@ -631,6 +654,37 @@
                     </div>
                 </div>
             </form>
+        </div>
+    </div>
+</div>
+
+<div class="modal fade checkapp-modal" tabindex="-1" id="modalFichaTecnicaProductoServicio">
+    <div class="modal-dialog modal-xl ps-ficha-modal-dialog">
+        <div class="modal-content ps-ficha-modal-content">
+            <div class="modal-header">
+                <div>
+                    <p class="checkapp-kicker">Ficha técnica</p>
+                    <h3 class="modal-title" id="txFichaTecnicaProductoServicioTitulo">Producto / servicio</h3>
+                    <p class="ps-ficha-header-meta" id="txFichaTecnicaProductoServicioMeta"></p>
+                </div>
+                <button type="button" class="btn btn-icon btn-sm btn-active-light-primary" data-bs-dismiss="modal" aria-label="Close">
+                    <i class="ki-duotone ki-cross fs-1"><span class="path1"></span><span class="path2"></span></i>
+                </button>
+            </div>
+            <div class="modal-body ps-ficha-modal-body">
+                <div id="txInfoFichaTecnicaProductoServicio" class="checkapp-status-inline"></div>
+                <div id="psFichaTecnicaProductoServicioContenido" class="ps-ficha-layout"></div>
+            </div>
+            <div class="modal-footer ps-ficha-modal-footer">
+                <button type="button" class="checkapp-btn checkapp-btn-ghost" data-bs-dismiss="modal">
+                    <i class="fa fa-ban"></i>
+                    <span>Cerrar</span>
+                </button>
+                <button id="btDescargarFichaTecnicaProductoServicio" type="button" class="checkapp-btn checkapp-btn-primary">
+                    <i class="fa fa-download"></i>
+                    <span>Descargar PDF</span>
+                </button>
+            </div>
         </div>
     </div>
 </div>
