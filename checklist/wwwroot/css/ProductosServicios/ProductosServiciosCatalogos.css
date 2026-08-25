@@ -159,78 +159,6 @@
     color: #b91c1c;
 }
 
-.ps-catalog-modal-dialog {
-    max-width: min(860px, calc(100vw - 2rem));
-}
-
-.ps-catalog-modal-form {
-    position: relative;
-}
-
-.ps-catalog-form-grid {
-    gap: 1rem;
-}
-
-.ps-catalog-save-overlay {
-    position: absolute;
-    inset: 0;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    background: rgba(255, 255, 255, 0.72);
-    backdrop-filter: blur(2px);
-    opacity: 0;
-    pointer-events: none;
-    transition: opacity 160ms ease;
-    border-radius: inherit;
-}
-
-.ps-catalog-modal-form.is-saving .ps-catalog-save-overlay {
-    opacity: 1;
-    pointer-events: auto;
-}
-
-.ps-catalog-save-card {
-    display: flex;
-    align-items: center;
-    gap: 0.9rem;
-    min-width: min(380px, calc(100% - 2rem));
-    border-radius: 1.15rem;
-    background: #fff;
-    padding: 1rem 1.15rem;
-    box-shadow: 0 18px 42px rgba(15, 23, 42, 0.18);
-}
-
-.ps-catalog-save-spinner {
-    width: 2.1rem;
-    height: 2.1rem;
-    border-radius: 999px;
-    border: 3px solid rgba(255, 67, 54, 0.18);
-    border-top-color: #ff4336;
-    animation: psCatalogSpin 0.9s linear infinite;
-}
-
-.ps-catalog-save-copy {
-    display: flex;
-    flex-direction: column;
-    gap: 0.2rem;
-}
-
-.ps-catalog-save-copy strong {
-    color: var(--ca-text, #0f172a);
-}
-
-.ps-catalog-save-copy p {
-    margin: 0;
-    color: var(--ca-text-muted, #64748b);
-}
-
-@keyframes psCatalogSpin {
-    to {
-        transform: rotate(360deg);
-    }
-}
-
 @media (max-width: 768px) {
     .ps-catalog-filter-grid,
     .ps-catalog-form-grid {
@@ -248,16 +176,6 @@
 }
 
 @media (max-width: 390px) {
-    .ps-catalog-modal-dialog {
-        max-width: calc(100vw - 1rem);
-        margin: 0.5rem auto;
-    }
-
-    .ps-catalog-save-card {
-        min-width: calc(100% - 1rem);
-        padding: 0.9rem 1rem;
-    }
-
     .ps-catalog-field--checkbox {
         align-items: flex-start;
         gap: 0.75rem;

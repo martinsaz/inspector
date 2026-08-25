@@ -559,10 +559,44 @@
 }
 
 .ps-catalog-modal-form[data-quick-catalog-layout="unidad"] .ps-catalog-field--code,
+.ps-catalog-modal-form[data-quick-catalog-layout="unidad"] .ps-catalog-field--abbreviation {
+    grid-column: span 1;
+}
+
+.ps-catalog-modal-form[data-quick-catalog-layout="unidad"] .ps-catalog-form-grid {
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+}
+
 .ps-catalog-modal-form[data-quick-catalog-layout="unidad"] .ps-catalog-field--name,
+.ps-catalog-modal-form[data-quick-catalog-layout="unidad"] .ps-catalog-field--decimals {
+    grid-column: span 2;
+}
+
+.ps-catalog-modal-form[data-quick-catalog-layout="unidad"] .ps-catalog-field--code,
+.ps-catalog-modal-form[data-quick-catalog-layout="unidad"] .ps-catalog-field--name {
+    grid-row: 1;
+}
+
 .ps-catalog-modal-form[data-quick-catalog-layout="unidad"] .ps-catalog-field--abbreviation,
 .ps-catalog-modal-form[data-quick-catalog-layout="unidad"] .ps-catalog-field--decimals {
-    grid-column: span 1;
+    grid-row: 2;
+}
+
+.ps-catalog-modal-form[data-quick-catalog-layout="unidad"] .ps-catalog-field--decimals {
+    flex-direction: row;
+    align-items: center;
+    justify-content: space-between;
+    min-height: 4.5rem;
+    gap: 1rem;
+}
+
+.ps-catalog-modal-form[data-quick-catalog-layout="unidad"] .ps-catalog-field--decimals span {
+    margin: 0;
+}
+
+.ps-catalog-modal-form[data-quick-catalog-layout="unidad"] .ps-catalog-field--decimals input {
+    margin-top: 0;
+    margin-left: auto;
 }
 
 .ps-catalog-field--checkbox {
@@ -1525,6 +1559,18 @@
 .ps-catalog-simple-grid {
     grid-template-columns: repeat(2, minmax(0, 1fr));
     gap: 1rem;
+}
+
+#modalColeccionProductoServicio .ps-catalog-simple-grid {
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+}
+
+#modalColeccionProductoServicio .ps-catalog-simple-grid > .checkapp-field:nth-child(1) {
+    grid-column: span 1;
+}
+
+#modalColeccionProductoServicio .ps-catalog-simple-grid > .checkapp-field:nth-child(2) {
+    grid-column: span 2;
 }
 
 .ps-field-full {

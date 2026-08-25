@@ -13,6 +13,12 @@
                 <h1>Proveedores</h1>
                 <p>Centraliza los proveedores vinculados al inventario operativo con el mismo patrón aprobado de Activos.</p>
             </div>
+            <div class="checkapp-hero-actions">
+                <button id="btNuevoProveedorActivo" type="button" class="checkapp-btn checkapp-btn-primary activos-catalog-create" onclick="abrirCatalogoStandalone('proveedor'); return false;">
+                    <i class="fa fa-plus"></i>
+                    <span>Nuevo proveedor</span>
+                </button>
+            </div>
         </section>
 
         <section class="checkapp-panel activos-catalog-filter-panel">
@@ -61,10 +67,6 @@
                     <button id="btExportarProveedoresActivos" type="button" class="checkapp-btn checkapp-btn-excel" data-activos-export-button="proveedores">
                         <i class="fa fa-file-excel-o"></i>
                         <span>Exportar Excel</span>
-                    </button>
-                    <button id="btNuevoProveedorActivo" type="button" class="checkapp-btn checkapp-btn-primary activos-catalog-create" onclick="abrirCatalogoStandalone('proveedor'); return false;">
-                        <i class="fa fa-plus"></i>
-                        <span>Nuevo proveedor</span>
                     </button>
                 </div>
             </div>
@@ -131,7 +133,7 @@
                     <div class="checkapp-filter-grid activos-quick-modal-grid activos-quick-modal-grid--catalog" style="margin-top:0;">
                         <label class="checkapp-field activos-quick-modal-field-code">
                             <span>Código *</span>
-                            <input id="txCodigoProveedorActivo" maxlength="64" type="text" />
+                            <input id="txCodigoProveedorActivo" maxlength="64" type="text" readonly placeholder="Se generará automáticamente" />
                         </label>
                         <label class="checkapp-field activos-quick-modal-field-name">
                             <span>Nombre *</span>

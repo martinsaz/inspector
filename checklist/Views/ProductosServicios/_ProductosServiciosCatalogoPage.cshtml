@@ -11,6 +11,13 @@
     var showAplicaA = string.Equals(ViewData["CatalogShowAplicaA"]?.ToString(), "true", StringComparison.OrdinalIgnoreCase);
     var showAbreviatura = string.Equals(ViewData["CatalogShowAbreviatura"]?.ToString(), "true", StringComparison.OrdinalIgnoreCase);
     var showPermiteDecimales = string.Equals(ViewData["CatalogShowPermiteDecimales"]?.ToString(), "true", StringComparison.OrdinalIgnoreCase);
+    var layoutKey = pageKey switch
+    {
+        "categorias" => "categoria",
+        "marcas" => "marca",
+        "unidades" => "unidad",
+        _ => string.Empty
+    };
 }
 
 <partial name="_ProductosServiciosSessionContext" />
@@ -131,73 +138,34 @@
     </div>
 </div>
 
-<div class="modal fade checkapp-modal" tabindex="-1" id="modalCatalogoProductosServicios">
-    <div class="modal-dialog modal-lg ps-catalog-modal-dialog">
-        <div class="modal-content ps-catalog-modal-content">
-            <form id="frmCatalogoProductosServicios" class="ps-catalog-modal-form">
-                <div class="modal-header">
-                    <div>
-                        <p class="checkapp-kicker" id="txCatalogoModalKicker">Registro</p>
-                        <h3 class="modal-title" id="txCatalogoModalTitulo">@modalTitle</h3>
-                    </div>
-                    <button type="button" class="btn btn-icon btn-sm btn-active-light-primary" data-bs-dismiss="modal" aria-label="Close">
-                        <i class="ki-duotone ki-cross fs-1"><span class="path1"></span><span class="path2"></span></i>
-                    </button>
-                </div>
-                <div class="modal-body ps-catalog-modal-body">
-                    <input id="hdCatalogoId" type="hidden" />
-                    <div class="checkapp-filter-grid ps-catalog-form-grid">
-                        <label class="checkapp-field ps-catalog-field">
-                            <span>Código *</span>
-                            <input id="txCodigoCatalogo" type="text" />
-                        </label>
-                        <label class="checkapp-field ps-catalog-field">
-                            <span>Nombre *</span>
-                            <input id="txNombreCatalogo" type="text" />
-                        </label>
-                        <label class="checkapp-field ps-catalog-field ps-catalog-field--full" id="fieldDescripcionCatalogo"@(showDescription ? "" : " hidden")>
-                            <span>Descripción</span>
-                            <textarea id="txDescripcionCatalogo"></textarea>
-                        </label>
-                        <label class="checkapp-field ps-catalog-field" id="fieldAplicaACatalogo"@(showAplicaA ? "" : " hidden")>
-                            <span>Aplica a *</span>
-                            <select id="cbAplicaACatalogo" class="form-select">
-                                <option value="0">Todos</option>
-                                <option value="1">Producto</option>
-                                <option value="2">Servicio</option>
-                            </select>
-                        </label>
-                        <label class="checkapp-field ps-catalog-field" id="fieldAbreviaturaCatalogo"@(showAbreviatura ? "" : " hidden")>
-                            <span>Abreviatura *</span>
-                            <input id="txAbreviaturaCatalogo" type="text" />
-                        </label>
-                        <label class="checkapp-field ps-catalog-field ps-catalog-field--checkbox" id="fieldPermiteDecimalesCatalogo"@(showPermiteDecimales ? "" : " hidden")>
-                            <span>Permite decimales</span>
-                            <input id="chkPermiteDecimalesCatalogo" type="checkbox" />
-                        </label>
-                    </div>
-                    <div class="checkapp-status-inline" id="txInfoCatalogo" style="margin-top:1rem;"></div>
-                </div>
-                <div class="modal-footer ps-catalog-modal-footer">
-                    <button id="btGuardarCatalogo" type="button" class="checkapp-btn checkapp-btn-primary">
-                        <i class="fa fa-save"></i>
-                        <span>Guardar</span>
-                    </button>
-                    <button type="button" class="checkapp-btn checkapp-btn-ghost" data-bs-dismiss="modal">
-                        <i class="fa fa-ban"></i>
-                        <span>Cerrar</span>
-                    </button>
-                </div>
-                <div id="catalogoSaveOverlay" class="ps-catalog-save-overlay" aria-hidden="true">
-                    <div class="ps-catalog-save-card" role="status" aria-live="polite">
-                        <div class="ps-catalog-save-spinner"></div>
-                        <div class="ps-catalog-save-copy">
-                            <strong id="txCatalogoSaveTitle">Guardando registro...</strong>
-                            <p id="txCatalogoSaveStatus">Preparando información del catálogo...</p>
-                        </div>
-                    </div>
-                </div>
-            </form>
-        </div>
-    </div>
-</div>
+<partial name="_ProductosServiciosCatalogModal" view-data='new ViewDataDictionary(ViewData)
+{
+    ["CatalogModalId"] = "modalCatalogoProductosServicios",
+    ["CatalogFormId"] = "frmCatalogoProductosServicios",
+    ["CatalogHiddenIdFieldId"] = "hdCatalogoId",
+    ["CatalogKickerId"] = "txCatalogoModalKicker",
+    ["CatalogTitleId"] = "txCatalogoModalTitulo",
+    ["CatalogModalTitle"] = modalTitle,
+    ["CatalogCodeInputId"] = "txCodigoCatalogo",
+    ["CatalogNameInputId"] = "txNombreCatalogo",
+    ["CatalogDescriptionFieldId"] = "fieldDescripcionCatalogo",
+    ["CatalogDescriptionInputId"] = "txDescripcionCatalogo",
+    ["CatalogAplicaFieldId"] = "fieldAplicaACatalogo",
+    ["CatalogAplicaSelectId"] = "cbAplicaACatalogo",
+    ["CatalogAbbreviationFieldId"] = "fieldAbreviaturaCatalogo",
+    ["CatalogAbbreviationInputId"] = "txAbreviaturaCatalogo",
+    ["CatalogDecimalsFieldId"] = "fieldPermiteDecimalesCatalogo",
+    ["CatalogDecimalsCheckboxId"] = "chkPermiteDecimalesCatalogo",
+    ["CatalogInfoId"] = "txInfoCatalogo",
+    ["CatalogSaveButtonId"] = "btGuardarCatalogo",
+    ["CatalogSaveButtonText"] = "Guardar",
+    ["CatalogCancelButtonText"] = "Cancelar",
+    ["CatalogOverlayId"] = "catalogoSaveOverlay",
+    ["CatalogSaveTitleId"] = "txCatalogoSaveTitle",
+    ["CatalogSaveStatusId"] = "txCatalogoSaveStatus",
+    ["CatalogLayoutAttributeValue"] = layoutKey,
+    ["CatalogShowDescription"] = showDescription,
+    ["CatalogShowAplicaA"] = showAplicaA,
+    ["CatalogShowAbreviatura"] = showAbreviatura,
+    ["CatalogShowPermiteDecimales"] = showPermiteDecimales
+}' />

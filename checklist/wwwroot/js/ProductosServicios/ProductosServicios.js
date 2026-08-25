@@ -71,6 +71,8 @@
             key: "categoria",
             title: "Nueva categoría",
             singular: "categoría",
+            validationEntityName: "la categoría",
+            appliesRequiredMessage: "Selecciona a qué aplica la categoría.",
             saveUrl: "/ProductosServicios/GuardarCategoriaProductoServicio",
             listUrl: "/ProductosServicios/ObtenerCategoriasProductosServicios",
             selectSelector: "#cbCategoriaProductoServicio",
@@ -87,6 +89,7 @@
             key: "marca",
             title: "Nueva marca",
             singular: "marca",
+            validationEntityName: "la marca",
             saveUrl: "/ProductosServicios/GuardarMarcaProductoServicio",
             listUrl: "/ProductosServicios/ObtenerMarcasProductosServicios",
             selectSelector: "#cbMarcaProductoServicio",
@@ -103,6 +106,9 @@
             key: "unidad",
             title: "Nueva unidad de medida",
             singular: "unidad de medida",
+            validationEntityName: "la unidad de medida",
+            abbreviationRequiredMessage: "Captura la abreviatura de la unidad de medida.",
+            abbreviationLengthMessage: "La abreviatura de la unidad de medida no puede exceder 20 caracteres.",
             saveUrl: "/ProductosServicios/GuardarUnidadMedidaProductoServicio",
             listUrl: "/ProductosServicios/ObtenerUnidadesMedidaProductosServicios",
             selectSelector: "#cbUnidadProductoServicio",
@@ -117,6 +123,30 @@
             showPermiteDecimales: true
         }
     };
+
+    const quickCatalogBridge = window.ProductosServiciosCatalogModalShared.create({
+        formSelector: "#frmQuickCatalogoProductoServicio",
+        hiddenIdSelector: "#hdQuickCatalogoId",
+        hiddenTypeSelector: "#hdQuickCatalogoTipo",
+        codeSelector: "#txQuickCatalogoCodigo",
+        nameSelector: "#txQuickCatalogoNombre",
+        descriptionSelector: "#txQuickCatalogoDescripcion",
+        appliesSelector: "#cbQuickCatalogoAplicaA",
+        abbreviationSelector: "#txQuickCatalogoAbreviatura",
+        decimalsSelector: "#chkQuickCatalogoPermiteDecimales",
+        descriptionFieldSelector: "#fieldQuickCatalogoDescripcion",
+        appliesFieldSelector: "#fieldQuickCatalogoAplicaA",
+        abbreviationFieldSelector: "#fieldQuickCatalogoAbreviatura",
+        decimalsFieldSelector: "#fieldQuickCatalogoPermiteDecimales",
+        kickerSelector: "#txQuickCatalogoKicker",
+        titleSelector: "#txQuickCatalogoTitulo",
+        saveButtonTextSelector: "#btGuardarQuickCatalogoProductoServicio span",
+        infoSelector: "#txInfoQuickCatalogo",
+        overlaySelector: "#quickCatalogoSaveOverlay",
+        overlayTitleSelector: "#txQuickCatalogoSaveTitle",
+        overlayStatusSelector: "#txQuickCatalogoSaveStatus",
+        invalidScopeSelector: "#frmQuickCatalogoProductoServicio"
+    });
 
     document.addEventListener("DOMContentLoaded", function () {
         state.modal = resolveModalApi("#modalProductoServicio");
@@ -2099,43 +2129,38 @@
         state.quickCatalogKey = key;
         resetQuickCatalogModal();
         $("#hdQuickCatalogoTipo").val(key);
-        $("#txQuickCatalogoTitulo").text(config.title);
+        quickCatalogBridge.setCopy({
+            kicker: "Registro",
+            title: config.title,
+            saveButton: "Guardar"
+        });
         $("#frmQuickCatalogoProductoServicio").attr("data-quick-catalog-layout", key);
-        applyQuickCatalogFieldVisibility(config);
-        if (config.showAplicaA) {
-            $("#cbQuickCatalogoAplicaA").val("");
-        }
+        quickCatalogBridge.applyFieldVisibility(config);
+        syncQuickCatalogCodeField(false, "");
         state.quickCatalogModal.show();
     }
 
     function applyQuickCatalogFieldVisibility(config) {
-        toggleField("#fieldQuickCatalogoDescripcion", !!config.showDescription);
-        toggleField("#fieldQuickCatalogoAplicaA", !!config.showAplicaA);
-        toggleField("#fieldQuickCatalogoAbreviatura", !!config.showAbreviatura);
-        toggleField("#fieldQuickCatalogoPermiteDecimales", !!config.showPermiteDecimales);
+        quickCatalogBridge.applyFieldVisibility(config);
     }
 
     function resetQuickCatalogModal() {
         state.quickCatalogSaving = false;
         state.quickCatalogKey = "";
 
-        const form = document.querySelector("#frmQuickCatalogoProductoServicio");
-        if (form) {
-            form.reset();
-            form.classList.remove("is-saving");
-            form.removeAttribute("data-quick-catalog-layout");
-        }
-
-        $("#hdQuickCatalogoTipo").val("");
-        $("#txQuickCatalogoTitulo").text("Nuevo catálogo");
-        $("#cbQuickCatalogoAplicaA").val("");
-        $("#chkQuickCatalogoPermiteDecimales").prop("checked", false);
-        setStatus("#txInfoQuickCatalogo", "", "");
-        clearQuickCatalogFieldErrors();
-        toggleField("#fieldQuickCatalogoDescripcion", true);
-        toggleField("#fieldQuickCatalogoAplicaA", false);
-        toggleField("#fieldQuickCatalogoAbreviatura", false);
-        toggleField("#fieldQuickCatalogoPermiteDecimales", false);
+        const defaultConfig = {
+            showDescription: true,
+            showAplicaA: false,
+            showAbreviatura: false,
+            showPermiteDecimales: false,
+            defaultAplicaAValue: ""
+        };
+        quickCatalogBridge.reset(defaultConfig, {
+            kicker: "Registro",
+            title: "Nuevo catálogo",
+            saveButton: "Guardar"
+        });
+        $(quickCatalogBridge.options.formSelector).removeClass("is-saving").removeAttr("data-quick-catalog-layout");
     }
 
     function saveQuickCatalog() {
@@ -2145,23 +2170,23 @@
         }
 
         const payload = buildQuickCatalogPayload(config);
-        const validation = validateQuickCatalogPayload(config, payload);
+        const validation = validateQuickCatalogPayload(config);
         if (validation) {
-            markFieldError(validation.selector);
-            setStatus("#txInfoQuickCatalogo", "danger", validation.message);
+            quickCatalogBridge.markFieldError(validation.selector);
+            quickCatalogBridge.setStatus("danger", validation.message);
             return;
         }
 
         state.quickCatalogSaving = true;
-        $("#frmQuickCatalogoProductoServicio").addClass("is-saving");
-        setStatus("#txInfoQuickCatalogo", "info", "Guardando " + config.singular + "...");
+        quickCatalogBridge.setBusy(true, "Guardando " + config.singular + "...", "Validando información y enviando una sola solicitud.");
+        quickCatalogBridge.setStatus("info", "Guardando " + config.singular + "...");
 
         fetchJson(config.saveUrl, {
             method: "POST",
             headers: { "Content-Type": "application/json; charset=utf-8" },
             body: JSON.stringify(payload)
-        }).then(function () {
-            return resolveQuickCatalogCreatedItem(config, payload)
+        }).then(function (response) {
+            return resolveQuickCatalogCreatedItem(config, payload, response)
                 .then(function (item) {
                     if (!item || !item.id) {
                         throw new Error("El catálogo fue creado, pero no fue posible seleccionarlo automáticamente.");
@@ -2181,64 +2206,29 @@
             ]);
         }).finally(function () {
             state.quickCatalogSaving = false;
-            $("#frmQuickCatalogoProductoServicio").removeClass("is-saving");
+            quickCatalogBridge.setBusy(false, "Guardando registro...", "Preparando información del catálogo...");
         });
     }
 
     function buildQuickCatalogPayload(config) {
-        const payload = {
-            id: null,
-            codigo: ($("#txQuickCatalogoCodigo").val() || "").trim(),
-            nombre: ($("#txQuickCatalogoNombre").val() || "").trim(),
-            descripcion: config.showDescription ? ($("#txQuickCatalogoDescripcion").val() || "").trim() : ""
-        };
-
-        if (config.showAplicaA) {
-            payload.aplicaA = $("#cbQuickCatalogoAplicaA").val() === "" ? null : Number($("#cbQuickCatalogoAplicaA").val());
-        }
-
-        if (config.showAbreviatura) {
-            payload.abreviatura = ($("#txQuickCatalogoAbreviatura").val() || "").trim();
-        }
-
-        if (config.showPermiteDecimales) {
-            payload.permiteDecimales = $("#chkQuickCatalogoPermiteDecimales").is(":checked");
-        }
-
-        return payload;
+        return quickCatalogBridge.buildPayload(config, { id: null });
     }
 
-    function validateQuickCatalogPayload(config, payload) {
-        if (!payload.codigo) {
-            return { selector: "#txQuickCatalogoCodigo", message: "Captura el código de la " + config.singular + "." };
-        }
-        if (payload.codigo.length > config.codeMax) {
-            return { selector: "#txQuickCatalogoCodigo", message: "El código de la " + config.singular + " no puede exceder " + config.codeMax + " caracteres." };
-        }
-        if (!payload.nombre) {
-            return { selector: "#txQuickCatalogoNombre", message: "Captura el nombre de la " + config.singular + "." };
-        }
-        if (payload.nombre.length > config.nameMax) {
-            return { selector: "#txQuickCatalogoNombre", message: "El nombre de la " + config.singular + " no puede exceder " + config.nameMax + " caracteres." };
-        }
-        if (config.showDescription && payload.descripcion.length > config.descriptionMax) {
-            return { selector: "#txQuickCatalogoDescripcion", message: "La descripción no puede exceder " + config.descriptionMax + " caracteres." };
-        }
-        if (config.showAplicaA && payload.aplicaA == null) {
-            return { selector: "#cbQuickCatalogoAplicaA", message: "Selecciona a qué aplica la categoría." };
-        }
-        if (config.showAbreviatura && !payload.abreviatura) {
-            return { selector: "#txQuickCatalogoAbreviatura", message: "Captura la abreviatura de la unidad de medida." };
-        }
-        if (config.showAbreviatura && payload.abreviatura.length > config.abreviaturaMax) {
-            return { selector: "#txQuickCatalogoAbreviatura", message: "La abreviatura de la unidad de medida no puede exceder " + config.abreviaturaMax + " caracteres." };
-        }
-        return null;
+    function validateQuickCatalogPayload(config) {
+        return quickCatalogBridge.validate(config);
     }
 
-    function resolveQuickCatalogCreatedItem(config, payload) {
+    function resolveQuickCatalogCreatedItem(config, payload, response) {
+        if (response && response.id) {
+            return Promise.resolve({
+                id: response.id,
+                codigo: response.codigo || "",
+                nombre: response.nombre || payload.nombre || ""
+            });
+        }
+
         const query = new URLSearchParams({
-            busqueda: payload.codigo || payload.nombre || "",
+            busqueda: payload.nombre || payload.codigo || "",
             estatus: "activos"
         });
 
@@ -2247,6 +2237,10 @@
                 const items = Array.isArray(data) ? data : Array.isArray(data.items) ? data.items : [];
                 return findQuickCatalogCreatedItem(items, payload);
             });
+    }
+
+    function syncQuickCatalogCodeField(isEditing, value) {
+        quickCatalogBridge.syncCodeField(isEditing, value);
     }
 
     function findQuickCatalogCreatedItem(items, payload) {
@@ -3629,16 +3623,11 @@
     }
 
     function clearQuickCatalogFieldError(selector) {
-        const node = document.querySelector(selector);
-        if (node) {
-            node.classList.remove("is-invalid");
-        }
+        quickCatalogBridge.clearFieldError(selector);
     }
 
     function clearQuickCatalogFieldErrors() {
-        document.querySelectorAll("#frmQuickCatalogoProductoServicio .is-invalid").forEach(function (node) {
-            node.classList.remove("is-invalid");
-        });
+        quickCatalogBridge.clearFieldErrors();
     }
 
     function applyCatalogErrorFeedback(statusSelector, message, mappings) {

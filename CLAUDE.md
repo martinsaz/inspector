@@ -30,6 +30,33 @@
 
 ## Productos y Servicios
 
+- TICKET 05 — Cierre definitivo por Product Owner registrado el `2026-08-25`.
+- Dictamen oficial vigente:
+  - `TICKET 05 CERRADO POR PRODUCT OWNER — 100% APROBADO Y CONGELADO`
+- Alcance final certificado por QA manual del Product Owner:
+  - `CRUD` de catálogos de `Activos` aprobado
+  - `readonly` y conservación de código aprobados
+  - consecutivos server-side y cancelación sin consumo de código aprobados
+  - integridad multitenant, validaciones, combos y altas rápidas aprobados
+  - homologación visual de catálogos de `Productos y Servicios` aprobada
+  - microajuste final de `Unidad de medida` aprobado
+  - microajuste final de `Colección` aprobado
+- Estado aprobado por Product Owner el `2026-08-25`:
+  - `Unidad CRUD`: aprobado
+  - `Unidad quick-add`: aprobado
+  - homologación `Unidad CRUD` + `quick-add`: aprobada
+  - guardado de `Unidad`: aprobado
+  - `Colección quick-add`: aprobada
+  - guardado de `Colección`: aprobado
+  - nueva `Colección` queda seleccionada: aprobada
+- Congelamiento obligatorio desde el `2026-08-25`:
+  - no reabrir ni modificar el diseño CRUD de catálogos de `Activos`
+  - no reabrir ni modificar el diseño homologado de catálogos de `Productos y Servicios`
+  - no reabrir ni modificar modales `quick-add` homologados
+  - no tocar generación automática de códigos, `readonly`, consecutivos ni cancelación sin consumo
+  - no tocar integridad multitenant, validaciones, combos ni altas rápidas ya certificadas
+  - no reabrir ajustes finales de `Unidad de medida` ni `Colección`
+  - no modificar código, SQL ni ejecutar nuevas pruebas funcionales de `Ticket 05` sin autorización expresa
 - TICKET 03 — Última corrección definitiva auditada el `2026-08-21`.
 - Resultado real de la iteración:
   - `Atributos` quedó en flujo SKNC compacto:
@@ -961,3 +988,22 @@
     - `select / clear / reselect` correcto en tipo, categoría, marca, colección, unidad, objeto de impuesto y paquete
   - todavía no certificar como cerrado:
     - SAT producto / SAT unidad requieren QA manual adicional antes de decir `sí`
+- Cierre funcional Ticket 05 del `2026-08-24`:
+  - no se reabrió auditoría completa; solo se cerraron pendientes autorizados
+  - `ProductosServicios`:
+    - el quick-add de `Categoría`, `Marca` y `Unidad` quedó homologado al mismo modal/estructura del CRUD
+    - se centralizó la lógica compartida en `ProductosServiciosCatalogModalShared.js`
+    - `node --check` pasó en los tres JS implicados
+  - `Activos`:
+    - se confirmó que `ActivosMarcas` y `ActivosProveedores` no tenían duplicados por `(idEmpresa, Codigo)` antes del hardening
+    - se ejecutó SQL real para crear:
+      - `UX_ActivosMarcas_IdEmpresa_Codigo`
+      - `UX_ActivosProveedores_IdEmpresa_Codigo`
+    - se borraron únicamente históricos autorizados y sin referencias:
+      - `ORD-QA-27`
+      - `VIS-QA-27`
+  - compilación final:
+    - API y MVC compilaron correctamente; permanecen warnings legacy ya existentes de paquetes y nullability
+  - dictamen operativo:
+    - la automatización web disponible quedó bloqueada por login en `localhost:5200`
+    - sin sesión autenticada reutilizable no es honesto marcar cerrada la QA UI final de Ticket 05

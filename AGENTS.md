@@ -201,6 +201,42 @@
 
 ## Productos y Servicios
 
+- TICKET 05 — Cierre definitivo por Product Owner registrado el `2026-08-25`.
+- Dictamen oficial vigente:
+  - `TICKET 05 CERRADO POR PRODUCT OWNER — 100% APROBADO Y CONGELADO`
+- Alcance final certificado por QA manual del Product Owner:
+  - `CRUD` de catálogos de `Activos` aprobado
+  - `readonly` y conservación de código aprobados
+  - consecutivos server-side y cancelación sin consumo de código aprobados
+  - integridad multitenant aprobada
+  - validaciones de catálogos aprobadas
+  - combos consumidores y altas rápidas aprobados
+  - homologación visual de catálogos de `Productos y Servicios` aprobada
+  - modales `quick-add` homologados aprobados
+  - microajuste final de `Unidad de medida` aprobado
+  - microajuste final de `Colección` aprobado
+- Estado aprobado por Product Owner el `2026-08-25`:
+  - `Unidad CRUD` distribución visual: aprobada
+  - `Unidad quick-add` distribución visual: aprobada
+  - `Unidad CRUD` y `quick-add` homologados: aprobado
+  - guardado de `Unidad`: aprobado
+  - `Colección quick-add` distribución visual: aprobada
+  - guardado de `Colección`: aprobado
+  - la nueva `Colección` queda seleccionada: aprobado
+- Congelamiento obligatorio desde el `2026-08-25`:
+  - no modificar el diseño CRUD de los catálogos de `Activos`
+  - no modificar el diseño homologado de catálogos de `Productos y Servicios`
+  - no modificar modales `quick-add` homologados
+  - no modificar generación automática de códigos
+  - no modificar códigos `readonly`
+  - no modificar consecutivos server-side
+  - no modificar cancelación sin consumo de código
+  - no modificar integridad multitenant
+  - no modificar validaciones de catálogos
+  - no modificar combos ni altas rápidas certificadas
+  - no reabrir ajustes finales de `Unidad de medida`
+  - no reabrir ajuste final de `Colección`
+  - no modificar código, SQL ni ejecutar nuevas pruebas funcionales de `Ticket 05` sin autorización expresa
 - TICKET 03 — Última corrección definitiva auditada el `2026-08-21`.
 - Resultado real de la iteración:
   - `Atributos` quedó corregido en UI estilo SKNC:
@@ -1394,3 +1430,30 @@
     - no se modificó schema SQL
   - cobertura pendiente explícita:
     - SAT producto / SAT unidad no quedaron certificados en esta vuelta de automatización; no marcar como cerrados sin QA manual adicional
+- TICKET 05 — Cierre funcional final ejecutado el `2026-08-24` sin reabrir alcance ni reimplementar flujos completos.
+  - frontend `ProductosServicios`:
+    - `Categoría`, `Marca` y `Unidad` quedaron unificados sobre el mismo parcial Razor `_ProductosServiciosCatalogModal.cshtml`
+    - `ProductosServicios.js` y `ProductosServiciosCatalogos.js` ahora consumen el helper compartido `wwwroot/js/ProductosServicios/ProductosServiciosCatalogModalShared.js`
+    - `node --check` cerró sin error para:
+      - `ProductosServiciosCatalogModalShared.js`
+      - `ProductosServiciosCatalogos.js`
+      - `ProductosServicios.js`
+  - SQL real ejecutado con autorización del PO:
+    - se reconfirmó ausencia de duplicados por `(idEmpresa, Codigo)` en `dbo.ActivosMarcas` y `dbo.ActivosProveedores`
+    - se eliminaron únicamente históricos autorizados sin referencias:
+      - `ORD-QA-27`
+      - `VIS-QA-27`
+    - se creó y dejó versionado `inspectorapi/checklistWs/Scripts/activos-catalogos-unique-codigos-up.sql`
+    - índices reales creados:
+      - `UX_ActivosMarcas_IdEmpresa_Codigo`
+      - `UX_ActivosProveedores_IdEmpresa_Codigo`
+  - seguridad multiempresa previamente aplicada en Activos se mantiene vigente:
+    - el proxy MVC firma contexto empresa
+    - el API rechaza discrepancias entre sesión activa y empresa solicitada
+  - builds finales:
+    - `dotnet build inspectorapi/checklistWs/checklistWs.csproj` correcto con warnings legacy
+    - `dotnet build inspector/checklist/checklist.csproj` correcto con warnings legacy
+  - bloqueo real que impide certificar QA web final en esta vuelta:
+    - la automatización disponible en navegador cayó a login en `http://localhost:5200/`
+    - no se localizaron credenciales reutilizables seguras en el repo
+    - por lo tanto la validación UI real de readonly/cancel/combos/regresión de Ticket 05 no puede marcarse cerrada sin sesión autenticada activa

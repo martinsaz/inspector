@@ -1,0 +1,106 @@
+@{
+    var modalId = ViewData["CatalogModalId"]?.ToString() ?? "modalCatalogoProductosServicios";
+    var formId = ViewData["CatalogFormId"]?.ToString() ?? "frmCatalogoProductosServicios";
+    var hiddenIdFieldId = ViewData["CatalogHiddenIdFieldId"]?.ToString() ?? "hdCatalogoId";
+    var hiddenTypeFieldId = ViewData["CatalogHiddenTypeFieldId"]?.ToString() ?? string.Empty;
+    var kickerId = ViewData["CatalogKickerId"]?.ToString() ?? "txCatalogoModalKicker";
+    var titleId = ViewData["CatalogTitleId"]?.ToString() ?? "txCatalogoModalTitulo";
+    var modalTitle = ViewData["CatalogModalTitle"]?.ToString() ?? "Nuevo catálogo";
+    var codeInputId = ViewData["CatalogCodeInputId"]?.ToString() ?? "txCodigoCatalogo";
+    var nameInputId = ViewData["CatalogNameInputId"]?.ToString() ?? "txNombreCatalogo";
+    var descriptionFieldId = ViewData["CatalogDescriptionFieldId"]?.ToString() ?? "fieldDescripcionCatalogo";
+    var descriptionInputId = ViewData["CatalogDescriptionInputId"]?.ToString() ?? "txDescripcionCatalogo";
+    var aplicaFieldId = ViewData["CatalogAplicaFieldId"]?.ToString() ?? "fieldAplicaACatalogo";
+    var aplicaSelectId = ViewData["CatalogAplicaSelectId"]?.ToString() ?? "cbAplicaACatalogo";
+    var abbreviationFieldId = ViewData["CatalogAbbreviationFieldId"]?.ToString() ?? "fieldAbreviaturaCatalogo";
+    var abbreviationInputId = ViewData["CatalogAbbreviationInputId"]?.ToString() ?? "txAbreviaturaCatalogo";
+    var decimalsFieldId = ViewData["CatalogDecimalsFieldId"]?.ToString() ?? "fieldPermiteDecimalesCatalogo";
+    var decimalsCheckboxId = ViewData["CatalogDecimalsCheckboxId"]?.ToString() ?? "chkPermiteDecimalesCatalogo";
+    var infoId = ViewData["CatalogInfoId"]?.ToString() ?? "txInfoCatalogo";
+    var saveButtonId = ViewData["CatalogSaveButtonId"]?.ToString() ?? "btGuardarCatalogo";
+    var saveButtonText = ViewData["CatalogSaveButtonText"]?.ToString() ?? "Guardar";
+    var cancelButtonText = ViewData["CatalogCancelButtonText"]?.ToString() ?? "Cerrar";
+    var overlayId = ViewData["CatalogOverlayId"]?.ToString() ?? "catalogoSaveOverlay";
+    var saveTitleStatusId = ViewData["CatalogSaveTitleId"]?.ToString() ?? "txCatalogoSaveTitle";
+    var saveStatusId = ViewData["CatalogSaveStatusId"]?.ToString() ?? "txCatalogoSaveStatus";
+    var layoutAttributeValue = ViewData["CatalogLayoutAttributeValue"]?.ToString() ?? string.Empty;
+    var showDescription = string.Equals(ViewData["CatalogShowDescription"]?.ToString(), "true", StringComparison.OrdinalIgnoreCase);
+    var showAplicaA = string.Equals(ViewData["CatalogShowAplicaA"]?.ToString(), "true", StringComparison.OrdinalIgnoreCase);
+    var showAbreviatura = string.Equals(ViewData["CatalogShowAbreviatura"]?.ToString(), "true", StringComparison.OrdinalIgnoreCase);
+    var showPermiteDecimales = string.Equals(ViewData["CatalogShowPermiteDecimales"]?.ToString(), "true", StringComparison.OrdinalIgnoreCase);
+}
+
+<div class="modal fade checkapp-modal activos-quick-modal ps-catalog-modal" tabindex="-1" id="@modalId">
+    <div class="modal-dialog modal-lg modal-dialog-centered ps-catalog-modal-dialog">
+        <div class="modal-content ps-catalog-modal-content">
+            <form id="@formId" class="ps-catalog-modal-form" data-quick-catalog-layout="@layoutAttributeValue">
+                <div class="modal-header">
+                    <div>
+                        <p class="checkapp-kicker" id="@kickerId">Registro</p>
+                        <h3 class="modal-title" id="@titleId">@modalTitle</h3>
+                    </div>
+                    <button type="button" class="btn btn-icon btn-sm btn-active-light-primary" data-bs-dismiss="modal" aria-label="Close">
+                        <i class="ki-duotone ki-cross fs-1"><span class="path1"></span><span class="path2"></span></i>
+                    </button>
+                </div>
+                <div class="modal-body ps-catalog-modal-body">
+                    <input id="@hiddenIdFieldId" type="hidden" />
+@if (!string.IsNullOrWhiteSpace(hiddenTypeFieldId))
+{
+                    <input id="@hiddenTypeFieldId" type="hidden" />
+}
+                    <div class="checkapp-filter-grid activos-quick-modal-grid ps-catalog-form-grid">
+                        <label class="checkapp-field activos-quick-modal-field-code ps-catalog-field ps-catalog-field--code">
+                            <span>Código *</span>
+                            <input id="@codeInputId" type="text" readonly placeholder="Se generará automáticamente" />
+                        </label>
+                        <label class="checkapp-field activos-quick-modal-field-name ps-catalog-field ps-catalog-field--name">
+                            <span>Nombre *</span>
+                            <input id="@nameInputId" type="text" />
+                        </label>
+                        <label class="checkapp-field activos-quick-modal-field-full ps-catalog-field ps-catalog-field--description" id="@descriptionFieldId"@(showDescription ? "" : " hidden")>
+                            <span>Descripción</span>
+                            <textarea id="@descriptionInputId"></textarea>
+                        </label>
+                        <label class="checkapp-field ps-catalog-field ps-catalog-field--aplica" id="@aplicaFieldId"@(showAplicaA ? "" : " hidden")>
+                            <span>Aplica a *</span>
+                            <select id="@aplicaSelectId" class="form-select">
+                                <option value="">Selecciona una opción</option>
+                                <option value="0">Todos</option>
+                                <option value="1">Producto</option>
+                                <option value="2">Servicio</option>
+                            </select>
+                        </label>
+                        <label class="checkapp-field ps-catalog-field ps-catalog-field--abbreviation" id="@abbreviationFieldId"@(showAbreviatura ? "" : " hidden")>
+                            <span>Abreviatura *</span>
+                            <input id="@abbreviationInputId" type="text" />
+                        </label>
+                        <label class="checkapp-field ps-catalog-field ps-catalog-field--checkbox ps-catalog-field--decimals" id="@decimalsFieldId"@(showPermiteDecimales ? "" : " hidden")>
+                            <span>Permite decimales</span>
+                            <input id="@decimalsCheckboxId" type="checkbox" />
+                        </label>
+                    </div>
+                    <div class="checkapp-status-inline" id="@infoId" style="margin-top:1rem;"></div>
+                </div>
+                <div class="modal-footer activos-quick-modal-footer ps-catalog-modal-footer">
+                    <button type="button" class="checkapp-btn checkapp-btn-ghost" data-bs-dismiss="modal">
+                        <span>@cancelButtonText</span>
+                    </button>
+                    <button id="@saveButtonId" type="button" class="checkapp-btn checkapp-btn-primary">
+                        <i class="fa fa-save"></i>
+                        <span>@saveButtonText</span>
+                    </button>
+                </div>
+                <div id="@overlayId" class="ps-catalog-save-overlay" aria-hidden="true">
+                    <div class="ps-catalog-save-card" role="status" aria-live="polite">
+                        <div class="ps-catalog-save-spinner"></div>
+                        <div class="ps-catalog-save-copy">
+                            <strong id="@saveTitleStatusId">Guardando registro...</strong>
+                            <p id="@saveStatusId">Preparando información del catálogo...</p>
+                        </div>
+                    </div>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>

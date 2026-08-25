@@ -1565,6 +1565,9 @@ function limpiarFormularioAltaRapida(config) {
     }
 
     $(config.infoSelector).removeClass("is-danger is-success").text("");
+    if (config.fieldSelectors && config.fieldSelectors.codigo) {
+        $(config.fieldSelectors.codigo).prop("readonly", true).attr("placeholder", "Se generará automáticamente");
+    }
 
     Object.keys(config.fieldSelectors || {}).forEach(function (key) {
         clearGenericFieldError(config.fieldSelectors[key], config.infoSelector);
@@ -1575,6 +1578,7 @@ function limpiarFormularioCatalogo(config) {
     const fieldSelectors = config.fieldSelectors;
     $(config.idSelector).val("");
     $(fieldSelectors.codigo).val("");
+    $(fieldSelectors.codigo).prop("readonly", true).attr("placeholder", "Se generará automáticamente");
     $(fieldSelectors.nombre).val("");
     $(fieldSelectors.descripcion).val("");
     $(config.titleSelector).text(buildCatalogCreateTitle(config.label));
@@ -1606,6 +1610,7 @@ function editarCatalogo(tipo, id) {
 
             $(config.idSelector).val(data.d.id || "");
             $(config.fieldSelectors.codigo).val(data.d.codigo || "");
+            $(config.fieldSelectors.codigo).prop("readonly", true).attr("placeholder", "");
             $(config.fieldSelectors.nombre).val(data.d.nombre || "");
             $(config.fieldSelectors.descripcion).val(data.d.descripcion || "");
             $(config.titleSelector).text("Editar " + config.label);
@@ -1683,6 +1688,14 @@ function guardarAltaRapidaCatalogo(config) {
                 throw new Error(message || "No fue posible guardar el registro.");
             }
 
+            if (data.item && data.item.id) {
+                setSelect2Value(config.selectSelector, data.item.id, buildQuickAddOptionText(data.item));
+                $(config.modalSelector).modal("hide");
+                limpiarFormularioAltaRapida(config);
+                $("#txInfoActivo").removeClass("is-danger").addClass("is-success").text(config.successMessage);
+                return null;
+            }
+
             return resolveQuickAddCreatedItem(config, payload)
                 .then(function (item) {
                     if (!item || !item.id) {
@@ -1744,13 +1757,6 @@ function validateQuickAddPayload(config, payload) {
         return validateCatalogoPayload({
             fieldSelectors: config.fieldSelectors
         }, payload);
-    }
-
-    if (!payload.codigo || payload.codigo.length > activosValidationLimits.estadoCodigo) {
-        return {
-            selector: config.fieldSelectors.codigo,
-            message: "Captura un código válido de hasta " + activosValidationLimits.estadoCodigo + " caracteres."
-        };
     }
 
     if (!payload.nombre || payload.nombre.length > activosValidationLimits.estadoNombre) {
@@ -1873,6 +1879,7 @@ function confirmarCambioCatalogo(tipo, id, activar) {
 function limpiarFormularioEstadoOperativo() {
     $("#frmEstadoOperativo")[0].reset();
     $("#hdEstadoOperativoId").val("");
+    $("#txCodigoEstadoOperativo").prop("readonly", true).attr("placeholder", "Se generará automáticamente");
     $("#txOrdenEstadoOperativo").val("");
     $("#chkPermiteOperacionEstado").prop("checked", false);
     $("#txTituloEstadoOperativo").text("Nuevo estado operativo");
@@ -1889,6 +1896,7 @@ function editarEstadoOperativo(idEstadoOperativo) {
 
             $("#hdEstadoOperativoId").val(data.d.id || "");
             $("#txCodigoEstadoOperativo").val(data.d.codigo || "");
+            $("#txCodigoEstadoOperativo").prop("readonly", true).attr("placeholder", "");
             $("#txNombreEstadoOperativo").val(data.d.nombre || "");
             $("#txDescripcionEstadoOperativo").val(data.d.descripcion || "");
             $("#txOrdenEstadoOperativo").val(Number(data.d.orden || 0) > 0 ? data.d.orden : "");
@@ -2946,13 +2954,6 @@ function validateActivoPayload(payload) {
 }
 
 function validateCatalogoPayload(config, payload) {
-    if (!payload.codigo || payload.codigo.length > activosValidationLimits.catalogoCodigo) {
-        return {
-            selector: config.fieldSelectors.codigo,
-            message: "Captura un código válido de hasta " + activosValidationLimits.catalogoCodigo + " caracteres."
-        };
-    }
-
     if (!payload.nombre || payload.nombre.length > activosValidationLimits.catalogoNombre) {
         return {
             selector: config.fieldSelectors.nombre,
@@ -2971,13 +2972,6 @@ function validateCatalogoPayload(config, payload) {
 }
 
 function validateEstadoOperativoPayload(payload) {
-    if (!payload.codigo || payload.codigo.length > activosValidationLimits.estadoCodigo) {
-        return {
-            selector: "#txCodigoEstadoOperativo",
-            message: "Captura un código válido de hasta " + activosValidationLimits.estadoCodigo + " caracteres."
-        };
-    }
-
     if (!payload.nombre || payload.nombre.length > activosValidationLimits.estadoNombre) {
         return {
             selector: "#txNombreEstadoOperativo",

@@ -170,6 +170,29 @@
         return;
     }
 
+    const modalBridge = window.ProductosServiciosCatalogModalShared.create({
+        formSelector: "#frmCatalogoProductosServicios",
+        hiddenIdSelector: "#hdCatalogoId",
+        codeSelector: "#txCodigoCatalogo",
+        nameSelector: "#txNombreCatalogo",
+        descriptionSelector: "#txDescripcionCatalogo",
+        appliesSelector: "#cbAplicaACatalogo",
+        abbreviationSelector: "#txAbreviaturaCatalogo",
+        decimalsSelector: "#chkPermiteDecimalesCatalogo",
+        descriptionFieldSelector: "#fieldDescripcionCatalogo",
+        appliesFieldSelector: "#fieldAplicaACatalogo",
+        abbreviationFieldSelector: "#fieldAbreviaturaCatalogo",
+        decimalsFieldSelector: "#fieldPermiteDecimalesCatalogo",
+        kickerSelector: "#txCatalogoModalKicker",
+        titleSelector: "#txCatalogoModalTitulo",
+        saveButtonTextSelector: "#btGuardarCatalogo span",
+        infoSelector: "#txInfoCatalogo",
+        overlaySelector: "#catalogoSaveOverlay",
+        overlayTitleSelector: "#txCatalogoSaveTitle",
+        overlayStatusSelector: "#txCatalogoSaveStatus",
+        invalidScopeSelector: "#frmCatalogoProductosServicios"
+    });
+
     const state = {
         modal: null,
         isSaving: false
@@ -178,11 +201,11 @@
     document.addEventListener("DOMContentLoaded", function () {
         state.modal = resolveModalApi("#modalCatalogoProductosServicios");
         syncFieldLimits();
-        buildTableHead();
-        initAccordion();
-        initEvents();
-        initGrid();
-        resetModal();
+            buildTableHead();
+            initAccordion();
+            initEvents();
+            initGrid();
+            resetModal();
         CheckAppUI.reloadGrid(config.gridId);
     });
 
@@ -272,10 +295,7 @@
     }
 
     function syncFieldLimits() {
-        $("#txCodigoCatalogo").attr("maxlength", config.codeMax);
-        $("#txNombreCatalogo").attr("maxlength", config.nameMax);
-        $("#txDescripcionCatalogo").attr("maxlength", config.descriptionMax || 0);
-        $("#txAbreviaturaCatalogo").attr("maxlength", config.abreviaturaMax || 0);
+        modalBridge.syncFieldLimits(config);
     }
 
     function actionColumn() {
@@ -339,9 +359,6 @@
         }
 
         resetModal();
-        $("#txCatalogoModalKicker").text("Registro");
-        $("#txCatalogoModalTitulo").text("Nueva " + config.title);
-        $("#btGuardarCatalogo span").text("Guardar");
         state.modal.show();
     }
 
@@ -355,10 +372,12 @@
             .then(function (data) {
                 resetModal();
                 $("#hdCatalogoId").val(data.id || "");
-                $("#txCatalogoModalKicker").text("Edición");
-                $("#txCatalogoModalTitulo").text("Editar " + config.title);
-                $("#btGuardarCatalogo span").text("Guardar cambios");
-                $("#txCodigoCatalogo").val(data.codigo || "");
+                modalBridge.setCopy({
+                    kicker: "Edición",
+                    title: "Editar " + config.title,
+                    saveButton: "Guardar cambios"
+                });
+                syncCodeField(true, data.codigo || "");
                 $("#txNombreCatalogo").val(data.nombre || "");
                 config.fillForm(data || {});
                 state.modal.show();
@@ -406,14 +425,14 @@
 
         const validation = config.validate();
         if (validation) {
-            setStatus("#txInfoCatalogo", "danger", validation.message);
-            markFieldError(validation.selector);
+            modalBridge.setStatus("danger", validation.message);
+            modalBridge.markFieldError(validation.selector);
             return;
         }
 
         const payload = config.buildPayload();
         beginSaveUi();
-        setStatus("#txInfoCatalogo", "info", "Guardando " + config.title + "...");
+        modalBridge.setStatus("info", "Guardando " + config.title + "...");
 
         fetchJson(config.saveUrl, {
             method: "POST",
@@ -426,44 +445,21 @@
             CheckAppUI.reloadGrid(config.gridId);
         }).catch(function (error) {
             finishSaveUi();
-            setStatus("#txInfoCatalogo", "danger", resolveErrorMessage(error));
+            modalBridge.setStatus("danger", resolveErrorMessage(error));
         });
     }
 
     function validateBasic(codeMax, nameMax, allowDescription, requiresAbbreviation) {
-        const codigo = ($("#txCodigoCatalogo").val() || "").trim();
-        const nombre = ($("#txNombreCatalogo").val() || "").trim();
-        const descripcion = ($("#txDescripcionCatalogo").val() || "").trim();
-        const abreviatura = ($("#txAbreviaturaCatalogo").val() || "").trim();
-
-        if (!codigo) {
-            return { selector: "#txCodigoCatalogo", message: "Captura un código." };
-        }
-        if (codigo.length > codeMax) {
-            return { selector: "#txCodigoCatalogo", message: "El código no puede exceder " + codeMax + " caracteres." };
-        }
-        if (!nombre) {
-            return { selector: "#txNombreCatalogo", message: "Captura un nombre." };
-        }
-        if (nombre.length > nameMax) {
-            return { selector: "#txNombreCatalogo", message: "El nombre no puede exceder " + nameMax + " caracteres." };
-        }
-        if (allowDescription && descripcion.length > 500) {
-            return { selector: "#txDescripcionCatalogo", message: "La descripción no puede exceder 500 caracteres." };
-        }
-        if ($("#fieldAplicaACatalogo").is(":visible") && !$("#cbAplicaACatalogo").val()) {
-            return { selector: "#cbAplicaACatalogo", message: "Selecciona a qué aplica el registro." };
-        }
-        if (requiresAbbreviation) {
-            if (!abreviatura) {
-                return { selector: "#txAbreviaturaCatalogo", message: "Captura una abreviatura." };
-            }
-            if (abreviatura.length > 20) {
-                return { selector: "#txAbreviaturaCatalogo", message: "La abreviatura no puede exceder 20 caracteres." };
-            }
-        }
-
-        return null;
+        return modalBridge.validate({
+            nameMax: nameMax,
+            descriptionMax: allowDescription ? 500 : 0,
+            abreviaturaMax: requiresAbbreviation ? 20 : 0,
+            showDescription: !!allowDescription,
+            showAplicaA: $("#fieldAplicaACatalogo").is(":visible"),
+            showAbreviatura: !!requiresAbbreviation,
+            showPermiteDecimales: false,
+            validationEntityName: config.title
+        });
     }
 
     function updateFilterSummary() {
@@ -492,19 +488,17 @@
     }
 
     function resetModal() {
-        const form = document.getElementById("frmCatalogoProductosServicios");
-        if (form) {
-            form.reset();
-        }
-
-        $("#hdCatalogoId").val("");
-        $("#cbAplicaACatalogo").val("0");
-        $("#chkPermiteDecimalesCatalogo").prop("checked", false);
-        $("#txCatalogoModalKicker").text("Registro");
-        $("#txCatalogoModalTitulo").text("Nueva " + config.title);
-        $("#btGuardarCatalogo span").text("Guardar");
-        setStatus("#txInfoCatalogo", "", "");
-        clearAllFieldErrors();
+        modalBridge.reset({
+            showDescription: pageKey !== "unidades",
+            showAplicaA: pageKey === "categorias",
+            showAbreviatura: pageKey === "unidades",
+            showPermiteDecimales: pageKey === "unidades",
+            defaultAplicaAValue: pageKey === "categorias" ? "0" : ""
+        }, {
+            kicker: "Registro",
+            title: "Nueva " + config.title,
+            saveButton: "Guardar"
+        });
         finishSaveUi();
     }
 
@@ -513,17 +507,17 @@
         syncModalBusyUi(true, "Guardando " + config.title + "...", "Validando información y enviando una sola solicitud.");
     }
 
+    function syncCodeField(isEditing, value) {
+        modalBridge.syncCodeField(isEditing, value);
+    }
+
     function finishSaveUi() {
         state.isSaving = false;
         syncModalBusyUi(false, "Guardando registro...", "Preparando información del catálogo...");
     }
 
     function syncModalBusyUi(isBusy, title, status) {
-        $("#frmCatalogoProductosServicios").toggleClass("is-saving", !!isBusy);
-        $("#catalogoSaveOverlay").attr("aria-hidden", isBusy ? "false" : "true");
-        $("#txCatalogoSaveTitle").text(title || "Guardando registro...");
-        $("#txCatalogoSaveStatus").text(status || "Preparando información del catálogo...");
-        $("#frmCatalogoProductosServicios").find("input, textarea, select, button").prop("disabled", !!isBusy);
+        modalBridge.setBusy(isBusy, title, status);
     }
 
     function setStatus(selector, level, message) {
@@ -541,23 +535,15 @@
     }
 
     function markFieldError(selector) {
-        const node = document.querySelector(selector);
-        if (node) {
-            node.classList.add("is-invalid");
-        }
+        modalBridge.markFieldError(selector);
     }
 
     function clearFieldError(selector) {
-        const node = document.querySelector(selector);
-        if (node) {
-            node.classList.remove("is-invalid");
-        }
+        modalBridge.clearFieldError(selector);
     }
 
     function clearAllFieldErrors() {
-        document.querySelectorAll("#frmCatalogoProductosServicios .is-invalid").forEach(function (node) {
-            node.classList.remove("is-invalid");
-        });
+        modalBridge.clearFieldErrors();
     }
 
     function fetchJson(url, options) {

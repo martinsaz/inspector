@@ -2,6 +2,7 @@ using System.Net;
 using System.Net.Http;
 using System.Net.Http.Headers;
 using System.Security.Claims;
+using System.Security.Cryptography;
 using System.Text;
 using System.Text.Json;
 using checklist.Clases;
@@ -16,6 +17,12 @@ namespace checklist.Controllers.Activos
 {
     public class ActivosController : Controller
     {
+        private const string ProxyEmpresaIdHeader = "X-Activos-Proxy-EmpresaId";
+        private const string ProxyEmpresaKeyHeader = "X-Activos-Proxy-Empresa";
+        private const string ProxyUsuarioIdHeader = "X-Activos-Proxy-UsuarioId";
+        private const string ProxyTimestampHeader = "X-Activos-Proxy-Timestamp";
+        private const string ProxySignatureHeader = "X-Activos-Proxy-Signature";
+
         private readonly IHttpClientFactory _clientFactory;
         private static readonly JsonSerializerSettings CamelCaseJson = new JsonSerializerSettings
         {
@@ -366,7 +373,11 @@ namespace checklist.Controllers.Activos
             };
 
             ActivoOperacionResponse? respuesta = await ExecuteJsonAsync<ActivoOperacionResponse>(HttpMethod.Post, url, payload);
-            return Json(new { d = respuesta?.Mensaje ?? "No fue posible guardar el tipo de activo." });
+            return Json(new
+            {
+                d = respuesta?.Mensaje ?? "No fue posible guardar el tipo de activo.",
+                item = respuesta == null ? null : new { id = respuesta.Id, codigo = respuesta.Codigo, nombre = respuesta.Nombre }
+            });
         }
 
         public async Task<IActionResult> GuardarMarcaActivo([FromBody] JsonElement parametros)
@@ -388,7 +399,11 @@ namespace checklist.Controllers.Activos
             };
 
             ActivoOperacionResponse? respuesta = await ExecuteJsonAsync<ActivoOperacionResponse>(HttpMethod.Post, url, payload);
-            return Json(new { d = respuesta?.Mensaje ?? "No fue posible guardar la marca." });
+            return Json(new
+            {
+                d = respuesta?.Mensaje ?? "No fue posible guardar la marca.",
+                item = respuesta == null ? null : new { id = respuesta.Id, codigo = respuesta.Codigo, nombre = respuesta.Nombre }
+            });
         }
 
         public async Task<IActionResult> GuardarProveedorActivo([FromBody] JsonElement parametros)
@@ -410,7 +425,11 @@ namespace checklist.Controllers.Activos
             };
 
             ActivoOperacionResponse? respuesta = await ExecuteJsonAsync<ActivoOperacionResponse>(HttpMethod.Post, url, payload);
-            return Json(new { d = respuesta?.Mensaje ?? "No fue posible guardar el proveedor." });
+            return Json(new
+            {
+                d = respuesta?.Mensaje ?? "No fue posible guardar el proveedor.",
+                item = respuesta == null ? null : new { id = respuesta.Id, codigo = respuesta.Codigo, nombre = respuesta.Nombre }
+            });
         }
 
         public async Task<IActionResult> GuardarEstadoOperativo([FromBody] JsonElement parametros)
@@ -440,7 +459,11 @@ namespace checklist.Controllers.Activos
             };
 
             ActivoOperacionResponse? respuesta = await ExecuteJsonAsync<ActivoOperacionResponse>(HttpMethod.Post, url, payload);
-            return Json(new { d = respuesta?.Mensaje ?? "No fue posible guardar el estado operativo." });
+            return Json(new
+            {
+                d = respuesta?.Mensaje ?? "No fue posible guardar el estado operativo.",
+                item = respuesta == null ? null : new { id = respuesta.Id, codigo = respuesta.Codigo, nombre = respuesta.Nombre }
+            });
         }
 
         public async Task<IActionResult> BajaTipoActivo([FromBody] JsonElement parametros)
@@ -684,6 +707,7 @@ namespace checklist.Controllers.Activos
         {
             using HttpClient client = _clientFactory.CreateClient();
             using HttpRequestMessage request = new HttpRequestMessage(HttpMethod.Get, url);
+            AddProxyHeaders(request);
             using HttpResponseMessage response = await client.SendAsync(request);
             string content = await response.Content.ReadAsStringAsync();
             if (!response.IsSuccessStatusCode || string.IsNullOrWhiteSpace(content))
@@ -698,6 +722,7 @@ namespace checklist.Controllers.Activos
         {
             using HttpClient client = _clientFactory.CreateClient();
             using HttpRequestMessage request = new HttpRequestMessage(method, url);
+            AddProxyHeaders(request);
             request.Content = new StringContent(JsonConvert.SerializeObject(payload), Encoding.UTF8, "application/json");
             using HttpResponseMessage response = await client.SendAsync(request);
             string content = await response.Content.ReadAsStringAsync();
@@ -730,6 +755,7 @@ namespace checklist.Controllers.Activos
         {
             using HttpClient client = _clientFactory.CreateClient();
             using HttpRequestMessage request = new HttpRequestMessage(HttpMethod.Post, url);
+            AddProxyHeaders(request);
             request.Content = payload;
             using HttpResponseMessage response = await client.SendAsync(request);
             string content = await response.Content.ReadAsStringAsync();
@@ -831,6 +857,41 @@ namespace checklist.Controllers.Activos
                 ?? User.FindFirstValue(ClaimTypes.Sid)
                 ?? Request.Query["empresa"].FirstOrDefault()
                 ?? string.Empty;
+        }
+
+        private string? ResolveUsuarioId()
+        {
+            string? claimValue = User.FindFirstValue(ClaimTypes.NameIdentifier);
+            return Guid.TryParse(claimValue, out Guid usuarioId) && usuarioId != Guid.Empty
+                ? usuarioId.ToString()
+                : null;
+        }
+
+        private void AddProxyHeaders(HttpRequestMessage request)
+        {
+            string idEmpresa = ResolveIdEmpresa();
+            string empresa = ResolveEmpresa();
+            string usuarioId = ResolveUsuarioId() ?? string.Empty;
+            string timestamp = DateTimeOffset.UtcNow.ToString("O");
+            string signature = ComputeSignature("Leon2022*", idEmpresa, empresa, usuarioId, timestamp);
+
+            request.Headers.TryAddWithoutValidation(ProxyEmpresaIdHeader, idEmpresa);
+            request.Headers.TryAddWithoutValidation(ProxyEmpresaKeyHeader, empresa);
+            request.Headers.TryAddWithoutValidation(ProxyTimestampHeader, timestamp);
+            request.Headers.TryAddWithoutValidation(ProxySignatureHeader, signature);
+
+            if (!string.IsNullOrWhiteSpace(usuarioId))
+            {
+                request.Headers.TryAddWithoutValidation(ProxyUsuarioIdHeader, usuarioId);
+            }
+        }
+
+        private static string ComputeSignature(string secret, string empresaId, string empresa, string usuarioId, string timestamp)
+        {
+            using HMACSHA256 hmac = new HMACSHA256(Encoding.UTF8.GetBytes(secret));
+            string payload = string.Join('\n', empresaId.Trim(), empresa.Trim().ToUpperInvariant(), usuarioId.Trim(), timestamp.Trim());
+            byte[] signature = hmac.ComputeHash(Encoding.UTF8.GetBytes(payload));
+            return Convert.ToBase64String(signature);
         }
 
         private string ResolveCorreo()

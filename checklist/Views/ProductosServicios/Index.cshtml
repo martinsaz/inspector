@@ -635,76 +635,39 @@
     </div>
 </div>
 
-<div class="modal fade checkapp-modal activos-quick-modal ps-catalog-modal" tabindex="-1" id="modalQuickCatalogoProductoServicio">
-    <div class="modal-dialog modal-lg modal-dialog-centered ps-catalog-modal-dialog">
-        <div class="modal-content ps-catalog-modal-content">
-            <form id="frmQuickCatalogoProductoServicio" class="ps-catalog-modal-form">
-                <div class="modal-header">
-                    <div>
-                        <p class="checkapp-kicker" id="txQuickCatalogoKicker">Registro</p>
-                        <h3 class="modal-title" id="txQuickCatalogoTitulo">Nuevo catálogo</h3>
-                    </div>
-                    <button type="button" class="btn btn-icon btn-sm btn-active-light-primary" data-bs-dismiss="modal" aria-label="Close">
-                        <i class="ki-duotone ki-cross fs-1"><span class="path1"></span><span class="path2"></span></i>
-                    </button>
-                </div>
-                <div class="modal-body ps-catalog-modal-body">
-                    <input id="hdQuickCatalogoTipo" type="hidden" />
-                    <div class="checkapp-filter-grid activos-quick-modal-grid ps-catalog-form-grid">
-                        <label class="checkapp-field activos-quick-modal-field-code ps-catalog-field ps-catalog-field--code">
-                            <span>Código *</span>
-                            <input id="txQuickCatalogoCodigo" type="text" />
-                        </label>
-                        <label class="checkapp-field activos-quick-modal-field-name ps-catalog-field ps-catalog-field--name">
-                            <span>Nombre *</span>
-                            <input id="txQuickCatalogoNombre" type="text" />
-                        </label>
-                        <label class="checkapp-field activos-quick-modal-field-full ps-catalog-field ps-catalog-field--description" id="fieldQuickCatalogoDescripcion">
-                            <span>Descripción</span>
-                            <textarea id="txQuickCatalogoDescripcion"></textarea>
-                        </label>
-                        <label class="checkapp-field ps-catalog-field ps-catalog-field--aplica" id="fieldQuickCatalogoAplicaA" hidden>
-                            <span>Aplica a *</span>
-                            <select id="cbQuickCatalogoAplicaA" class="form-select">
-                                <option value="">Selecciona una opción</option>
-                                <option value="0">Todos</option>
-                                <option value="1">Producto</option>
-                                <option value="2">Servicio</option>
-                            </select>
-                        </label>
-                        <label class="checkapp-field ps-catalog-field ps-catalog-field--abbreviation" id="fieldQuickCatalogoAbreviatura" hidden>
-                            <span>Abreviatura *</span>
-                            <input id="txQuickCatalogoAbreviatura" type="text" />
-                        </label>
-                        <label class="checkapp-field ps-catalog-field ps-catalog-field--checkbox ps-catalog-field--decimals" id="fieldQuickCatalogoPermiteDecimales" hidden>
-                            <span>Permite decimales</span>
-                            <input id="chkQuickCatalogoPermiteDecimales" type="checkbox" />
-                        </label>
-                    </div>
-                    <div class="checkapp-status-inline" id="txInfoQuickCatalogo" style="margin-top:1rem;"></div>
-                </div>
-                <div class="modal-footer activos-quick-modal-footer ps-catalog-modal-footer">
-                    <button type="button" class="checkapp-btn checkapp-btn-ghost" data-bs-dismiss="modal">
-                        <span>Cancelar</span>
-                    </button>
-                    <button id="btGuardarQuickCatalogoProductoServicio" type="button" class="checkapp-btn checkapp-btn-primary">
-                        <i class="fa fa-save"></i>
-                        <span>Guardar</span>
-                    </button>
-                </div>
-                <div id="quickCatalogoSaveOverlay" class="ps-catalog-save-overlay" aria-hidden="true">
-                    <div class="ps-catalog-save-card" role="status" aria-live="polite">
-                        <div class="ps-catalog-save-spinner"></div>
-                        <div class="ps-catalog-save-copy">
-                            <strong id="txQuickCatalogoSaveTitle">Guardando registro...</strong>
-                            <p id="txQuickCatalogoSaveStatus">Preparando información del catálogo...</p>
-                        </div>
-                    </div>
-                </div>
-            </form>
-        </div>
-    </div>
-</div>
+<partial name="_ProductosServiciosCatalogModal" view-data='new ViewDataDictionary(ViewData)
+{
+    ["CatalogModalId"] = "modalQuickCatalogoProductoServicio",
+    ["CatalogFormId"] = "frmQuickCatalogoProductoServicio",
+    ["CatalogHiddenIdFieldId"] = "hdQuickCatalogoId",
+    ["CatalogHiddenTypeFieldId"] = "hdQuickCatalogoTipo",
+    ["CatalogKickerId"] = "txQuickCatalogoKicker",
+    ["CatalogTitleId"] = "txQuickCatalogoTitulo",
+    ["CatalogModalTitle"] = "Nuevo catálogo",
+    ["CatalogCodeInputId"] = "txQuickCatalogoCodigo",
+    ["CatalogNameInputId"] = "txQuickCatalogoNombre",
+    ["CatalogDescriptionFieldId"] = "fieldQuickCatalogoDescripcion",
+    ["CatalogDescriptionInputId"] = "txQuickCatalogoDescripcion",
+    ["CatalogAplicaFieldId"] = "fieldQuickCatalogoAplicaA",
+    ["CatalogAplicaSelectId"] = "cbQuickCatalogoAplicaA",
+    ["CatalogAbbreviationFieldId"] = "fieldQuickCatalogoAbreviatura",
+    ["CatalogAbbreviationInputId"] = "txQuickCatalogoAbreviatura",
+    ["CatalogDecimalsFieldId"] = "fieldQuickCatalogoPermiteDecimales",
+    ["CatalogDecimalsCheckboxId"] = "chkQuickCatalogoPermiteDecimales",
+    ["CatalogInfoId"] = "txInfoQuickCatalogo",
+    ["CatalogSaveButtonId"] = "btGuardarQuickCatalogoProductoServicio",
+    ["CatalogSaveButtonText"] = "Guardar",
+    ["CatalogCancelButtonText"] = "Cancelar",
+    ["CatalogOverlayId"] = "quickCatalogoSaveOverlay",
+    ["CatalogSaveTitleId"] = "txQuickCatalogoSaveTitle",
+    ["CatalogSaveStatusId"] = "txQuickCatalogoSaveStatus",
+    ["CatalogLayoutAttributeName"] = "data-quick-catalog-layout",
+    ["CatalogLayoutAttributeValue"] = string.Empty,
+    ["CatalogShowDescription"] = true,
+    ["CatalogShowAplicaA"] = false,
+    ["CatalogShowAbreviatura"] = false,
+    ["CatalogShowPermiteDecimales"] = false
+}' />
 
 <div class="modal fade checkapp-modal" tabindex="-1" id="modalColeccionProductoServicio">
     <div class="modal-dialog modal-lg modal-dialog-centered">
@@ -882,5 +845,6 @@
     <script>var XLSX = window.XLSX || {}; window.XLSX = XLSX;</script>
     <script src="~/js/vendor/xlsx.full.min.js"></script>
     <script src="~/js/checkapp-ui.js"></script>
+    <script src="~/js/ProductosServicios/ProductosServiciosCatalogModalShared.js" asp-append-version="true"></script>
     <script src="~/js/ProductosServicios/ProductosServicios.js" asp-append-version="true"></script>
 }
