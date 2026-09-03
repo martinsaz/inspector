@@ -80,8 +80,12 @@
         actionsMenu: {
             openRowId: "",
             anchorElement: null,
-            layerElement: null
-        }
+            layerElement: null,
+            openedAt: 0,
+            lastEditRowId: "",
+            lastEditDescription: ""
+        },
+        richTextReady: false
     };
 
     const quickCatalogConfigs = {
@@ -182,6 +186,7 @@
 
         loadCombos()
             .then(function () {
+                initDescriptionEditor();
                 syncTypeVisibility();
                 renderAttributesEditor();
                 renderVariantOptionsEditor();
@@ -283,9 +288,16 @@
             clearFieldError("#cbTipoProductoServicio");
         });
 
+        $(document).on("change", "input[name='tipoProductoServicio']", function () {
+            setTipoProductoServicioValue(this.value || "");
+            clearFieldError("#cbTipoProductoServicio");
+        });
+
         $("#cbPaqueteProductoServicio").on("change", renderLogisticsSummary);
 
-        $("#swActivoProductoServicio").on("change", syncStatusSwitchUi);
+        $(document).on("change", "input[name='estatusProductoServicio']", function () {
+            syncStatusRadioUi();
+        });
 
         $("#chkCausaInventarioProductoServicio, #chkEsProductoFisicoProductoServicio").on("change", syncTypeVisibility);
 
@@ -337,6 +349,11 @@
             resetSaveUi();
             closeUnitPricePopover();
             resetModal();
+        });
+        $("#modalProductoServicio").on("shown.bs.modal", function () {
+            if (($("#hdProductoServicioId").val() || "").trim()) {
+                ensureEditFallback(state.actionsMenu.lastEditRowId, state.actionsMenu.lastEditDescription);
+            }
         });
 
         $("#modalQuickCatalogoProductoServicio").on("hidden.bs.modal", resetQuickCatalogModal);
@@ -716,12 +733,12 @@
                     }
                 },
                 { key: "codigo", title: "Código" },
-                { key: "tag", title: "Tag" },
+                { key: "tag", title: "Etiquetas" },
                 {
                     key: "nombre",
                     title: "Nombre",
                     render: function (value, row) {
-                        return "<div class='ps-grid-title'><strong>" + escapeHtml(value || "") + "</strong><small>" + escapeHtml(row.descripcion || "") + "</small></div>";
+                        return "<div class='ps-grid-title'><strong>" + escapeHtml(value || "") + "</strong><small>" + escapeHtml(toPlainTextHtml(row.descripcion || "")) + "</small></div>";
                     }
                 },
                 { key: "tipoNombre", title: "Tipo" },
@@ -829,15 +846,21 @@
             });
     }
 
-    function syncStatusSwitchUi() {
-        const active = $("#swActivoProductoServicio").is(":checked");
-        const copy = document.getElementById("txEstadoProductoServicio");
-        if (!copy) {
-            return;
-        }
+    function setActivoProductoServicioValue(active) {
+        const value = active ? "true" : "false";
+        $("input[name='estatusProductoServicio'][value='" + value + "']").prop("checked", true);
+        syncStatusRadioUi();
+    }
 
-        copy.textContent = active ? "Activo" : "Inactivo";
-        copy.classList.toggle("is-inactive", !active);
+    function isProductoServicioActivo() {
+        return $("input[name='estatusProductoServicio']:checked").val() !== "false";
+    }
+
+    function syncStatusRadioUi() {
+        const active = isProductoServicioActivo();
+        $("input[name='estatusProductoServicio']").each(function () {
+            $(this).closest(".ps-choice-option").toggleClass("is-selected", (this.value === "true") === active);
+        });
     }
 
     function normalizeTagName(value) {
@@ -977,7 +1000,13 @@
         });
 
         window.addEventListener("resize", closeActionsMenu);
-        document.addEventListener("scroll", closeActionsMenu, true);
+        document.addEventListener("scroll", function () {
+            if (Date.now() - state.actionsMenu.openedAt < 160) {
+                return;
+            }
+
+            closeActionsMenu();
+        }, true);
     }
 
     function getTagKey(tag) {
@@ -1112,7 +1141,7 @@
     function removeSelectedTag(key) {
         state.selectedTags = state.selectedTags.filter(function (item) { return getTagKey(item) !== key; });
         setSelectedTags(state.selectedTags);
-        renderTagsControl({ focusSearch: state.tagsPopoverOpen });
+        refreshTagsSelectionState();
     }
 
     function toggleTagSelection(key) {
@@ -1134,7 +1163,7 @@
             nombre: normalizeTagName(catalogItem.nombre),
             legacy: false
         });
-        renderTagsControl({ focusSearch: state.tagsPopoverOpen });
+        refreshTagsSelectionState();
     }
 
     function createTagFromSearch() {
@@ -1212,6 +1241,34 @@
             });
     }
 
+    function buildTagsChipsHtml() {
+        return state.selectedTags.length
+            ? state.selectedTags.map(function (item) {
+                return "<span class='ps-tag-chip" + (item.legacy ? " is-legacy" : "") + "' style='" + escapeHtml(buildTagToneStyle(item)) + "'>" +
+                    "<span>" + escapeHtml(item.nombre) + "</span>" +
+                    "<button type='button' data-ps-tag-remove='" + escapeHtml(getTagKey(item)) + "' aria-label='Quitar etiqueta'><i class='fa fa-times'></i></button>" +
+                    "</span>";
+            }).join("")
+            : "<span class='ps-tags-placeholder'>Agregar etiquetas</span>";
+    }
+
+    function refreshTagsSelectionState() {
+        const host = document.getElementById("psTagsControlProductoServicio");
+        if (!host) {
+            return;
+        }
+
+        const value = host.querySelector(".ps-tags-value");
+        if (value) {
+            value.innerHTML = buildTagsChipsHtml();
+        }
+
+        host.querySelectorAll("[data-ps-tag-option]").forEach(function (option) {
+            const key = String(option.getAttribute("data-ps-tag-option") || "");
+            option.checked = state.selectedTags.some(function (item) { return getTagKey(item) === key; });
+        });
+    }
+
     function renderTagsControl(options) {
         normalizeTagsFieldContainer();
 
@@ -1235,14 +1292,7 @@
             return normalizeTagName(item.nombre).toLowerCase() === normalizedSearch.toLowerCase();
         });
 
-        const chipsHtml = state.selectedTags.length
-            ? state.selectedTags.map(function (item) {
-                return "<span class='ps-tag-chip" + (item.legacy ? " is-legacy" : "") + "' style='" + escapeHtml(buildTagToneStyle(item)) + "'>" +
-                    "<span>" + escapeHtml(item.nombre) + "</span>" +
-                    "<button type='button' data-ps-tag-remove='" + escapeHtml(getTagKey(item)) + "' aria-label='Quitar etiqueta'><i class='fa fa-times'></i></button>" +
-                    "</span>";
-            }).join("")
-            : "<span class='ps-tags-placeholder'>Agregar etiquetas</span>";
+        const chipsHtml = buildTagsChipsHtml();
 
         const optionsHtml = filtered.length
             ? filtered.map(function (item) {
@@ -1379,7 +1429,6 @@
         });
         syncCategoryOptions();
 
-        initSelect2("#cbTipoProductoServicio", "Selecciona un tipo", $("#modalProductoServicio"));
         initSelect2("#cbCategoriaProductoServicio", "Selecciona una categoría", $("#modalProductoServicio"));
         initSelect2("#cbMarcaProductoServicio", "Sin marca", $("#modalProductoServicio"));
         initSelect2("#cbUnidadProductoServicio", "Selecciona una unidad", $("#modalProductoServicio"));
@@ -1400,6 +1449,16 @@
 
         const parsed = Number(rawValue);
         return Number.isFinite(parsed) ? parsed : null;
+    }
+
+    function setTipoProductoServicioValue(value) {
+        const normalized = String(value || "").trim();
+        $("#cbTipoProductoServicio").val(normalized);
+        $("input[name='tipoProductoServicio']").prop("checked", false);
+        if (normalized) {
+            $("input[name='tipoProductoServicio'][value='" + normalized + "']").prop("checked", true);
+        }
+        $("#cbTipoProductoServicio").trigger("change");
     }
 
     function syncCategoryOptions(selectedValue) {
@@ -1989,6 +2048,7 @@
 
         state.actionsMenu.openRowId = rowId;
         state.actionsMenu.anchorElement = anchorElement;
+        state.actionsMenu.openedAt = Date.now();
         layer.hidden = false;
         positionActionsMenu(anchorElement, layer);
         syncActionsMenuTriggers();
@@ -2002,6 +2062,7 @@
 
         state.actionsMenu.openRowId = "";
         state.actionsMenu.anchorElement = null;
+        state.actionsMenu.openedAt = 0;
         syncActionsMenuTriggers();
     }
 
@@ -2074,7 +2135,13 @@
         }
 
         if (action === "editar") {
+            const fallbackDescription = getGridDescriptionByRowId(rowId);
+            state.actionsMenu.lastEditRowId = rowId;
+            state.actionsMenu.lastEditDescription = fallbackDescription;
             window.editarProductoServicio(rowId);
+            window.setTimeout(function () {
+                ensureEditFallback(rowId, fallbackDescription);
+            }, 1200);
             return;
         }
 
@@ -2085,6 +2152,30 @@
 
         if (action === "reactivar") {
             window.cambiarEstatusProductoServicio(rowId, true);
+        }
+    }
+
+    function getGridDescriptionByRowId(rowId) {
+        const normalizedRowId = String(rowId || "");
+        const trigger = Array.from(document.querySelectorAll("[data-ps-row-actions-toggle]")).find(function (button) {
+            return String(button.getAttribute("data-ps-row-actions-toggle") || "") === normalizedRowId;
+        });
+        const row = trigger ? trigger.closest("tr") : null;
+        const description = row ? row.querySelector(".ps-grid-title small") : null;
+        return description ? (description.textContent || "").trim() : "";
+    }
+
+    function ensureEditFallback(rowId, fallbackDescription) {
+        if (!$("#modalProductoServicio").hasClass("show")) {
+            return;
+        }
+
+        if (!($("#hdProductoServicioId").val() || "").trim()) {
+            return;
+        }
+
+        if (!getDescriptionEditorValue() && fallbackDescription) {
+            setDescriptionEditorValue(fallbackDescription);
         }
     }
 
@@ -2190,11 +2281,11 @@
             buildFichaMetric("Código", escapeHtml(detail.codigo || "")),
             buildFichaMetric("Tipo", escapeHtml(detail.tipoNombre || "")),
             buildFichaMetric("Estatus", escapeHtml(detail.estatusNombre || (detail.activo ? "Activo" : "Inactivo"))),
-            detail.descripcion ? buildFichaMetric("Descripción", escapeHtml(detail.descripcion)) : "",
             detail.categoria ? buildFichaMetric("Categoría", escapeHtml(detail.categoria)) : "",
             detail.tipo === 1 && detail.marca ? buildFichaMetric("Marca", escapeHtml(detail.marca)) : "",
             buildCollectionMetric(detail),
             "    </div>",
+            buildDescriptionSection(detail.descripcion || ""),
             buildTagsSection(detail.tags || []),
             "  </div>",
             "</section>",
@@ -2293,6 +2384,19 @@
             "  <div class='ps-ficha-metrics'>",
             contentHtml,
             "  </div>",
+            "</section>"
+        ].join("");
+    }
+
+    function buildDescriptionSection(value) {
+        if (!String(value || "").trim()) {
+            return "";
+        }
+
+        return [
+            "<section class='ps-ficha-description'>",
+            "  <small>Descripción</small>",
+            "  <div class='ps-richtext-view'>" + sanitizeHtmlForPreview(value) + "</div>",
             "</section>"
         ].join("");
     }
@@ -2475,9 +2579,8 @@
         $("#txModalProductoServicioKicker").text("Registro");
         $("#txModalProductoServicioTitulo").text("Nuevo producto / servicio");
         $("#btGuardarProductoServicio span").text("Guardar");
-        $("#cbTipoProductoServicio").val("").trigger("change");
-        $("#swActivoProductoServicio").prop("checked", true);
-        syncStatusSwitchUi();
+        setTipoProductoServicioValue("1");
+        setActivoProductoServicioValue(true);
         ensureSelect2Option("#cbClaveUnidadSatProductoServicio", "H87", "H87 - Pieza");
         updateUnitPriceSummary();
         syncTypeVisibility();
@@ -2510,19 +2613,27 @@
                 });
             })
             .then(function (context) {
-                const data = context.data;
+                const fallbackRow = state.detailCache.get(id) || state.activeRows.find(function (item) {
+                    return String(item && item.id ? item.id : "") === String(id);
+                }) || {};
+                const fallbackDescription = fallbackRow.descripcion
+                    || fallbackRow.Descripcion
+                    || getGridDescriptionByRowId(id);
+                const data = Object.assign({}, fallbackRow, context.data || {});
+                data.id = data.id || data.Id || data.idProductoServicio || data.IdProductoServicio || fallbackRow.id || fallbackRow.Id || id;
+                data.descripcion = data.descripcion || data.Descripcion || data.descripcionProductoServicio || data.DescripcionProductoServicio || fallbackDescription || "";
+
                 resetModal();
                 $("#hdProductoServicioId").val(data.id || "");
                 $("#txModalProductoServicioKicker").text("Edición");
                 $("#txModalProductoServicioTitulo").text("Editar producto / servicio");
                 $("#btGuardarProductoServicio span").text("Guardar cambios");
 
-                $("#cbTipoProductoServicio").val(String(data.tipo || "1")).trigger("change");
-                $("#swActivoProductoServicio").prop("checked", data.activo !== false);
-                syncStatusSwitchUi();
+                setTipoProductoServicioValue(String(data.tipo || "1"));
+                setActivoProductoServicioValue(data.activo !== false);
                 $("#txCodigoProductoServicio").val(data.codigo || "");
                 $("#txNombreProductoServicio").val(data.nombre || "");
-                $("#txDescripcionProductoServicio").val(data.descripcion || "");
+                setDescriptionEditorValue(data.descripcion || "");
                 syncCategoryOptions(data.idCategoria || "");
                 $("#cbCategoriaProductoServicio").val(data.idCategoria || "").trigger("change");
                 $("#cbMarcaProductoServicio").val(data.idMarca || "").trigger("change");
@@ -2651,7 +2762,7 @@
     }
 
     function validateForm() {
-        if (!$("#cbTipoProductoServicio").val()) {
+        if (!getSelectedTipoProductoServicio()) {
             return { selector: "#cbTipoProductoServicio", message: "Selecciona un tipo." };
         }
         if (!($("#txCodigoProductoServicio").val() || "").trim()) {
@@ -2698,7 +2809,7 @@
             codigo: ($("#txCodigoProductoServicio").val() || "").trim(),
             tag: normalizeTagName(state.legacyTagValue),
             nombre: ($("#txNombreProductoServicio").val() || "").trim(),
-            descripcion: ($("#txDescripcionProductoServicio").val() || "").trim(),
+            descripcion: getDescriptionEditorValue(),
             idCategoria: $("#cbCategoriaProductoServicio").val() || "",
             idMarca: tipo === 2 ? null : normalizeGuid($("#cbMarcaProductoServicio").val()),
             idUnidadMedida: $("#cbUnidadProductoServicio").val() || "",
@@ -2723,7 +2834,7 @@
             permiteVentaSinExistencia: causaInventario && $("#chkPermiteVentaSinExistencia").is(":checked"),
             existenciaInicial: causaInventario ? toNullableNumber($("#txExistenciaInicialProductoServicio").val()) : null,
             existenciaMinima: causaInventario ? toNullableNumber($("#txExistenciaMinimaProductoServicio").val()) : null,
-            activo: $("#swActivoProductoServicio").is(":checked"),
+            activo: isProductoServicioActivo(),
             eliminarImagenPrincipal: state.removeExistingImage,
             tags: buildTagsPayload(),
             atributos: buildAttributesPayload(),
@@ -3212,9 +3323,9 @@
         }
 
         $("#hdProductoServicioId").val("");
-        $("#cbTipoProductoServicio").val("").trigger("change");
-        $("#swActivoProductoServicio").prop("checked", true);
-        syncStatusSwitchUi();
+        setTipoProductoServicioValue("1");
+        setActivoProductoServicioValue(true);
+        setDescriptionEditorValue("");
         syncCategoryOptions();
         $("#cbCategoriaProductoServicio").val("").trigger("change");
         $("#cbMarcaProductoServicio").val("").trigger("change");
@@ -3532,16 +3643,10 @@
 
     function saveCollection() {
         const payload = {
-            numero: ($("#txColeccionNumeroProductoServicio").val() || "").trim(),
             nombre: ($("#txColeccionNombreProductoServicio").val() || "").trim(),
             descripcion: ($("#txColeccionDescripcionProductoServicio").val() || "").trim()
         };
 
-        if (!payload.numero) {
-            setStatus("#txInfoColeccionProductoServicio", "danger", "Captura el número de colección.");
-            markFieldError("#txColeccionNumeroProductoServicio");
-            return;
-        }
         if (!payload.nombre) {
             setStatus("#txInfoColeccionProductoServicio", "danger", "Captura el nombre de la colección.");
             markFieldError("#txColeccionNombreProductoServicio");
@@ -3562,8 +3667,8 @@
             return loadCombos().then(function () {
                 restoreModalSelections(modalSelections);
                 const created = requireCreatedComboItem(response.coleccion, state.combos.colecciones, function (item) {
-                    return normalizeCatalogCompareValue(item.numero) === normalizeCatalogCompareValue(payload.numero)
-                        && normalizeCatalogCompareValue(item.nombre) === normalizeCatalogCompareValue(payload.nombre);
+                    return normalizeCatalogCompareValue(item.id) === normalizeCatalogCompareValue(response.coleccion.id)
+                        || normalizeCatalogCompareValue(item.nombre) === normalizeCatalogCompareValue(payload.nombre);
                 }, "La colección no apareció en el catálogo después de guardar. Verifica el registro antes de cerrar.");
 
                 $("#cbColeccionProductoServicio").val(created.id).trigger("change");
@@ -3572,7 +3677,6 @@
             });
         }).catch(function (error) {
             applyCatalogErrorFeedback("#txInfoColeccionProductoServicio", resolveErrorMessage(error), [
-                { includes: ["número"], selector: "#txColeccionNumeroProductoServicio" },
                 { includes: ["nombre"], selector: "#txColeccionNombreProductoServicio" },
                 { includes: ["descripción"], selector: "#txColeccionDescripcionProductoServicio" }
             ]);
@@ -4859,6 +4963,107 @@
         });
     }
 
+    function initDescriptionEditor() {
+        if (state.richTextReady || !window.tinymce || !document.getElementById("txDescripcionProductoServicio")) {
+            return;
+        }
+
+        window.tinymce.init({
+            selector: "#txDescripcionProductoServicio",
+            menubar: false,
+            branding: false,
+            promotion: false,
+            height: 128,
+            resize: true,
+            placeholder: "Descripción",
+            aria_label: "Descripción",
+            plugins: "lists link code",
+            toolbar: "blocks | bold italic underline | bullist numlist | alignleft aligncenter alignright | link unlink | code removeformat",
+            block_formats: "Párrafo=p; Encabezado 2=h2; Encabezado 3=h3",
+            browser_spellcheck: true,
+            contextmenu: false,
+            setup: function (editor) {
+                editor.on("input change keyup undo redo", function () {
+                    clearFieldError("#txDescripcionProductoServicio");
+                });
+            }
+        }).then(function () {
+            state.richTextReady = true;
+            setDescriptionEditorValue($("#txDescripcionProductoServicio").val() || "");
+        });
+    }
+
+    function normalizeDescriptionHtml(value) {
+        const html = String(value || "").trim();
+        if (!html) {
+            return "";
+        }
+
+        const plainText = toPlainTextHtml(html).replace(/\u00a0/g, " ").trim();
+        if (plainText) {
+            return html;
+        }
+
+        const container = document.createElement("div");
+        container.innerHTML = html;
+        const hasRichContent = !!container.querySelector("img, video, audio, iframe, object, embed, table, hr, svg");
+        return hasRichContent ? html : "";
+    }
+
+    function getDescriptionEditorValue() {
+        if (window.tinymce) {
+            const editor = window.tinymce.get("txDescripcionProductoServicio");
+            if (editor) {
+                return normalizeDescriptionHtml(editor.getContent());
+            }
+        }
+
+        return normalizeDescriptionHtml($("#txDescripcionProductoServicio").val());
+    }
+
+    function setDescriptionEditorValue(value) {
+        const normalized = normalizeDescriptionHtml(value);
+        $("#txDescripcionProductoServicio").val(normalized);
+
+        if (window.tinymce) {
+            const editor = window.tinymce.get("txDescripcionProductoServicio");
+            if (editor) {
+                editor.setContent(normalized);
+                if (editor.undoManager && typeof editor.undoManager.clear === "function") {
+                    editor.undoManager.clear();
+                }
+                if (typeof editor.setDirty === "function") {
+                    editor.setDirty(false);
+                }
+                if (typeof editor.save === "function") {
+                    editor.save();
+                }
+                if (!normalized) {
+                    $("#txDescripcionProductoServicio").val("");
+                }
+                return;
+            }
+        }
+    }
+
+    function toPlainTextHtml(value) {
+        const html = String(value || "");
+        if (!html) {
+            return "";
+        }
+
+        const node = document.createElement("div");
+        node.innerHTML = html;
+        return (node.textContent || node.innerText || "").trim();
+    }
+
+    function sanitizeHtmlForPreview(value) {
+        return String(value || "")
+            .replace(/<script[\s\S]*?<\/script>/gi, "")
+            .replace(/\son\w+\s*=\s*(['"]).*?\1/gi, "")
+            .replace(/\s(href|src)\s*=\s*(['"])\s*javascript:[^'"]*\2/gi, "");
+    }
+
     function beginSaveProgress(messages) {
         stopSaveProgressTimer();
         state.isSaving = true;
@@ -4957,7 +5162,21 @@
     function fetchJson(url, options) {
         return fetch(url, options).then(function (response) {
             return response.text().then(function (text) {
-                const data = text ? JSON.parse(text) : {};
+                const normalizedText = String(text || "").trim();
+                const contentType = response.headers.get("content-type") || "";
+                const looksLikeHtml = /text\/html/i.test(contentType) || /^<!doctype html/i.test(normalizedText) || /^<html[\s>]/i.test(normalizedText);
+                if (looksLikeHtml) {
+                    throw new Error("El servidor devolvió una página HTML en lugar de la respuesta esperada. Verifica tu sesión e intenta nuevamente.");
+                }
+
+                let data = {};
+                if (normalizedText) {
+                    try {
+                        data = JSON.parse(normalizedText);
+                    } catch (error) {
+                        throw new Error("El servidor devolvió una respuesta no válida. Intenta nuevamente o contacta a soporte.");
+                    }
+                }
                 if (!response.ok) {
                     throw new Error(resolveServerMessage(data) || "No fue posible completar la acción.");
                 }
@@ -5150,7 +5369,7 @@
     }
 
     function restoreModalSelections(values) {
-        $("#cbTipoProductoServicio").val(values.tipo).trigger("change");
+        setTipoProductoServicioValue(values.tipo || "1");
         syncCategoryOptions(values.categoria);
         $("#cbCategoriaProductoServicio").val(values.categoria).trigger("change");
         $("#cbMarcaProductoServicio").val(values.marca).trigger("change");

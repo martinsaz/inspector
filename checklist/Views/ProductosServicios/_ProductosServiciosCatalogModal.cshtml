@@ -45,15 +45,12 @@
                 </div>
                 <div class="modal-body ps-catalog-modal-body">
                     <input id="@hiddenIdFieldId" type="hidden" />
+                    <input id="@codeInputId" type="hidden" />
 @if (!string.IsNullOrWhiteSpace(hiddenTypeFieldId))
 {
                     <input id="@hiddenTypeFieldId" type="hidden" />
 }
                     <div class="checkapp-filter-grid activos-quick-modal-grid ps-catalog-form-grid">
-                        <label class="checkapp-field activos-quick-modal-field-code ps-catalog-field ps-catalog-field--code">
-                            <span>Código *</span>
-                            <input id="@codeInputId" type="text" readonly placeholder="Se generará automáticamente" />
-                        </label>
                         <label class="checkapp-field activos-quick-modal-field-name ps-catalog-field ps-catalog-field--name">
                             <span>Nombre *</span>
                             <input id="@nameInputId" type="text" />

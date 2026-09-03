@@ -49,7 +49,7 @@
                     <div class="checkapp-filter-grid ps-filter-grid">
                         <label class="checkapp-field ps-filter-field ps-filter-field--search">
                             <span>Búsqueda general</span>
-                            <input id="txBusquedaProductosServicios" type="text" placeholder="Código, tag, nombre o descripción" />
+                            <input id="txBusquedaProductosServicios" type="text" placeholder="Código, etiqueta, nombre o descripción" />
                         </label>
                         <label class="checkapp-field ps-filter-field">
                             <span>Tipo</span>
@@ -136,7 +136,7 @@
                                 <th>Acciones</th>
                                 <th>Imagen</th>
                                 <th>Código</th>
-                                <th>Tag</th>
+                                <th>Etiquetas</th>
                                 <th>Nombre</th>
                                 <th>Tipo</th>
                                 <th>Categoría</th>
@@ -201,98 +201,110 @@
                             </div>
                             <div class="cot-panel-body">
                                 <div class="ps-modal-top-grid">
-                                    <section class="checkapp-panel ps-image-panel">
-                                        <div class="checkapp-panel-head">
-                                            <div>
-                                                <span class="checkapp-panel-eyebrow">Imagen</span>
-                                                <h2>Imagen principal</h2>
-                                                <p class="checkapp-panel-copy">Carga una sola imagen con vista previa, cambio y eliminación.</p>
-                                            </div>
-                                            <div class="ps-image-actions">
-                                                <button id="btCambiarImagenProductoServicio" type="button" class="checkapp-btn checkapp-btn-secondary">
-                                                    <i class="fa fa-picture-o"></i>
-                                                    <span>Cambiar</span>
-                                                </button>
-                                                <button id="btEliminarImagenProductoServicio" type="button" class="checkapp-btn checkapp-btn-ghost">
-                                                    <i class="fa fa-trash"></i>
-                                                    <span>Eliminar</span>
-                                                </button>
-                                                <input id="flImagenProductoServicio" type="file" accept="image/png,image/jpeg,image/webp" hidden />
-                                            </div>
-                                        </div>
-                                        <div class="ps-image-editor">
-                                            <div id="psImagePreview" class="ps-image-preview"></div>
-                                            <div id="txInfoImagenProductoServicio" class="checkapp-status-inline"></div>
-                                        </div>
-                                    </section>
-
                                     <div class="ps-modal-top-fields">
                                         <div class="checkapp-filter-grid ps-form-grid ps-form-grid--hero">
-                                            <label class="checkapp-field ps-form-field ps-form-field--name">
+                                            <label class="checkapp-field ps-form-field ps-form-field--name ps-floating-field">
+                                                <input id="txNombreProductoServicio" maxlength="150" type="text" placeholder=" " />
                                                 <span>Nombre *</span>
-                                                <input id="txNombreProductoServicio" maxlength="150" type="text" />
-                                            </label>
-                                            <label class="checkapp-field ps-form-field ps-form-field--type">
-                                                <span>Tipo *</span>
-                                                <select id="cbTipoProductoServicio" class="form-select"></select>
-                                            </label>
-                                            <label class="checkapp-field ps-form-field ps-form-field--status" id="fieldEstatusProductoServicio">
-                                                <span>Estatus *</span>
-                                                <span class="ps-switch-card ps-status-switch">
-                                                    <span class="form-check form-switch">
-                                                        <input id="swActivoProductoServicio" class="form-check-input" type="checkbox" role="switch" checked />
-                                                    </span>
-                                                    <span id="txEstadoProductoServicio" class="ps-status-switch-copy">Activo</span>
-                                                </span>
-                                            </label>
-                                            <label class="checkapp-field ps-form-field ps-form-field--code">
-                                                <span>Código *</span>
-                                                <input id="txCodigoProductoServicio" maxlength="50" type="text" />
                                             </label>
                                             <label class="checkapp-field ps-form-field ps-form-field--description">
                                                 <span>Descripción</span>
-                                                <textarea id="txDescripcionProductoServicio" maxlength="1000"></textarea>
+                                                <textarea id="txDescripcionProductoServicio"></textarea>
+                                            </label>
+                                            <div class="checkapp-field ps-form-field ps-form-field--type ps-choice-field" role="group" aria-labelledby="lbTipoProductoServicio">
+                                                <span id="lbTipoProductoServicio" class="ps-choice-field-label">Tipo *</span>
+                                                <select id="cbTipoProductoServicio" hidden aria-hidden="true"></select>
+                                                <div id="psTipoProductoServicioRadioGroup" class="ps-choice-group" role="radiogroup" aria-labelledby="lbTipoProductoServicio">
+                                                    <label class="ps-choice-option">
+                                                        <input type="radio" name="tipoProductoServicio" value="1" />
+                                                        <span>Producto</span>
+                                                    </label>
+                                                    <label class="ps-choice-option">
+                                                        <input type="radio" name="tipoProductoServicio" value="2" />
+                                                        <span>Servicio</span>
+                                                    </label>
+                                                </div>
+                                            </div>
+                                            <div class="checkapp-field ps-form-field ps-form-field--status ps-choice-field" id="fieldEstatusProductoServicio" role="group" aria-labelledby="lbEstatusProductoServicio">
+                                                <span id="lbEstatusProductoServicio" class="ps-choice-field-label">Estatus *</span>
+                                                <div class="ps-choice-group" role="radiogroup" aria-labelledby="lbEstatusProductoServicio">
+                                                    <label class="ps-choice-option">
+                                                        <input type="radio" name="estatusProductoServicio" value="true" checked />
+                                                        <span>Activo</span>
+                                                    </label>
+                                                    <label class="ps-choice-option">
+                                                        <input type="radio" name="estatusProductoServicio" value="false" />
+                                                        <span>Inactivo</span>
+                                                    </label>
+                                                </div>
+                                            </div>
+                                            <label class="checkapp-field ps-form-field ps-form-field--code ps-floating-field">
+                                                <input id="txCodigoProductoServicio" maxlength="50" type="text" placeholder=" " />
+                                                <span>Código *</span>
+                                            </label>
+                                        </div>
+
+                                        <div class="checkapp-filter-grid ps-form-grid ps-form-grid--catalogs">
+                                            <label class="checkapp-field ps-form-field ps-form-field--category ps-floating-select-field">
+                                                <span>Categoría *</span>
+                                                <span class="activos-select-with-action ps-select-with-action">
+                                                    <select id="cbCategoriaProductoServicio" class="form-select"></select>
+                                                    <button id="btQuickAddCategoriaProductoServicio" type="button" class="activos-inline-add" title="Agregar categoría" aria-label="Agregar categoría">
+                                                        <span aria-hidden="true">+</span>
+                                                    </button>
+                                                </span>
+                                            </label>
+                                            <label class="checkapp-field ps-form-field ps-form-field--brand ps-floating-select-field" id="fieldMarcaProductoServicio">
+                                                <span>Marca</span>
+                                                <span class="activos-select-with-action ps-select-with-action">
+                                                    <select id="cbMarcaProductoServicio" class="form-select"></select>
+                                                    <button id="btQuickAddMarcaProductoServicio" type="button" class="activos-inline-add" title="Agregar marca" aria-label="Agregar marca">
+                                                        <span aria-hidden="true">+</span>
+                                                    </button>
+                                                </span>
+                                            </label>
+                                            <label class="checkapp-field ps-form-field ps-form-field--collection ps-floating-select-field">
+                                                <span>Colección</span>
+                                                <span class="activos-select-with-action ps-select-with-action">
+                                                    <select id="cbColeccionProductoServicio" class="form-select"></select>
+                                                    <button id="btQuickAddColeccionProductoServicio" type="button" class="activos-inline-add" title="Agregar colección" aria-label="Agregar colección">
+                                                        <span aria-hidden="true">+</span>
+                                                    </button>
+                                                </span>
                                             </label>
                                         </div>
                                     </div>
-
-                                    <div class="checkapp-filter-grid ps-form-grid ps-form-grid--tags-row">
-                                        <div class="checkapp-field ps-form-field ps-form-field--tag">
-                                            <span>Tags</span>
+                                    <aside class="ps-modal-aside">
+                                        <section class="checkapp-panel ps-image-panel">
+                                            <div class="checkapp-panel-head">
+                                                <div>
+                                                    <span class="checkapp-panel-eyebrow">Imagen</span>
+                                                    <h2>Imagen principal</h2>
+                                                    <p class="checkapp-panel-copy">Carga una sola imagen con vista previa, cambio y eliminación.</p>
+                                                </div>
+                                                <div class="ps-image-actions">
+                                                    <button id="btCambiarImagenProductoServicio" type="button" class="checkapp-btn checkapp-btn-secondary">
+                                                        <i class="fa fa-picture-o"></i>
+                                                        <span>Cambiar</span>
+                                                    </button>
+                                                    <button id="btEliminarImagenProductoServicio" type="button" class="checkapp-btn checkapp-btn-ghost">
+                                                        <i class="fa fa-trash"></i>
+                                                        <span>Eliminar</span>
+                                                    </button>
+                                                    <input id="flImagenProductoServicio" type="file" accept="image/png,image/jpeg,image/webp" hidden />
+                                                </div>
+                                            </div>
+                                            <div class="ps-image-editor">
+                                                <div id="psImagePreview" class="ps-image-preview"></div>
+                                                <div id="txInfoImagenProductoServicio" class="checkapp-status-inline"></div>
+                                            </div>
+                                        </section>
+                                        <div class="checkapp-field ps-form-field ps-form-field--tag ps-floating-tag-field">
+                                            <span>Etiquetas</span>
                                             <input id="txTagProductoServicioLegacy" type="hidden" />
                                             <div id="psTagsControlProductoServicio" class="ps-tags-control"></div>
                                         </div>
-                                    </div>
-
-                                    <div class="checkapp-filter-grid ps-form-grid ps-form-grid--catalogs">
-                                        <label class="checkapp-field ps-form-field ps-form-field--category">
-                                            <span>Categoría *</span>
-                                            <span class="activos-select-with-action ps-select-with-action">
-                                                <select id="cbCategoriaProductoServicio" class="form-select"></select>
-                                                <button id="btQuickAddCategoriaProductoServicio" type="button" class="activos-inline-add" title="Agregar categoría" aria-label="Agregar categoría">
-                                                    <span aria-hidden="true">+</span>
-                                                </button>
-                                            </span>
-                                        </label>
-                                        <label class="checkapp-field ps-form-field ps-form-field--brand" id="fieldMarcaProductoServicio">
-                                            <span>Marca</span>
-                                            <span class="activos-select-with-action ps-select-with-action">
-                                                <select id="cbMarcaProductoServicio" class="form-select"></select>
-                                                <button id="btQuickAddMarcaProductoServicio" type="button" class="activos-inline-add" title="Agregar marca" aria-label="Agregar marca">
-                                                    <span aria-hidden="true">+</span>
-                                                </button>
-                                            </span>
-                                        </label>
-                                        <label class="checkapp-field ps-form-field ps-form-field--collection">
-                                            <span>Colección</span>
-                                            <span class="activos-select-with-action ps-select-with-action">
-                                                <select id="cbColeccionProductoServicio" class="form-select"></select>
-                                                <button id="btQuickAddColeccionProductoServicio" type="button" class="activos-inline-add" title="Agregar colección" aria-label="Agregar colección">
-                                                    <span aria-hidden="true">+</span>
-                                                </button>
-                                            </span>
-                                        </label>
-                                    </div>
+                                    </aside>
                                 </div>
                             </div>
                         </section>
@@ -737,11 +749,7 @@
                     </button>
                 </div>
                 <div class="modal-body">
-                    <div class="checkapp-filter-grid ps-catalog-simple-grid">
-                        <label class="checkapp-field">
-                            <span>Número *</span>
-                            <input id="txColeccionNumeroProductoServicio" type="text" maxlength="50" />
-                        </label>
+                    <div class="checkapp-filter-grid ps-catalog-simple-grid ps-collection-grid">
                         <label class="checkapp-field">
                             <span>Nombre *</span>
                             <input id="txColeccionNombreProductoServicio" type="text" maxlength="150" />
@@ -896,6 +904,7 @@
 @section Scripts {
     <link href="~/css/checkapp-theme.css" rel="stylesheet" />
     <link href="~/css/ProductosServicios/ProductosServicios.css" rel="stylesheet" asp-append-version="true" />
+    <script src="~/assets/plugins/custom/tinymce/tinymce.bundle.js"></script>
     <script>var XLSX = window.XLSX || {}; window.XLSX = XLSX;</script>
     <script src="~/js/vendor/xlsx.full.min.js"></script>
     <script src="~/js/checkapp-ui.js"></script>
