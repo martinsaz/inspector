@@ -1,0 +1,42 @@
+[
+  {
+    "test": "base cannot edit",
+    "status": 400,
+    "response": {
+      "mensaje": "La presentación base se administra automáticamente desde Unidad base y Precio público.",
+      "id": null,
+      "codigo": "",
+      "nombre": ""
+    }
+  },
+  {
+    "test": "base cannot archive",
+    "status": 400,
+    "response": {
+      "mensaje": "La presentación base no se puede dar de baja; se mantiene desde el producto.",
+      "id": null,
+      "codigo": "",
+      "nombre": ""
+    }
+  },
+  {
+    "test": "Paquete12 allowed",
+    "status": 200,
+    "response": {
+      "mensaje": "La presentación fue registrada.",
+      "id": "f350794c-bedb-48af-9854-5cc3efc47773",
+      "codigo": "",
+      "nombre": ""
+    }
+  },
+  {
+    "test": "cleanup Paquete12",
+    "status": 200,
+    "response": {
+      "mensaje": "La presentación fue dada de baja.",
+      "id": null,
+      "codigo": "",
+      "nombre": ""
+    }
+  }
+]

@@ -1,0 +1,41 @@
+{
+  "pruebas": [
+    {
+      "unidadVenta": "CM",
+      "http": 400,
+      "response": {
+        "mensaje": "La unidad de venta no es compatible con la unidad base.",
+        "id": null,
+        "codigo": "",
+        "nombre": ""
+      }
+    },
+    {
+      "unidadVenta": "KG",
+      "http": 200,
+      "response": {
+        "mensaje": "La presentación fue registrada.",
+        "id": "5e76a16c-db05-4cff-8473-e370204fd242",
+        "codigo": "",
+        "nombre": ""
+      }
+    }
+  ],
+  "unidadBase": "15302afe-10f0-40ff-be3b-efe0ed431120",
+  "presentacionesActivas": [
+    {
+      "id": "5e76a16c-db05-4cff-8473-e370204fd242",
+      "idProductoServicio": "78a626bf-b88e-4580-9a13-d5661ed702e0",
+      "nombre": "QA POST KG a LB",
+      "cantidadVenta": 1.0,
+      "idUnidadVenta": "ff8ea6db-b451-4f3f-bc8b-5e4a41fcfa11",
+      "unidadVenta": "Kilogramo",
+      "unidadVentaAbreviatura": "kg",
+      "equivalenciaBase": 2.2046,
+      "precio": 0.0,
+      "esPredeterminada": true,
+      "orden": 1,
+      "activo": true
+    }
+  ]
+}

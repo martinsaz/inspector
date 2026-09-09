@@ -1,0 +1,269 @@
+--- Index.cshtml
++++ inspector/checklist/Views/ProductosServicios/Index.cshtml
+@@ -324,7 +324,7 @@
+                                     </div>
+                                     <div class="cot-panel-body">
+                                         <div class="checkapp-filter-grid ps-form-grid ps-form-grid--pricing">
+-                                        <label class="checkapp-field ps-form-field ps-form-field--unit">
++                                        <label for="cbUnidadProductoServicio" class="checkapp-field ps-form-field ps-form-field--unit">
+                                             <span class="ps-label-with-help"><span>Unidad base *</span><button id="btAyudaUnidadBase" type="button" class="ps-help-button" data-bs-toggle="tooltip" data-bs-trigger="click" data-bs-title="Unidad en la que se controla el inventario, por ejemplo Pieza, Centímetro o Kilogramo." aria-label="Ayuda sobre unidad base"><i class="fa fa-question" aria-hidden="true"></i></button></span>
+                                             <span class="activos-select-with-action ps-select-with-action">
+                                                 <select id="cbUnidadProductoServicio" class="form-select"></select>
+@@ -337,11 +337,11 @@
+                                             <span>Costo</span>
+                                             <input id="txCostoProductoServicio" type="number" min="0" step="0.0001" inputmode="decimal" placeholder="$0.00" />
+                                         </label>
+-                                        <label class="checkapp-field ps-form-field ps-form-field--price">
++                                        <label for="txPrecioPublicoProductoServicio" class="checkapp-field ps-form-field ps-form-field--price">
+                                             <span class="ps-label-with-help"><span>Precio público *</span><button id="btAyudaPrecioPublico" type="button" class="ps-help-button" data-bs-toggle="tooltip" data-bs-trigger="click" data-bs-title="Configura el precio de venta del producto." aria-label="Ayuda sobre precio público"><i class="fa fa-question" aria-hidden="true"></i></button></span>
+                                             <input id="txPrecioPublicoProductoServicio" type="number" min="0" step="0.0001" inputmode="decimal" placeholder="$0.00" />
+                                         </label>
+-                                        <label class="checkapp-field ps-form-field ps-form-field--compare">
++                                        <label for="txPrecioComparacionProductoServicio" class="checkapp-field ps-form-field ps-form-field--compare">
+                                             <span class="ps-label-with-help">
+                                                 <span>Precio de comparación</span>
+                                                 <button id="btAyudaPrecioComparacionProductoServicio" type="button" class="ps-help-button" data-bs-toggle="tooltip" data-bs-placement="top" data-bs-html="true" data-bs-title='Para mostrar una rebaja, ingresa un valor mayor que el precio público. Normalmente se muestra como un precio tachado (por ejemplo, <span class="ps-tooltip-strike">$25.00</span>).' aria-label="Ayuda sobre precio de comparación">
+@@ -687,13 +687,13 @@
+                 <section class="ps-presentation-modal__section" aria-labelledby="txPresentacionVentaHeading">
+                     <span class="checkapp-panel-eyebrow" id="txPresentacionVentaHeading">Venta</span>
+                     <div class="ps-presentation-modal__sale-grid">
+-                        <label class="checkapp-field ps-form-field"><span>Cantidad</span><input id="txCantidadVentaPresentacionVenta" type="number" min="0.0001" step="0.0001" inputmode="decimal" /></label>
++                        <label class="checkapp-field ps-form-field"><span>Cantidad de venta</span><input id="txCantidadVentaPresentacionVenta" type="number" min="0.0001" step="0.0001" inputmode="decimal" /></label>
+                         <label class="checkapp-field ps-form-field"><span>Unidad</span><select id="cbUnidadVentaPresentacionVenta" class="form-select"></select></label>
+                     </div>
+                 </section>
+                 <section class="ps-presentation-modal__section" aria-labelledby="txPresentacionInventarioHeading">
+-                    <span class="ps-label-with-help"><span class="checkapp-panel-eyebrow" id="txPresentacionInventarioHeading">Equivalencia en inventario</span><button id="btAyudaEquivalencia" type="button" class="ps-help-button" data-bs-toggle="tooltip" data-bs-trigger="click" data-bs-title="Indica cuántas unidades de inventario contiene esta presentación." aria-label="Ayuda sobre equivalencia en inventario"><i class="fa fa-question" aria-hidden="true"></i></button></span>
+-                    <label class="checkapp-field ps-form-field"><span>Cantidad</span><span class="ps-presentation-equivalence"><input id="txEquivalenciaPresentacionVenta" type="number" min="0.0001" step="0.0001" inputmode="decimal" /><strong id="txUnidadPresentacionVenta"></strong></span></label>
++                    <span class="ps-label-with-help"><span class="checkapp-panel-eyebrow" id="txPresentacionInventarioHeading">Equivalencia en inventario</span><button id="btAyudaEquivalencia" type="button" class="ps-help-button" data-bs-toggle="tooltip" data-bs-trigger="click" data-bs-title="Indica cuántas unidades de inventario corresponden a la cantidad vendida." aria-label="Ayuda sobre equivalencia en inventario"><i class="fa fa-question" aria-hidden="true"></i></button></span>
++                    <label class="checkapp-field ps-form-field"><span>Cantidad en inventario</span><span class="ps-presentation-equivalence"><input id="txEquivalenciaPresentacionVenta" type="number" min="0.0001" step="0.0001" inputmode="decimal" /><strong id="txUnidadPresentacionVenta"></strong></span></label>
+                 </section>
+                 <section class="ps-presentation-modal__section">
+                     <span class="checkapp-panel-eyebrow">Precio</span>
+--- ProductosServicios.js
++++ inspector/checklist/wwwroot/js/ProductosServicios/ProductosServicios.js
+@@ -1436,12 +1436,7 @@
+             valueKey: "id",
+             textKey: "displayName"
+         });
+-        fillSelect("#cbUnidadProductoServicio", state.combos.unidadesMedida, {
+-            includeBlank: true,
+-            blankText: "Selecciona una unidad",
+-            valueKey: "id",
+-            textKey: "displayName"
+-        });
++        fillUnitSelect("#cbUnidadProductoServicio", state.combos.unidadesMedida);
+         fillSelect("#cbColeccionProductoServicio", state.combos.colecciones, {
+             includeBlank: true,
+             blankText: "Sin colección",
+@@ -1558,6 +1553,35 @@
+         }
+     }
+ 
++    function fillUnitSelect(selector, units, selectedId) {
++        const node = document.querySelector(selector);
++        node.replaceChildren(new Option("Selecciona una unidad", ""));
++        const groups = [["WEIGHT", "Peso"], ["VOLUME", "Volumen"], ["LENGTH", "Longitud"], ["AREA", "Área"], ["ITEM", "Por artículo"], ["TIME", "Tiempo"], ["OTHER", "Otra"]];
++        groups.forEach(function (group) {
++            const items = (units || []).filter(function (unit) { return unit.activo !== false && unit.tipoUnidad === group[0]; })
++                .sort(function (a, b) { return a.nombre.localeCompare(b.nombre, "es", { sensitivity: "base" }); });
++            if (!items.length) return;
++            const optgroup = document.createElement("optgroup");
++            optgroup.label = group[1];
++            items.forEach(function (unit) {
++                const option = new Option(unit.nombre + (unit.abreviatura ? " · " + unit.abreviatura : ""), unit.id);
++                option.dataset.unitName = unit.nombre;
++                option.dataset.unitAbbreviation = unit.abreviatura || "";
++                optgroup.appendChild(option);
++            });
++            node.appendChild(optgroup);
++        });
++        node.value = selectedId || "";
++    }
++
++    function renderUnitOption(item) {
++        if (!item.id || !item.element) return item.text;
++        const row = $("<span class='ps-unit-option'></span>");
++        $("<span></span>").text(item.element.dataset.unitName || item.text).appendTo(row);
++        $("<span class='ps-unit-option__abbreviation'></span>").text(item.element.dataset.unitAbbreviation || "").appendTo(row);
++        return row;
++    }
++
+     function decorateComboState(combos) {
+         const next = Object.assign({}, combos || {});
+         next.categorias = decorateDuplicateComboDisplay(next.categorias, "categoria");
+@@ -1787,16 +1811,52 @@
+         });
+     }
+ 
++    const pricingHelpSelector = "#btAyudaUnidadBase, #btAyudaPrecioPublico, #btAyudaPrecioComparacionProductoServicio, #btAyudaEquivalencia, #btAyudaPredeterminada";
++    let activePricingHelp = null;
++    let pricingHelpEventsBound = false;
++
++    function closePricingHelp() {
++        if (!activePricingHelp) return;
++        const node = activePricingHelp;
++        activePricingHelp = null;
++        const tooltip = window.bootstrap.Tooltip.getInstance(node);
++        if (tooltip) tooltip.hide();
++    }
++
+     function initTooltips() {
+-        if (!window.bootstrap || !window.bootstrap.Tooltip) {
+-            return;
+-        }
+-
++        if (!window.bootstrap || !window.bootstrap.Tooltip) return;
++        closePricingHelp();
+         document.querySelectorAll("[data-bs-toggle='tooltip']").forEach(function (node) {
+-            window.bootstrap.Tooltip.getOrCreateInstance(node, {
+-                html: node.getAttribute("data-bs-html") === "true"
+-            });
+-        });
++            if (node.matches(pricingHelpSelector)) {
++                const old = window.bootstrap.Tooltip.getInstance(node);
++                if (old) old.dispose();
++                window.bootstrap.Tooltip.getOrCreateInstance(node, { trigger: "manual", animation: false, html: node.getAttribute("data-bs-html") === "true" });
++            } else window.bootstrap.Tooltip.getOrCreateInstance(node, { html: node.getAttribute("data-bs-html") === "true" });
++        });
++        if (pricingHelpEventsBound) return;
++        pricingHelpEventsBound = true;
++        document.addEventListener("pointerdown", function (event) {
++            if (activePricingHelp && !activePricingHelp.contains(event.target)) closePricingHelp();
++        }, true);
++        document.addEventListener("click", function (event) {
++            const button = event.target.closest(pricingHelpSelector);
++            if (!button) { closePricingHelp(); return; }
++            event.preventDefault();
++            const alreadyOpen = activePricingHelp === button;
++            closePricingHelp();
++            if (!alreadyOpen) {
++                activePricingHelp = button;
++                window.bootstrap.Tooltip.getOrCreateInstance(button, { trigger: "manual", animation: false }).show();
++            }
++        });
++        document.addEventListener("keydown", function (event) {
++            if (event.key === "Escape" && activePricingHelp) {
++                closePricingHelp();
++                event.preventDefault();
++                event.stopImmediatePropagation();
++            }
++        }, true);
++        $("#modalProductoServicio, #modalPresentacionVentaProductoServicio").on("hide.bs.modal", closePricingHelp);
+     }
+ 
+     function getUnitPriceUnitMeta(unit) {
+@@ -2143,6 +2203,11 @@
+             config.dropdownParent = normalizedDropdownParent;
+         }
+ 
++        if (selector === "#cbUnidadProductoServicio" || selector === "#cbUnidadVentaPresentacionVenta") {
++            config.minimumResultsForSearch = 0;
++            config.templateResult = renderUnitOption;
++            config.dropdownCssClass = "ps-unit-dropdown";
++        }
+         node.select2(config);
+         wireSelect2ClearBehavior(node);
+     }
+@@ -3115,12 +3180,15 @@
+     function fillPresentationSaleUnits(selectedId) {
+         const base = (state.combos.unidadesMedida || []).find(function (item) { return String(item.id) === String((state.currentProduct && state.currentProduct.idUnidadMedida) || $("#cbUnidadProductoServicio").val()); }) || {};
+         const compatible = (state.combos.unidadesMedida || []).filter(function (unit) {
+-            if (!base.id) return true;
++            if (unit.activo === false) return false;
++            if (unit.tipoUnidad === "OTHER") return true;
++            if (!base.id) return false;
+             if (base.tipoUnidad === "ITEM") return unit.tipoUnidad === "ITEM" || unit.tipoUnidad === "OTHER";
+             if (base.tipoUnidad === "OTHER") return unit.tipoUnidad === "OTHER";
+             return unit.tipoUnidad === base.tipoUnidad && unit.convertible;
+         });
+-        fillSelect("#cbUnidadVentaPresentacionVenta", compatible, { includeBlank: true, blankText: "Selecciona una unidad", selectedValue: selectedId || "" });
++        fillUnitSelect("#cbUnidadVentaPresentacionVenta", compatible, selectedId);
++        initSelect2("#cbUnidadVentaPresentacionVenta", "Selecciona una unidad", $("#modalPresentacionVentaProductoServicio"));
+     }
+ 
+     function getSelectedPresentationUnit() {
+@@ -3131,14 +3199,15 @@
+     function refreshPresentationExplanation() {
+         const automatic = $("#txEquivalenciaPresentacionVenta").prop("readonly");
+         const text = automatic
+-            ? "CheckApp calcula automáticamente cuántas unidades de inventario corresponden a la cantidad vendida."
+-            : "Indica cuántas unidades de inventario contiene esta presentación.";
++            ? "CheckApp calcula automáticamente la cantidad de inventario según la unidad de venta."
++            : "Indica cuántas unidades de inventario corresponden a la cantidad vendida.";
+         const button = document.getElementById("btAyudaEquivalencia");
+         if (button.getAttribute("data-bs-title") === text) return;
++        closePricingHelp();
+         const tooltip = window.bootstrap.Tooltip.getInstance(button);
+         if (tooltip) tooltip.dispose();
+         button.setAttribute("data-bs-title", text);
+-        window.bootstrap.Tooltip.getOrCreateInstance(button, { trigger: "click" });
++        window.bootstrap.Tooltip.getOrCreateInstance(button, { trigger: "manual", animation: false });
+     }
+ 
+     function refreshPresentationEquivalence() {
+@@ -4020,7 +4089,7 @@
+     }
+ 
+     function resolveQuickCatalogCreatedItem(config, payload, response) {
+-        if (response && response.id) {
++        if (config.key !== "unidad" && response && response.id) {
+             return Promise.resolve({
+                 id: response.id,
+                 codigo: response.codigo || "",
+@@ -4036,7 +4105,7 @@
+         return fetchJson(config.listUrl + "?" + query.toString())
+             .then(function (data) {
+                 const items = Array.isArray(data) ? data : Array.isArray(data.items) ? data.items : [];
+-                return findQuickCatalogCreatedItem(items, payload);
++                return (response && response.id ? items.find(function (item) { return String(item.id) === String(response.id); }) : null) || findQuickCatalogCreatedItem(items, payload);
+             });
+     }
+ 
+@@ -4097,6 +4166,12 @@
+         if (config.key === "unidad") {
+             normalized.abreviatura = item.abreviatura || "";
+             normalized.permiteDecimales = !!item.permiteDecimales;
++            normalized.tipoUnidad = item.tipoUnidad;
++            normalized.activo = item.activo;
++            normalized.convertible = item.convertible;
++            normalized.factorConversion = item.factorConversion;
++            normalized.esSistema = item.esSistema;
++            normalized.esPersonalizada = item.esPersonalizada;
+         }
+ 
+         return normalized;
+--- ProductosServicios.css
++++ inspector/checklist/wwwroot/css/ProductosServicios/ProductosServicios.css
+@@ -3056,3 +3056,11 @@
+         grid-template-columns: minmax(0, var(--ps-catalog-column-width, 1fr)) repeat(2, minmax(0, 1fr));
+     }
+ }
++
++/* Grouped unit selectors share the existing CheckApp Select2 controls. */
++.ps-unit-option { display: flex; align-items: center; justify-content: space-between; gap: .75rem; min-width: 0; white-space: normal; }
++.ps-unit-option__abbreviation { flex: none; font-weight: 600; }
++.ps-unit-dropdown .select2-results__group { color: var(--checkapp-color-muted); font-weight: 700; border-top: 1px solid var(--checkapp-color-border); padding: .65rem .75rem; }
++.ps-unit-dropdown .select2-results > .select2-results__options { max-height: min(18rem, 40dvh); overflow-y: auto; }
++.ps-unit-dropdown { max-width: calc(100vw - 1rem); }
++.ps-presentation-modal .select2-container { min-width: 0; max-width: 100%; }
+--- ApiController.cs
++++ inspectorapi/checklistWs/Controllers/ProductosServicios/ProductosServiciosController.cs
+@@ -1370,7 +1370,7 @@
+                 }
+                 request.Nombre = Truncate(unidadVenta.Nombre, 100); // Compatibility with the legacy column; authoritative catalog name.
+                 bool conversionFisica = unidad.Convertible && unidadVenta.Convertible && unidad.TipoUnidad == unidadVenta.TipoUnidad && unidad.TipoUnidad != "OTHER";
+-                bool conversionManual = (unidad.TipoUnidad == "ITEM" && unidadVenta.TipoUnidad == "OTHER") || (unidad.TipoUnidad == "OTHER" && unidadVenta.TipoUnidad == "OTHER");
++                bool conversionManual = unidadVenta.TipoUnidad == "OTHER";
+                 if (!conversionFisica && !conversionManual)
+                 {
+                     transaction.Rollback(); return BadRequest(new ProductoServicioOperacionResponse { Mensaje = "La unidad de venta no es compatible con la unidad base." });
+@@ -3325,7 +3325,7 @@
+             {
+                 ProductoServicioUnidadMedidaDto? unidadVenta = await ObtenerUnidadInternaAsync(connection, transaction, idEmpresa, presentacion.IdUnidadVenta);
+                 bool fisica = unidadVenta != null && unidad.Convertible && unidadVenta.Convertible && unidad.TipoUnidad == unidadVenta.TipoUnidad && unidad.TipoUnidad != "OTHER";
+-                bool manual = unidadVenta != null && ((unidad.TipoUnidad == "ITEM" && unidadVenta.TipoUnidad == "OTHER") || (unidad.TipoUnidad == "OTHER" && unidadVenta.TipoUnidad == "OTHER"));
++                bool manual = unidadVenta != null && unidadVenta.TipoUnidad == "OTHER";
+                 if (!fisica && !manual) throw new ProductoServicioValidationException("La unidad de venta no es compatible con la unidad base.");
+                 presentacion.Nombre = Truncate(unidadVenta!.Nombre, 100); // No manual presentation name is required.
+                 if (fisica) presentacion.EquivalenciaBase = decimal.Round(presentacion.CantidadVenta * unidadVenta!.FactorConversion!.Value / unidad.FactorConversion!.Value, 4, MidpointRounding.AwayFromZero);

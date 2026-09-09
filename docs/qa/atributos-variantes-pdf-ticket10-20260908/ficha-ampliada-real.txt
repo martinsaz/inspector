@@ -1,0 +1,577 @@
+- text:  
+- link "Logo":
+  - /url: /Home/Index
+  - img "Logo"
+- link "         ":
+  - /url: "#"
+  - generic: 
+  - generic: 
+  - generic: 
+  - generic: 
+  - generic: 
+  - generic: 
+  - generic: 
+  - generic: 
+  - generic: 
+  - generic: 
+  - text:  
+- text:                
+- generic: Denisse Martinez Mendiola
+- generic: UMBRELLA
+- img "image"
+- generic: 
+- generic: 
+- generic: 
+- generic: 
+- generic: 
+- generic: Checklists
+- generic: 
+- generic: 
+- generic: 
+- generic: 
+- generic: 
+- generic: Inspecciones
+- generic: 
+- generic: 
+- generic: 
+- generic: 
+- generic: 
+- generic: Ventas
+- generic: 
+- generic: 
+- generic: 
+- generic: 
+- generic: 
+- generic: Facturación
+- generic: 
+- generic: 
+- generic: 
+- generic: 
+- generic: 
+- generic: Cotizaciones
+- generic: 
+- generic: 
+- generic: 
+- generic: 
+- generic: 
+- generic: Clientes
+- generic: 
+- generic: 
+- generic: 
+- generic: 
+- generic: 
+- generic: Activos
+- generic: 
+- generic: 
+- generic: 
+- generic: 
+- generic: 
+- generic: Proveeduría
+- generic: Productos y Servicios
+- link "ABC Productos y Servicios":
+  - /url: /ProductosServicios/Index
+  - generic: ABC Productos y Servicios
+- generic: Catálogos
+- link "Proveedores":
+  - /url: /Activos/Proveedores
+  - generic: Proveedores
+- generic: Órdenes de compra
+- generic: 
+- generic: 
+- generic: 
+- generic: 
+- generic: 
+- generic: Reportes
+- generic: 
+- generic: 
+- generic: 
+- generic: 
+- generic: 
+- generic: Ajustes
+- paragraph: CheckApp Pro
+- heading "Productos y Servicios" [level=1]
+- paragraph: Administra los productos y servicios disponibles para operación.
+- button "+ Nuevo":
+  - generic: +
+  - generic: Nuevo
+- region "Resumen de productos y servicios":
+  - button "Total 8" [pressed]:
+    - generic: Total
+    - strong: "8"
+  - button "Productos 7":
+    - generic: Productos
+    - strong: "7"
+  - button "Servicios 1":
+    - generic: Servicios
+    - strong: "1"
+- button "Filtros Encuentra productos y servicios por código, tipo, categoría o inventario. Sin filtros activos" [expanded]:
+  - generic: Filtros
+  - heading "Encuentra productos y servicios por código, tipo, categoría o inventario." [level=3]
+  - generic: Sin filtros activos
+- generic: Búsqueda general
+- textbox "Búsqueda general":
+  - /placeholder: Código, etiqueta, nombre o descripción
+- generic: Tipo
+- combobox
+- combobox "Todos":
+  - textbox "Todos"
+- generic: Categoría
+- combobox
+- combobox "Todas":
+  - textbox "Todas"
+- generic: Marca
+- combobox
+- combobox "Todas":
+  - textbox "Todas"
+- generic: Unidad
+- combobox
+- combobox "Todas":
+  - textbox "Todas"
+- generic: Causa inventario
+- combobox "Causa inventario":
+  - option "Todos" [selected]
+  - option "Con inventario"
+  - option "Sin inventario"
+- generic: Estatus
+- combobox
+- combobox "Todos":
+  - textbox "Todos"
+- button " Buscar":
+  - generic: 
+  - generic: Buscar
+- button " Limpiar":
+  - generic: 
+  - generic: Limpiar
+- generic: Inventario
+- heading "Listado de productos y servicios" [level=2]
+- paragraph: Consulta el resultado filtrado y administra cada registro desde una sola pantalla.
+- generic: 8 visibles
+- button " Columnas":
+  - generic: 
+  - generic: Columnas
+- button "Exportar Excel":
+  - generic: Exportar Excel
+- generic: 
+- textbox "":
+  - /placeholder: Busca dentro del resultado filtrado
+- generic: 8 registros
+- table:
+  - rowgroup:
+    - 'row "Acciones Imagen: Activate to sort Código: Activate to sort Etiquetas: Activate to sort Nombre: Activate to invert sorting Tipo: Activate to sort Categoría: Activate to sort Marca: Activate to sort Unidad: Activate to sort Costo: Activate to sort Precio Público: Activate to sort Inventario: Activate to sort Estatus: Activate to sort Actualización: Activate to sort"':
+      - columnheader "Acciones"
+      - 'columnheader "Imagen: Activate to sort"':
+        - button "Imagen"
+      - 'columnheader "Código: Activate to sort"':
+        - button "Código"
+      - 'columnheader "Etiquetas: Activate to sort"':
+        - button "Etiquetas"
+      - 'columnheader "Nombre: Activate to invert sorting"':
+        - button "Nombre"
+      - 'columnheader "Tipo: Activate to sort"':
+        - button "Tipo"
+      - 'columnheader "Categoría: Activate to sort"':
+        - button "Categoría"
+      - 'columnheader "Marca: Activate to sort"':
+        - button "Marca"
+      - 'columnheader "Unidad: Activate to sort"':
+        - button "Unidad"
+      - 'columnheader "Costo: Activate to sort"':
+        - button "Costo"
+      - 'columnheader "Precio Público: Activate to sort"':
+        - button "Precio Público"
+      - 'columnheader "Inventario: Activate to sort"':
+        - button "Inventario"
+      - 'columnheader "Estatus: Activate to sort"':
+        - button "Estatus"
+      - 'columnheader "Actualización: Activate to sort"':
+        - button "Actualización"
+  - rowgroup:
+    - row "Abrir acciones Aceite Motor Sintetico 001 ACEITES, Ivan, LTH, M01, NEW, NUEVO, OTROS, PRIMAVERA Aceite Motor Sintetico LTH Aceite Motor Sintetico 5W-30 Lubricante Max Pro Tec 5L Producto Alimentos Mobil 1 Pieza (pz) $605.00 $680.00 Existencia 10 Activo 08/09/26, 8:31 p.m.":
+      - cell "Abrir acciones":
+        - button "Abrir acciones":
+          - generic: 
+          - generic: Acciones
+          - generic: 
+      - cell "Aceite Motor Sintetico":
+        - img "Aceite Motor Sintetico"
+      - cell "001"
+      - cell "ACEITES, Ivan, LTH, M01, NEW, NUEVO, OTROS, PRIMAVERA"
+      - cell "Aceite Motor Sintetico LTH Aceite Motor Sintetico 5W-30 Lubricante Max Pro Tec 5L":
+        - strong: Aceite Motor Sintetico
+        - generic: LTH Aceite Motor Sintetico 5W-30 Lubricante Max Pro Tec 5L
+      - cell "Producto"
+      - cell "Alimentos"
+      - cell "Mobil 1"
+      - cell "Pieza (pz)"
+      - cell "$605.00"
+      - cell "$680.00"
+      - cell "Existencia 10":
+        - generic: Existencia 10
+      - cell "Activo":
+        - generic: Activo
+      - cell "08/09/26, 8:31 p.m."
+    - row "Abrir acciones Cambio de Aceite 002 M01 Cambio de Aceite El cambio de aceite de un vehículo consiste en retirar el aceite viejo y sucio del motor, reemplazar el filtro de aceite y rellenar con aceite nuevo que tenga la viscosidad y calidad correctas. Esto sirve para lubricar, limpiar y enfriar las piezas de metal que se mueven por dentro, evitando que el motor se dañe. Servicio Mantenimiento Sin marca Unidad de servicio (US) $500.00 $1,500.00 Servicio Activo 08/09/26, 6:42 p.m.":
+      - cell "Abrir acciones":
+        - button "Abrir acciones":
+          - generic: 
+          - generic: Acciones
+          - generic: 
+      - cell "Cambio de Aceite":
+        - img "Cambio de Aceite"
+      - cell "002"
+      - cell "M01"
+      - cell "Cambio de Aceite El cambio de aceite de un vehículo consiste en retirar el aceite viejo y sucio del motor, reemplazar el filtro de aceite y rellenar con aceite nuevo que tenga la viscosidad y calidad correctas. Esto sirve para lubricar, limpiar y enfriar las piezas de metal que se mueven por dentro, evitando que el motor se dañe.":
+        - strong: Cambio de Aceite
+        - generic: El cambio de aceite de un vehículo consiste en retirar el aceite viejo y sucio del motor, reemplazar el filtro de aceite y rellenar con aceite nuevo que tenga la viscosidad y calidad correctas. Esto sirve para lubricar, limpiar y enfriar las piezas de metal que se mueven por dentro, evitando que el motor se dañe.
+      - cell "Servicio"
+      - cell "Mantenimiento"
+      - cell "Sin marca"
+      - cell "Unidad de servicio (US)"
+      - cell "$500.00"
+      - cell "$1,500.00"
+      - cell "Servicio":
+        - generic: Servicio
+      - cell "Activo":
+        - generic: Activo
+      - cell "08/09/26, 6:42 p.m."
+    - row "Abrir acciones QA-T10-CONVERSION Producto QA T10 Conversiones Producto Alimentos Sin marca Libra (lb) $0.00 $0.00 Sin inventario Baja lógica 07/09/26, 7:03 p.m.":
+      - cell "Abrir acciones":
+        - button "Abrir acciones":
+          - generic: 
+          - generic: Acciones
+          - generic: 
+      - cell
+      - cell "QA-T10-CONVERSION"
+      - cell
+      - cell "Producto QA T10 Conversiones":
+        - strong: Producto QA T10 Conversiones
+      - cell "Producto"
+      - cell "Alimentos"
+      - cell "Sin marca"
+      - cell "Libra (lb)"
+      - cell "$0.00"
+      - cell "$0.00"
+      - cell "Sin inventario":
+        - generic: Sin inventario
+      - cell "Baja lógica":
+        - generic: Baja lógica
+      - cell "07/09/26, 7:03 p.m."
+    - row "Abrir acciones QA-T10-PRECIO-BASE Producto QA T10 Precio base Producto Alimentos Sin marca Pieza (pz) $80.00 $100.00 Sin inventario Baja lógica 08/09/26, 5:04 p.m.":
+      - cell "Abrir acciones":
+        - button "Abrir acciones":
+          - generic: 
+          - generic: Acciones
+          - generic: 
+      - cell
+      - cell "QA-T10-PRECIO-BASE"
+      - cell
+      - cell "Producto QA T10 Precio base":
+        - strong: Producto QA T10 Precio base
+      - cell "Producto"
+      - cell "Alimentos"
+      - cell "Sin marca"
+      - cell "Pieza (pz)"
+      - cell "$80.00"
+      - cell "$100.00"
+      - cell "Sin inventario":
+        - generic: Sin inventario
+      - cell "Baja lógica":
+        - generic: Baja lógica
+      - cell "08/09/26, 5:04 p.m."
+    - row "Abrir acciones QA-T10-PO2-MANUAL QA T10 PO2 Manual Producto Alimentos Sin marca Centímetro (cm) $0.00 $50.00 Sin inventario Baja lógica 07/09/26, 8:13 p.m.":
+      - cell "Abrir acciones":
+        - button "Abrir acciones":
+          - generic: 
+          - generic: Acciones
+          - generic: 
+      - cell
+      - cell "QA-T10-PO2-MANUAL"
+      - cell
+      - cell "QA T10 PO2 Manual":
+        - strong: QA T10 PO2 Manual
+      - cell "Producto"
+      - cell "Alimentos"
+      - cell "Sin marca"
+      - cell "Centímetro (cm)"
+      - cell "$0.00"
+      - cell "$50.00"
+      - cell "Sin inventario":
+        - generic: Sin inventario
+      - cell "Baja lógica":
+        - generic: Baja lógica
+      - cell "07/09/26, 8:13 p.m."
+    - row "Abrir acciones QA-T10-UX-PIEZA QA T10 UX Pieza Producto Alimentos Sin marca Pieza (pz) $0.00 $50.00 Sin inventario Baja lógica 07/09/26, 7:39 p.m.":
+      - cell "Abrir acciones":
+        - button "Abrir acciones":
+          - generic: 
+          - generic: Acciones
+          - generic: 
+      - cell
+      - cell "QA-T10-UX-PIEZA"
+      - cell
+      - cell "QA T10 UX Pieza":
+        - strong: QA T10 UX Pieza
+      - cell "Producto"
+      - cell "Alimentos"
+      - cell "Sin marca"
+      - cell "Pieza (pz)"
+      - cell "$0.00"
+      - cell "$50.00"
+      - cell "Sin inventario":
+        - generic: Sin inventario
+      - cell "Baja lógica":
+        - generic: Baja lógica
+      - cell "07/09/26, 7:39 p.m."
+    - row "Abrir acciones QA-T10-UX-CM QA-T10-UX-CM Producto Alimentos Sin marca Centímetro (cm) $0.00 $55.00 Sin inventario Baja lógica 07/09/26, 7:39 p.m.":
+      - cell "Abrir acciones":
+        - button "Abrir acciones":
+          - generic: 
+          - generic: Acciones
+          - generic: 
+      - cell
+      - cell "QA-T10-UX-CM"
+      - cell
+      - cell "QA-T10-UX-CM":
+        - strong: QA-T10-UX-CM
+      - cell "Producto"
+      - cell "Alimentos"
+      - cell "Sin marca"
+      - cell "Centímetro (cm)"
+      - cell "$0.00"
+      - cell "$55.00"
+      - cell "Sin inventario":
+        - generic: Sin inventario
+      - cell "Baja lógica":
+        - generic: Baja lógica
+      - cell "07/09/26, 7:39 p.m."
+    - row "Abrir acciones QA-T10-UX-LB QA-T10-UX-LB Producto Alimentos Sin marca Libra (lb) $0.00 $55.00 Sin inventario Baja lógica 07/09/26, 7:39 p.m.":
+      - cell "Abrir acciones":
+        - button "Abrir acciones":
+          - generic: 
+          - generic: Acciones
+          - generic: 
+      - cell
+      - cell "QA-T10-UX-LB"
+      - cell
+      - cell "QA-T10-UX-LB":
+        - strong: QA-T10-UX-LB
+      - cell "Producto"
+      - cell "Alimentos"
+      - cell "Sin marca"
+      - cell "Libra (lb)"
+      - cell "$0.00"
+      - cell "$55.00"
+      - cell "Sin inventario":
+        - generic: Sin inventario
+      - cell "Baja lógica":
+        - generic: Baja lógica
+      - cell "07/09/26, 7:39 p.m."
+  - rowgroup
+- generic: Mostrando 1-8 de 8
+- generic: "Filas:"
+- button "25" [pressed]
+- button "50"
+- button "100"
+- generic: Página 1 de 1
+- button "Página anterior" [disabled]: ‹
+- button "Página siguiente" [disabled]: ›
+- text:                
+- text:     +  ? ? ?      + + +  +      ?
+- dialog [active]:
+  - paragraph: Ficha técnica
+  - heading "Aceite Motor Sintetico" [level=3]
+  - paragraph: 001 · Producto · Activo
+  - button "Close":
+    - generic: 
+    - generic: 
+  - img "Aceite Motor Sintetico"
+  - generic: Información general
+  - article:
+    - generic: Código
+    - strong: "001"
+  - text: Descripción
+  - paragraph:
+    - strong: LTH
+    - text: Aceite Motor Sintetico
+    - emphasis: 5W-30
+    - text: Lubricante Max Pro Tec 5L
+  - article:
+    - generic: Tipo
+    - strong: Producto
+  - article:
+    - generic: Estatus
+    - strong: Activo
+  - article:
+    - generic: Categoría
+    - strong: Alimentos
+  - article:
+    - generic: Marca
+    - strong: Mobil 1
+  - article:
+    - generic: Colección
+    - strong: 001 · Colección 01
+  - generic: Etiquetas
+  - generic: ACEITES
+  - generic: Ivan
+  - generic: LTH
+  - generic: M01
+  - generic: NEW
+  - generic: NUEVO
+  - generic: OTROS
+  - generic: PRIMAVERA
+  - generic: Precios y Costos
+  - article:
+    - generic: Unidad Base
+    - strong: Pieza (pz)
+  - article:
+    - generic: Costo
+    - strong: $605.00
+  - article:
+    - generic: Precio público
+    - strong: $680.00
+  - article:
+    - generic: Precio de comparación
+    - strong: $700.00
+  - article:
+    - generic: Ganancia
+    - strong: $75.00
+  - article:
+    - generic: Margen
+    - strong: 11.03%
+  - generic: Presentaciones de venta
+  - table:
+    - rowgroup:
+      - row "Venta Equivale en inventario Precio":
+        - columnheader "Venta"
+        - columnheader "Equivale en inventario"
+        - columnheader "Precio"
+    - rowgroup:
+      - row "1 Pieza Base 1 pz $680.00":
+        - cell "1 Pieza Base":
+          - text: 1 Pieza
+          - strong: Base
+        - cell "1 pz"
+        - cell "$680.00"
+      - row "1 Paquete 6 pz $1,500.00":
+        - cell "1 Paquete"
+        - cell "6 pz"
+        - cell "$1,500.00"
+      - row "1 Paquete 12 pz $2,399.00":
+        - cell "1 Paquete"
+        - cell "12 pz"
+        - cell "$2,399.00"
+      - row "1 Paquete 24 pz $5,599.00":
+        - cell "1 Paquete"
+        - cell "24 pz"
+        - cell "$5,599.00"
+  - generic: Información fiscal
+  - article:
+    - generic: Clave producto/servicio SAT
+    - strong: 15121509 - Aceite de frenos
+  - article:
+    - generic: Clave unidad SAT
+    - strong: H87 - Pieza
+  - article:
+    - generic: Objeto de impuesto
+    - strong: "No"
+  - generic: Información física y logística
+  - article:
+    - generic: Producto físico
+    - strong: Sí
+  - article:
+    - generic: Peso del producto
+    - strong: 4.00 kg
+  - article:
+    - generic: Paquete
+    - strong: PKG QA T02 20260821 B
+  - article:
+    - generic: Tipo de paquete
+    - strong: Caja
+  - article:
+    - generic: Peso vacío del empaque
+    - strong: 1.25 kg
+  - article:
+    - generic: Peso físico total
+    - strong: 5.25 kg
+  - article:
+    - generic: Dimensiones del paquete
+    - strong: L 30 cm · A 15 cm · H 8 cm
+  - article:
+    - generic: Peso volumétrico
+    - strong: 0.72 kg
+  - article:
+    - generic: Peso facturable
+    - strong: 5.25 kg
+  - generic: Inventario
+  - article:
+    - generic: Existencia actual
+    - strong: "10"
+  - article:
+    - generic: Existencia mínima
+    - strong: "5"
+  - article:
+    - generic: Permite venta sin existencia
+    - strong: Sí
+  - generic: Atributos
+  - table:
+    - rowgroup:
+      - row "Atributo Elemento(s)":
+        - columnheader "Atributo"
+        - columnheader "Elemento(s)"
+    - rowgroup:
+      - row "Colores Negro, Blanco, Verde, Rojo":
+        - cell "Colores"
+        - cell "Negro, Blanco, Verde, Rojo"
+      - row "Material Plastico":
+        - cell "Material"
+        - cell "Plastico"
+      - row "Consistencia Viscosidad":
+        - cell "Consistencia"
+        - cell "Viscosidad"
+  - generic: Variantes
+  - table:
+    - rowgroup:
+      - row "Variante Imagen Costo Precio":
+        - columnheader "Variante"
+        - columnheader "Imagen"
+        - columnheader "Costo"
+        - columnheader "Precio"
+    - rowgroup:
+      - row "946 ml 946 ml $199.00 $445.55":
+        - cell "946 ml"
+        - cell "946 ml":
+          - img "946 ml"
+        - cell "$199.00"
+        - cell "$445.55"
+      - row "5 L 5 L $299.00 $503.00":
+        - cell "5 L"
+        - cell "5 L":
+          - img "5 L"
+        - cell "$299.00"
+        - cell "$503.00"
+      - row "QA Variante 1 — $10.00 $15.00":
+        - cell "QA Variante 1"
+        - cell "—"
+        - cell "$10.00"
+        - cell "$15.00"
+      - row "QA Variante 2 — $20.00 $25.00":
+        - cell "QA Variante 2"
+        - cell "—"
+        - cell "$20.00"
+        - cell "$25.00"
+  - button " Cerrar":
+    - generic: 
+    - generic: Cerrar
+  - button " Descargar PDF":
+    - generic: 
+    - generic: Descargar PDF
+- text:               
+- text: 2024©
+- link "Sistemas en secuencia":
+  - /url: http://secuencia.com
+- list:
+  - link "Acerca de":
+    - /url: http://secuencia.com
+- generic: 
+- generic: 
+- text:  

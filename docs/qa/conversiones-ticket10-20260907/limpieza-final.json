@@ -1,0 +1,15 @@
+{
+  "clean": [
+    {
+      "ProductosQAActivos": 0,
+      "PresentacionesQAActivas": 0
+    }
+  ],
+  "final": [
+    {
+      "ProductosActivos": 2,
+      "SistemaActivas": 53,
+      "PersonalizadasActivas": 2
+    }
+  ]
+}

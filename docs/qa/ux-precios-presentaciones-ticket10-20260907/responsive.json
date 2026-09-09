@@ -1,0 +1,24 @@
+{
+  "desktop": {
+    "viewport": 1890,
+    "categoryWidth": 282.44140625,
+    "unitWidth": 282.44140625,
+    "horizontalOverflow": false
+  },
+  "tablet": {
+    "viewport": 820,
+    "categoryWidth": 362.275390625,
+    "unitWidth": 362.275390625,
+    "modalWidth": 500,
+    "modalHeight": 515.64453125,
+    "horizontalOverflow": false
+  },
+  "mobile": {
+    "viewport": 390,
+    "categoryWidth": 322.724609375,
+    "unitWidth": 322.724609375,
+    "modalWidth": 378.0078125,
+    "modalHeight": 557.314453125,
+    "horizontalOverflow": false
+  }
+}

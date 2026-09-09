@@ -1,0 +1,18 @@
+{
+  "frontend": {
+    "pid": 6365,
+    "iniciadoPorCodex": true,
+    "detenido": true
+  },
+  "api": {
+    "pids": [
+      6356,
+      6540
+    ],
+    "iniciadosPorCodex": true,
+    "detenidos": true
+  },
+  "puerto5200Libre": true,
+  "puerto5127Libre": true,
+  "preexistentes": "Ning\u00fan listener al inicio; ning\u00fan proceso del PO detenido"
+}

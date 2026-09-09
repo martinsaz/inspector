@@ -1,0 +1,1 @@
+SELECT SCHEMA_NAME(o.schema_id) AS schema_name,o.name,o.type_desc,m.definition FROM sys.sql_modules m JOIN sys.objects o ON o.object_id=m.object_id WHERE m.definition LIKE '%ProductosServicios%'

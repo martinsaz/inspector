@@ -1,0 +1,1 @@
+SELECT TipoMultimedia,Foto,Video,Documento,Activo,COUNT_BIG(*) AS filas FROM dbo.ProductosServiciosMultimedia GROUP BY TipoMultimedia,Foto,Video,Documento,Activo

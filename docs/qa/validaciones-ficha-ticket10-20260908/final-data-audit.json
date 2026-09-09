@@ -1,0 +1,25 @@
+{
+  "activeProducts": [
+    {
+      "id": "ecd83622-584a-48e1-8b01-7db89c950873",
+      "nombre": "Aceite Motor Sintetico"
+    },
+    {
+      "id": "d6fb766b-e8ff-421d-8bdf-bc987ce4130e",
+      "nombre": "Cambio de Aceite"
+    }
+  ],
+  "activeUnits": 56,
+  "systemUnits": 53,
+  "customUnits": [
+    "Actividad",
+    "Paquete",
+    "Unidad de servicio"
+  ],
+  "unitCatalogUnchanged": true,
+  "duplicates": 0,
+  "workDataChanges": {
+    "Aceite Motor Sintetico": [],
+    "Cambio de Aceite": []
+  }
+}

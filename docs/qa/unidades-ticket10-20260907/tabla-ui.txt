@@ -1,0 +1,58 @@
+AccionesCódigoNombreTipoOrigenAbreviaturaPermite decimalesEstatusActualización
+001Unidad de servicioOtraPersonalizadaUSNoActivo04/08/26, 4:26 a.m.
+002ActividadOtraPersonalizadaACTNoActivo04/08/26, 4:27 a.m.
+003Pack QA T10OtraPersonalizadapackNoBaja lógica07/09/26, 6:27 p.m.
+004Caja QA T10OtraPersonalizadaCJA-QANoActivo07/09/26, 6:33 p.m.
+ProtegidaACAcreÁreaSistemaacSíActivo07/09/26, 4:53 p.m.
+ProtegidaCENTURYSigloTiempoSistemasigloNoActivo07/09/26, 4:53 p.m.
+ProtegidaCLCentilitroVolumenSistemacLSíActivo07/09/26, 4:53 p.m.
+ProtegidaCMCentímetroLongitudSistemacmSíActivo07/09/26, 4:53 p.m.
+ProtegidaCM2Centímetro cuadradoÁreaSistemacm²SíActivo07/09/26, 4:53 p.m.
+ProtegidaCM3Centímetro cúbicoVolumenSistemacm³SíActivo07/09/26, 4:53 p.m.
+ProtegidaCUPTaza USVolumenSistemacupSíActivo07/09/26, 4:53 p.m.
+ProtegidaDDíaTiempoSistemadSíActivo07/09/26, 4:53 p.m.
+ProtegidaDECADEDécadaTiempoSistemadécadaNoActivo07/09/26, 4:53 p.m.
+ProtegidaDLDecilitroVolumenSistemadLSíActivo07/09/26, 4:53 p.m.
+ProtegidaDMDecímetroLongitudSistemadmSíActivo07/09/26, 4:53 p.m.
+ProtegidaDM2Decímetro cuadradoÁreaSistemadm²SíActivo07/09/26, 4:53 p.m.
+ProtegidaDM3Decímetro cúbicoVolumenSistemadm³SíActivo07/09/26, 4:53 p.m.
+ProtegidaFL_OZOnza líquida USVolumenSistemafl ozSíActivo07/09/26, 4:53 p.m.
+ProtegidaFTPieLongitudSistemaftSíActivo07/09/26, 4:53 p.m.
+ProtegidaFT2Pie cuadradoÁreaSistemaft²SíActivo07/09/26, 4:53 p.m.
+ProtegidaGGramoPesoSistemagSíActivo07/09/26, 4:53 p.m.
+ProtegidaGALGalón USVolumenSistemaUS galSíActivo07/09/26, 4:53 p.m.
+ProtegidaHHoraTiempoSistemahSíActivo07/09/26, 4:53 p.m.
+ProtegidaHAHectáreaÁreaSistemahaSíActivo07/09/26, 4:53 p.m.
+ProtegidaINPulgadaLongitudSistemainSíActivo07/09/26, 4:53 p.m.
+ProtegidaIN2Pulgada cuadradaÁreaSistemain²SíActivo07/09/26, 4:53 p.m.
+ProtegidaKGKilogramoPesoSistemakgSíActivo07/09/26, 4:53 p.m.
+ProtegidaKMKilómetroLongitudSistemakmSíActivo07/09/26, 4:53 p.m.
+ProtegidaKM2Kilómetro cuadradoÁreaSistemakm²SíActivo07/09/26, 4:53 p.m.
+ProtegidaLLitroVolumenSistemaLSíActivo07/09/26, 4:53 p.m.
+ProtegidaLBLibraPesoSistemalbSíActivo07/09/26, 4:53 p.m.
+ProtegidaLUSTRUMLustroTiempoSistemalustroNoActivo07/09/26, 4:53 p.m.
+ProtegidaMMetroLongitudSistemamSíActivo07/09/26, 4:53 p.m.
+ProtegidaM2Metro cuadradoÁreaSistemam²SíActivo07/09/26, 4:53 p.m.
+ProtegidaM3Metro cúbicoVolumenSistemam³SíActivo07/09/26, 4:53 p.m.
+ProtegidaMGMiligramoPesoSistemamgSíActivo07/09/26, 4:53 p.m.
+ProtegidaMIMillaLongitudSistemamiSíActivo07/09/26, 4:53 p.m.
+ProtegidaMI2Milla cuadradaÁreaSistemami²SíActivo07/09/26, 4:53 p.m.
+ProtegidaMINMinutoTiempoSistemaminSíActivo07/09/26, 4:53 p.m.
+ProtegidaMLMililitroVolumenSistemamLSíActivo07/09/26, 4:53 p.m.
+ProtegidaMMMilímetroLongitudSistemammSíActivo07/09/26, 4:53 p.m.
+ProtegidaMM2Milímetro cuadradoÁreaSistemamm²SíActivo07/09/26, 4:53 p.m.
+ProtegidaMM3Milímetro cúbicoVolumenSistemamm³SíActivo07/09/26, 4:53 p.m.
+ProtegidaMSMilisegundoTiempoSistemamsSíActivo07/09/26, 4:53 p.m.
+ProtegidaOZOnzaPesoSistemaozSíActivo07/09/26, 4:53 p.m.
+ProtegidaPTPinta USVolumenSistemaptSíActivo07/09/26, 4:53 p.m.
+ProtegidaPZPiezaPor artículoSistemapzNoActivo07/09/26, 4:53 p.m.
+ProtegidaQTCuarto USVolumenSistemaqtSíActivo07/09/26, 4:53 p.m.
+ProtegidaSSegundoTiempoSistemasSíActivo07/09/26, 4:53 p.m.
+ProtegidaSHORT_TONTonelada cortaPesoSistemashort tonSíActivo07/09/26, 4:53 p.m.
+ProtegidaTTonelada métricaPesoSistematSíActivo07/09/26, 4:53 p.m.
+ProtegidaUGMicrogramoPesoSistemaµgSíActivo07/09/26, 4:53 p.m.
+ProtegidaULMicrolitroVolumenSistemaµLSíActivo07/09/26, 4:53 p.m.
+ProtegidaUMMicrómetroLongitudSistemaµmSíActivo07/09/26, 4:53 p.m.
+ProtegidaYDYardaLongitudSistemaydSíActivo07/09/26, 4:53 p.m.
+ProtegidaYD2Yarda cuadradaÁreaSistemayd²SíActivo07/09/26, 4:53 p.m.
+ProtegidaYEARAñoTiempoSistemaañoNoActivo07/09/26, 4:53 p.m.

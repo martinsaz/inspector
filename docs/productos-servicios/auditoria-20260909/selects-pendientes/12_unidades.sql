@@ -1,0 +1,1 @@
+SELECT idEmpresa,EsSistema,EsPersonalizada,Activo,TipoUnidad,Convertible,COUNT_BIG(*) AS total FROM dbo.ProductosServiciosUnidadesMedida GROUP BY idEmpresa,EsSistema,EsPersonalizada,Activo,TipoUnidad,Convertible

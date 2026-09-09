@@ -207,6 +207,10 @@
                                                 <input id="txNombreProductoServicio" maxlength="150" type="text" placeholder=" " />
                                                 <span>Nombre *</span>
                                             </label>
+                                            <label class="checkapp-field ps-form-field ps-form-field--code ps-floating-field">
+                                                <input id="txCodigoProductoServicio" maxlength="50" type="text" placeholder=" " />
+                                                <span>Código *</span>
+                                            </label>
                                             <label class="checkapp-field ps-form-field ps-form-field--description">
                                                 <span>Descripción</span>
                                                 <textarea id="txDescripcionProductoServicio"></textarea>
@@ -238,10 +242,6 @@
                                                     </label>
                                                 </div>
                                             </div>
-                                            <label class="checkapp-field ps-form-field ps-form-field--code ps-floating-field">
-                                                <input id="txCodigoProductoServicio" maxlength="50" type="text" placeholder=" " />
-                                                <span>Código *</span>
-                                            </label>
                                         </div>
 
                                         <div class="checkapp-filter-grid ps-form-grid ps-form-grid--catalogs">
@@ -314,18 +314,18 @@
                                     <div class="checkapp-panel-head" data-ps-toggle-header="comercial" tabindex="0" aria-expanded="true">
                                         <div>
                                             <span class="checkapp-panel-eyebrow">Precios</span>
-                                            <h2>Configuración comercial</h2>
-                                            <p class="checkapp-panel-copy">Define el precio base y los datos visibles para venta y comparación.</p>
+                                            <h2>Precios y Costos</h2>
+                                            <p class="checkapp-panel-copy">Define costos, precio público y referencias visibles para la venta.</p>
                                         </div>
-                                        <button type="button" class="checkapp-btn checkapp-btn-ghost cot-panel-toggle ps-panel-toggle" data-ps-toggle-section="comercial" aria-expanded="true" title="Mostrar u ocultar configuración comercial" aria-label="Mostrar u ocultar configuración comercial">
+                                        <button type="button" class="checkapp-btn checkapp-btn-ghost cot-panel-toggle ps-panel-toggle" data-ps-toggle-section="comercial" aria-expanded="true" title="Mostrar u ocultar precios y costos" aria-label="Mostrar u ocultar precios y costos">
                                             <i class="fa fa-chevron-up"></i>
                                             <span>Contraer</span>
                                         </button>
                                     </div>
                                     <div class="cot-panel-body">
                                         <div class="checkapp-filter-grid ps-form-grid ps-form-grid--pricing">
-                                        <label class="checkapp-field ps-form-field ps-form-field--unit">
-                                            <span>Unidad *</span>
+                                        <label for="cbUnidadProductoServicio" class="checkapp-field ps-form-field ps-form-field--unit">
+                                            <span class="ps-label-with-help"><span>Unidad base *</span><button id="btAyudaUnidadBase" type="button" class="ps-help-button" data-bs-toggle="tooltip" data-bs-trigger="click" data-bs-title="Unidad en la que se controla el inventario, por ejemplo Pieza, Centímetro o Kilogramo." aria-label="Ayuda sobre unidad base"><i class="fa fa-question" aria-hidden="true"></i></button></span>
                                             <span class="activos-select-with-action ps-select-with-action">
                                                 <select id="cbUnidadProductoServicio" class="form-select"></select>
                                                 <button id="btQuickAddUnidadProductoServicio" type="button" class="activos-inline-add" title="Agregar unidad de medida" aria-label="Agregar unidad de medida">
@@ -337,43 +337,43 @@
                                             <span>Costo</span>
                                             <input id="txCostoProductoServicio" type="number" min="0" step="0.0001" inputmode="decimal" placeholder="$0.00" />
                                         </label>
-                                        <label class="checkapp-field ps-form-field ps-form-field--price">
-                                            <span>Precio Público *</span>
+                                        <label for="txPrecioPublicoProductoServicio" class="checkapp-field ps-form-field ps-form-field--price">
+                                            <span class="ps-label-with-help"><span>Precio público *</span><button id="btAyudaPrecioPublico" type="button" class="ps-help-button" data-bs-toggle="tooltip" data-bs-trigger="click" data-bs-title="Configura el precio de venta de una unidad base del producto." aria-label="Ayuda sobre precio público"><i class="fa fa-question" aria-hidden="true"></i></button></span>
                                             <input id="txPrecioPublicoProductoServicio" type="number" min="0" step="0.0001" inputmode="decimal" placeholder="$0.00" />
                                         </label>
-                                        <label class="checkapp-field ps-form-field ps-form-field--compare">
-                                            <span>Precio de comparación</span>
+                                        <label for="txPrecioComparacionProductoServicio" class="checkapp-field ps-form-field ps-form-field--compare">
+                                            <span class="ps-label-with-help">
+                                                <span>Precio de comparación</span>
+                                                <button id="btAyudaPrecioComparacionProductoServicio" type="button" class="ps-help-button" data-bs-toggle="tooltip" data-bs-placement="top" data-bs-html="true" data-bs-title='Para mostrar una rebaja, ingresa un valor mayor que el precio público. Normalmente se muestra como un precio tachado (por ejemplo, <span class="ps-tooltip-strike">$25.00</span>).' aria-label="Ayuda sobre precio de comparación">
+                                                    <i class="fa fa-question" aria-hidden="true"></i>
+                                                </button>
+                                            </span>
                                             <input id="txPrecioComparacionProductoServicio" type="number" min="0" step="0.0001" inputmode="decimal" placeholder="$0.00" />
                                         </label>
-                                        <div class="checkapp-field ps-form-field ps-form-field--unit-price">
-                                            <span>Precio unitario</span>
-                                            <div class="ps-unit-price-shell">
-                                                <button id="btPrecioUnitarioResumenProductoServicio" type="button" class="ps-unit-price-trigger" aria-expanded="false" aria-controls="panelPrecioUnitarioProductoServicio">
-                                                    <span id="txPrecioUnitarioResumenProductoServicio">$0.00</span>
-                                                    <i class="fa fa-chevron-down" aria-hidden="true"></i>
-                                                </button>
-                                                <div id="panelPrecioUnitarioProductoServicio" class="ps-unit-price-popover" hidden>
-                                                    <div class="ps-unit-price-popover__grid">
-                                                        <label class="checkapp-field ps-form-field">
-                                                            <span>Importe total</span>
-                                                            <input id="txPrecioUnitarioMontoProductoServicio" type="number" min="0" step="0.0001" inputmode="decimal" placeholder="$0.00" />
-                                                        </label>
-                                                        <label class="checkapp-field ps-form-field">
-                                                            <span>Medida base</span>
-                                                            <input id="txPrecioUnitarioBaseProductoServicio" type="number" min="0.0001" step="0.0001" inputmode="decimal" placeholder="1" />
-                                                        </label>
-                                                        <label class="checkapp-field ps-form-field ps-field-full">
-                                                            <span>Unidad base</span>
-                                                            <select id="cbPrecioUnitarioUnidadProductoServicio" class="form-select"></select>
-                                                        </label>
-                                                    </div>
-                                                    <div class="ps-unit-price-popover__actions">
-                                                        <button id="btLimpiarPrecioUnitarioProductoServicio" type="button" class="checkapp-btn checkapp-btn-ghost">Limpiar</button>
-                                                        <button id="btCancelarPrecioUnitarioProductoServicio" type="button" class="checkapp-btn checkapp-btn-secondary">Cancelar</button>
-                                                        <button id="btAceptarPrecioUnitarioProductoServicio" type="button" class="checkapp-btn checkapp-btn-primary">Aceptar</button>
-                                                    </div>
-                                                </div>
+                                        <div class="ps-price-metrics-group" aria-label="Ganancia y margen">
+                                            <div class="checkapp-field ps-form-field ps-price-metric">
+                                                <span>Ganancia</span>
+                                                <strong id="txGananciaProductoServicio">-</strong>
                                             </div>
+                                            <div class="checkapp-field ps-form-field ps-price-metric">
+                                                <span>Margen</span>
+                                                <strong id="txMargenProductoServicio">-</strong>
+                                            </div>
+                                        </div>
+                                    </div>
+                                    <div id="panelPresentacionesVentaProductoServicio" class="ps-presentations" hidden>
+                                        <div class="ps-presentations__head">
+                                            <div>
+                                                <span class="checkapp-panel-eyebrow">Venta</span>
+                                                <h3>Presentaciones de venta</h3>
+                                            </div>
+                                            <button id="btAgregarPresentacionVenta" type="button" class="checkapp-btn checkapp-btn-secondary">+ Agregar presentación</button>
+                                        </div>
+                                        <div class="table-responsive">
+                                            <table class="table ps-presentations__table">
+                                                <thead><tr><th>Venta</th><th>Equivale en inventario</th><th>Precio</th><th>Acciones</th></tr></thead>
+                                                <tbody id="tbPresentacionesVentaProductoServicio"></tbody>
+                                            </table>
                                         </div>
                                     </div>
                                     </div>
@@ -392,16 +392,24 @@
                                         </button>
                                     </div>
                                     <div class="cot-panel-body">
-                                        <div class="checkapp-filter-grid ps-form-grid ps-form-grid--sat">
-                                        <label class="checkapp-field ps-form-field">
+                                        <div class="checkapp-filter-grid ps-form-grid ps-form-grid--sat is-iva-off">
+                                        <label class="checkapp-field ps-form-field ps-fiscal-legacy-field">
                                             <span>Objeto de impuesto</span>
                                             <select id="cbObjetoImpuestoProductoServicio" class="form-select"></select>
                                         </label>
-                                        <label class="checkapp-field ps-form-field">
+                                        <label class="ps-tax-toggle-field" for="chkAplicaIvaProductoServicio">
+                                            <input id="chkAplicaIvaProductoServicio" type="checkbox" />
+                                            <span>Aplicar IVA</span>
+                                        </label>
+                                        <label id="fieldPorcentajeIvaProductoServicio" class="checkapp-field ps-form-field ps-tax-percent-field" hidden>
+                                            <span>IVA %</span>
+                                            <input id="txPorcentajeIvaProductoServicio" type="number" min="0" max="100" step="0.01" inputmode="decimal" placeholder="16.00" />
+                                        </label>
+                                        <label class="checkapp-field ps-form-field ps-sat-product-field">
                                             <span>Clave de producto SAT</span>
                                             <select id="cbClaveProductoSatProductoServicio" class="form-select"></select>
                                         </label>
-                                        <label class="checkapp-field ps-form-field">
+                                        <label class="checkapp-field ps-form-field ps-sat-unit-field">
                                             <span>Clave de unidad SAT</span>
                                             <select id="cbClaveUnidadSatProductoServicio" class="form-select"></select>
                                         </label>
@@ -666,6 +674,34 @@
                     </div>
                 </div>
             </form>
+        </div>
+    </div>
+</div>
+
+<div class="modal fade checkapp-modal ps-presentation-modal" tabindex="-1" id="modalPresentacionVentaProductoServicio">
+    <div class="modal-dialog modal-dialog-centered">
+        <div class="modal-content">
+            <div class="modal-header"><div><p class="checkapp-kicker">Presentación de venta</p><h3 id="txModalPresentacionVentaTitulo">Agregar presentación</h3></div><button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Cerrar"></button></div>
+            <div class="modal-body">
+                <input id="hdPresentacionVentaId" type="hidden" />
+                <section class="ps-presentation-modal__section" aria-labelledby="txPresentacionVentaHeading">
+                    <span class="checkapp-panel-eyebrow" id="txPresentacionVentaHeading">Venta</span>
+                    <div class="ps-presentation-modal__sale-grid">
+                        <label class="checkapp-field ps-form-field"><span>Cantidad de venta</span><input id="txCantidadVentaPresentacionVenta" type="number" min="0.0001" step="0.0001" inputmode="decimal" /></label>
+                        <label class="checkapp-field ps-form-field"><span>Unidad</span><select id="cbUnidadVentaPresentacionVenta" class="form-select"></select></label>
+                    </div>
+                </section>
+                <section class="ps-presentation-modal__section" aria-labelledby="txPresentacionInventarioHeading">
+                    <span class="ps-label-with-help"><span class="checkapp-panel-eyebrow" id="txPresentacionInventarioHeading">Equivalencia en inventario</span><button id="btAyudaEquivalencia" type="button" class="ps-help-button" data-bs-toggle="tooltip" data-bs-trigger="click" data-bs-title="Indica cuántas unidades de inventario corresponden a la cantidad vendida." aria-label="Ayuda sobre equivalencia en inventario"><i class="fa fa-question" aria-hidden="true"></i></button></span>
+                    <label class="checkapp-field ps-form-field"><span>Cantidad en inventario</span><span class="ps-presentation-equivalence"><input id="txEquivalenciaPresentacionVenta" type="number" min="0.0001" step="0.0001" inputmode="decimal" /><strong id="txUnidadPresentacionVenta"></strong></span></label>
+                </section>
+                <section class="ps-presentation-modal__section">
+                    <span class="checkapp-panel-eyebrow">Precio</span>
+                    <label class="checkapp-field ps-form-field"><span>Precio de esta presentación</span><input id="txPrecioPresentacionVenta" type="number" min="0" step="0.01" inputmode="decimal" placeholder="$0.00" /></label>
+                </section>
+                <div class="checkapp-status-inline" id="txInfoPresentacionVenta"></div>
+            </div>
+            <div class="modal-footer"><button id="btGuardarPresentacionVenta" type="button" class="checkapp-btn checkapp-btn-primary">Guardar</button><button type="button" class="checkapp-btn checkapp-btn-ghost" data-bs-dismiss="modal">Cancelar</button></div>
         </div>
     </div>
 </div>

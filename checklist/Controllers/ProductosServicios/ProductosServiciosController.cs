@@ -89,6 +89,15 @@ namespace checklist.Controllers.ProductosServicios
         [HttpPost("ActivarProductoServicio")]
         public Task<IActionResult> ActivarProductoServicio() => ProxyJsonAsync(HttpMethod.Post, "ActivarProductoServicio");
 
+        [HttpPost("GuardarPresentacionVentaProductoServicio")]
+        public Task<IActionResult> GuardarPresentacionVentaProductoServicio() => ProxyJsonAsync(HttpMethod.Post, "GuardarPresentacionVentaProductoServicio");
+
+        [HttpPost("BajaPresentacionVentaProductoServicio")]
+        public Task<IActionResult> BajaPresentacionVentaProductoServicio() => ProxyJsonAsync(HttpMethod.Post, "BajaPresentacionVentaProductoServicio");
+
+        [HttpPost("CalcularPresentacionesVentaProductoServicio")]
+        public Task<IActionResult> CalcularPresentacionesVentaProductoServicio() => ProxyJsonAsync(HttpMethod.Post, "CalcularPresentacionesVentaProductoServicio");
+
         [HttpGet("ObtenerCombosProductosServicios")]
         public Task<IActionResult> ObtenerCombosProductosServicios() => ProxyGetAsync("ObtenerCombosProductosServicios");
 

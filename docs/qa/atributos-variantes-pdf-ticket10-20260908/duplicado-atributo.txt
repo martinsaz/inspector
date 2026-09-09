@@ -1,0 +1,669 @@
+- text:  
+- link:
+  - /url: /Home/Index
+- link:
+  - /url: "#"
+  - generic: 
+  - text:         
+  - text:  
+- text:                
+- generic: Denisse Martinez Mendiola
+- generic: UMBRELLA
+- generic: 
+- text:    
+- generic: Checklists
+- generic: 
+- text:    
+- generic: Inspecciones
+- generic: 
+- text:    
+- generic: Ventas
+- generic: 
+- text:    
+- generic: Facturación
+- generic: 
+- text:    
+- generic: Cotizaciones
+- generic: 
+- text:    
+- generic: Clientes
+- generic: 
+- text:    
+- generic: Activos
+- generic: 
+- text:    
+- generic: Proveeduría
+- generic: Productos y Servicios
+- link:
+  - /url: /ProductosServicios/Index
+  - generic: ABC Productos y Servicios
+- generic: Catálogos
+- link:
+  - /url: /Activos/Proveedores
+  - generic: Proveedores
+- generic: Órdenes de compra
+- generic: 
+- text:    
+- generic: Reportes
+- generic: 
+- text:    
+- generic: Ajustes
+- paragraph: CheckApp Pro
+- heading [level=1]: Productos y Servicios
+- paragraph: Administra los productos y servicios disponibles para operación.
+- button:
+  - generic: +
+  - generic: Nuevo
+- region:
+  - button [pressed]:
+    - generic: Total
+    - strong: "8"
+  - button:
+    - generic: Productos
+    - strong: "7"
+  - button:
+    - generic: Servicios
+    - strong: "1"
+- button [expanded]:
+  - generic: Filtros
+  - heading [level=3]: Encuentra productos y servicios por código, tipo, categoría o inventario.
+  - generic: Sin filtros activos
+- generic: Búsqueda general
+- textbox:
+  - /placeholder: Código, etiqueta, nombre o descripción
+- generic: Tipo
+- combobox
+- combobox:
+  - textbox
+- generic: Categoría
+- combobox
+- combobox:
+  - textbox
+- generic: Marca
+- combobox
+- combobox:
+  - textbox
+- generic: Unidad
+- combobox
+- combobox:
+  - textbox
+- generic: Causa inventario
+- combobox
+- generic: Estatus
+- combobox
+- combobox:
+  - textbox
+- button:
+  - generic: 
+  - generic: Buscar
+- button:
+  - generic: 
+  - generic: Limpiar
+- generic: Inventario
+- heading [level=2]: Listado de productos y servicios
+- paragraph: Consulta el resultado filtrado y administra cada registro desde una sola pantalla.
+- generic: 8 visibles
+- button:
+  - generic: 
+  - generic: Columnas
+- button:
+  - generic: Exportar Excel
+- generic: 
+- textbox:
+  - /placeholder: Busca dentro del resultado filtrado
+- generic: 8 registros
+- table:
+  - rowgroup:
+    - row:
+      - columnheader: Acciones
+      - columnheader:
+        - button: Imagen
+      - columnheader:
+        - button: Código
+      - columnheader:
+        - button: Etiquetas
+      - columnheader:
+        - button: Nombre
+      - columnheader:
+        - button: Tipo
+      - columnheader:
+        - button: Categoría
+      - columnheader:
+        - button: Marca
+      - columnheader:
+        - button: Unidad
+      - columnheader:
+        - button: Costo
+      - columnheader:
+        - button: Precio Público
+      - columnheader:
+        - button: Inventario
+      - columnheader:
+        - button: Estatus
+      - columnheader:
+        - button: Actualización
+  - rowgroup:
+    - row:
+      - cell:
+        - button:
+          - generic: 
+          - generic: Acciones
+          - generic: 
+      - cell:
+      - cell: "001"
+      - cell: ACEITES, Ivan, LTH, M01, NEW, NUEVO, OTROS, PRIMAVERA
+      - cell:
+        - strong: Aceite Motor Sintetico
+        - generic: LTH Aceite Motor Sintetico 5W-30 Lubricante Max Pro Tec 5L
+      - cell: Producto
+      - cell: Alimentos
+      - cell: Mobil 1
+      - cell: Pieza (pz)
+      - cell: $605.00
+      - cell: $680.00
+      - cell:
+        - generic: Existencia 10
+      - cell:
+        - generic: Activo
+      - cell: 08/09/26, 8:29 p.m.
+    - row:
+      - cell:
+        - button:
+          - generic: 
+          - generic: Acciones
+          - generic: 
+      - cell:
+      - cell: "002"
+      - cell: M01
+      - cell:
+        - strong: Cambio de Aceite
+        - generic: El cambio de aceite de un vehículo consiste en retirar el aceite viejo y sucio del motor, reemplazar el filtro de aceite y rellenar con aceite nuevo que tenga la viscosidad y calidad correctas. Esto sirve para lubricar, limpiar y enfriar las piezas de metal que se mueven por dentro, evitando que el motor se dañe.
+      - cell: Servicio
+      - cell: Mantenimiento
+      - cell: Sin marca
+      - cell: Unidad de servicio (US)
+      - cell: $500.00
+      - cell: $1,500.00
+      - cell:
+        - generic: Servicio
+      - cell:
+        - generic: Activo
+      - cell: 08/09/26, 6:42 p.m.
+    - row:
+      - cell:
+        - button:
+          - generic: 
+          - generic: Acciones
+          - generic: 
+      - cell
+      - cell: QA-T10-CONVERSION
+      - cell
+      - cell:
+        - strong: Producto QA T10 Conversiones
+      - cell: Producto
+      - cell: Alimentos
+      - cell: Sin marca
+      - cell: Libra (lb)
+      - cell: $0.00
+      - cell: $0.00
+      - cell:
+        - generic: Sin inventario
+      - cell:
+        - generic: Baja lógica
+      - cell: 07/09/26, 7:03 p.m.
+    - row:
+      - cell:
+        - button:
+          - generic: 
+          - generic: Acciones
+          - generic: 
+      - cell
+      - cell: QA-T10-PRECIO-BASE
+      - cell
+      - cell:
+        - strong: Producto QA T10 Precio base
+      - cell: Producto
+      - cell: Alimentos
+      - cell: Sin marca
+      - cell: Pieza (pz)
+      - cell: $80.00
+      - cell: $100.00
+      - cell:
+        - generic: Sin inventario
+      - cell:
+        - generic: Baja lógica
+      - cell: 08/09/26, 5:04 p.m.
+    - row:
+      - cell:
+        - button:
+          - generic: 
+          - generic: Acciones
+          - generic: 
+      - cell
+      - cell: QA-T10-PO2-MANUAL
+      - cell
+      - cell:
+        - strong: QA T10 PO2 Manual
+      - cell: Producto
+      - cell: Alimentos
+      - cell: Sin marca
+      - cell: Centímetro (cm)
+      - cell: $0.00
+      - cell: $50.00
+      - cell:
+        - generic: Sin inventario
+      - cell:
+        - generic: Baja lógica
+      - cell: 07/09/26, 8:13 p.m.
+    - row:
+      - cell:
+        - button:
+          - generic: 
+          - generic: Acciones
+          - generic: 
+      - cell
+      - cell: QA-T10-UX-PIEZA
+      - cell
+      - cell:
+        - strong: QA T10 UX Pieza
+      - cell: Producto
+      - cell: Alimentos
+      - cell: Sin marca
+      - cell: Pieza (pz)
+      - cell: $0.00
+      - cell: $50.00
+      - cell:
+        - generic: Sin inventario
+      - cell:
+        - generic: Baja lógica
+      - cell: 07/09/26, 7:39 p.m.
+    - row:
+      - cell:
+        - button:
+          - generic: 
+          - generic: Acciones
+          - generic: 
+      - cell
+      - cell: QA-T10-UX-CM
+      - cell
+      - cell:
+        - strong: QA-T10-UX-CM
+      - cell: Producto
+      - cell: Alimentos
+      - cell: Sin marca
+      - cell: Centímetro (cm)
+      - cell: $0.00
+      - cell: $55.00
+      - cell:
+        - generic: Sin inventario
+      - cell:
+        - generic: Baja lógica
+      - cell: 07/09/26, 7:39 p.m.
+    - row:
+      - cell:
+        - button:
+          - generic: 
+          - generic: Acciones
+          - generic: 
+      - cell
+      - cell: QA-T10-UX-LB
+      - cell
+      - cell:
+        - strong: QA-T10-UX-LB
+      - cell: Producto
+      - cell: Alimentos
+      - cell: Sin marca
+      - cell: Libra (lb)
+      - cell: $0.00
+      - cell: $55.00
+      - cell:
+        - generic: Sin inventario
+      - cell:
+        - generic: Baja lógica
+      - cell: 07/09/26, 7:39 p.m.
+- generic: Mostrando 1-8 de 8
+- generic: "Filas:"
+- button [pressed]: "25"
+- button: "50"
+- button: "100"
+- generic: Página 1 de 1
+- button [disabled]: ‹
+- button [disabled]: ›
+- text:                
+- dialog:
+  - paragraph: Edición
+  - heading [level=3]: Editar producto / servicio
+  - button [active]:
+    - generic: 
+    - text: 
+  - generic: Registro
+  - heading [level=2]: Información general
+  - paragraph: Datos principales, clasificación e imagen del producto o servicio.
+  - button [expanded]:
+    - generic: 
+    - generic: Contraer
+  - textbox:
+    - /placeholder: " "
+    - text: Aceite Motor Sintetico
+  - generic: Nombre *
+  - textbox:
+    - /placeholder: " "
+    - text: "001"
+  - generic: Código *
+  - generic: Descripción
+  - application:
+    - toolbar:
+      - button:
+      - button:
+      - button:
+    - toolbar:
+      - button:
+      - button:
+    - toolbar:
+      - button:
+      - button:
+      - button:
+    - toolbar:
+      - button:
+      - button [disabled]:
+    - toolbar:
+      - button:
+      - button:
+    - iframe [id="txDescripcionProductoServicio_ifr"]:
+      - generic "Rich Text Area. Press ALT-0 for help." [active]:
+        - paragraph:
+          - strong: LTH
+          - text: Aceite Motor Sintetico
+          - emphasis: 5W-30
+          - text: Lubricante Max Pro Tec 5L
+  - generic: Tipo *
+  - radiogroup:
+    - radio [checked]
+    - generic: Producto
+    - radio
+    - generic: Servicio
+  - generic: Estatus *
+  - radiogroup:
+    - radio [checked]
+    - generic: Activo
+    - radio
+    - generic: Inactivo
+  - generic: Categoría *
+  - combobox
+  - combobox:
+    - button
+    - textbox
+  - button:
+    - generic: +
+  - generic: Marca
+  - combobox
+  - combobox:
+    - button
+    - textbox
+  - button:
+    - generic: +
+  - generic: Colección
+  - combobox
+  - combobox:
+    - button
+    - textbox
+  - button:
+    - generic: +
+  - complementary:
+    - generic: Imagen
+    - heading [level=2]: Imagen principal
+    - button:
+      - generic: Cambiar
+    - button:
+      - generic: 
+      - generic: Eliminar
+    - generic: Etiquetas
+    - button:
+      - generic: ACEITES
+      - button:
+        - generic: 
+      - generic: Ivan
+      - button:
+        - generic: 
+      - generic: LTH
+      - button:
+        - generic: 
+      - generic: M01
+      - button:
+        - generic: 
+      - generic: NEW
+      - button:
+        - generic: 
+      - generic: NUEVO
+      - button:
+        - generic: 
+      - generic: OTROS
+      - button:
+        - generic: 
+      - generic: PRIMAVERA
+      - button:
+        - generic: 
+      - button:
+        - generic: +
+  - generic: Precios
+  - heading [level=2]: Precios y Costos
+  - paragraph: Define costos, precio público y referencias visibles para la venta.
+  - button [expanded]:
+    - generic: 
+    - generic: Contraer
+  - generic: Unidad base *
+  - button:
+    - generic: "?"
+  - combobox
+  - combobox:
+    - button
+    - textbox
+  - button:
+    - generic: +
+  - generic: Costo
+  - spinbutton: "605"
+  - generic: Precio público *
+  - button:
+    - generic: "?"
+  - spinbutton: "680"
+  - generic: Precio de comparación
+  - button:
+    - generic: "?"
+  - spinbutton: "700"
+  - generic: Ganancia
+  - strong: $75.00
+  - generic: Margen
+  - strong: 11.03%
+  - generic: Venta
+  - heading [level=3]: Presentaciones de venta
+  - button: + Agregar presentación
+  - table:
+    - rowgroup:
+      - row:
+        - columnheader: Venta
+        - columnheader: Equivale en inventario
+        - columnheader: Precio
+        - columnheader: Acciones
+    - rowgroup:
+      - row:
+        - cell: 1 Pieza Base
+        - cell: 1 pz
+        - cell: $680.00
+        - cell: —
+      - row:
+        - cell: 1 Paquete
+        - cell: 6 pz
+        - cell: $1,500.00
+        - cell:
+          - button: Editar
+          - button: Baja
+      - row:
+        - cell: 1 Paquete
+        - cell: 12 pz
+        - cell: $2,399.00
+        - cell:
+          - button: Editar
+          - button: Baja
+      - row:
+        - cell: 1 Paquete
+        - cell: 24 pz
+        - cell: $5,599.00
+        - cell:
+          - button: Editar
+          - button: Baja
+  - generic: SAT
+  - heading [level=2]: Datos fiscales y de facturación
+  - paragraph: Captura los campos SAT sin depender de catálogos duros en frontend.
+  - button:
+    - generic: 
+    - generic: Expandir
+  - generic: Operación
+  - heading [level=2]: Configuración física y de control
+  - paragraph: Activa la logística física y el control por serie solo cuando aplique.
+  - button:
+    - generic: 
+    - generic: Expandir
+  - generic: Logística
+  - heading [level=2]: Peso, dimensiones y paquete
+  - paragraph: Estos campos se usan solo para productos físicos.
+  - button:
+    - generic: 
+    - generic: Expandir
+  - generic: Inventario
+  - heading [level=2]: Configuración de inventario
+  - paragraph: Activa solo los campos que correspondan al tipo de registro.
+  - button:
+    - generic: 
+    - generic: Expandir
+  - generic: Atributos
+  - heading [level=2]: Configuración de atributos
+  - paragraph: Asocia atributos descriptivos y selecciona solo los elementos dependientes del atributo elegido.
+  - button [expanded]:
+    - generic: 
+    - generic: Contraer
+  - generic: Atributo
+  - combobox
+  - button:
+    - generic: +
+  - generic: Elemento
+  - combobox
+  - button:
+    - generic: +
+  - button:
+    - generic: +
+    - generic: Agregar
+  - generic: "Se agregará: Colores / Negro"
+  - generic: Colores
+  - generic: Negro
+  - button:
+    - generic: 
+    - generic: Quitar
+  - generic: Colores
+  - generic: Blanco
+  - button:
+    - generic: 
+    - generic: Quitar
+  - generic: Colores
+  - generic: Verde
+  - button:
+    - generic: 
+    - generic: Quitar
+  - generic: Colores
+  - generic: Rojo
+  - button:
+    - generic: 
+    - generic: Quitar
+  - generic: Material
+  - generic: Plastico
+  - button:
+    - generic: 
+    - generic: Quitar
+  - generic: Consistencia
+  - generic: Viscosidad
+  - button:
+    - generic: 
+    - generic: Quitar
+  - generic: Variantes
+  - heading [level=2]: Matriz de variantes
+  - paragraph: Configura opciones vendibles como talla o color con un flujo independiente del catálogo de atributos.
+  - button [expanded]:
+    - generic: 
+    - generic: Contraer
+  - article:
+    - strong: Tamaño
+    - button:
+      - generic: 
+      - generic: Editar
+    - button:
+      - generic: 
+      - generic: Eliminar opción
+    - generic: 946 ml
+    - generic: 5 L
+  - button:
+    - generic: +
+    - generic: Agregar opción
+  - generic: 2 variante(s). El precio base del producto permanece independiente.
+  - table:
+    - rowgroup:
+      - row:
+        - columnheader: Variante
+        - columnheader: Imagen
+        - columnheader: Costo
+        - columnheader: Precio
+    - rowgroup:
+      - row:
+        - cell:
+          - strong: 946 ml
+          - generic: "Tamaño: 946 ml"
+        - cell:
+          - button:
+            - generic: Cambiar
+          - button:
+            - generic: Eliminar
+        - cell:
+          - spinbutton: "199"
+        - cell:
+          - spinbutton: "445.55"
+      - row:
+        - cell:
+          - strong: 5 L
+          - generic: "Tamaño: 5 L"
+        - cell:
+          - button:
+            - generic: Cambiar
+          - button:
+            - generic: Eliminar
+        - cell:
+          - spinbutton: "299"
+        - cell:
+          - spinbutton: "503"
+  - generic: Multimedia
+  - heading [level=2]: Evidencia del producto o servicio
+  - paragraph: Agrega hasta 3 fotos, 1 video y 3 documentos para identificar este registro.
+  - button:
+    - generic: 
+    - generic: Expandir
+  - text:  
+  - button:
+    - generic: 
+    - generic: Guardar cambios
+  - button:
+    - generic: 
+    - generic: Cerrar
+- text: "?                   "
+- text: 2024©
+- link:
+  - /url: http://secuencia.com
+  - text: Sistemas en secuencia
+- list:
+  - link:
+    - /url: http://secuencia.com
+    - text: Acerca de
+- generic: 
+- text: 
+- text:  
+- dialog "No fue posible completar la acción":
+  - heading "No fue posible completar la acción" [level=2]
+  - generic: Esa relación atributo / elemento ya fue agregada al producto.
+  - text: "!"
+  - button "Aceptar"

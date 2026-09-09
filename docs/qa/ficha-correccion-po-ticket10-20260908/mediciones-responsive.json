@@ -1,0 +1,520 @@
+[
+  {
+    "label": "aceite-desktop",
+    "modalWidth": 1890,
+    "overflow": [],
+    "prices": [
+      {
+        "h": 61.181640625,
+        "text": "Unidad BasePieza (pz)",
+        "w": 183.96484375,
+        "x": 365.48828125,
+        "y": 458.359375
+      },
+      {
+        "h": 61.181640625,
+        "text": "Costo$605.00",
+        "w": 183.96484375,
+        "x": 560.498046875,
+        "y": 458.359375
+      },
+      {
+        "h": 61.181640625,
+        "text": "Precio público$680.00",
+        "w": 183.96484375,
+        "x": 755.5078125,
+        "y": 458.359375
+      },
+      {
+        "h": 61.181640625,
+        "text": "Precio de comparación$700.00",
+        "w": 183.96484375,
+        "x": 950.517578125,
+        "y": 458.359375
+      },
+      {
+        "h": 61.181640625,
+        "text": "Ganancia$75.00",
+        "w": 183.96484375,
+        "x": 1145.52734375,
+        "y": 458.359375
+      },
+      {
+        "h": 61.181640625,
+        "text": "Margen11.03%",
+        "w": 183.96484375,
+        "x": 1340.537109375,
+        "y": 458.359375
+      }
+    ],
+    "rows": [
+      {
+        "h": 61.181640625,
+        "text": "Código001  Descripción  LTH Aceite Motor Sintetico 5W-30 Lubricante Max Pro Tec 5L",
+        "w": 866.025390625,
+        "x": 658.486328125,
+        "y": 178.115234375
+      },
+      {
+        "h": 61.181640625,
+        "text": "TipoProductoEstatusActivoCategoríaAlimentosMarcaMobil 1",
+        "w": 866.025390625,
+        "x": 658.486328125,
+        "y": 250.341796875
+      },
+      {
+        "h": 61.181640625,
+        "text": "Colección001 · Colección 01  Etiquetas  ACEITESIvanLTHM01NEWNUEVOOTROSPRIMAVERA",
+        "w": 866.025390625,
+        "x": 658.486328125,
+        "y": 322.568359375
+      }
+    ],
+    "scrollWidth": 1890,
+    "viewport": 1890
+  },
+  {
+    "label": "aceite-tablet",
+    "modalWidth": 1025,
+    "overflow": [],
+    "prices": [
+      {
+        "h": 76.005859375,
+        "text": "Unidad BasePieza (pz)",
+        "w": 147.12890625,
+        "x": 43.486328125,
+        "y": 95.380859375
+      },
+      {
+        "h": 76.005859375,
+        "text": "Costo$605.00",
+        "w": 147.12890625,
+        "x": 201.66015625,
+        "y": 95.380859375
+      },
+      {
+        "h": 76.005859375,
+        "text": "Precio público$680.00",
+        "w": 147.12890625,
+        "x": 359.833984375,
+        "y": 95.380859375
+      },
+      {
+        "h": 76.005859375,
+        "text": "Precio de comparación$700.00",
+        "w": 147.138671875,
+        "x": 518.0078125,
+        "y": 95.380859375
+      },
+      {
+        "h": 76.005859375,
+        "text": "Ganancia$75.00",
+        "w": 147.12890625,
+        "x": 676.19140625,
+        "y": 95.380859375
+      },
+      {
+        "h": 76.005859375,
+        "text": "Margen11.03%",
+        "w": 147.12890625,
+        "x": 834.365234375,
+        "y": 95.380859375
+      }
+    ],
+    "rows": [
+      {
+        "h": 61.181640625,
+        "text": "Código001  Descripción  LTH Aceite Motor Sintetico 5W-30 Lubricante Max Pro Tec 5L",
+        "w": 645.01953125,
+        "x": 336.484375,
+        "y": -216.826171875
+      },
+      {
+        "h": 61.181640625,
+        "text": "TipoProductoEstatusActivoCategoríaAlimentosMarcaMobil 1",
+        "w": 645.01953125,
+        "x": 336.484375,
+        "y": -144.599609375
+      },
+      {
+        "h": 97.490234375,
+        "text": "Colección001 · Colección 01  Etiquetas  ACEITESIvanLTHM01NEWNUEVOOTROSPRIMAVERA",
+        "w": 645.01953125,
+        "x": 336.484375,
+        "y": -72.373046875
+      }
+    ],
+    "scrollWidth": 1025,
+    "viewport": 1025
+  },
+  {
+    "label": "aceite-tablet-820-css",
+    "modalWidth": 820,
+    "overflow": [],
+    "prices": [
+      {
+        "h": 61.181640625,
+        "text": "Unidad BasePieza (pz)",
+        "w": 236.97265625,
+        "x": 43.486328125,
+        "y": 858.115234375
+      },
+      {
+        "h": 61.181640625,
+        "text": "Costo$605.00",
+        "w": 236.97265625,
+        "x": 291.50390625,
+        "y": 858.115234375
+      },
+      {
+        "h": 61.181640625,
+        "text": "Precio público$680.00",
+        "w": 236.982421875,
+        "x": 539.521484375,
+        "y": 858.115234375
+      },
+      {
+        "h": 61.181640625,
+        "text": "Precio de comparación$700.00",
+        "w": 236.97265625,
+        "x": 43.486328125,
+        "y": 930.341796875
+      },
+      {
+        "h": 61.181640625,
+        "text": "Ganancia$75.00",
+        "w": 236.97265625,
+        "x": 291.50390625,
+        "y": 930.341796875
+      },
+      {
+        "h": 61.181640625,
+        "text": "Margen11.03%",
+        "w": 236.982421875,
+        "x": 539.521484375,
+        "y": 930.341796875
+      }
+    ],
+    "rows": [
+      {
+        "h": 61.181640625,
+        "text": "Código001  Descripción  LTH Aceite Motor Sintetico 5W-30 Lubricante Max Pro Tec 5L",
+        "w": 733.017578125,
+        "x": 43.486328125,
+        "y": 473.681640625
+      },
+      {
+        "h": 133.408203125,
+        "text": "TipoProductoEstatusActivoCategoríaAlimentosMarcaMobil 1",
+        "w": 733.017578125,
+        "x": 43.486328125,
+        "y": 545.908203125
+      },
+      {
+        "h": 97.490234375,
+        "text": "Colección001 · Colección 01  Etiquetas  ACEITESIvanLTHM01NEWNUEVOOTROSPRIMAVERA",
+        "w": 733.017578125,
+        "x": 43.486328125,
+        "y": 690.361328125
+      }
+    ],
+    "scrollWidth": 820,
+    "viewport": 820
+  },
+  {
+    "label": "aceite-movil-390-css",
+    "modalWidth": 390,
+    "overflow": [],
+    "prices": [
+      {
+        "h": 56.5625,
+        "text": "Unidad BasePieza (pz)",
+        "w": 309.51171875,
+        "x": 34.23828125,
+        "y": 1067.7734375
+      },
+      {
+        "h": 56.5625,
+        "text": "Costo$605.00",
+        "w": 309.51171875,
+        "x": 34.23828125,
+        "y": 1134.53125
+      },
+      {
+        "h": 56.5625,
+        "text": "Precio público$680.00",
+        "w": 309.51171875,
+        "x": 34.23828125,
+        "y": 1201.2890625
+      },
+      {
+        "h": 56.5625,
+        "text": "Precio de comparación$700.00",
+        "w": 309.51171875,
+        "x": 34.23828125,
+        "y": 1268.046875
+      },
+      {
+        "h": 56.5625,
+        "text": "Ganancia$75.00",
+        "w": 309.51171875,
+        "x": 34.23828125,
+        "y": 1334.8046875
+      },
+      {
+        "h": 56.5625,
+        "text": "Margen11.03%",
+        "w": 309.51171875,
+        "x": 34.23828125,
+        "y": 1401.5625
+      }
+    ],
+    "rows": [
+      {
+        "h": 123.154296875,
+        "text": "Código001  Descripción  LTH Aceite Motor Sintetico 5W-30 Lubricante Max Pro Tec 5L",
+        "w": 309.51171875,
+        "x": 34.23828125,
+        "y": 440.48828125
+      },
+      {
+        "h": 256.8359375,
+        "text": "TipoProductoEstatusActivoCategoríaAlimentosMarcaMobil 1",
+        "w": 309.51171875,
+        "x": 34.23828125,
+        "y": 573.837890625
+      },
+      {
+        "h": 161.962890625,
+        "text": "Colección001 · Colección 01  Etiquetas  ACEITESIvanLTHM01NEWNUEVOOTROSPRIMAVERA",
+        "w": 309.51171875,
+        "x": 34.23828125,
+        "y": 840.869140625
+      }
+    ],
+    "scrollWidth": 390,
+    "viewport": 390
+  },
+  {
+    "label": "servicio-desktop",
+    "modalWidth": 1890,
+    "overflow": [],
+    "prices": [
+      {
+        "h": 61.181640625,
+        "text": "Unidad BaseUnidad de servicio (US)",
+        "w": 183.96484375,
+        "x": 365.48828125,
+        "y": 469.86328125
+      },
+      {
+        "h": 61.181640625,
+        "text": "Costo$500.00",
+        "w": 183.96484375,
+        "x": 560.498046875,
+        "y": 469.86328125
+      },
+      {
+        "h": 61.181640625,
+        "text": "Precio público$1,500.00",
+        "w": 183.96484375,
+        "x": 755.5078125,
+        "y": 469.86328125
+      },
+      {
+        "h": 61.181640625,
+        "text": "Precio de comparación$1,750.00",
+        "w": 183.96484375,
+        "x": 950.517578125,
+        "y": 469.86328125
+      },
+      {
+        "h": 61.181640625,
+        "text": "Ganancia$1,000.00",
+        "w": 183.96484375,
+        "x": 1145.52734375,
+        "y": 469.86328125
+      },
+      {
+        "h": 61.181640625,
+        "text": "Margen66.67%",
+        "w": 183.96484375,
+        "x": 1340.537109375,
+        "y": 469.86328125
+      }
+    ],
+    "rows": [
+      {
+        "h": 81.865234375,
+        "text": "Código002  Descripción  El cambio de aceite de un vehículo consiste en retirar el aceite viejo y sucio del motor, reemplazar el filtro de aceite y rellenar con aceite nuevo que tenga la viscosidad y calidad correctas. Esto sirve para lubricar, limpiar y enfriar las piezas de metal que se mueven por dentro, evitando que el motor se dañe.",
+        "w": 866.025390625,
+        "x": 658.486328125,
+        "y": 178.115234375
+      },
+      {
+        "h": 61.181640625,
+        "text": "TipoServicioEstatusActivoCategoríaMantenimiento",
+        "w": 866.025390625,
+        "x": 658.486328125,
+        "y": 271.025390625
+      },
+      {
+        "h": 56.34765625,
+        "text": "Etiquetas  M01",
+        "w": 866.025390625,
+        "x": 658.486328125,
+        "y": 343.251953125
+      }
+    ],
+    "scrollWidth": 1890,
+    "viewport": 1890
+  },
+  {
+    "label": "servicio-tablet-820-css",
+    "modalWidth": 820,
+    "overflow": [],
+    "prices": [
+      {
+        "h": 61.181640625,
+        "text": "Unidad BaseUnidad de servicio (US)",
+        "w": 236.97265625,
+        "x": 43.486328125,
+        "y": 842.8515625
+      },
+      {
+        "h": 61.181640625,
+        "text": "Costo$500.00",
+        "w": 236.97265625,
+        "x": 291.50390625,
+        "y": 842.8515625
+      },
+      {
+        "h": 61.181640625,
+        "text": "Precio público$1,500.00",
+        "w": 236.982421875,
+        "x": 539.521484375,
+        "y": 842.8515625
+      },
+      {
+        "h": 61.181640625,
+        "text": "Precio de comparación$1,750.00",
+        "w": 236.97265625,
+        "x": 43.486328125,
+        "y": 915.078125
+      },
+      {
+        "h": 61.181640625,
+        "text": "Ganancia$1,000.00",
+        "w": 236.97265625,
+        "x": 291.50390625,
+        "y": 915.078125
+      },
+      {
+        "h": 61.181640625,
+        "text": "Margen66.67%",
+        "w": 236.982421875,
+        "x": 539.521484375,
+        "y": 915.078125
+      }
+    ],
+    "rows": [
+      {
+        "h": 102.65625,
+        "text": "Código002  Descripción  El cambio de aceite de un vehículo consiste en retirar el aceite viejo y sucio del motor, reemplazar el filtro de aceite y rellenar con aceite nuevo que tenga la viscosidad y calidad correctas. Esto sirve para lubricar, limpiar y enfriar las piezas de metal que se mueven por dentro, evitando que el motor se dañe.",
+        "w": 733.017578125,
+        "x": 43.486328125,
+        "y": 458.0859375
+      },
+      {
+        "h": 133.408203125,
+        "text": "TipoServicioEstatusActivoCategoríaMantenimiento",
+        "w": 733.017578125,
+        "x": 43.486328125,
+        "y": 571.787109375
+      },
+      {
+        "h": 56.34765625,
+        "text": "Etiquetas  M01",
+        "w": 733.017578125,
+        "x": 43.486328125,
+        "y": 716.240234375
+      }
+    ],
+    "scrollWidth": 820,
+    "viewport": 820
+  },
+  {
+    "label": "servicio-movil-390-css",
+    "modalWidth": 390,
+    "overflow": [],
+    "prices": [
+      {
+        "h": 56.5625,
+        "text": "Unidad BaseUnidad de servicio (US)",
+        "w": 309.51171875,
+        "x": 34.23828125,
+        "y": 890.83984375
+      },
+      {
+        "h": 56.5625,
+        "text": "Costo$500.00",
+        "w": 309.51171875,
+        "x": 34.23828125,
+        "y": 957.59765625
+      },
+      {
+        "h": 56.5625,
+        "text": "Precio público$1,500.00",
+        "w": 309.51171875,
+        "x": 34.23828125,
+        "y": 1024.35546875
+      },
+      {
+        "h": 56.5625,
+        "text": "Precio de comparación$1,750.00",
+        "w": 309.51171875,
+        "x": 34.23828125,
+        "y": 1091.11328125
+      },
+      {
+        "h": 56.5625,
+        "text": "Ganancia$1,000.00",
+        "w": 309.51171875,
+        "x": 34.23828125,
+        "y": 1157.87109375
+      },
+      {
+        "h": 56.5625,
+        "text": "Margen66.67%",
+        "w": 309.51171875,
+        "x": 34.23828125,
+        "y": 1224.62890625
+      }
+    ],
+    "rows": [
+      {
+        "h": 199.951171875,
+        "text": "Código002  Descripción  El cambio de aceite de un vehículo consiste en retirar el aceite viejo y sucio del motor, reemplazar el filtro de aceite y rellenar con aceite nuevo que tenga la viscosidad y calidad correctas. Esto sirve para lubricar, limpiar y enfriar las piezas de metal que se mueven por dentro, evitando que el motor se dañe.",
+        "w": 309.51171875,
+        "x": 34.23828125,
+        "y": 360.859375
+      },
+      {
+        "h": 190.078125,
+        "text": "TipoServicioEstatusActivoCategoríaMantenimiento",
+        "w": 309.51171875,
+        "x": 34.23828125,
+        "y": 571.005859375
+      },
+      {
+        "h": 54.619140625,
+        "text": "Etiquetas  M01",
+        "w": 309.51171875,
+        "x": 34.23828125,
+        "y": 771.279296875
+      }
+    ],
+    "scrollWidth": 390,
+    "viewport": 390
+  }
+]

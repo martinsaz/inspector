@@ -1,0 +1,15 @@
+{
+  "5200": {
+    "pid": 7235,
+    "codex": true,
+    "detenido": true,
+    "libre": true
+  },
+  "5127": {
+    "pid": 7228,
+    "codex": true,
+    "detenido": true,
+    "libre": true
+  },
+  "preexistentesDetenidos": false
+}

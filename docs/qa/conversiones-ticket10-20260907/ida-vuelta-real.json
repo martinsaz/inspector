@@ -1,0 +1,118 @@
+[
+  {
+    "ida": {
+      "origen": "KG",
+      "destino": "LB",
+      "cantidad": "1",
+      "referencia_factores": "2.204622621848775807229738013",
+      "interno_motor": "2.2046",
+      "persistido": "2.2046",
+      "api": "2.2046",
+      "ui_formato_4": "2.2046",
+      "error_absoluto": "0.000022621848775807229738013",
+      "pass": true
+    },
+    "vuelta": {
+      "origen": "LB",
+      "destino": "KG",
+      "cantidad": "2.2046",
+      "referencia_factores": "0.999989738902",
+      "interno_motor": "1.0",
+      "persistido": "1.0",
+      "api": "1.0",
+      "ui_formato_4": "1.0000",
+      "error_absoluto": "0.000010261098",
+      "pass": true
+    },
+    "error_absoluto": "0.0",
+    "cota_por_DECIMAL_18_4": "0.0000726796185",
+    "pass": true
+  },
+  {
+    "ida": {
+      "origen": "M",
+      "destino": "FT",
+      "cantidad": "1",
+      "referencia_factores": "3.280839895013123359580052493",
+      "interno_motor": "3.2808",
+      "persistido": "3.2808",
+      "api": "3.2808",
+      "ui_formato_4": "3.2808",
+      "error_absoluto": "0.000039895013123359580052493",
+      "pass": true
+    },
+    "vuelta": {
+      "origen": "FT",
+      "destino": "M",
+      "cantidad": "3.2808",
+      "referencia_factores": "0.99998784",
+      "interno_motor": "1.0",
+      "persistido": "1.0",
+      "api": "1.0",
+      "ui_formato_4": "1.0000",
+      "error_absoluto": "0.00001216",
+      "pass": true
+    },
+    "error_absoluto": "0.0",
+    "cota_por_DECIMAL_18_4": "0.000065240",
+    "pass": true
+  },
+  {
+    "ida": {
+      "origen": "L",
+      "destino": "GAL",
+      "cantidad": "1",
+      "referencia_factores": "0.2641720523581484153798999216",
+      "interno_motor": "0.2642",
+      "persistido": "0.2642",
+      "api": "0.2642",
+      "ui_formato_4": "0.2642",
+      "error_absoluto": "0.0000279476418515846201000784",
+      "pass": true
+    },
+    "vuelta": {
+      "origen": "GAL",
+      "destino": "L",
+      "cantidad": "0.2642",
+      "referencia_factores": "1.0001057933328",
+      "interno_motor": "1.0001",
+      "persistido": "1.0001",
+      "api": "1.0001",
+      "ui_formato_4": "1.0001",
+      "error_absoluto": "0.0000057933328",
+      "pass": true
+    },
+    "error_absoluto": "0.0001",
+    "cota_por_DECIMAL_18_4": "0.00023927058920",
+    "pass": true
+  },
+  {
+    "ida": {
+      "origen": "M2",
+      "destino": "FT2",
+      "cantidad": "1",
+      "referencia_factores": "10.76391041670972230833350556",
+      "interno_motor": "10.7639",
+      "persistido": "10.7639",
+      "api": "10.7639",
+      "ui_formato_4": "10.7639",
+      "error_absoluto": "0.00001041670972230833350556",
+      "pass": true
+    },
+    "vuelta": {
+      "origen": "FT2",
+      "destino": "M2",
+      "cantidad": "10.7639",
+      "referencia_factores": "0.999999032256",
+      "interno_motor": "1.0",
+      "persistido": "1.0",
+      "api": "1.0",
+      "ui_formato_4": "1.0000",
+      "error_absoluto": "9.67744E-7",
+      "pass": true
+    },
+    "error_absoluto": "0.0",
+    "cota_por_DECIMAL_18_4": "0.0000546451520",
+    "pass": true
+  }
+]

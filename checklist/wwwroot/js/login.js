@@ -52,14 +52,12 @@ var KTSigninGeneral = function () {
                                 if (r == "Valid") {
                                     let usr = $("#email").val();
                                     let pwd = $("#password").val();
-                                    let nem = $("#noEmp").val();
                                     let usrEncoded = encodeURIComponent(usr || "");
                                     let pwdEncoded = encodeURIComponent(pwd || "");
-                                    let nemEncoded = encodeURIComponent(nem || "");
                                     $.ajax({
                                         type: "POST",
                                         contentType: "application/json; charset=utf-8",
-                                        url: `/Login/Ingreso?usr=${usrEncoded}&pwd=${pwdEncoded}&nem=${nemEncoded}`,
+                                        url: `/Login/Ingreso?usr=${usrEncoded}&pwd=${pwdEncoded}`,
                                         dataType: "json",
                                         success: function (response) {
                                             if (response.d == 'Ok') {
@@ -131,15 +129,13 @@ var KTSigninGeneral = function () {
                             r.validate().then((function (r) {
                                 let usr = $("#email").val();
                                 let pwd = $("#password").val();
-                                let nem = $("#noEmp").val();
                                 let usrEncoded = encodeURIComponent(usr || "");
                                 let pwdEncoded = encodeURIComponent(pwd || "");
-                                let nemEncoded = encodeURIComponent(nem || "");
                                 $.ajax({
                                     async: true,
                                     type: "POST",
                                     contentType: "application/json; charset=utf-8",
-                                    url: `/Login/Ingreso?usr=${usrEncoded}&pwd=${pwdEncoded}&nem=${nemEncoded}`,
+                                    url: `/Login/Ingreso?usr=${usrEncoded}&pwd=${pwdEncoded}`,
                                     dataType: "json",
                                     success: function (response) {
                                         if (response.d == 'Ok') {
@@ -317,14 +313,6 @@ $(document).ready(function () {
     $('#btNuevaEmpresa').click(function () {
         $('#txEmpresa').val('');
         $('#mdEmpresa').modal('show');
-    });
-
-    $('#email').on('focusout', function () {
-        if ($('#email').val() == 'soporte@secuencia.com') {
-            $('#areaNoEmp').show();
-        } else {
-            $('#areaNoEmp').hide();
-        }
     });
 
     $('#txEmpresa').keyup(function () {

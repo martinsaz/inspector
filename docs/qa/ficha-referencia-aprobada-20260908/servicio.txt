@@ -1,0 +1,44 @@
+Tu operación, más simple.
+FICHA TÉCNICA
+Servicio
+MANTENIMIENTO
+Cambio de Aceite
+Servicio 002
+SERVICIO ● ACTIVO
+Descripción del servicio
+El cambio de aceite de un vehículo consiste en retirar el aceite viejo y sucio del motor, reemplazar el filtro de aceite y rellenar con aceite
+ nuevo que tenga la viscosidad y calidad correctas. Esto sirve para lubricar, limpiar y enfriar las piezas de metal que se mueven por
+ dentro, evitando que el motor se dañe.
+Información general
+Código
+002
+Tipo
+Servicio
+Estatus
+Activo
+Categoría
+Mantenimiento
+Unidad base
+Unidad de servicio (US)
+Etiquetas
+M01
+Precio y rentabilidad Valores en MXN
+Precio público
+$1,500.00
+Costo
+$500.00
+Ganancia
+$1,000.00
+Margen
+66.67%
+Precio de comparación
+$1,750.00
+Información fiscal
+Clave producto/servicio SAT
+78181503 - Servicio de cambio fluidos de
+ transmisión o de aceite
+Clave unidad SAT
+ACT - Actividad
+Objeto de impuesto
+No
+CheckApp · Ficha técnica de servicio 1 / 1 08/09/2026

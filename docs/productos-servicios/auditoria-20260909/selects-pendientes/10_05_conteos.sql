@@ -1,0 +1,1 @@
+SELECT idEmpresa, COUNT_BIG(*) AS total FROM dbo.[ProductosServiciosMovimientosInventario] GROUP BY idEmpresa

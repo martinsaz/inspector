@@ -1,0 +1,1 @@
+SELECT Tipo,ObjetoImpuesto,PorcentajeIVA,COUNT_BIG(*) AS filas FROM dbo.ProductosServicios GROUP BY Tipo,ObjetoImpuesto,PorcentajeIVA

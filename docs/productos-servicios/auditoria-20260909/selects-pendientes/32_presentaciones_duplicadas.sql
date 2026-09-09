@@ -1,0 +1,1 @@
+SELECT idEmpresa,idProductoServicio,idUnidadVenta,CantidadVenta,EquivalenciaBase,COUNT_BIG(*) AS filas FROM dbo.ProductosServiciosPresentacionesVenta WHERE Activo=1 GROUP BY idEmpresa,idProductoServicio,idUnidadVenta,CantidadVenta,EquivalenciaBase HAVING COUNT_BIG(*)>1

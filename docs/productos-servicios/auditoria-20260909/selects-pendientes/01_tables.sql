@@ -1,0 +1,1 @@
+SELECT s.name AS schema_name,t.name AS table_name,t.object_id,t.temporal_type_desc FROM sys.tables t JOIN sys.schemas s ON s.schema_id=t.schema_id ORDER BY s.name,t.name

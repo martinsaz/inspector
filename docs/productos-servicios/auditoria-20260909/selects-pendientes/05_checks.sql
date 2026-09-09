@@ -1,0 +1,1 @@
+SELECT t.name AS table_name,ch.name AS constraint_name,ch.definition,ch.is_disabled,ch.is_not_trusted FROM sys.check_constraints ch JOIN sys.tables t ON t.object_id=ch.parent_object_id WHERE t.name LIKE 'ProductosServicios%' ORDER BY t.name,ch.name

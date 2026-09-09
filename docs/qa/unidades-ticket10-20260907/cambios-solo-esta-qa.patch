@@ -1,0 +1,66 @@
+--- antes/inspectorapi/checklistWs/Controllers/ProductosServicios/ProductosServiciosController.cs
++++ despues/inspectorapi/checklistWs/Controllers/ProductosServicios/ProductosServiciosController.cs
+@@ -4134,9 +4134,19 @@
+             if (existente?.EsSistema == true) { transaction.Rollback(); return BadRequest(new ProductoServicioOperacionResponse { Mensaje = "Las unidades del sistema no pueden modificarse." }); }
+             string nombre = request.Nombre.Trim();
+             string abreviatura = request.Abreviatura.Trim();
+-            using SqlCommand duplicate = new SqlCommand(@"SELECT COUNT(1) FROM dbo.ProductosServiciosUnidadesMedida WHERE idEmpresa=@Empresa AND (UPPER(LTRIM(RTRIM(Nombre)))=UPPER(@Nombre) OR UPPER(LTRIM(RTRIM(Abreviatura)))=UPPER(@Abreviatura)) AND (@Id IS NULL OR id<>@Id)", connection, transaction);
++            using SqlCommand duplicate = new SqlCommand(@"SELECT TOP (1) CAST(EsSistema AS int) FROM dbo.ProductosServiciosUnidadesMedida WHERE idEmpresa=@Empresa AND (UPPER(LTRIM(RTRIM(Nombre)))=UPPER(@Nombre) OR UPPER(LTRIM(RTRIM(Abreviatura)))=UPPER(@Abreviatura)) AND (@Id IS NULL OR id<>@Id) ORDER BY EsSistema DESC", connection, transaction);
+             duplicate.Parameters.AddWithValue("@Empresa", idEmpresa); duplicate.Parameters.AddWithValue("@Nombre", nombre); duplicate.Parameters.AddWithValue("@Abreviatura", abreviatura); duplicate.Parameters.AddWithValue("@Id", nueva ? DBNull.Value : id);
+-            if (Convert.ToInt32(await duplicate.ExecuteScalarAsync()) > 0) { transaction.Rollback(); return BadRequest(new ProductoServicioOperacionResponse { Mensaje = "Ya existe una unidad con el mismo nombre o abreviatura." }); }
++            object? duplicadaSistema = await duplicate.ExecuteScalarAsync();
++            if (duplicadaSistema != null)
++            {
++                transaction.Rollback();
++                return BadRequest(new ProductoServicioOperacionResponse
++                {
++                    Mensaje = Convert.ToInt32(duplicadaSistema) == 1
++                        ? "Esta unidad ya está disponible\nLa unidad que intentas crear ya forma parte de las unidades estándar de CheckApp."
++                        : "Ya existe una unidad con ese nombre o abreviatura."
++                });
++            }
+             DateTime ahora = DateTime.UtcNow;
+             if (nueva)
+             {
+--- antes/inspector/checklist/wwwroot/js/ProductosServicios/ProductosServiciosCatalogos.js
++++ despues/inspector/checklist/wwwroot/js/ProductosServicios/ProductosServiciosCatalogos.js
+@@ -467,7 +467,16 @@
+             CheckAppUI.reloadGrid(config.gridId);
+         }).catch(function (error) {
+             finishSaveUi();
+-            modalBridge.setStatus("danger", resolveErrorMessage(error));
++            const message = resolveErrorMessage(error);
++            modalBridge.setStatus("danger", message);
++            if (config === configs.unidades && message.indexOf("Esta unidad ya está disponible\n") === 0) {
++                Swal.fire({
++                    icon: "info",
++                    title: "Esta unidad ya está disponible",
++                    text: message.substring(message.indexOf("\n") + 1),
++                    confirmButtonText: "Aceptar"
++                });
++            }
+         });
+     }
+ 
+--- antes/inspector/checklist/wwwroot/css/ProductosServicios/ProductosServicios.css
++++ despues/inspector/checklist/wwwroot/css/ProductosServicios/ProductosServicios.css
+@@ -1043,6 +1043,19 @@
+     margin-left: auto;
+ }
+ 
++@media (max-width: 575.98px) {
++    .ps-catalog-modal-form[data-quick-catalog-layout="unidad"] .ps-catalog-form-grid {
++        grid-template-columns: minmax(0, 1fr);
++    }
++
++    .ps-catalog-modal-form[data-quick-catalog-layout="unidad"] .ps-catalog-field--name,
++    .ps-catalog-modal-form[data-quick-catalog-layout="unidad"] .ps-catalog-field--abbreviation,
++    .ps-catalog-modal-form[data-quick-catalog-layout="unidad"] .ps-catalog-field--decimals {
++        grid-column: 1;
++        grid-row: auto;
++    }
++}
++
+ .ps-floating-field {
+     position: relative;
+ }

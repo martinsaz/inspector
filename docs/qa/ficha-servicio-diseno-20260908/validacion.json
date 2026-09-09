@@ -1,0 +1,20 @@
+{
+  "producto": {
+    "pages": 1,
+    "textIdentical": true,
+    "pixelsIdentical": true
+  },
+  "servicio": {
+    "pages": 1,
+    "amountsIdentical": true,
+    "outsidePage": 0
+  },
+  "sin-imagen-nulos": {
+    "pages": 1,
+    "outsidePage": 0
+  },
+  "larga": {
+    "pages": 2,
+    "outsidePage": 0
+  }
+}

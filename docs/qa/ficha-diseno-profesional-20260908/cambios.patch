@@ -1,0 +1,395 @@
+--- antes/ProductosServiciosController.cs
++++ despues/ProductosServiciosController.cs
+@@ -7205,18 +7205,13 @@
+                 document.Page(page =>
+                 {
+                     page.Size(PageSizes.A4);
+-                    page.Margin(22);
+-                    page.DefaultTextStyle(style => style.FontFamily(Fonts.Calibri).FontSize(9).FontColor("#20304A"));
+-
+-                    page.Header().PaddingBottom(7).Row(row =>
++                    page.Margin(24);
++                    page.DefaultTextStyle(style => style.FontFamily(Fonts.Calibri).FontSize(9).FontColor(FichaInk));
++
++                    page.Header().PaddingBottom(10).Row(row =>
+                     {
+                         if (logo != null) row.ConstantItem(78).Height(17).Image(logo).FitArea();
+-                        row.RelativeItem().PaddingLeft(10).Column(info =>
+-                        {
+-                            info.Item().Text("FICHA TÉCNICA").SemiBold().FontSize(12);
+-                            // Official --ca-primary / --checkapp-color-primary in checkapp-theme.css.
+-                            info.Item().Text(ficha.Nombre).SemiBold().FontSize(10).FontColor("#EC0000");
+-                        });
++                        row.RelativeItem().AlignRight().AlignMiddle().Text("FICHA TÉCNICA").FontSize(8).FontColor(FichaMuted);
+                     });
+ 
+                     page.Content().Column(content =>
+@@ -7224,32 +7219,19 @@
+                         content.Spacing(6);
+                         content.Item().Element(container => ComposeFichaGeneralSection(container, ficha, imagenPrincipal));
+                         content.Item().Element(container => ComposeFichaCommercialSection(container, ficha));
++                        if (hasInventorySection)
++                            content.Item().Element(container => ComposeFichaInventorySection(container, ficha));
++                        if (ficha.Tipo == TipoProducto && ficha.PresentacionesVenta.Count > 0)
++                            content.Item().Element(container => ComposeFichaPresentationsSection(container, ficha));
++                        if (hasVariantsSection)
++                            content.Item().Element(container => ComposeFichaVariantsSection(container, ficha.Variantes, imagenesVariantes));
++                        if (hasAttributesSection)
++                            content.Item().Element(container => ComposeFichaAttributesSection(container, ficha.Atributos));
++                        if (hasPhysicalSection)
++                            content.Item().Element(container => ComposeFichaPhysicalSection(container, ficha));
+                         content.Item().Element(container => ComposeFichaFiscalSection(container, ficha));
+-
+-                        if (hasPhysicalSection)
+-                        {
+-                            content.Item().Element(container => ComposeFichaPhysicalSection(container, ficha));
+-                        }
+-
+-                        if (hasInventorySection)
+-                        {
+-                            content.Item().Element(container => ComposeFichaInventorySection(container, ficha));
+-                        }
+-
+-                        if (hasAttributesSection)
+-                        {
+-                            content.Item().Element(container => ComposeFichaAttributesSection(container, ficha.Atributos));
+-                        }
+-
+-                        if (hasVariantsSection)
+-                        {
+-                            content.Item().Element(container => ComposeFichaVariantsSection(container, ficha.Variantes, imagenesVariantes));
+-                        }
+-
+                         if (hasMultimediaSection)
+-                        {
+                             content.Item().Element(container => ComposeFichaMultimediaSection(container, ficha.Multimedia));
+-                        }
+                     });
+ 
+                     page.Footer().AlignCenter().Text(text =>
+@@ -7264,68 +7246,64 @@
+             }).GeneratePdf();
+         }
+ 
++        // PDF palette mirrors checkapp-theme.css; branding remains in the shared logo.
++        private const string FichaInk = "#1A1A1A";
++        private const string FichaMuted = "#6B7280";
++        private const string FichaSurface = "#F7F3EF";
++        private const string FichaRule = "#E6E1DC";
++
+         private static void ComposeFichaGeneralSection(IContainer container, ProductoServicioFichaTecnicaDto ficha, byte[]? imagenPrincipal)
+         {
+-            FichaCompactSection(container, "Información general").Row(row =>
+-            {
+-                row.ConstantItem(80).PaddingRight(8).Element(box =>
+-                {
+-                    if (imagenPrincipal != null) box.MaxHeight(82).Image(imagenPrincipal).FitArea();
+-                    else box.Text("Sin imagen").FontColor("#94A3B8");
++            container.EnsureSpace(185).Row(row =>
++            {
++                row.RelativeItem(3).PaddingRight(16).Element(box =>
++                {
++                    if (imagenPrincipal != null)
++                        box.Height(152).Padding(8).Image(imagenPrincipal).FitArea();
++                    else box.Height(152).Background(FichaSurface).AlignCenter().AlignMiddle().Text("Sin imagen").FontColor(FichaMuted);
+                 });
+-                row.RelativeItem().Column(details =>
+-                {
+-                    details.Spacing(4);
+-                    details.Item().Row(first =>
++                row.RelativeItem(7).Column(details =>
++                {
++                    details.Spacing(6);
++                    details.Item().Text(ficha.Nombre).SemiBold().FontSize(21).LineHeight(1.05f);
++                    if (!string.IsNullOrWhiteSpace(ficha.Descripcion))
++                        details.Item().Text(text => AppendRichTextToPdf(text, ficha.Descripcion));
++                    var metadata = new List<(string Label, string Value)>
+                     {
+-                        first.ConstantItem(58).Element(box => ComposeFichaGeneralField(box, "Código", FichaTextOrDash(ficha.Codigo)));
+-                        first.RelativeItem().Padding(3).Column(field =>
+-                        {
+-                            field.Item().Text("Descripción").SemiBold().FontSize(8).FontColor("#475569");
+-                            field.Item().Text(text => AppendRichTextToPdf(text, ficha.Descripcion ?? ""));
+-                        });
+-                    });
+-                    var classification = new List<(string Label, string Value)>
+-                    {
++                        ("Código", FichaTextOrDash(ficha.Codigo)),
+                         ("Tipo", FichaTextOrDash(ficha.TipoNombre)),
+                         ("Estatus", FichaTextOrDash(ficha.EstatusNombre)),
+                         ("Categoría", FichaTextOrDash(ficha.Categoria))
+                     };
+-                    if (!string.IsNullOrWhiteSpace(ficha.Marca)) classification.Add(("Marca", ficha.Marca.Trim()));
+-                    details.Item().Element(box => ComposeFichaMetricGrid(box, classification, classification.Count));
++                    if (!string.IsNullOrWhiteSpace(ficha.Marca)) metadata.Add(("Marca", ficha.Marca.Trim()));
+                     string coleccion = BuildColeccionLabel(ficha.ColeccionNumero, ficha.ColeccionNombre);
+-                    if (!string.IsNullOrWhiteSpace(coleccion) || ficha.Tags.Any())
+-                    {
+-                        details.Item().Row(last =>
+-                        {
+-                            if (!string.IsNullOrWhiteSpace(coleccion))
+-                                last.RelativeItem(1).Element(box => ComposeFichaGeneralField(box, "Colección", coleccion));
+-                            if (ficha.Tags.Any())
+-                                last.RelativeItem(2).Element(box => ComposeFichaGeneralField(box, "Etiquetas",
+-                                    string.Join(" · ", ficha.Tags.Select(tag => FichaTextOrDash(tag.Nombre)))));
+-                        });
+-                    }
++                    if (!string.IsNullOrWhiteSpace(coleccion)) metadata.Add(("Colección", coleccion));
++                    details.Item().Element(box => ComposeFichaMetricGrid(box, metadata, 3));
++                    if (ficha.Tags.Any())
++                        details.Item().Element(box => ComposeFichaGeneralField(box, "Etiquetas",
++                            string.Join(" · ", ficha.Tags.Select(tag => FichaTextOrDash(tag.Nombre)))));
+                 });
+             });
+         }
+ 
+         private static void ComposeFichaGeneralField(IContainer container, string label, string value)
+         {
+-            container.Padding(3).Column(field =>
+-            {
+-                field.Item().Text(label).SemiBold().FontSize(8).FontColor("#475569");
++            container.PaddingVertical(2).PaddingRight(8).Column(field =>
++            {
++                field.Item().Text(label).FontSize(7.5f).FontColor(FichaMuted);
+                 field.Item().Text(value).FontSize(9);
+             });
+         }
+ 
+-        // PDF-only layout: rows can flow onto following pages without clipping long values.
++        // Keep the section title with its first content, while allowing long tables to flow.
+         private static IContainer FichaCompactSection(IContainer container, string title)
+         {
+             IContainer body = null!;
+-            container.Border(0.5f).BorderColor("#D7E0EA").CornerRadius(4).Padding(7).Column(column =>
+-            {
+-                column.Spacing(4);
+-                column.Item().EnsureSpace(32).Text(title).SemiBold().FontSize(10).FontColor("#0F172A");
++            container.EnsureSpace(48).Column(column =>
++            {
++                column.Spacing(3);
++                column.Item().BorderBottom(0.6f).BorderColor(FichaRule)
++                    .PaddingBottom(3).Text(title).SemiBold().FontSize(10.5f).FontColor(FichaInk);
+                 body = column.Item();
+             });
+             return body;
+@@ -7337,13 +7315,7 @@
+             {
+                 table.ColumnsDefinition(cols => { for (int i = 0; i < columns; i++) cols.RelativeColumn(); });
+                 foreach (var item in rows)
+-                {
+-                    table.Cell().Padding(3).Column(metric =>
+-                    {
+-                        metric.Item().Text(item.Label).SemiBold().FontSize(8).FontColor("#475569");
+-                        metric.Item().Text(FichaTextOrDash(item.Value)).FontSize(9);
+-                    });
+-                }
++                    table.Cell().Element(box => ComposeFichaGeneralField(box, item.Label, FichaTextOrDash(item.Value)));
+             });
+         }
+ 
+@@ -7372,28 +7344,35 @@
+                 if (ficha.PrecioPublico > 0) rows.Add(("Margen", (ganancia / ficha.PrecioPublico * 100).ToString("0.00", CultureInfo.InvariantCulture) + "%"));
+             }
+ 
+-            container.Column(column =>
+-            {
+-                column.Spacing(4);
+-                column.Item().Element(box => ComposeFichaMetricGrid(FichaCompactSection(box, "Precios y Costos"), rows, rows.Count));
+-                if (ficha.Tipo == TipoProducto && ficha.PresentacionesVenta.Count > 0)
+-                {
+-                    column.Item().EnsureSpace(45).Text("Presentaciones de venta").SemiBold();
+-                    column.Item().Table(table =>
+-                    {
+-                        table.ColumnsDefinition(cols => { cols.RelativeColumn(); cols.RelativeColumn(); cols.RelativeColumn(); });
+-                        table.Header(header =>
+-                        {
+-                            foreach (string label in new[] { "Venta", "Equivale en inventario", "Precio" }) header.Cell().Padding(3).Text(label).SemiBold();
+-                        });
+-                        foreach (var item in ficha.PresentacionesVenta)
+-                        {
+-                            string venta = item.CantidadVenta.ToString("0.####", CultureInfo.InvariantCulture) + " " + item.UnidadVenta + (EsPresentacionBase(item, ficha.IdUnidadMedida) ? " Base" : "");
+-                            table.Cell().Padding(3).Text(venta);
+-                            table.Cell().Padding(3).Text(item.EquivalenciaBase.ToString("0.####", CultureInfo.InvariantCulture) + " " + ficha.UnidadAbreviatura);
+-                            table.Cell().Padding(3).Text(FichaFormatCurrency(item.Precio));
+-                        }
+-                    });
++            rows.RemoveAll(item => item.Label == "Precio público");
++            FichaCompactSection(container, "Precios y Costos").Background(FichaSurface).Padding(6).Row(row =>
++            {
++                row.RelativeItem(1.4f).PaddingRight(12).Column(price =>
++                {
++                    price.Item().Text("Precio público").FontSize(8).FontColor(FichaMuted);
++                    price.Item().Text(FichaFormatCurrency(ficha.PrecioPublico)).SemiBold().FontSize(19);
++                });
++                row.RelativeItem(4).AlignMiddle().Element(box => ComposeFichaMetricGrid(box, rows, rows.Count));
++            });
++        }
++
++        private static void ComposeFichaPresentationsSection(IContainer container, ProductoServicioFichaTecnicaDto ficha)
++        {
++            FichaCompactSection(container, "Presentaciones de venta").Table(table =>
++            {
++                table.ColumnsDefinition(cols => { cols.RelativeColumn(1.3f); cols.RelativeColumn(); cols.RelativeColumn(); });
++                table.Header(header =>
++                {
++                    header.Cell().Element(x => FichaTableHeaderCell(x, "Venta"));
++                    header.Cell().Element(x => FichaTableHeaderCell(x, "Equivale en inventario"));
++                    header.Cell().Element(x => FichaTableHeaderCell(x, "Precio", true));
++                });
++                foreach (var item in ficha.PresentacionesVenta)
++                {
++                    string venta = item.CantidadVenta.ToString("0.####", CultureInfo.InvariantCulture) + " " + item.UnidadVenta + (EsPresentacionBase(item, ficha.IdUnidadMedida) ? " Base" : "");
++                    table.Cell().Element(x => FichaTableBodyCell(x, venta));
++                    table.Cell().Element(x => FichaTableBodyCell(x, item.EquivalenciaBase.ToString("0.####", CultureInfo.InvariantCulture) + " " + ficha.UnidadAbreviatura));
++                    table.Cell().Element(x => FichaTableBodyCell(x, FichaFormatCurrency(item.Precio), true, true));
+                 }
+             });
+         }
+@@ -7493,7 +7472,16 @@
+ 
+             rows.Add(("Permite venta sin existencia", ficha.PermiteVentaSinExistencia ? "Sí" : "No"));
+ 
+-            ComposeFichaMetricGrid(FichaCompactSection(container, "Inventario"), rows, 3);
++            FichaCompactSection(container, "Inventario").Table(table =>
++            {
++                table.ColumnsDefinition(cols => { cols.RelativeColumn(); cols.RelativeColumn(); cols.RelativeColumn(); });
++                foreach (var item in rows)
++                    table.Cell().PaddingRight(10).Column(metric =>
++                    {
++                        metric.Item().Text(item.Label).FontSize(8).FontColor(FichaMuted);
++                        metric.Item().Text(item.Value).SemiBold().FontSize(item.Label == "Existencia actual" ? 16 : 10);
++                    });
++            });
+         }
+ 
+         private static void ComposeFichaAttributesSection(IContainer container, IReadOnlyCollection<ProductoServicioAtributoSeleccionDto> atributos)
+@@ -7506,21 +7494,17 @@
+ 
+         private static void ComposeFichaVariantsSection(IContainer container, IReadOnlyCollection<ProductoServicioVarianteDto> variantes, IReadOnlyDictionary<Guid, byte[]?> imagenesVariantes)
+         {
+-            (variantes.Count <= 2 ? container.EnsureSpace(110) : container.EnsureSpace(65))
+-                .Border(0.5f)
+-                .BorderColor("#D7E0EA")
+-                .CornerRadius(4)
+-                .Padding(7)
+-                .Column(column =>
+-                {
+-                    column.Spacing(4);
+-                    column.Item().EnsureSpace(45).Text("Variantes").SemiBold().FontSize(10).FontColor("#0F172A");
++            container.EnsureSpace(105).Column(column =>
++                {
++                    column.Spacing(3);
++                    column.Item().BorderBottom(0.6f).BorderColor(FichaRule).PaddingBottom(4)
++                        .Text("Variantes").SemiBold().FontSize(10.5f).FontColor(FichaInk);
+                     column.Item().Table(table =>
+                     {
+                         table.ColumnsDefinition(columns =>
+                         {
+                             columns.RelativeColumn(2.2f);
+-                            columns.ConstantColumn(40);
++                            columns.ConstantColumn(60);
+                             columns.RelativeColumn(1f);
+                             columns.RelativeColumn(1f);
+                         });
+@@ -7529,8 +7513,8 @@
+                         {
+                             header.Cell().Element(x => FichaTableHeaderCell(x, "Variante"));
+                             header.Cell().Element(x => FichaTableHeaderCell(x, "Imagen"));
+-                            header.Cell().Element(x => FichaTableHeaderCell(x, "Costo"));
+-                            header.Cell().Element(x => FichaTableHeaderCell(x, "Precio"));
++                            header.Cell().Element(x => FichaTableHeaderCell(x, "Costo", true));
++                            header.Cell().Element(x => FichaTableHeaderCell(x, "Precio", true));
+                         });
+ 
+                         foreach (ProductoServicioVarianteDto variante in variantes.OrderBy(v => v.Orden))
+@@ -7541,14 +7525,14 @@
+                             {
+                                 IContainer imageCell = cell
+                                     .BorderBottom(1)
+-                                    .BorderColor("#D7E0EA")
++                                    .BorderColor(FichaRule)
+                                     .Padding(3)
+                                     .AlignCenter()
+                                     .AlignMiddle();
+ 
+                                 if (imagenesVariantes.TryGetValue(variante.Id, out byte[]? imageBytes) && imageBytes != null)
+                                 {
+-                                    imageCell.Height(25).Image(imageBytes).FitArea();
++                                    imageCell.Height(38).Image(imageBytes).FitArea();
+                                 }
+                                 else
+                                 {
+@@ -7556,7 +7540,7 @@
+                                 }
+                             });
+                             table.Cell().Element(x => FichaTableBodyCell(x, variante.Costo.HasValue ? FichaFormatCurrency(variante.Costo.Value) : "—", true));
+-                            table.Cell().Element(x => FichaTableBodyCell(x, variante.PrecioPublico.HasValue ? FichaFormatCurrency(variante.PrecioPublico.Value) : "—", true));
++                            table.Cell().Element(x => FichaTableBodyCell(x, variante.PrecioPublico.HasValue ? FichaFormatCurrency(variante.PrecioPublico.Value) : "—", true, true));
+                         }
+                     });
+                 });
+@@ -7601,7 +7585,7 @@
+ 
+             container
+                 .Border(0.5f)
+-                .BorderColor("#D7E0EA")
++                .BorderColor(FichaRule)
+                 .CornerRadius(4)
+                 .Padding(7)
+                 .Column(column =>
+@@ -7625,41 +7609,25 @@
+                 });
+         }
+ 
+-        private static void FichaTableHeaderCell(IContainer container, string text)
+-        {
+-            container
+-                .Background("#EEF2FF")
+-                .PaddingVertical(3)
+-                .PaddingHorizontal(4)
+-                .Text(text)
+-                .SemiBold()
+-                .FontSize(9)
+-                .FontColor("#1E3A8A");
++        private static void FichaTableHeaderCell(IContainer container, string text, bool alignRight = false)
++        {
++            IContainer cell = container.Background(FichaSurface).PaddingVertical(5).PaddingHorizontal(5);
++            cell = alignRight ? cell.AlignRight() : cell.AlignLeft();
++            cell.Text(text).SemiBold().FontSize(8).FontColor(FichaInk);
+         }
+ 
+         private static void FichaTableLabelCell(IContainer container, string text)
+         {
+-            container
+-                .BorderBottom(1)
+-                .BorderColor("#D7E0EA")
+-                .PaddingVertical(3)
+-                .PaddingHorizontal(4)
+-                .Text(text)
+-                .SemiBold()
+-                .FontSize(9)
+-                .FontColor("#475569");
+-        }
+-
+-        private static void FichaTableBodyCell(IContainer container, string text, bool alignRight = false)
+-        {
+-            IContainer body = container
+-                .BorderBottom(1)
+-                .BorderColor("#D7E0EA")
+-                .PaddingVertical(3)
+-                .PaddingHorizontal(4);
+-
++            container.BorderBottom(0.5f).BorderColor(FichaRule).PaddingVertical(3).PaddingHorizontal(5)
++                .Text(text).FontSize(8).FontColor(FichaMuted);
++        }
++
++        private static void FichaTableBodyCell(IContainer container, string text, bool alignRight = false, bool emphasized = false)
++        {
++            IContainer body = container.BorderBottom(0.5f).BorderColor(FichaRule).PaddingVertical(3).PaddingHorizontal(5).AlignMiddle();
+             body = alignRight ? body.AlignRight() : body.AlignLeft();
+-            body.Text(FichaTextOrDash(text)).FontSize(9).FontColor("#0F172A");
++            var value = body.Text(FichaTextOrDash(text)).FontSize(9).FontColor(FichaInk);
++            if (emphasized) value.SemiBold();
+         }
+ 
+         private static string FichaTextOrDash(string? value)

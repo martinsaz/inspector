@@ -1,0 +1,194 @@
+--- inspector/checklist/wwwroot/js/ProductosServicios/ProductosServicios.js (antes de esta corrección)
++++ inspector/checklist/wwwroot/js/ProductosServicios/ProductosServicios.js
+@@ -2576,7 +2576,7 @@
+         }
+ 
+         const commercialItems = [
+-            buildFichaMetric(detail.tipo === 1 ? "Unidad Base" : "Unidad", buildUnitLabel(detail.unidadMedida, detail.unidadAbreviatura)),
++            buildFichaMetric("Unidad Base", buildUnitLabel(detail.unidadMedida, detail.unidadAbreviatura)),
+             detail.costo != null ? buildFichaMetric("Costo", formatCurrency(detail.costo)) : "",
+             buildFichaMetric("Precio público", formatCurrency(detail.precioPublico)),
+             detail.precioComparacion != null && Number(detail.precioComparacion) > 0 ? buildFichaMetric("Precio de comparación", formatCurrency(detail.precioComparacion)) : "",
+@@ -2587,7 +2587,7 @@
+         const fiscalItems = [
+             detail.claveProductoSat ? buildFichaMetric("Clave producto/servicio SAT", escapeHtml(buildSatLabel(detail.claveProductoSat, detail.claveProductoSatDescripcion))) : "",
+             detail.claveUnidadSat ? buildFichaMetric("Clave unidad SAT", escapeHtml(buildSatLabel(detail.claveUnidadSat, detail.claveUnidadSatDescripcion))) : "",
+-            detail.objetoImpuesto ? buildFichaMetric("Objeto de impuesto", escapeHtml(detail.objetoImpuesto)) : "",
++            detail.objetoImpuesto ? buildFichaMetric("Objeto de impuesto", escapeHtml(formatFichaObjetoImpuesto(detail.objetoImpuesto))) : "",
+             Number(detail.porcentajeIVA || 0) > 0 ? buildFichaMetric("IVA", escapeHtml(Number(detail.porcentajeIVA || 0).toFixed(2) + "%")) : ""
+         ].filter(Boolean).join("");
+ 
+@@ -2619,19 +2619,23 @@
+             "  </div>",
+             "  <div class='ps-ficha-section-card ps-ficha-section-card--general'>",
+             "    <span class='checkapp-panel-eyebrow'>Información general</span>",
+-            "    <div class='ps-ficha-metrics'>",
++            "    <div class='ps-ficha-general-row ps-ficha-general-row--description'>",
+             buildFichaMetric("Código", escapeHtml(detail.codigo || "")),
++            buildDescriptionSection(detail.descripcion || ""),
++            "    </div>",
++            "    <div class='ps-ficha-general-row ps-ficha-general-row--classification'>",
+             buildFichaMetric("Tipo", escapeHtml(detail.tipoNombre || "")),
+             buildFichaMetric("Estatus", escapeHtml(detail.estatusNombre || (detail.activo ? "Activo" : "Inactivo"))),
+             detail.categoria ? buildFichaMetric("Categoría", escapeHtml(detail.categoria)) : "",
+-            detail.tipo === 1 && detail.marca ? buildFichaMetric("Marca", escapeHtml(detail.marca)) : "",
++            detail.marca ? buildFichaMetric("Marca", escapeHtml(detail.marca)) : "",
++            "    </div>",
++            "    <div class='ps-ficha-general-row ps-ficha-general-row--tags'>",
+             buildCollectionMetric(detail),
++            buildTagsSection(detail.tags || []),
+             "    </div>",
+-            buildDescriptionSection(detail.descripcion || ""),
+-            buildTagsSection(detail.tags || []),
+             "  </div>",
+             "</section>",
+-            commercialItems ? buildFichaSectionCard("Información comercial", commercialItems, buildFichaPresentations(detail)) : "",
++            commercialItems ? buildFichaSectionCard("Precios y Costos", commercialItems, buildFichaPresentations(detail), "ps-ficha-metrics--prices") : "",
+             fiscalItems ? buildFichaSectionCard("Información fiscal", fiscalItems) : "",
+             physicalItems ? buildFichaSectionCard("Información física y logística", physicalItems) : "",
+             inventoryItems ? buildFichaSectionCard("Inventario", inventoryItems) : "",
+@@ -2711,6 +2715,11 @@
+         return "<div class='ps-ficha-image-empty'><i class='fa fa-picture-o'></i><span>Sin imagen</span></div>";
+     }
+ 
++    function formatFichaObjetoImpuesto(value) {
++        // Catálogo del contrato: 01 no objeto; 02/03/04 sí objeto, independientemente del IVA.
++        return ({ "01": "No", "02": "Sí", "03": "Sí", "04": "Sí" })[String(value || "").trim()] || "";
++    }
++
+     function buildFichaMetric(label, value) {
+         if (!value) {
+             return "";
+@@ -2728,11 +2737,11 @@
+         }).join("") + "</tbody></table></div>";
+     }
+ 
+-    function buildFichaSectionCard(title, contentHtml, subsectionHtml) {
++    function buildFichaSectionCard(title, contentHtml, subsectionHtml, metricsClass) {
+         return [
+             "<section class='ps-ficha-section-card'>",
+             "  <span class='checkapp-panel-eyebrow'>" + escapeHtml(title) + "</span>",
+-            "  <div class='ps-ficha-metrics'>",
++            "  <div class='ps-ficha-metrics " + (metricsClass || "") + "'>",
+             contentHtml,
+             "  </div>",
+             subsectionHtml || "",
+--- inspector/checklist/wwwroot/css/ProductosServicios/ProductosServicios.css (antes de esta corrección)
++++ inspector/checklist/wwwroot/css/ProductosServicios/ProductosServicios.css
+@@ -3083,3 +3083,41 @@
+ .ps-ficha-presentations th, .ps-ficha-presentations td { text-align: left; padding: .65rem .4rem; overflow-wrap: anywhere; }
+ .ps-ficha-presentations th { color: var(--checkapp-color-muted); font-weight: 600; }
+ .ps-ficha-presentations td { border-top: 1px solid var(--checkapp-color-border); }
++
++/* Ficha técnica: distribución compacta, limitada al contenido de consulta. */
++.ps-ficha-general-row {
++    display: grid;
++    gap: 0.85rem;
++    min-width: 0;
++    align-items: start;
++}
++.ps-ficha-general-row:empty { display: none; }
++.ps-ficha-general-row--description,
++.ps-ficha-general-row--tags {
++    grid-template-columns: minmax(0, 1fr) minmax(0, 3fr);
++}
++.ps-ficha-general-row--classification {
++    grid-template-columns: repeat(4, minmax(0, 1fr));
++}
++.ps-ficha-general-row--classification:not(:has(> :nth-child(4))) {
++    grid-template-columns: repeat(3, minmax(0, 1fr));
++}
++.ps-ficha-general-row > :only-child { grid-column: 1 / -1; }
++.ps-ficha-general-row > * { min-width: 0; overflow-wrap: anywhere; }
++.ps-ficha-general-row .ps-richtext-view { min-width: 0; }
++.ps-ficha-general-row .ps-richtext-view > :last-child { margin-bottom: 0; }
++.ps-ficha-metrics--prices { grid-template-columns: repeat(6, minmax(0, 1fr)); }
++@media (max-width: 991.98px) {
++    .ps-ficha-metrics--prices { grid-template-columns: repeat(3, minmax(0, 1fr)); }
++    .ps-ficha-general-row--classification,
++    .ps-ficha-general-row--classification:not(:has(> :nth-child(4))) {
++        grid-template-columns: repeat(2, minmax(0, 1fr));
++    }
++}
++@media (max-width: 575.98px) {
++    .ps-ficha-general-row--description,
++    .ps-ficha-general-row--tags,
++    .ps-ficha-general-row--classification,
++    .ps-ficha-general-row--classification:not(:has(> :nth-child(4))),
++    .ps-ficha-metrics--prices { grid-template-columns: minmax(0, 1fr); }
++}
+--- inspectorapi/checklistWs/Controllers/ProductosServicios/ProductosServiciosController.cs (antes de esta corrección)
++++ inspectorapi/checklistWs/Controllers/ProductosServicios/ProductosServiciosController.cs
+@@ -7316,8 +7316,6 @@
+                             details.Spacing(6);
+                             details.Item().Text($"Nombre: {FichaTextOrDash(ficha.Nombre)}").FontColor("#0F172A");
+                             details.Item().Text($"Código: {FichaTextOrDash(ficha.Codigo)}");
+-                            details.Item().Text($"Tipo: {FichaTextOrDash(ficha.TipoNombre)}");
+-                            details.Item().Text($"Estatus: {FichaTextOrDash(ficha.EstatusNombre)}");
+                             if (!string.IsNullOrWhiteSpace(ficha.Descripcion))
+                             {
+                                 details.Item().Text(text =>
+@@ -7327,8 +7325,10 @@
+                                 });
+                             }
+ 
++                            details.Item().Text($"Tipo: {FichaTextOrDash(ficha.TipoNombre)}");
++                            details.Item().Text($"Estatus: {FichaTextOrDash(ficha.EstatusNombre)}");
+                             details.Item().Text($"Categoría: {FichaTextOrDash(ficha.Categoria)}");
+-                            if (ficha.Tipo == TipoProducto && !string.IsNullOrWhiteSpace(ficha.Marca))
++                            if (!string.IsNullOrWhiteSpace(ficha.Marca))
+                             {
+                                 details.Item().Text($"Marca: {ficha.Marca.Trim()}");
+                             }
+@@ -7363,7 +7363,7 @@
+         {
+             List<(string Label, string Value)> rows = new List<(string Label, string Value)>
+             {
+-                (ficha.Tipo == TipoProducto ? "Unidad Base" : "Unidad", BuildUnidadLabel(ficha.UnidadMedida, ficha.UnidadAbreviatura)),
++                ("Unidad Base", BuildUnidadLabel(ficha.UnidadMedida, ficha.UnidadAbreviatura)),
+                 ("Precio público", FichaFormatCurrency(ficha.PrecioPublico))
+             };
+ 
+@@ -7387,7 +7387,25 @@
+             container.Column(column =>
+             {
+                 column.Spacing(10);
+-                column.Item().Element(box => ComposeFichaInfoTable(box, "Información comercial", rows));
++                column.Item().Border(1).BorderColor("#D7E0EA").CornerRadius(14).Padding(14).Column(prices =>
++                {
++                    prices.Spacing(10);
++                    prices.Item().Text("Precios y Costos").SemiBold().FontSize(13).FontColor("#0F172A");
++                    prices.Item().Table(table =>
++                    {
++                        table.ColumnsDefinition(cols =>
++                        {
++                            foreach (var item in rows) cols.RelativeColumn();
++                        });
++                        table.Header(header =>
++                        {
++                            foreach (var item in rows)
++                                header.Cell().Padding(4).Text(item.Label).SemiBold().FontSize(9);
++                        });
++                        foreach (var item in rows)
++                            table.Cell().Padding(4).Text(item.Value).FontSize(9);
++                    });
++                });
+                 if (ficha.Tipo == TipoProducto && ficha.PresentacionesVenta.Count > 0)
+                 {
+                     column.Item().Text("Presentaciones de venta").SemiBold();
+@@ -7426,7 +7444,14 @@
+ 
+             if (!string.IsNullOrWhiteSpace(ficha.ObjetoImpuesto))
+             {
+-                rows.Add(("Objeto de impuesto", ficha.ObjetoImpuesto.Trim()));
++                // Representación del catálogo vigente; no depende del porcentaje de IVA.
++                string objetoImpuesto = ficha.ObjetoImpuesto.Trim() switch
++                {
++                    "01" => "No",
++                    "02" or "03" or "04" => "Sí",
++                    _ => ""
++                };
++                if (objetoImpuesto.Length > 0) rows.Add(("Objeto de impuesto", objetoImpuesto));
+             }
+ 
+             if (ficha.PorcentajeIVA > 0)

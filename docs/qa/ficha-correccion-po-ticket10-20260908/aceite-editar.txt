@@ -1,0 +1,4 @@
+!
+No puedes cambiar la unidad base
+Este producto ya tiene presentaciones de venta configuradas. Para cambiar la unidad base, primero elimina o reconfigura sus presentaciones.
+Entendido

@@ -1,0 +1,12 @@
+{
+  "soloComposicionPdf": true,
+  "puertosLibresAlInicio": [
+    5200,
+    5127
+  ],
+  "codexPids": {
+    "frontend": 7235,
+    "api": 7228
+  },
+  "webSinCambiosSHA256": true
+}

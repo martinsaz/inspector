@@ -1,0 +1,1 @@
+SELECT COUNT_BIG(*) AS hijos_activos_padre_inactivo FROM dbo.[ProductosServicios] c JOIN dbo.[ProductosServiciosMarcas] p ON c.[idEmpresa]=p.[idEmpresa] AND c.[idMarca]=p.[id] WHERE c.Activo=1 AND p.Activo=0

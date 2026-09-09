@@ -1,0 +1,13 @@
+{
+  "paqueteId": "b5bae753-d0c9-4e43-a21a-e3ac7add6f84",
+  "endpointTipo": "OTHER",
+  "antes": {
+    "tipo": null,
+    "incluida": false
+  },
+  "despues": {
+    "tipo": "OTHER",
+    "incluida": true
+  },
+  "resultado": "PASS"
+}

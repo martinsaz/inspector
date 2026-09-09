@@ -1,0 +1,127 @@
+--- tmp/atributos-variantes-pdf-baseline/ProductosServicios.js
++++ inspector/checklist/wwwroot/js/ProductosServicios/ProductosServicios.js
+@@ -3621,7 +3621,7 @@
+             })
+             .forEach(function (item) {
+                 const normalizedProductAttributeId = normalizeGuid(item.idProductoAtributo);
+-                const key = normalizedProductAttributeId || ("new:" + item.idAtributo);
++                const key = normalizeGuid(item.idAtributo);
+                 let current = lookup.get(key);
+                 if (!current) {
+                     current = {
+--- tmp/atributos-variantes-pdf-baseline/ProductosServiciosController.cs
++++ inspectorapi/checklistWs/Controllers/ProductosServicios/ProductosServiciosController.cs
+@@ -5912,8 +5912,12 @@
+             deleteAtributos.Parameters.AddWithValue("@IdProductoServicio", idProductoServicio);
+             await deleteAtributos.ExecuteNonQueryAsync();
+ 
+-            foreach (ProductoServicioAtributoGuardarRequest atributo in atributos.OrderBy(x => x.Orden))
+-            {
++            // One product/attribute relation owns all its selected elements, including
++            // elements submitted separately by older clients after reopening a product.
++            var grupos = atributos.OrderBy(x => x.Orden).GroupBy(x => x.IdAtributo);
++            foreach (var grupo in grupos)
++            {
++                ProductoServicioAtributoGuardarRequest atributo = grupo.First();
+                 Guid idProductoAtributo = Guid.NewGuid();
+                 using SqlCommand insert = new SqlCommand(@"
+ INSERT INTO dbo.ProductosServiciosProductoAtributos
+@@ -5930,9 +5934,15 @@
+                 insert.Parameters.AddWithValue("@FechaActualizacion", ahora);
+                 await insert.ExecuteNonQueryAsync();
+ 
+-                foreach (ProductoServicioAtributoValorGuardarRequest valor in atributo.Valores.OrderBy(x => x.Orden))
++                var valoresInsertados = new HashSet<Guid>();
++                int ordenValor = 0;
++                foreach (ProductoServicioAtributoValorGuardarRequest valor in grupo.SelectMany(x => x.Valores.OrderBy(v => v.Orden)))
+                 {
+                     Guid idValor = await EnsureAtributoValorAsync(connection, transaction, idEmpresa, atributo.IdAtributo, valor, ahora);
++                    if (!valoresInsertados.Add(idValor))
++                    {
++                        throw new ProductoServicioValidationException("Esa relación atributo / elemento ya fue agregada al producto.");
++                    }
+                     using SqlCommand insertValor = new SqlCommand(@"
+ INSERT INTO dbo.ProductosServiciosProductoAtributoValores
+     (id, idEmpresa, identityKey, idProductoAtributo, idAtributoValor, Orden, Activo, FechaCreacion, FechaActualizacion)
+@@ -5943,7 +5953,7 @@
+                     insertValor.Parameters.AddWithValue("@IdentityKey", Guid.NewGuid());
+                     insertValor.Parameters.AddWithValue("@IdProductoAtributo", idProductoAtributo);
+                     insertValor.Parameters.AddWithValue("@IdAtributoValor", idValor);
+-                    insertValor.Parameters.AddWithValue("@Orden", valor.Orden);
++                    insertValor.Parameters.AddWithValue("@Orden", ++ordenValor);
+                     insertValor.Parameters.AddWithValue("@FechaCreacion", ahora);
+                     insertValor.Parameters.AddWithValue("@FechaActualizacion", ahora);
+                     await insertValor.ExecuteNonQueryAsync();
+@@ -7203,8 +7213,9 @@
+                         if (logo != null) row.ConstantItem(78).Height(17).Image(logo).FitArea();
+                         row.RelativeItem().PaddingLeft(10).Column(info =>
+                         {
+-                            info.Item().Text("FICHA TÉCNICA").SemiBold().FontSize(10);
+-                            info.Item().Text(ficha.Nombre).SemiBold().FontSize(12);
++                            info.Item().Text("FICHA TÉCNICA").SemiBold().FontSize(12);
++                            // Official --ca-primary / --checkapp-color-primary in checkapp-theme.css.
++                            info.Item().Text(ficha.Nombre).SemiBold().FontSize(10).FontColor("#EC0000");
+                         });
+                     });
+ 
+@@ -7264,14 +7275,14 @@
+                 });
+                 row.RelativeItem().Column(details =>
+                 {
+-                    details.Spacing(5);
++                    details.Spacing(4);
+                     details.Item().Row(first =>
+                     {
+-                        first.ConstantItem(54).Text($"Código: {FichaTextOrDash(ficha.Codigo)}");
+-                        first.RelativeItem().Text(text =>
++                        first.ConstantItem(58).Element(box => ComposeFichaGeneralField(box, "Código", FichaTextOrDash(ficha.Codigo)));
++                        first.RelativeItem().Padding(3).Column(field =>
+                         {
+-                            text.Span("Descripción: ").SemiBold();
+-                            AppendRichTextToPdf(text, ficha.Descripcion ?? "");
++                            field.Item().Text("Descripción").SemiBold().FontSize(8).FontColor("#475569");
++                            field.Item().Text(text => AppendRichTextToPdf(text, ficha.Descripcion ?? ""));
+                         });
+                     });
+                     var classification = new List<(string Label, string Value)>
+@@ -7282,21 +7293,28 @@
+                     };
+                     if (!string.IsNullOrWhiteSpace(ficha.Marca)) classification.Add(("Marca", ficha.Marca.Trim()));
+                     details.Item().Element(box => ComposeFichaMetricGrid(box, classification, classification.Count));
+-                    details.Item().Text(text =>
++                    string coleccion = BuildColeccionLabel(ficha.ColeccionNumero, ficha.ColeccionNombre);
++                    if (!string.IsNullOrWhiteSpace(coleccion) || ficha.Tags.Any())
+                     {
+-                        string coleccion = BuildColeccionLabel(ficha.ColeccionNumero, ficha.ColeccionNombre);
+-                        if (!string.IsNullOrWhiteSpace(coleccion))
++                        details.Item().Row(last =>
+                         {
+-                            text.Span("Colección: ").SemiBold();
+-                            text.Span(coleccion + (ficha.Tags.Any() ? "   |   " : ""));
+-                        }
+-                        if (ficha.Tags.Any())
+-                        {
+-                            text.Span("Etiquetas: ").SemiBold();
+-                            text.Span(string.Join(" • ", ficha.Tags.Select(tag => FichaTextOrDash(tag.Nombre)))).FontColor("#1D4ED8");
+-                        }
+-                    });
++                            if (!string.IsNullOrWhiteSpace(coleccion))
++                                last.RelativeItem(1).Element(box => ComposeFichaGeneralField(box, "Colección", coleccion));
++                            if (ficha.Tags.Any())
++                                last.RelativeItem(2).Element(box => ComposeFichaGeneralField(box, "Etiquetas",
++                                    string.Join(" · ", ficha.Tags.Select(tag => FichaTextOrDash(tag.Nombre)))));
++                        });
++                    }
+                 });
++            });
++        }
++
++        private static void ComposeFichaGeneralField(IContainer container, string label, string value)
++        {
++            container.Padding(3).Column(field =>
++            {
++                field.Item().Text(label).SemiBold().FontSize(8).FontColor("#475569");
++                field.Item().Text(value).FontSize(9);
+             });
+         }
+ 

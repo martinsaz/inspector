@@ -1,0 +1,8 @@
+{
+  "id": "20cb4afb-495d-4207-a998-c1943614cf21",
+  "codigo": "QA-T10-PO2-MANUAL",
+  "createPhysicalBaseOtherManual": 200,
+  "metroCm": 100,
+  "editOtherManual": 200,
+  "incompatiblePhysicalRejected": 400
+}

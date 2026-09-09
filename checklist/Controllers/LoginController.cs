@@ -178,7 +178,7 @@ namespace checklist.Controllers
 
         #region Login
         [HttpPost]
-        public async Task<IActionResult> Ingreso(string usr, string pwd, string nem)
+        public async Task<IActionResult> Ingreso(string usr, string pwd)
         {
             string result = "Ok";
             string idEmpresa = string.Empty;
@@ -239,7 +239,6 @@ namespace checklist.Controllers
                     client.User.Uid,
                     usr,
                     firebaseToken,
-                    nem,
                     client.User.Info.IsEmailVerified,
                     client.User.Credential.IdToken);
 
@@ -325,7 +324,6 @@ namespace checklist.Controllers
             string authenticatedUid,
             string usr,
             string firebaseToken,
-            string nem,
             bool emailVerified,
             string verificationToken)
         {
@@ -351,7 +349,6 @@ namespace checklist.Controllers
                     authenticatedUid,
                     usr,
                     firebaseToken,
-                    nem,
                     requireFirebaseStatus: (bool?)usuario.status == true,
                     emailVerified: emailVerified,
                     verificationToken: verificationToken);
@@ -366,7 +363,6 @@ namespace checklist.Controllers
                     authenticatedUid,
                     usr,
                     firebaseToken,
-                    nem,
                     requireFirebaseStatus: false,
                     emailVerified: emailVerified,
                     verificationToken: verificationToken);
@@ -457,7 +453,6 @@ namespace checklist.Controllers
             string authenticatedUid,
             string usr,
             string firebaseToken,
-            string nem,
             bool requireFirebaseStatus,
             bool emailVerified,
             string verificationToken)
@@ -481,10 +476,6 @@ namespace checklist.Controllers
             }
 
             string tmpEmp = usuarioFirebase?.empresa?.ToString()?.Trim().ToUpperInvariant() ?? string.Empty;
-            if (usr.Trim() == "soporte@secuencia.com")
-            {
-                tmpEmp = nem?.Trim().ToUpperInvariant() ?? string.Empty;
-            }
 
             if (string.IsNullOrWhiteSpace(tmpEmp))
             {

@@ -28,8 +28,7 @@
             tipos: [],
             estatus: [],
             objetosImpuesto: [],
-            tiposPaquete: [],
-            unidadesPrecioUnitario: []
+            tiposPaquete: []
         },
         summaryType: "",
         detailCache: new Map(),
@@ -39,6 +38,10 @@
         removeExistingImage: false,
         savedModalImage: false,
         modal: null,
+        presentationModal: null,
+        presentations: [],
+        currentProduct: null,
+        isOpeningNewProduct: false,
         fichaModal: null,
         quickCatalogModal: null,
         collectionModal: null,
@@ -64,8 +67,12 @@
         uploadOperationId: "",
         uploadCounts: { foto: 0, video: 0, documento: 0 },
         modalSections: createDefaultModalSections(),
-        unitPriceSnapshot: null,
-        unitPricePopoverOpen: false,
+        suppressFiscalChange: false,
+        fiscalInitial: {
+            objetoImpuesto: "",
+            porcentajeIVA: 0
+        },
+        fiscalTouched: false,
         selectedTags: [],
         tagsPopoverOpen: false,
         tagSearch: "",
@@ -172,6 +179,7 @@
 
     document.addEventListener("DOMContentLoaded", function () {
         state.modal = resolveModalApi("#modalProductoServicio");
+        state.presentationModal = resolveModalApi("#modalPresentacionVentaProductoServicio");
         state.fichaModal = resolveModalApi("#modalFichaTecnicaProductoServicio");
         state.quickCatalogModal = resolveModalApi("#modalQuickCatalogoProductoServicio");
         state.collectionModal = resolveModalApi("#modalColeccionProductoServicio");
@@ -249,6 +257,11 @@
         $("#btLimpiarProductosServicios").on("click", clearFilters);
         $("#btNuevoProductoServicio").on("click", openCreateModal);
         $("#btGuardarProductoServicio").on("click", saveProductoServicio);
+        $("#btAgregarPresentacionVenta").on("click", openCreatePresentationModal);
+        $("#btGuardarPresentacionVenta").on("click", savePresentation);
+        $("#cbUnidadVentaPresentacionVenta, #txCantidadVentaPresentacionVenta").on("change input", refreshPresentationEquivalence);
+        $(document).on("click", ".bt-editar-presentacion-venta", function () { openEditPresentationModal($(this).data("id")); });
+        $(document).on("click", ".bt-baja-presentacion-venta", function () { archivePresentation($(this).data("id")); });
         $("#btGuardarQuickCatalogoProductoServicio").on("click", saveQuickCatalog);
         $("#btQuickAddCategoriaProductoServicio").on("click", function () { openQuickCatalogModal("categoria"); });
         $("#btQuickAddMarcaProductoServicio").on("click", function () { openQuickCatalogModal("marca"); });
@@ -261,10 +274,6 @@
         $("#btGuardarAtributoProductoServicio").on("click", saveAttributeCatalog);
         $("#btGuardarAtributoValorProductoServicio").on("click", saveAttributeValueCatalog);
         $("#btDescargarFichaTecnicaProductoServicio").on("click", downloadFichaTecnicaPdf);
-        $("#btPrecioUnitarioResumenProductoServicio").on("click", toggleUnitPricePopover);
-        $("#btLimpiarPrecioUnitarioProductoServicio").on("click", clearUnitPriceEditor);
-        $("#btCancelarPrecioUnitarioProductoServicio").on("click", cancelUnitPriceEditor);
-        $("#btAceptarPrecioUnitarioProductoServicio").on("click", applyUnitPriceEditor);
 
         $("#txBusquedaProductosServicios").on("keydown", function (event) {
             if (event.key === "Enter") {
@@ -285,12 +294,30 @@
         $("#cbTipoProductoServicio").on("change", function () {
             syncCategoryOptions();
             syncTypeVisibility();
+            renderPresentations();
             clearFieldError("#cbTipoProductoServicio");
         });
 
         $(document).on("change", "input[name='tipoProductoServicio']", function () {
             setTipoProductoServicioValue(this.value || "");
             clearFieldError("#cbTipoProductoServicio");
+        });
+
+        $("#cbUnidadProductoServicio").on("change", function () {
+            const product = state.currentProduct;
+            const originalUnitId = product && String(product.idUnidadMedida || "");
+            const selectedUnitId = String($(this).val() || "");
+            const hasPresentations = product
+                && Number(product.tipo || 0) === 1
+                && state.presentations.length > 0;
+
+            if (state.isOpeningNewProduct || !product || !product.id || !hasPresentations || !originalUnitId || selectedUnitId === originalUnitId) {
+                renderPresentations();
+                return;
+            }
+
+            $(this).val(originalUnitId).trigger("change.select2");
+            showUnitBaseChangeWarning();
         });
 
         $("#cbPaqueteProductoServicio").on("change", renderLogisticsSummary);
@@ -307,9 +334,28 @@
         $("#frmProductoServicio select").on("change", function () {
             clearFieldError("#" + this.id);
         });
-        $("#txPrecioUnitarioMontoProductoServicio, #txPrecioUnitarioBaseProductoServicio").on("input", updateUnitPriceSummary);
+        $("#txCostoProductoServicio, #txPrecioPublicoProductoServicio").on("input", function () {
+            updatePricingMetrics();
+        });
+        $("#txPrecioComparacionProductoServicio").on("input", function () {
+            clearFieldError("#txPrecioComparacionProductoServicio");
+        });
         $("#txPesoKgProductoServicio").on("input", renderLogisticsSummary);
-        $("#cbPrecioUnitarioUnidadProductoServicio").on("change", updateUnitPriceSummary);
+        $("#chkAplicaIvaProductoServicio").on("change", function () {
+            if (!state.suppressFiscalChange) {
+                state.fiscalTouched = true;
+            }
+            syncIvaFields(true);
+        });
+        $("#txPorcentajeIvaProductoServicio").on("input", function () {
+            if (!state.suppressFiscalChange) {
+                state.fiscalTouched = true;
+            }
+            clearFieldError("#txPorcentajeIvaProductoServicio");
+        });
+        $("#txPrecioPresentacionVenta").on("change input", refreshPresentationExplanation);
+        $("#txPrecioPublicoProductoServicio").on("input change", renderPresentations);
+        $("#cbUnidadProductoServicio").on("change", renderPresentations);
         $("#frmQuickCatalogoProductoServicio input, #frmQuickCatalogoProductoServicio textarea").on("input", function () {
             clearQuickCatalogFieldError("#" + this.id);
         });
@@ -1392,12 +1438,7 @@
             valueKey: "id",
             textKey: "displayName"
         });
-        fillSelect("#cbUnidadProductoServicio", state.combos.unidadesMedida, {
-            includeBlank: true,
-            blankText: "Selecciona una unidad",
-            valueKey: "id",
-            textKey: "displayName"
-        });
+        fillUnitSelect("#cbUnidadProductoServicio", state.combos.unidadesMedida);
         fillSelect("#cbColeccionProductoServicio", state.combos.colecciones, {
             includeBlank: true,
             blankText: "Sin colección",
@@ -1416,12 +1457,6 @@
             valueKey: "clave",
             textKey: "nombre"
         });
-        fillSelect("#cbPrecioUnitarioUnidadProductoServicio", state.combos.unidadesPrecioUnitario, {
-            includeBlank: true,
-            blankText: "Sin unidad",
-            valueKey: "clave",
-            textKey: "nombre"
-        });
         fillSelect("#cbTipoPaqueteProductoServicio", state.combos.tiposPaquete, {
             includeBlank: false,
             valueKey: "clave",
@@ -1435,10 +1470,16 @@
         initSelect2("#cbColeccionProductoServicio", "Sin colección", $("#modalProductoServicio"));
         initSelect2("#cbPaqueteProductoServicio", "Sin paquete", $("#modalProductoServicio"));
         initSelect2("#cbObjetoImpuestoProductoServicio", "Sin capturar", $("#modalProductoServicio"));
-        initSelect2("#cbPrecioUnitarioUnidadProductoServicio", "Sin unidad", $("#modalProductoServicio"));
         initSelect2("#cbTipoPaqueteProductoServicio", "Selecciona un tipo", $("#modalPaqueteProductoServicio"));
         initSatSelect("#cbClaveProductoSatProductoServicio", "producto", "Busca clave o descripción SAT");
         initSatSelect("#cbClaveUnidadSatProductoServicio", "unidad", "Busca clave o unidad SAT");
+        initTooltips();
+        const catalog = document.querySelector("#modalProductoServicio .ps-form-field--category");
+        const pricing = document.querySelector(".ps-form-grid--pricing");
+        if (catalog && pricing) new ResizeObserver(function () {
+            const width = catalog.getBoundingClientRect().width;
+            if (width > 0) pricing.style.setProperty("--ps-catalog-column-width", width + "px");
+        }).observe(catalog);
     }
 
     function getSelectedTipoProductoServicio() {
@@ -1512,6 +1553,35 @@
         } else if (!options.includeBlank && node.options.length > 0) {
             node.selectedIndex = 0;
         }
+    }
+
+    function fillUnitSelect(selector, units, selectedId) {
+        const node = document.querySelector(selector);
+        node.replaceChildren(new Option("Selecciona una unidad", ""));
+        const groups = [["ITEM", "Por artículo"], ["WEIGHT", "Peso"], ["VOLUME", "Volumen"], ["LENGTH", "Longitud"], ["AREA", "Área"], ["TIME", "Tiempo"], ["OTHER", "Otra"]];
+        groups.forEach(function (group) {
+            const items = (units || []).filter(function (unit) { return unit.activo !== false && unit.tipoUnidad === group[0]; })
+                .sort(function (a, b) { return a.nombre.localeCompare(b.nombre, "es", { sensitivity: "base" }); });
+            if (!items.length) return;
+            const optgroup = document.createElement("optgroup");
+            optgroup.label = group[1];
+            items.forEach(function (unit) {
+                const option = new Option(unit.nombre + (unit.abreviatura ? " · " + unit.abreviatura : ""), unit.id);
+                option.dataset.unitName = unit.nombre;
+                option.dataset.unitAbbreviation = unit.abreviatura || "";
+                optgroup.appendChild(option);
+            });
+            node.appendChild(optgroup);
+        });
+        node.value = selectedId || "";
+    }
+
+    function renderUnitOption(item) {
+        if (!item.id || !item.element) return item.text;
+        const row = $("<span class='ps-unit-option'></span>");
+        $("<span></span>").text(item.element.dataset.unitName || item.text).appendTo(row);
+        $("<span class='ps-unit-option__abbreviation'></span>").text(item.element.dataset.unitAbbreviation || "").appendTo(row);
+        return row;
     }
 
     function decorateComboState(combos) {
@@ -1743,6 +1813,271 @@
         });
     }
 
+    const pricingHelpSelector = "#btAyudaUnidadBase, #btAyudaPrecioPublico, #btAyudaPrecioComparacionProductoServicio, #btAyudaEquivalencia";
+    let activePricingHelp = null;
+    let pricingHelpEventsBound = false;
+
+    function closePricingHelp() {
+        if (!activePricingHelp) return;
+        const node = activePricingHelp;
+        activePricingHelp = null;
+        const tooltip = window.bootstrap.Tooltip.getInstance(node);
+        if (tooltip) tooltip.hide();
+    }
+
+    function initTooltips() {
+        if (!window.bootstrap || !window.bootstrap.Tooltip) return;
+        closePricingHelp();
+        document.querySelectorAll("[data-bs-toggle='tooltip']").forEach(function (node) {
+            if (node.matches(pricingHelpSelector)) {
+                const old = window.bootstrap.Tooltip.getInstance(node);
+                if (old) old.dispose();
+                window.bootstrap.Tooltip.getOrCreateInstance(node, { trigger: "manual", animation: false, html: node.getAttribute("data-bs-html") === "true" });
+            } else window.bootstrap.Tooltip.getOrCreateInstance(node, { html: node.getAttribute("data-bs-html") === "true" });
+        });
+        if (pricingHelpEventsBound) return;
+        pricingHelpEventsBound = true;
+        document.addEventListener("pointerdown", function (event) {
+            if (activePricingHelp && !activePricingHelp.contains(event.target)) closePricingHelp();
+        }, true);
+        document.addEventListener("click", function (event) {
+            const button = event.target.closest(pricingHelpSelector);
+            if (!button) { closePricingHelp(); return; }
+            event.preventDefault();
+            const alreadyOpen = activePricingHelp === button;
+            closePricingHelp();
+            if (!alreadyOpen) {
+                activePricingHelp = button;
+                window.bootstrap.Tooltip.getOrCreateInstance(button, { trigger: "manual", animation: false }).show();
+            }
+        });
+        document.addEventListener("keydown", function (event) {
+            if (event.key === "Escape" && activePricingHelp) {
+                closePricingHelp();
+                event.preventDefault();
+                event.stopImmediatePropagation();
+            }
+        }, true);
+        $("#modalProductoServicio, #modalPresentacionVentaProductoServicio").on("hide.bs.modal", closePricingHelp);
+    }
+
+    function getUnitPriceUnitMeta(unit) {
+        const normalized = String(unit || "").trim().toLowerCase();
+        const units = {
+            kg: { family: "mass", factor: 1000 },
+            g: { family: "mass", factor: 1 },
+            lb: { family: "mass", factor: 453.59237 },
+            l: { family: "volume", factor: 1000 },
+            ml: { family: "volume", factor: 1 },
+            pz: { family: "piece", factor: 1 },
+            m: { family: "length", factor: 1 }
+        };
+
+        return units[normalized] || null;
+    }
+
+    function normalizeUnitCode(value) {
+        return String(value || "").trim().toLowerCase().replace(/\./g, "");
+    }
+
+    function findUnitPriceCatalogKey(targetKey) {
+        const normalizedTarget = normalizeUnitCode(targetKey);
+        if (!normalizedTarget) {
+            return "";
+        }
+
+        const unit = (state.combos.unidadesPrecioUnitario || []).find(function (item) {
+            return normalizeUnitCode(item.clave) === normalizedTarget
+                || normalizeUnitCode(item.codigo) === normalizedTarget
+                || normalizeUnitCode(item.abreviatura) === normalizedTarget;
+        });
+        return unit ? String(unit.clave || unit.codigo || unit.abreviatura || "") : "";
+    }
+
+    function getMainUnitPriceDefaultKey() {
+        const selectedId = String($("#cbUnidadProductoServicio").val() || "").trim();
+        if (!selectedId) {
+            return "";
+        }
+
+        const selectedUnit = (state.combos.unidadesMedida || []).find(function (item) {
+            return String(item.id || "") === selectedId;
+        });
+        if (!selectedUnit) {
+            return "";
+        }
+
+        const aliases = {
+            kg: "kg",
+            kilo: "kg",
+            g: "g",
+            gr: "g",
+            l: "l",
+            lt: "l",
+            ml: "ml",
+            pz: "pz",
+            pza: "pz",
+            h87: "pz",
+            m: "m"
+        };
+        const candidates = [selectedUnit.abreviatura, selectedUnit.codigo].map(normalizeUnitCode).filter(Boolean);
+        for (let index = 0; index < candidates.length; index += 1) {
+            const mapped = aliases[candidates[index]];
+            const catalogKey = findUnitPriceCatalogKey(mapped);
+            if (catalogKey) {
+                return catalogKey;
+            }
+        }
+
+        return "";
+    }
+
+    function hasDefaultOnlyUnitPriceConfig() {
+        const cantidadTotal = String($("#txPrecioUnitarioMontoProductoServicio").val() || "").trim();
+        const base = String($("#txPrecioUnitarioBaseProductoServicio").val() || "").trim();
+        return state.unitPriceDefaultApplied
+            && !state.unitPriceTouched
+            && !state.unitPriceInitial
+            && !cantidadTotal
+            && !base;
+    }
+
+    function applyUnitPriceDefaultsFromMainUnit() {
+        if (state.unitPriceInitial || state.unitPriceTouched) {
+            return;
+        }
+
+        const cantidadTotal = String($("#txPrecioUnitarioMontoProductoServicio").val() || "").trim();
+        const base = String($("#txPrecioUnitarioBaseProductoServicio").val() || "").trim();
+        const unidadTotal = getUnitPriceSelectValue("#cbPrecioUnitarioUnidadTotalProductoServicio");
+        const unidadBase = getUnitPriceSelectValue("#cbPrecioUnitarioUnidadProductoServicio");
+        if (cantidadTotal || base || ((unidadTotal || unidadBase) && !state.unitPriceDefaultApplied)) {
+            return;
+        }
+
+        const defaultKey = getMainUnitPriceDefaultKey();
+        if (!defaultKey) {
+            return;
+        }
+
+        state.suppressUnitPriceChange = true;
+        $("#cbPrecioUnitarioUnidadTotalProductoServicio").val(defaultKey).trigger("change");
+        $("#cbPrecioUnitarioUnidadProductoServicio").val(defaultKey).trigger("change");
+        state.suppressUnitPriceChange = false;
+        state.unitPriceDefaultApplied = true;
+        updateUnitPriceSummary();
+    }
+
+    function calculateUnitPrice(precioPublico, cantidadTotal, unidadTotal, medidaBase, unidadBase) {
+        const totalMeta = getUnitPriceUnitMeta(unidadTotal);
+        const baseMeta = getUnitPriceUnitMeta(unidadBase);
+        if (!totalMeta || !baseMeta || totalMeta.family !== baseMeta.family) {
+            return null;
+        }
+
+        const totalNormalized = cantidadTotal * totalMeta.factor;
+        const baseNormalized = medidaBase * baseMeta.factor;
+        if (precioPublico <= 0 || totalNormalized <= 0 || baseNormalized <= 0) {
+            return null;
+        }
+
+        return (precioPublico / totalNormalized) * baseNormalized;
+    }
+
+    function formatUnitPriceSummary(amount, medidaBase, unidadBase) {
+        if (!Number.isFinite(amount) || amount <= 0 || !unidadBase) {
+            return "$0.00";
+        }
+
+        const baseNumber = Number(medidaBase);
+        const baseText = Number.isFinite(baseNumber) && Math.abs(baseNumber - 1) > 0.000001
+            ? formatMeasure(baseNumber, 4)
+            : "";
+        return formatCurrency(amount) + "/" + baseText + unidadBase;
+    }
+
+    function setFiscalInitial(objetoImpuesto, porcentajeIVA) {
+        state.fiscalInitial = {
+            objetoImpuesto: String(objetoImpuesto || "").trim(),
+            porcentajeIVA: Number(porcentajeIVA || 0)
+        };
+        state.fiscalTouched = false;
+    }
+
+    function applyFiscalState(objetoImpuesto, porcentajeIVA) {
+        const code = String(objetoImpuesto || "").trim();
+        const percent = Number(porcentajeIVA || 0);
+        state.suppressFiscalChange = true;
+        $("#cbObjetoImpuestoProductoServicio").val(code).trigger("change");
+        $("#chkAplicaIvaProductoServicio").prop("checked", code === "02" || percent > 0);
+        // IVA activo admite el límite inferior; renderizarlo evita tratar 0 como vacío.
+        $("#txPorcentajeIvaProductoServicio").val(code === "02" || percent > 0 ? percent.toFixed(2) : "");
+        syncIvaFields(false);
+        state.suppressFiscalChange = false;
+        setFiscalInitial(code, percent);
+    }
+
+    function syncIvaFields(fromUserToggle) {
+        const enabled = $("#chkAplicaIvaProductoServicio").is(":checked");
+        const field = $("#fieldPorcentajeIvaProductoServicio");
+        const input = $("#txPorcentajeIvaProductoServicio");
+        field.closest(".ps-form-grid--sat")
+            .toggleClass("is-iva-on", enabled)
+            .toggleClass("is-iva-off", !enabled);
+        field.prop("hidden", !enabled);
+        input.prop("disabled", !enabled);
+        if (!enabled) {
+            input.val("");
+            return;
+        }
+
+        if (fromUserToggle && !String(input.val() || "").trim()) {
+            input.val("16.00");
+        }
+    }
+
+    function resolveFiscalPayload() {
+        const checked = $("#chkAplicaIvaProductoServicio").is(":checked");
+        if (!state.fiscalTouched) {
+            if (state.fiscalInitial.objetoImpuesto !== "02") {
+                return { objetoImpuesto: "01", porcentajeIVA: 0 };
+            }
+            return {
+                objetoImpuesto: state.fiscalInitial.objetoImpuesto,
+                porcentajeIVA: state.fiscalInitial.porcentajeIVA || 0
+            };
+        }
+
+        return {
+            objetoImpuesto: checked ? "02" : "01",
+            porcentajeIVA: checked ? (toNullableNumber($("#txPorcentajeIvaProductoServicio").val()) || 0) : 0
+        };
+    }
+
+    function updatePricingMetrics() {
+        const costo = toNullableNumber($("#txCostoProductoServicio").val());
+        const precioPublicoText = ($("#txPrecioPublicoProductoServicio").val() || "").trim();
+        const precioPublico = toNullableNumber(precioPublicoText);
+        const gananciaTarget = document.getElementById("txGananciaProductoServicio");
+        const margenTarget = document.getElementById("txMargenProductoServicio");
+
+        if (!gananciaTarget || !margenTarget) {
+            return;
+        }
+
+        if (costo == null || precioPublico == null) {
+            gananciaTarget.textContent = "-";
+            margenTarget.textContent = "-";
+            return;
+        }
+
+        const ganancia = precioPublico - costo;
+        gananciaTarget.textContent = formatCurrency(ganancia);
+        margenTarget.textContent = precioPublico > 0
+            ? ((ganancia / precioPublico) * 100).toLocaleString("es-MX", { minimumFractionDigits: 2, maximumFractionDigits: 2 }) + "%"
+            : "-";
+    }
+
     function initSatSelect(selector, tipo, placeholder) {
         if (!window.$ || !$.fn || !$.fn.select2) {
             return;
@@ -1870,6 +2205,11 @@
             config.dropdownParent = normalizedDropdownParent;
         }
 
+        if (selector === "#cbUnidadProductoServicio" || selector === "#cbUnidadVentaPresentacionVenta") {
+            config.minimumResultsForSearch = 0;
+            config.templateResult = renderUnitOption;
+            config.dropdownCssClass = "ps-unit-dropdown";
+        }
         node.select2(config);
         wireSelect2ClearBehavior(node);
     }
@@ -2236,17 +2576,19 @@
         }
 
         const commercialItems = [
-            buildFichaMetric("Unidad", buildUnitLabel(detail.unidadMedida, detail.unidadAbreviatura)),
+            buildFichaMetric("Unidad Base", buildUnitLabel(detail.unidadMedida, detail.unidadAbreviatura)),
             detail.costo != null ? buildFichaMetric("Costo", formatCurrency(detail.costo)) : "",
             buildFichaMetric("Precio público", formatCurrency(detail.precioPublico)),
             detail.precioComparacion != null && Number(detail.precioComparacion) > 0 ? buildFichaMetric("Precio de comparación", formatCurrency(detail.precioComparacion)) : "",
-            detail.precioUnitarioResumen ? buildFichaMetric("Precio unitario", escapeHtml(detail.precioUnitarioResumen)) : ""
+            detail.costo != null ? buildFichaMetric("Ganancia", formatCurrency(Number(detail.precioPublico) - Number(detail.costo))) : "",
+            detail.costo != null && Number(detail.precioPublico) > 0 ? buildFichaMetric("Margen", ((Number(detail.precioPublico) - Number(detail.costo)) / Number(detail.precioPublico) * 100).toFixed(2) + "%") : ""
         ].filter(Boolean).join("");
 
         const fiscalItems = [
             detail.claveProductoSat ? buildFichaMetric("Clave producto/servicio SAT", escapeHtml(buildSatLabel(detail.claveProductoSat, detail.claveProductoSatDescripcion))) : "",
             detail.claveUnidadSat ? buildFichaMetric("Clave unidad SAT", escapeHtml(buildSatLabel(detail.claveUnidadSat, detail.claveUnidadSatDescripcion))) : "",
-            detail.objetoImpuesto ? buildFichaMetric("Objeto de impuesto", escapeHtml(detail.objetoImpuesto)) : ""
+            detail.objetoImpuesto ? buildFichaMetric("Objeto de impuesto", escapeHtml(formatFichaObjetoImpuesto(detail.objetoImpuesto))) : "",
+            Number(detail.porcentajeIVA || 0) > 0 ? buildFichaMetric("IVA", escapeHtml(Number(detail.porcentajeIVA || 0).toFixed(2) + "%")) : ""
         ].filter(Boolean).join("");
 
         const physicalItems = detail.tipo === 1 ? [
@@ -2277,19 +2619,23 @@
             "  </div>",
             "  <div class='ps-ficha-section-card ps-ficha-section-card--general'>",
             "    <span class='checkapp-panel-eyebrow'>Información general</span>",
-            "    <div class='ps-ficha-metrics'>",
+            "    <div class='ps-ficha-general-row ps-ficha-general-row--description'>",
             buildFichaMetric("Código", escapeHtml(detail.codigo || "")),
+            buildDescriptionSection(detail.descripcion || ""),
+            "    </div>",
+            "    <div class='ps-ficha-general-row ps-ficha-general-row--classification'>",
             buildFichaMetric("Tipo", escapeHtml(detail.tipoNombre || "")),
             buildFichaMetric("Estatus", escapeHtml(detail.estatusNombre || (detail.activo ? "Activo" : "Inactivo"))),
             detail.categoria ? buildFichaMetric("Categoría", escapeHtml(detail.categoria)) : "",
-            detail.tipo === 1 && detail.marca ? buildFichaMetric("Marca", escapeHtml(detail.marca)) : "",
-            buildCollectionMetric(detail),
+            detail.marca ? buildFichaMetric("Marca", escapeHtml(detail.marca)) : "",
             "    </div>",
-            buildDescriptionSection(detail.descripcion || ""),
+            "    <div class='ps-ficha-general-row ps-ficha-general-row--tags'>",
+            buildCollectionMetric(detail),
             buildTagsSection(detail.tags || []),
+            "    </div>",
             "  </div>",
             "</section>",
-            commercialItems ? buildFichaSectionCard("Información comercial", commercialItems) : "",
+            commercialItems ? buildFichaSectionCard("Precios y Costos", commercialItems, buildFichaPresentations(detail), "ps-ficha-metrics--prices") : "",
             fiscalItems ? buildFichaSectionCard("Información fiscal", fiscalItems) : "",
             physicalItems ? buildFichaSectionCard("Información física y logística", physicalItems) : "",
             inventoryItems ? buildFichaSectionCard("Inventario", inventoryItems) : "",
@@ -2369,6 +2715,11 @@
         return "<div class='ps-ficha-image-empty'><i class='fa fa-picture-o'></i><span>Sin imagen</span></div>";
     }
 
+    function formatFichaObjetoImpuesto(value) {
+        // Catálogo del contrato: 01 no objeto; 02/03/04 sí objeto, independientemente del IVA.
+        return ({ "01": "No", "02": "Sí", "03": "Sí", "04": "Sí" })[String(value || "").trim()] || "";
+    }
+
     function buildFichaMetric(label, value) {
         if (!value) {
             return "";
@@ -2377,13 +2728,23 @@
         return "<article class='ps-ficha-metric'><small>" + escapeHtml(label) + "</small><strong>" + value + "</strong></article>";
     }
 
-    function buildFichaSectionCard(title, contentHtml) {
+    function buildFichaPresentations(detail) {
+        const items = (detail.presentacionesVenta || []).filter(function (item) { return item.activo !== false; });
+        if (detail.tipo !== 1 || !items.length) return "";
+        return "<div class='ps-ficha-presentations'><span class='checkapp-panel-eyebrow'>Presentaciones de venta</span><table><thead><tr><th>Venta</th><th>Equivale en inventario</th><th>Precio</th></tr></thead><tbody>" + items.map(function (item) {
+            const base = item.idUnidadVenta === detail.idUnidadMedida && Number(item.cantidadVenta) === 1 && Number(item.equivalenciaBase) === 1;
+            return "<tr><td>" + escapeHtml(formatDecimal(item.cantidadVenta) + " " + item.unidadVenta) + (base ? " <strong>Base</strong>" : "") + "</td><td>" + escapeHtml(formatDecimal(item.equivalenciaBase) + " " + detail.unidadAbreviatura) + "</td><td>" + formatCurrency(item.precio) + "</td></tr>";
+        }).join("") + "</tbody></table></div>";
+    }
+
+    function buildFichaSectionCard(title, contentHtml, subsectionHtml, metricsClass) {
         return [
             "<section class='ps-ficha-section-card'>",
             "  <span class='checkapp-panel-eyebrow'>" + escapeHtml(title) + "</span>",
-            "  <div class='ps-ficha-metrics'>",
+            "  <div class='ps-ficha-metrics " + (metricsClass || "") + "'>",
             contentHtml,
             "  </div>",
+            subsectionHtml || "",
             "</section>"
         ].join("");
     }
@@ -2575,14 +2936,19 @@
             return;
         }
 
+        state.isOpeningNewProduct = true;
+        state.currentProduct = null;
+        state.presentations = [];
         resetModal();
+        renderPresentations();
         $("#txModalProductoServicioKicker").text("Registro");
         $("#txModalProductoServicioTitulo").text("Nuevo producto / servicio");
         $("#btGuardarProductoServicio span").text("Guardar");
         setTipoProductoServicioValue("1");
         setActivoProductoServicioValue(true);
         ensureSelect2Option("#cbClaveUnidadSatProductoServicio", "H87", "H87 - Pieza");
-        updateUnitPriceSummary();
+        applyFiscalState("01", 0);
+        updatePricingMetrics();
         syncTypeVisibility();
         renderTagsControl();
         renderImagePreview();
@@ -2591,6 +2957,7 @@
         renderVariantsEditor();
         renderMultimediaEditor();
         state.modal.show();
+        window.setTimeout(function () { state.isOpeningNewProduct = false; }, 0);
     }
 
     window.editarProductoServicio = function (id) {
@@ -2622,6 +2989,8 @@
                 const data = Object.assign({}, fallbackRow, context.data || {});
                 data.id = data.id || data.Id || data.idProductoServicio || data.IdProductoServicio || fallbackRow.id || fallbackRow.Id || id;
                 data.descripcion = data.descripcion || data.Descripcion || data.descripcionProductoServicio || data.DescripcionProductoServicio || fallbackDescription || "";
+                state.currentProduct = data;
+                state.presentations = Array.isArray(data.presentacionesVenta) ? data.presentacionesVenta : [];
 
                 resetModal();
                 $("#hdProductoServicioId").val(data.id || "");
@@ -2640,15 +3009,13 @@
                 $("#cbUnidadProductoServicio").val(data.idUnidadMedida || "").trigger("change");
                 $("#cbColeccionProductoServicio").val(data.idColeccion || "").trigger("change");
                 $("#cbPaqueteProductoServicio").val(data.idPaquete || "").trigger("change");
-                $("#cbObjetoImpuestoProductoServicio").val(data.objetoImpuesto || "").trigger("change");
-                $("#cbPrecioUnitarioUnidadProductoServicio").val(data.precioUnitarioUnidad || "").trigger("change");
+                applyFiscalState(data.objetoImpuesto || "", data.porcentajeIVA || 0);
                 ensureSelect2Option("#cbClaveProductoSatProductoServicio", data.claveProductoSat || "", context.satProductoText || data.claveProductoSat || "");
                 ensureSelect2Option("#cbClaveUnidadSatProductoServicio", data.claveUnidadSat || "", context.satUnidadText || data.claveUnidadSat || "");
                 $("#txCostoProductoServicio").val(data.costo == null ? "" : data.costo);
                 $("#txPrecioPublicoProductoServicio").val(data.precioPublico == null ? "" : data.precioPublico);
                 $("#txPrecioComparacionProductoServicio").val(data.precioComparacion == null ? "" : data.precioComparacion);
-                $("#txPrecioUnitarioMontoProductoServicio").val(data.precioUnitarioMonto == null ? "" : data.precioUnitarioMonto);
-                $("#txPrecioUnitarioBaseProductoServicio").val(data.precioUnitarioBaseCantidad == null ? "" : data.precioUnitarioBaseCantidad);
+                updatePricingMetrics();
                 $("#chkEsProductoFisicoProductoServicio").prop("checked", !!data.esProductoFisico);
                 $("#chkUsaNumeroSerieProductoServicio").prop("checked", !!data.usaNumeroSerie);
                 $("#txPesoKgProductoServicio").val(data.pesoKg == null ? "" : data.pesoKg);
@@ -2675,12 +3042,12 @@
                 }
 
                 syncTypeVisibility();
-                updateUnitPriceSummary();
                 renderImagePreview();
                 renderAttributesEditor();
                 renderVariantOptionsEditor();
                 syncVariantsWithOptions();
                 renderMultimediaEditor();
+                renderPresentations();
                 state.modal.show();
             })
             .catch(function (error) {
@@ -2723,6 +3090,177 @@
             });
         });
     };
+
+    function isBasePresentation(item) {
+        const baseId = (state.currentProduct && state.currentProduct.idUnidadMedida) || $("#cbUnidadProductoServicio").val();
+        return String(item.idUnidadVenta) === String(baseId) && Number(item.cantidadVenta) === 1 && Number(item.equivalenciaBase) === 1;
+    }
+
+    function renderPresentations() {
+        const isProduct = Number(getSelectedTipoProductoServicio() || 0) === 1;
+        $("#panelPresentacionesVentaProductoServicio").prop("hidden", !isProduct);
+        if (!isProduct) return;
+        const baseId = (state.currentProduct && state.currentProduct.idUnidadMedida) || $("#cbUnidadProductoServicio").val();
+        const base = (state.combos.unidadesMedida || []).find(function (unit) { return String(unit.id) === String(baseId); });
+        const unit = getPresentationUnitLabel();
+        const items = state.presentations.filter(function (item) { return !isBasePresentation(item); });
+        if (base) items.unshift({ isBase: true, cantidadVenta: 1, unidadVenta: base.nombre, equivalenciaBase: 1, precio: toNullableNumber($("#txPrecioPublicoProductoServicio").val()) || 0 });
+        const rows = items.map(function (item) {
+            const actions = item.isBase ? "—" : "<button type='button' class='checkapp-btn checkapp-btn-ghost bt-editar-presentacion-venta' data-id='" + item.id + "'>Editar</button> <button type='button' class='checkapp-btn checkapp-btn-ghost bt-baja-presentacion-venta' data-id='" + item.id + "'>Baja</button>";
+            return "<tr><td data-label='Venta'>" + formatMeasure(Number(item.cantidadVenta || 1), 4) + " " + escapeHtml(item.unidadVenta || item.unidadVentaAbreviatura || "") + (item.isBase ? " <span class='ps-presentations__default'>Base</span>" : "") + "</td><td data-label='Equivale en inventario'>" + formatMeasure(Number(item.equivalenciaBase || 0), 4) + " " + escapeHtml(unit) + "</td><td data-label='Precio'>" + formatCurrency(Number(item.precio || 0)) + "</td><td data-label='Acciones'>" + actions + "</td></tr>";
+        });
+        $("#tbPresentacionesVentaProductoServicio").html(rows.length ? rows.join("") : "<tr><td colspan='4'>Sin presentaciones configuradas.</td></tr>");
+        $("#txPrecioPublicoProductoServicio").prop("readonly", false);
+    }
+
+    function openCreatePresentationModal() {
+        if (Number(getSelectedTipoProductoServicio() || 0) !== 1) return;
+        if (!$("#cbUnidadProductoServicio").val()) { showError("Selecciona la unidad base del producto antes de agregar una presentación."); return; }
+        $("#txEquivalenciaPresentacionVenta").prop("readonly", false);
+        $("#hdPresentacionVentaId, #txEquivalenciaPresentacionVenta, #txPrecioPresentacionVenta").val("");
+        $("#txCantidadVentaPresentacionVenta").val("1");
+        fillPresentationSaleUnits();
+        $("#txModalPresentacionVentaTitulo").text("Agregar presentación");
+        $("#txUnidadPresentacionVenta").text(getPresentationUnitLabel());
+        refreshPresentationEquivalence();
+        setStatus("#txInfoPresentacionVenta", "", "");
+        state.presentationModal.show();
+    }
+
+    function openEditPresentationModal(id) {
+        const item = state.presentations.find(function (entry) { return String(entry.id) === String(id); });
+        if (!item || isBasePresentation(item)) return;
+        $("#hdPresentacionVentaId").val(item.id);
+        $("#txCantidadVentaPresentacionVenta").val(item.cantidadVenta || 1);
+        fillPresentationSaleUnits(item.idUnidadVenta);
+        $("#txEquivalenciaPresentacionVenta").val(item.equivalenciaBase);
+        $("#txPrecioPresentacionVenta").val(item.precio);
+        $("#txModalPresentacionVentaTitulo").text("Editar presentación");
+        $("#txUnidadPresentacionVenta").text(getPresentationUnitLabel());
+        refreshPresentationEquivalence();
+        setStatus("#txInfoPresentacionVenta", "", "");
+        state.presentationModal.show();
+    }
+
+    function savePresentation() {
+        const nombre = (getSelectedPresentationUnit() || {}).nombre || "";
+        const cantidadVenta = toNullableNumber($("#txCantidadVentaPresentacionVenta").val());
+        const idUnidadVenta = $("#cbUnidadVentaPresentacionVenta").val() || "";
+        const equivalenciaBase = toNullableNumber($("#txEquivalenciaPresentacionVenta").val());
+        const precio = toNullableNumber($("#txPrecioPresentacionVenta").val());
+        if (!idUnidadVenta || cantidadVenta == null || cantidadVenta <= 0 || equivalenciaBase == null || equivalenciaBase <= 0 || precio == null || precio < 0) {
+            setStatus("#txInfoPresentacionVenta", "danger", "Captura cantidad, unidad de venta, equivalencia y precio válidos.");
+            return;
+        }
+        const payload = { id: state.currentProduct && state.currentProduct.id ? normalizeGuid($("#hdPresentacionVentaId").val()) : ($("#hdPresentacionVentaId").val() || null), idProductoServicio: state.currentProduct && state.currentProduct.id, cantidadVenta: cantidadVenta, idUnidadVenta: idUnidadVenta, equivalenciaBase: equivalenciaBase, precio: precio, esPredeterminada: false, orden: state.presentations.length };
+        const baseId = (state.currentProduct && state.currentProduct.idUnidadMedida) || $("#cbUnidadProductoServicio").val();
+        if (String(idUnidadVenta) === String(baseId)) {
+            Swal.fire({ icon: "warning", title: "Esta unidad ya es la unidad base", text: "La unidad base ya tiene su propia presentación. Selecciona una unidad de venta diferente." });
+            return;
+        }
+        const persistedNumber = function (value) { return Math.round((Number(value) + Number.EPSILON) * 10000); };
+        if (state.presentations.some(function (item) {
+            return item.activo !== false && String(item.id) !== String(payload.id)
+                && String(item.idUnidadVenta) === String(idUnidadVenta)
+                && persistedNumber(item.cantidadVenta) === persistedNumber(cantidadVenta)
+                && persistedNumber(item.equivalenciaBase) === persistedNumber(equivalenciaBase);
+        })) {
+            Swal.fire({ icon: "warning", title: "Esta presentación ya existe", text: "Ya existe una presentación con la misma cantidad, unidad y equivalencia en inventario. Edita la presentación existente si deseas cambiar su precio." });
+            return;
+        }
+        if (!payload.idProductoServicio) {
+            saveDraftPresentation(payload);
+            return;
+        }
+        fetchJson("/ProductosServicios/GuardarPresentacionVentaProductoServicio", { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify(payload) })
+            .then(function (response) {
+                const savedId = response.id || payload.id;
+                const selectedUnit = (state.combos.unidadesMedida || []).find(function (unit) { return String(unit.id) === String(idUnidadVenta); }) || {};
+                const item = { id: savedId, nombre: nombre, cantidadVenta: cantidadVenta, idUnidadVenta: idUnidadVenta, unidadVenta: selectedUnit.nombre || "", unidadVentaAbreviatura: selectedUnit.abreviatura || "", equivalenciaBase: equivalenciaBase, precio: precio, esPredeterminada: payload.esPredeterminada, orden: payload.orden, activo: true };
+                const index = state.presentations.findIndex(function (entry) { return String(entry.id) === String(savedId); });
+                if (index >= 0) state.presentations[index] = item; else state.presentations.push(item);
+                renderPresentations(); state.presentationModal.hide(); showSuccess(resolveServerMessage(response) || "La presentación fue guardada.");
+            }).catch(function (error) {
+                const message = resolveErrorMessage(error);
+                const title = ["Esta unidad ya es la unidad base", "Esta presentación ya existe"].find(function (value) { return message.startsWith(value + "."); });
+                if (title) Swal.fire({ icon: "warning", title: title, text: message.substring(title.length + 1).trim() });
+                else setStatus("#txInfoPresentacionVenta", "danger", message);
+            });
+    }
+
+    function archivePresentation(id) {
+        if (!state.currentProduct || !state.currentProduct.id) {
+            state.presentations = state.presentations.filter(function (item) { return String(item.id) !== String(id); });
+            renderPresentations();
+            return;
+        }
+        Swal.fire({ icon: "warning", title: "¿Aplicar baja lógica?", text: "La presentación dejará de estar disponible para venta.", showCancelButton: true, confirmButtonText: "Dar de baja", cancelButtonText: "Cancelar" }).then(function (result) {
+            if (!result.isConfirmed) return;
+            fetchJson("/ProductosServicios/BajaPresentacionVentaProductoServicio?idPresentacionVenta=" + encodeURIComponent(id), { method: "POST", headers: { "Content-Type": "application/json" }, body: "{}" })
+                .then(function (response) { state.presentations = state.presentations.filter(function (item) { return String(item.id) !== String(id); }); renderPresentations(); showSuccess(resolveServerMessage(response) || "La presentación fue dada de baja."); })
+                .catch(function (error) { showError(resolveErrorMessage(error)); });
+        });
+    }
+
+    function saveDraftPresentation(payload) {
+        const id = payload.id || "draft-" + Date.now();
+        const unit = getSelectedPresentationUnit() || {};
+        const item = Object.assign({}, payload, { id: id, activo: true, nombre: unit.nombre || "", unidadVenta: unit.nombre || "", unidadVentaAbreviatura: unit.abreviatura || "" });
+        const index = state.presentations.findIndex(function (entry) { return String(entry.id) === String(id); });
+        if (index >= 0) state.presentations[index] = item; else state.presentations.push(item);
+        renderPresentations();
+        state.presentationModal.hide();
+    }
+
+    function getPresentationUnitLabel() {
+        const id = (state.currentProduct && state.currentProduct.idUnidadMedida) || $("#cbUnidadProductoServicio").val();
+        const unit = (state.combos.unidadesMedida || []).find(function (item) { return String(item.id) === String(id); });
+        return unit ? (unit.abreviatura || unit.nombre) : "";
+    }
+
+    function fillPresentationSaleUnits(selectedId) {
+        const base = (state.combos.unidadesMedida || []).find(function (item) { return String(item.id) === String((state.currentProduct && state.currentProduct.idUnidadMedida) || $("#cbUnidadProductoServicio").val()); }) || {};
+        const compatible = (state.combos.unidadesMedida || []).filter(function (unit) {
+            if (unit.activo === false || String(unit.id) === String(base.id)) return false;
+            if (unit.tipoUnidad === "OTHER") return true;
+            if (!base.id) return false;
+            if (base.tipoUnidad === "ITEM") return unit.tipoUnidad === "ITEM" || unit.tipoUnidad === "OTHER";
+            if (base.tipoUnidad === "OTHER") return unit.tipoUnidad === "OTHER";
+            return unit.tipoUnidad === base.tipoUnidad && unit.convertible;
+        });
+        fillUnitSelect("#cbUnidadVentaPresentacionVenta", compatible, selectedId);
+        initSelect2("#cbUnidadVentaPresentacionVenta", "Selecciona una unidad", $("#modalPresentacionVentaProductoServicio"));
+    }
+
+    function getSelectedPresentationUnit() {
+        const selectedId = String($("#cbUnidadVentaPresentacionVenta").val() || "");
+        return (state.combos.unidadesMedida || []).find(function (unit) { return String(unit.id) === selectedId; }) || null;
+    }
+
+    function refreshPresentationExplanation() {
+        const automatic = $("#txEquivalenciaPresentacionVenta").prop("readonly");
+        const text = automatic
+            ? "CheckApp calcula automáticamente la cantidad de inventario según la unidad de venta."
+            : "Indica cuántas unidades de inventario corresponden a la cantidad vendida.";
+        const button = document.getElementById("btAyudaEquivalencia");
+        if (button.getAttribute("data-bs-title") === text) return;
+        closePricingHelp();
+        const tooltip = window.bootstrap.Tooltip.getInstance(button);
+        if (tooltip) tooltip.dispose();
+        button.setAttribute("data-bs-title", text);
+        window.bootstrap.Tooltip.getOrCreateInstance(button, { trigger: "manual", animation: false });
+    }
+
+    function refreshPresentationEquivalence() {
+        const base = (state.combos.unidadesMedida || []).find(function (item) { return String(item.id) === String((state.currentProduct && state.currentProduct.idUnidadMedida) || $("#cbUnidadProductoServicio").val()); });
+        const sale = (state.combos.unidadesMedida || []).find(function (item) { return String(item.id) === String($("#cbUnidadVentaPresentacionVenta").val()); });
+        const qty = toNullableNumber($("#txCantidadVentaPresentacionVenta").val());
+        if (!base || !sale || qty == null) { $("#txEquivalenciaPresentacionVenta").val("").prop("readonly", false); refreshPresentationExplanation(); return; }
+        const physical = base.tipoUnidad !== "OTHER" && base.tipoUnidad === sale.tipoUnidad && base.convertible && sale.convertible && base.factorConversion && sale.factorConversion;
+        if (physical) $("#txEquivalenciaPresentacionVenta").val(Number(qty * Number(sale.factorConversion) / Number(base.factorConversion)).toFixed(4)).prop("readonly", true);
+        else $("#txEquivalenciaPresentacionVenta").prop("readonly", false);
+        refreshPresentationExplanation();
+    }
 
     function saveProductoServicio() {
         if (state.isSaving || state.isUploadingImage || hasPendingMultimediaUploads()) {
@@ -2780,9 +3318,16 @@
         if (($("#txPrecioPublicoProductoServicio").val() || "").trim() === "") {
             return { selector: "#txPrecioPublicoProductoServicio", message: "Captura el precio público." };
         }
-        const unitPriceValidation = validateUnitPriceFields();
-        if (unitPriceValidation) {
-            return unitPriceValidation;
+        const precioPublico = toNumber($("#txPrecioPublicoProductoServicio").val());
+        const precioComparacion = toNullableNumber($("#txPrecioComparacionProductoServicio").val());
+        if (precioComparacion != null && precioComparacion > 0 && precioComparacion <= precioPublico) {
+            return { selector: "#txPrecioComparacionProductoServicio", message: "El precio de comparación debe ser mayor que el precio público." };
+        }
+        if ($("#chkAplicaIvaProductoServicio").is(":checked")) {
+            const porcentajeIva = toNullableNumber($("#txPorcentajeIvaProductoServicio").val());
+            if (porcentajeIva == null || porcentajeIva < 0 || porcentajeIva > 100) {
+                return { selector: "#txPorcentajeIvaProductoServicio", message: "Captura un IVA entre 0 y 100." };
+            }
         }
         if ($("#chkEsProductoFisicoProductoServicio").is(":checked") && ($("#txPesoKgProductoServicio").val() || "").trim() !== "" && toNullableNumber($("#txPesoKgProductoServicio").val()) < 0) {
             return { selector: "#txPesoKgProductoServicio", message: "El peso no puede ser negativo." };
@@ -2803,6 +3348,7 @@
         const tipo = getSelectedTipoProductoServicio() || 1;
         const causaInventario = tipo === 1 && $("#chkCausaInventarioProductoServicio").is(":checked");
         const esProductoFisico = $("#chkEsProductoFisicoProductoServicio").is(":checked");
+        const fiscalPayload = resolveFiscalPayload();
         const payload = {
             id: normalizeGuid($("#hdProductoServicioId").val()),
             tipo: tipo,
@@ -2818,10 +3364,16 @@
             costo: toNullableNumber($("#txCostoProductoServicio").val()),
             precioPublico: toNumber($("#txPrecioPublicoProductoServicio").val()),
             precioComparacion: toNullableNumber($("#txPrecioComparacionProductoServicio").val()),
-            precioUnitarioMonto: toNullableNumber($("#txPrecioUnitarioMontoProductoServicio").val()),
-            precioUnitarioBaseCantidad: toNullableNumber($("#txPrecioUnitarioBaseProductoServicio").val()),
-            precioUnitarioUnidad: ($("#cbPrecioUnitarioUnidadProductoServicio").val() || "").trim(),
-            objetoImpuesto: ($("#cbObjetoImpuestoProductoServicio").val() || "").trim(),
+            // LEGACY - REEMPLAZADO POR PRESENTACIONES DE VENTA. No participa en el flujo de alta o edición.
+            precioUnitarioMonto: null,
+            precioUnitarioCantidadTotal: null,
+            precioUnitarioUnidadTotal: "",
+            precioUnitarioBaseCantidad: null,
+            precioUnitarioUnidad: "",
+            precioUnitarioUnidadBase: "",
+            precioUnitarioModificado: false,
+            objetoImpuesto: fiscalPayload.objetoImpuesto,
+            porcentajeIVA: fiscalPayload.porcentajeIVA,
             claveProductoSat: ($("#cbClaveProductoSatProductoServicio").val() || "").trim(),
             claveUnidadSat: ($("#cbClaveUnidadSatProductoServicio").val() || "").trim(),
             esProductoFisico: esProductoFisico,
@@ -2840,7 +3392,19 @@
             atributos: buildAttributesPayload(),
             opcionesVariante: buildVariantOptionsRequestPayload(),
             variantes: buildVariantsPayload(),
-            multimedia: buildMultimediaPayload()
+            multimedia: buildMultimediaPayload(),
+            presentacionesVenta: !normalizeGuid($("#hdProductoServicioId").val()) && tipo === 1
+                ? state.presentations.filter(function (item) { return !isBasePresentation(item); }).map(function (item, index) {
+                    return {
+                        cantidadVenta: Number(item.cantidadVenta || 1),
+                        idUnidadVenta: item.idUnidadVenta,
+                        equivalenciaBase: Number(item.equivalenciaBase),
+                        precio: Number(item.precio),
+                        esPredeterminada: false,
+                        orden: index
+                    };
+                })
+                : []
         };
 
         if (!payload.id) {
@@ -2859,14 +3423,16 @@
         return {
             monto: $("#txPrecioUnitarioMontoProductoServicio").val() || "",
             base: $("#txPrecioUnitarioBaseProductoServicio").val() || "",
-            unidad: $("#cbPrecioUnitarioUnidadProductoServicio").val() || ""
+            unidadTotal: getUnitPriceSelectValue("#cbPrecioUnitarioUnidadTotalProductoServicio"),
+            unidad: getUnitPriceSelectValue("#cbPrecioUnitarioUnidadProductoServicio")
         };
     }
 
     function restoreUnitPriceValues(values) {
-        const source = values || { monto: "", base: "", unidad: "" };
+        const source = values || { monto: "", base: "", unidadTotal: "", unidad: "" };
         $("#txPrecioUnitarioMontoProductoServicio").val(source.monto || "");
         $("#txPrecioUnitarioBaseProductoServicio").val(source.base || "");
+        $("#cbPrecioUnitarioUnidadTotalProductoServicio").val(source.unidadTotal || "").trigger("change");
         $("#cbPrecioUnitarioUnidadProductoServicio").val(source.unidad || "").trigger("change");
         updateUnitPriceSummary();
     }
@@ -2877,6 +3443,7 @@
             return;
         }
 
+        applyUnitPriceDefaultsFromMainUnit();
         state.unitPriceSnapshot = captureUnitPriceValues();
         state.unitPricePopoverOpen = true;
         $("#panelPrecioUnitarioProductoServicio").prop("hidden", false);
@@ -2892,13 +3459,30 @@
     }
 
     function clearUnitPriceEditor() {
-        restoreUnitPriceValues({ monto: "", base: "", unidad: "" });
+        restoreUnitPriceValues({ monto: "", base: "", unidadTotal: "", unidad: "" });
         clearFieldError("#btPrecioUnitarioResumenProductoServicio");
     }
 
     function cancelUnitPriceEditor() {
         restoreUnitPriceValues(state.unitPriceSnapshot);
         closeUnitPricePopover();
+    }
+
+    function getUnitPriceSelectValue(selector) {
+        const value = String($(selector).val() || "").trim();
+        if (value) {
+            return value;
+        }
+
+        const selectedText = String($(selector).find("option:selected").text() || "").trim();
+        if (getUnitPriceUnitMeta(selectedText)) {
+            return selectedText;
+        }
+
+        const renderedText = String($(selector).next(".select2").find(".select2-selection__rendered").attr("title")
+            || $(selector).next(".select2").find(".select2-selection__rendered").text()
+            || "").trim();
+        return getUnitPriceUnitMeta(renderedText) ? renderedText : "";
     }
 
     function applyUnitPriceEditor() {
@@ -2915,49 +3499,67 @@
     }
 
     function validateUnitPriceFields() {
-        const monto = ($("#txPrecioUnitarioMontoProductoServicio").val() || "").trim();
+        if (!state.unitPriceTouched && state.unitPriceInitial) {
+            return null;
+        }
+
+        const cantidadTotal = ($("#txPrecioUnitarioMontoProductoServicio").val() || "").trim();
+        const unidadTotal = getUnitPriceSelectValue("#cbPrecioUnitarioUnidadTotalProductoServicio");
         const base = ($("#txPrecioUnitarioBaseProductoServicio").val() || "").trim();
-        const unidad = ($("#cbPrecioUnitarioUnidadProductoServicio").val() || "").trim();
-        const anyValue = !!(monto || base || unidad);
+        const unidad = getUnitPriceSelectValue("#cbPrecioUnitarioUnidadProductoServicio");
+        if (hasDefaultOnlyUnitPriceConfig()) {
+            return null;
+        }
+
+        const anyValue = !!(cantidadTotal || unidadTotal || base || unidad);
 
         if (!anyValue) {
             return null;
         }
 
-        if (!monto) {
-            return { selector: "#btPrecioUnitarioResumenProductoServicio", message: "Captura el importe total del precio unitario." };
+        if (!cantidadTotal || toNullableNumber(cantidadTotal) == null || toNullableNumber(cantidadTotal) <= 0) {
+            return { selector: "#btPrecioUnitarioResumenProductoServicio", message: "Captura una cantidad total mayor que cero." };
         }
 
-        if (!base) {
-            return { selector: "#btPrecioUnitarioResumenProductoServicio", message: "Captura la medida base del precio unitario." };
+        if (!unidadTotal) {
+            return { selector: "#btPrecioUnitarioResumenProductoServicio", message: "Selecciona la unidad de la cantidad total." };
+        }
+
+        if (!base || toNullableNumber(base) == null || toNullableNumber(base) <= 0) {
+            return { selector: "#btPrecioUnitarioResumenProductoServicio", message: "Captura una medida base mayor que cero." };
         }
 
         if (!unidad) {
             return { selector: "#btPrecioUnitarioResumenProductoServicio", message: "Selecciona la unidad base del precio unitario." };
         }
 
+        const totalMeta = getUnitPriceUnitMeta(unidadTotal);
+        const baseMeta = getUnitPriceUnitMeta(unidad);
+        if (!totalMeta || !baseMeta || totalMeta.family !== baseMeta.family) {
+            return { selector: "#btPrecioUnitarioResumenProductoServicio", message: "La unidad de la medida base debe ser compatible con la cantidad total." };
+        }
+
         return null;
     }
 
     function updateUnitPriceSummary() {
-        const monto = toNullableNumber($("#txPrecioUnitarioMontoProductoServicio").val());
+        const cantidadTotal = toNullableNumber($("#txPrecioUnitarioMontoProductoServicio").val());
+        const unidadTotal = getUnitPriceSelectValue("#cbPrecioUnitarioUnidadTotalProductoServicio");
         const base = toNullableNumber($("#txPrecioUnitarioBaseProductoServicio").val());
-        const unidad = ($("#cbPrecioUnitarioUnidadProductoServicio").val() || "").trim();
+        const unidad = getUnitPriceSelectValue("#cbPrecioUnitarioUnidadProductoServicio");
+        const precioPublico = toNullableNumber($("#txPrecioPublicoProductoServicio").val());
         const target = document.getElementById("txPrecioUnitarioResumenProductoServicio");
         if (!target) {
             return;
         }
 
-        if (monto == null && base == null && !unidad) {
+        if (cantidadTotal == null && !unidadTotal && base == null && !unidad) {
             target.textContent = "$0.00";
             return;
         }
 
-        const amountText = monto == null
-            ? "$0.00"
-            : monto.toLocaleString("es-MX", { style: "currency", currency: "MXN", minimumFractionDigits: 2, maximumFractionDigits: 4 });
-        const baseText = base == null ? "1" : formatMeasure(base, 4);
-        target.textContent = amountText + " por " + baseText + (unidad ? " " + unidad : "");
+        const amount = calculateUnitPrice(precioPublico || 0, cantidadTotal || 0, unidadTotal, base || 0, unidad);
+        target.textContent = formatUnitPriceSummary(amount, base, unidad);
     }
 
     function syncUnitPricePopoverLayout() {
@@ -3019,7 +3621,7 @@
             })
             .forEach(function (item) {
                 const normalizedProductAttributeId = normalizeGuid(item.idProductoAtributo);
-                const key = normalizedProductAttributeId || ("new:" + item.idAtributo);
+                const key = normalizeGuid(item.idAtributo);
                 let current = lookup.get(key);
                 if (!current) {
                     current = {
@@ -3332,8 +3934,7 @@
         $("#cbUnidadProductoServicio").val("").trigger("change");
         $("#cbColeccionProductoServicio").val("").trigger("change");
         $("#cbPaqueteProductoServicio").val("").trigger("change");
-        $("#cbObjetoImpuestoProductoServicio").val("").trigger("change");
-        $("#cbPrecioUnitarioUnidadProductoServicio").val("").trigger("change");
+        applyFiscalState("01", 0);
         ensureSelect2Option("#cbClaveProductoSatProductoServicio", "", "");
         ensureSelect2Option("#cbClaveUnidadSatProductoServicio", "H87", "H87 - Pieza");
         $("#chkEsProductoFisicoProductoServicio").prop("checked", false);
@@ -3370,7 +3971,6 @@
         renderLogisticsSummary();
         resetModalSections();
         syncTypeVisibility();
-        updateUnitPriceSummary();
         clearAllFieldErrors();
     }
 
@@ -3519,7 +4119,7 @@
     }
 
     function resolveQuickCatalogCreatedItem(config, payload, response) {
-        if (response && response.id) {
+        if (config.key !== "unidad" && response && response.id) {
             return Promise.resolve({
                 id: response.id,
                 codigo: response.codigo || "",
@@ -3535,7 +4135,7 @@
         return fetchJson(config.listUrl + "?" + query.toString())
             .then(function (data) {
                 const items = Array.isArray(data) ? data : Array.isArray(data.items) ? data.items : [];
-                return findQuickCatalogCreatedItem(items, payload);
+                return (response && response.id ? items.find(function (item) { return String(item.id) === String(response.id); }) : null) || findQuickCatalogCreatedItem(items, payload);
             });
     }
 
@@ -3596,6 +4196,12 @@
         if (config.key === "unidad") {
             normalized.abreviatura = item.abreviatura || "";
             normalized.permiteDecimales = !!item.permiteDecimales;
+            normalized.tipoUnidad = item.tipoUnidad;
+            normalized.activo = item.activo;
+            normalized.convertible = item.convertible;
+            normalized.factorConversion = item.factorConversion;
+            normalized.esSistema = item.esSistema;
+            normalized.esPersonalizada = item.esPersonalizada;
         }
 
         return normalized;
@@ -5362,7 +5968,8 @@
             coleccion: $("#cbColeccionProductoServicio").val() || "",
             paquete: $("#cbPaqueteProductoServicio").val() || "",
             objetoImpuesto: $("#cbObjetoImpuestoProductoServicio").val() || "",
-            precioUnitarioUnidad: $("#cbPrecioUnitarioUnidadProductoServicio").val() || "",
+            aplicaIva: $("#chkAplicaIvaProductoServicio").is(":checked"),
+            porcentajeIVA: $("#txPorcentajeIvaProductoServicio").val() || "",
             claveProductoSat: $("#cbClaveProductoSatProductoServicio").val() || "",
             claveUnidadSat: $("#cbClaveUnidadSatProductoServicio").val() || ""
         };
@@ -5377,10 +5984,11 @@
         $("#cbColeccionProductoServicio").val(values.coleccion).trigger("change");
         $("#cbPaqueteProductoServicio").val(values.paquete).trigger("change");
         $("#cbObjetoImpuestoProductoServicio").val(values.objetoImpuesto).trigger("change");
-        $("#cbPrecioUnitarioUnidadProductoServicio").val(values.precioUnitarioUnidad).trigger("change");
+        $("#chkAplicaIvaProductoServicio").prop("checked", !!values.aplicaIva);
+        $("#txPorcentajeIvaProductoServicio").val(values.porcentajeIVA || "");
+        syncIvaFields(false);
         ensureSelect2Option("#cbClaveProductoSatProductoServicio", values.claveProductoSat || "", values.claveProductoSat || "");
         ensureSelect2Option("#cbClaveUnidadSatProductoServicio", values.claveUnidadSat || "", values.claveUnidadSat || "");
-        updateUnitPriceSummary();
     }
 
     function normalizeCatalogCompareValue(value) {
@@ -5475,6 +6083,15 @@
             title: "Listo",
             text: message,
             confirmButtonText: "Aceptar"
+        });
+    }
+
+    function showUnitBaseChangeWarning() {
+        Swal.fire({
+            icon: "warning",
+            title: "No puedes cambiar la unidad base",
+            text: "Este producto ya tiene presentaciones de venta configuradas. Para cambiar la unidad base, primero elimina o reconfigura sus presentaciones.",
+            confirmButtonText: "Entendido"
         });
     }
 

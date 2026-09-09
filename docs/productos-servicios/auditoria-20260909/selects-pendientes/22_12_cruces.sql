@@ -1,0 +1,1 @@
+SELECT COUNT_BIG(*) AS relaciones_empresa_distinta FROM dbo.[ProductosServiciosVariantes] c JOIN dbo.[ProductosServicios] p ON c.[idProductoServicio]=p.[id] WHERE c.idEmpresa<>p.idEmpresa

@@ -1,0 +1,32 @@
+[
+  {
+    "busqueda": "Aceite Motor Sintetico",
+    "http": 200,
+    "data": [
+      {
+        "id": "ecd83622-584a-48e1-8b01-7db89c950873",
+        "nombre": "Aceite Motor Sintetico",
+        "idUnidadMedida": "918fd4bc-74d8-42e8-a9fb-5a3d13067abf",
+        "unidadMedida": "Pieza",
+        "unidadAbreviatura": "pz",
+        "activo": true,
+        "fechaActualizacion": "2026-09-07T12:41:24"
+      }
+    ]
+  },
+  {
+    "busqueda": "Cambio de Aceite",
+    "http": 200,
+    "data": [
+      {
+        "id": "d6fb766b-e8ff-421d-8bdf-bc987ce4130e",
+        "nombre": "Cambio de Aceite",
+        "idUnidadMedida": "48809a7b-395b-40e9-9b55-133b9b4331ed",
+        "unidadMedida": "Unidad de servicio",
+        "unidadAbreviatura": "US",
+        "activo": true,
+        "fechaActualizacion": "2026-09-07T13:23:27"
+      }
+    ]
+  }
+]

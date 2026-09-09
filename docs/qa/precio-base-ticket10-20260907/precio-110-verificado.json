@@ -1,0 +1,47 @@
+{
+  "precioPublico": 110.0,
+  "presentaciones": [
+    {
+      "id": "14de44d0-7dd3-4c1b-9feb-8f90ce324d28",
+      "idProductoServicio": "4ffbb00e-d4b3-4199-981d-5714a707b516",
+      "nombre": "Pieza",
+      "cantidadVenta": 1.0,
+      "idUnidadVenta": "918fd4bc-74d8-42e8-a9fb-5a3d13067abf",
+      "unidadVenta": "Pieza",
+      "unidadVentaAbreviatura": "pz",
+      "equivalenciaBase": 1.0,
+      "precio": 110.0,
+      "esPredeterminada": true,
+      "orden": 0,
+      "activo": true
+    },
+    {
+      "id": "ba94dc33-e1ad-451a-82ae-6f132f46235d",
+      "idProductoServicio": "4ffbb00e-d4b3-4199-981d-5714a707b516",
+      "nombre": "Paquete",
+      "cantidadVenta": 1.0,
+      "idUnidadVenta": "b5bae753-d0c9-4e43-a21a-e3ac7add6f84",
+      "unidadVenta": "Paquete",
+      "unidadVentaAbreviatura": "PKG",
+      "equivalenciaBase": 6.0,
+      "precio": 250.0,
+      "esPredeterminada": false,
+      "orden": 0,
+      "activo": true
+    },
+    {
+      "id": "e4c688e1-0f40-4fa5-9f41-0bfffdc69e1c",
+      "idProductoServicio": "4ffbb00e-d4b3-4199-981d-5714a707b516",
+      "nombre": "Paquete",
+      "cantidadVenta": 1.0,
+      "idUnidadVenta": "b5bae753-d0c9-4e43-a21a-e3ac7add6f84",
+      "unidadVenta": "Paquete",
+      "unidadVentaAbreviatura": "PKG",
+      "equivalenciaBase": 12.0,
+      "precio": 480.0,
+      "esPredeterminada": false,
+      "orden": 1,
+      "activo": true
+    }
+  ]
+}

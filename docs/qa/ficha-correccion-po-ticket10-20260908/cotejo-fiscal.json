@@ -1,0 +1,16 @@
+{
+  "aceite": {
+    "objetoPersistido": "03",
+    "representacion": "Sí",
+    "costo": 605,
+    "publico": 680,
+    "comparacion": 700
+  },
+  "servicio": {
+    "comparacion": "1750",
+    "costo": "500",
+    "objetoPersistido": "01",
+    "publico": "1500",
+    "representacion": "No"
+  }
+}

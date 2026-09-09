@@ -1,0 +1,86 @@
+Tu operación, más simple.
+FICHA TÉCNICA
+Producto
+ALIMENTOS
+Aceite Motor Sintetico
+LTH Aceite Motor Sintetico 5W-30
+ Lubricante Max Pro T ec 5L
+Código
+001
+Tipo
+Producto
+Estatus
+Activo
+Marca
+Mobil 1
+Colección
+001 · Colección 01
+Etiquetas
+ACEITES Ivan LTH M01 NEW NUEVO OTROS PRIMAVERA
+Precios y Costos Valores en MXN
+Precio público
+$680.00
+Costo
+$605.00
+Ganancia
+$75.00
+Margen
+11.03%
+Precio de
+ comparación
+$700.00
+Unidad Base
+Pieza (pz)
+Inventario
+Existencia actual
+10
+Existencia mínima
+5
+Venta sin existencia
+Sí
+Atributos
+Colores Negro, Blanco, Verde
+Material Plastico, Piel
+Consistencia Viscosidad
+Presentaciones de venta
+Venta Equivale en
+ inventario
+Precio
+1 Pieza Base 1 pz $680.00
+1 Paquete 6 pz $1,500.00
+1 Paquete 12 pz $2,399.00
+1 Paquete 24 pz $5,599.00
+Variantes
+Variante Imagen Costo Precio
+946 ml
+ $199.00 $399.00
+5 L
+ $299.00 $599.00
+10 L ▧ $899.00 $1,299.00
+20 L ▧ $1,599.00 $2,000.00
+Información fiscal, física y logística
+Clave producto/servicio SAT
+15121509 - Aceite de frenos
+Clave unidad SAT
+H87 - Pieza
+Objeto de impuesto
+No
+Producto físico
+Sí
+Paquete
+PKG QA T02 20260821 B
+Tipo de paquete
+Caja
+Peso del producto
+4.00 kg
+Peso vacío del empaque
+1.25 kg
+Peso físico total
+5.25 kg
+Dimensiones del paquete
+L 30 cm · A 15 cm · H 8 cm
+Peso volumétrico
+0.72 kg
+Peso facturable
+5.25 kg
+CheckApp · Ficha técnica de producto 1 / 1 08/09/2026

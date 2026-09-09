@@ -1,0 +1,122 @@
+[
+  {
+    "case": "Paquete 6 a 260, flag legacy true ignorado",
+    "precioPublico": 100.0,
+    "rows": [
+      {
+        "id": "14de44d0-7dd3-4c1b-9feb-8f90ce324d28",
+        "unidadVenta": "Pieza",
+        "equivalenciaBase": 1.0,
+        "precio": 100.0,
+        "esPredeterminada": true
+      },
+      {
+        "id": "ba94dc33-e1ad-451a-82ae-6f132f46235d",
+        "unidadVenta": "Paquete",
+        "equivalenciaBase": 6.0,
+        "precio": 260.0,
+        "esPredeterminada": false
+      },
+      {
+        "id": "e4c688e1-0f40-4fa5-9f41-0bfffdc69e1c",
+        "unidadVenta": "Paquete",
+        "equivalenciaBase": 12.0,
+        "precio": 480.0,
+        "esPredeterminada": false
+      }
+    ]
+  },
+  {
+    "case": "Paquete 12 a 500, público intacto",
+    "precioPublico": 100.0,
+    "rows": [
+      {
+        "id": "14de44d0-7dd3-4c1b-9feb-8f90ce324d28",
+        "unidadVenta": "Pieza",
+        "equivalenciaBase": 1.0,
+        "precio": 100.0,
+        "esPredeterminada": true
+      },
+      {
+        "id": "ba94dc33-e1ad-451a-82ae-6f132f46235d",
+        "unidadVenta": "Paquete",
+        "equivalenciaBase": 6.0,
+        "precio": 260.0,
+        "esPredeterminada": false
+      },
+      {
+        "id": "e4c688e1-0f40-4fa5-9f41-0bfffdc69e1c",
+        "unidadVenta": "Paquete",
+        "equivalenciaBase": 12.0,
+        "precio": 500.0,
+        "esPredeterminada": false
+      }
+    ]
+  },
+  {
+    "case": "Paquetes restaurados",
+    "precioPublico": 100.0,
+    "rows": [
+      {
+        "id": "14de44d0-7dd3-4c1b-9feb-8f90ce324d28",
+        "unidadVenta": "Pieza",
+        "equivalenciaBase": 1.0,
+        "precio": 100.0,
+        "esPredeterminada": true
+      },
+      {
+        "id": "ba94dc33-e1ad-451a-82ae-6f132f46235d",
+        "unidadVenta": "Paquete",
+        "equivalenciaBase": 6.0,
+        "precio": 250.0,
+        "esPredeterminada": false
+      },
+      {
+        "id": "e4c688e1-0f40-4fa5-9f41-0bfffdc69e1c",
+        "unidadVenta": "Paquete",
+        "equivalenciaBase": 12.0,
+        "precio": 480.0,
+        "esPredeterminada": false
+      }
+    ]
+  },
+  {
+    "case": "Edición directa de base rechazada",
+    "status": 400
+  },
+  {
+    "case": "Base manual duplicada rechazada",
+    "status": 400
+  },
+  {
+    "case": "Baja de base rechazada",
+    "status": 400
+  },
+  {
+    "case": "Sin cambios tras intentos rechazados",
+    "precioPublico": 100.0,
+    "rows": [
+      {
+        "id": "14de44d0-7dd3-4c1b-9feb-8f90ce324d28",
+        "unidadVenta": "Pieza",
+        "equivalenciaBase": 1.0,
+        "precio": 100.0,
+        "esPredeterminada": true
+      },
+      {
+        "id": "ba94dc33-e1ad-451a-82ae-6f132f46235d",
+        "unidadVenta": "Paquete",
+        "equivalenciaBase": 6.0,
+        "precio": 250.0,
+        "esPredeterminada": false
+      },
+      {
+        "id": "e4c688e1-0f40-4fa5-9f41-0bfffdc69e1c",
+        "unidadVenta": "Paquete",
+        "equivalenciaBase": 12.0,
+        "precio": 480.0,
+        "esPredeterminada": false
+      }
+    ]
+  }
+]

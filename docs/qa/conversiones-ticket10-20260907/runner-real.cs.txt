@@ -1,0 +1,30 @@
+using System.Text.Json;
+using Microsoft.Data.SqlClient;
+using Microsoft.Extensions.Configuration;
+using Microsoft.Extensions.Logging.Abstractions;
+using Microsoft.AspNetCore.Http;
+using Microsoft.AspNetCore.Mvc;
+using System.Security.Claims;
+using checklistWs.Controllers.ProductosServicios;
+using checklistWs.Models.ProductosServicios;
+var cfg=JsonDocument.Parse(File.ReadAllText("/Users/denissemendiola/dev/Inspecciones/inspectorapi/checklistWs/appsettings.json"));
+using var c=new SqlConnection(cfg.RootElement.GetProperty("ConnectionStrings").GetProperty("CadenaConexionSQLServer").GetString());c.Open();
+var mode=args[0];
+if(mode=="internal") {
+ var config=new ConfigurationBuilder().AddJsonFile("/Users/denissemendiola/dev/Inspecciones/inspectorapi/checklistWs/appsettings.json").Build();
+ var controller=new ProductosServiciosController(config,NullLogger<ProductosServiciosController>.Instance);
+ controller.ControllerContext=new ControllerContext{HttpContext=new DefaultHttpContext{User=new ClaimsPrincipal(new ClaimsIdentity(new[]{new Claim("idEmpresa","b17aaece-2b78-4e35-b554-9e694eeb15a7"),new Claim("empresa","UMBRELLA")},"QA"))}};
+ var req=JsonSerializer.Deserialize<ProductoServicioPresentacionVentaGuardarRequest>(File.ReadAllText(args[1]),new JsonSerializerOptions{PropertyNameCaseInsensitive=true})!;
+ var result=(ObjectResult)await controller.GuardarPresentacionVentaProductoServicio(req,Guid.Parse("b17aaece-2b78-4e35-b554-9e694eeb15a7"));
+ Console.WriteLine(JsonSerializer.Serialize(new {Status=result.StatusCode,Interno=req.EquivalenciaBase,Response=result.Value}));return;
+}
+
+string sql=mode switch {
+"final"=>"SELECT (SELECT COUNT(*) FROM dbo.ProductosServicios WHERE idEmpresa='b17aaece-2b78-4e35-b554-9e694eeb15a7' AND Activo=1) AS ProductosActivos,(SELECT COUNT(*) FROM dbo.ProductosServiciosUnidadesMedida WHERE idEmpresa='b17aaece-2b78-4e35-b554-9e694eeb15a7' AND Activo=1 AND EsSistema=1) AS SistemaActivas,(SELECT COUNT(*) FROM dbo.ProductosServiciosUnidadesMedida WHERE idEmpresa='b17aaece-2b78-4e35-b554-9e694eeb15a7' AND Activo=1 AND EsPersonalizada=1) AS PersonalizadasActivas",
+"schema"=>"SELECT TABLE_NAME,COLUMN_NAME,DATA_TYPE,NUMERIC_PRECISION,NUMERIC_SCALE FROM INFORMATION_SCHEMA.COLUMNS WHERE TABLE_NAME IN ('ProductosServiciosPresentacionesVenta','ProductosServiciosUnidadesMedida') AND COLUMN_NAME IN ('EquivalenciaBase','CantidadVenta','FactorConversion')",
+"unit"=>"UPDATE dbo.ProductosServicios SET idUnidadMedida=@unit WHERE id=@id AND Codigo=N'QA-T10-CONVERSION' AND Nombre=N'Producto QA T10 Conversiones'; SELECT @@ROWCOUNT AS Afectadas",
+"read"=>"SELECT Nombre,CantidadVenta,EquivalenciaBase,Activo FROM dbo.ProductosServiciosPresentacionesVenta WHERE idProductoServicio=@id",
+"clean"=>"BEGIN TRAN; IF EXISTS(SELECT 1 FROM dbo.ProductosServicios WHERE id=@id AND Codigo=N'QA-T10-CONVERSION' AND Nombre=N'Producto QA T10 Conversiones') BEGIN UPDATE dbo.ProductosServiciosPresentacionesVenta SET Activo=0,FechaActualizacion=GETUTCDATE() WHERE idProductoServicio=@id; UPDATE dbo.ProductosServicios SET Activo=0,FechaArchivado=GETUTCDATE() WHERE id=@id; END; COMMIT; SELECT (SELECT COUNT(*) FROM dbo.ProductosServicios WHERE id=@id AND Activo=1) AS ProductosQAActivos,(SELECT COUNT(*) FROM dbo.ProductosServiciosPresentacionesVenta WHERE idProductoServicio=@id AND Activo=1) AS PresentacionesQAActivas",
+_=>throw new Exception("Modo no permitido")};
+using var cmd=new SqlCommand(sql,c);if(args.Length>1)cmd.Parameters.AddWithValue("@id",Guid.Parse(args[1]));if(args.Length>2)cmd.Parameters.AddWithValue("@unit",Guid.Parse(args[2]));
+using var r=cmd.ExecuteReader();var rows=new List<Dictionary<string,object?>>();while(r.Read()){var row=new Dictionary<string,object?>();for(int i=0;i<r.FieldCount;i++)row[r.GetName(i)]=r.IsDBNull(i)?null:r.GetValue(i);rows.Add(row);}Console.WriteLine(JsonSerializer.Serialize(rows));

@@ -39,6 +39,10 @@
                         <p class="checkapp-kicker" id="@kickerId">Registro</p>
                         <h3 class="modal-title" id="@titleId">@modalTitle</h3>
                     </div>
+@if (layoutAttributeValue == "unidad")
+{
+                    <button type="button" class="btn btn-icon btn-sm ps-unit-help-trigger" id="btAyudaUnidadPersonalizada" aria-label="Ayuda sobre unidades personalizadas" aria-expanded="false">?</button>
+}
                     <button type="button" class="btn btn-icon btn-sm btn-active-light-primary" data-bs-dismiss="modal" aria-label="Close">
                         <i class="ki-duotone ki-cross fs-1"><span class="path1"></span><span class="path2"></span></i>
                     </button>
@@ -78,6 +82,13 @@
                         </label>
                     </div>
                     <div class="checkapp-status-inline" id="@infoId" style="margin-top:1rem;"></div>
+@if (layoutAttributeValue == "unidad")
+{
+                    <div class="ps-unit-help-popover" id="psAyudaUnidadPersonalizada" hidden>
+                        <strong>Unidades personalizadas</strong>
+                        <p>Las unidades estándar de peso, volumen, longitud, área, por artículo y tiempo ya están incluidas en CheckApp. Agrega aquí únicamente unidades propias de tu operación, como caja, paquete o tarima.</p>
+                    </div>
+}
                 </div>
                 <div class="modal-footer activos-quick-modal-footer ps-catalog-modal-footer">
                     <button type="button" class="checkapp-btn checkapp-btn-ghost" data-bs-dismiss="modal">

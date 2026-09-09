@@ -1,0 +1,24 @@
+{
+  "aceite": {
+    "pages": 1,
+    "outsidePage": [],
+    "missingTokens": {
+      "información": 1,
+      "general": 1,
+      "descripción": 1
+    },
+    "addedTokens": {},
+    "pricesPreserved": true
+  },
+  "servicio": {
+    "pages": 1,
+    "outsidePage": [],
+    "missingTokens": {
+      "información": 1,
+      "general": 1,
+      "descripción": 1
+    },
+    "addedTokens": {},
+    "pricesPreserved": true
+  }
+}

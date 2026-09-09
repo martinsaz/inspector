@@ -1,0 +1,5 @@
+127.0.0.1:5200 libre: PASS
+::1:5200 libre: PASS
+127.0.0.1:5127 libre: PASS
+::1:5127 libre: PASS
+PIDs Codex detenidos: 10245 (API inicial), 10334 (API final), 10247 (frontend).

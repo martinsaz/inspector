@@ -1,0 +1,1 @@
+SELECT t.name AS table_name,tr.name,tr.is_disabled,m.definition FROM sys.triggers tr JOIN sys.tables t ON t.object_id=tr.parent_id LEFT JOIN sys.sql_modules m ON m.object_id=tr.object_id WHERE t.name LIKE 'ProductosServicios%'

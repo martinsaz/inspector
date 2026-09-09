@@ -1,0 +1,1 @@
+SELECT idEmpresa,UPPER(LTRIM(RTRIM(Nombre))) AS nombre,COUNT_BIG(*) AS filas FROM dbo.ProductosServiciosUnidadesMedida GROUP BY idEmpresa,UPPER(LTRIM(RTRIM(Nombre))) HAVING COUNT_BIG(*)>1

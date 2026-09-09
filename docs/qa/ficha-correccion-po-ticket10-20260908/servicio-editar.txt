@@ -1,0 +1,125 @@
+EDICIÓN
+
+Editar producto / servicio
+REGISTRO
+Información general
+
+Datos principales, clasificación e imagen del producto o servicio.
+
+Contraer
+Nombre *
+Código *
+Descripción
+Tipo *
+Producto
+Servicio
+Estatus *
+Activo
+Inactivo
+Categoría *
+Selecciona una categoría
+Mantenimiento
+Seguridad
+Mantenimiento
++
+Colección
+Sin colección
+Colección 01
+Colección 02
+Colección 03
+Colección 04
+Sin colección
++
+IMAGEN
+Imagen principal
+Cambiar
+Eliminar
+Etiquetas
+M01
+PRECIOS
+Precios y Costos
+
+Define costos, precio público y referencias visibles para la venta.
+
+Contraer
+Unidad base *
+Selecciona una unidad
+Pieza · pz
+Gramo · g
+Kilogramo · kg
+Libra · lb
+Microgramo · µg
+Miligramo · mg
+Onza · oz
+Tonelada corta · short ton
+Tonelada métrica · t
+Centilitro · cL
+Centímetro cúbico · cm³
+Cuarto US · qt
+Decilitro · dL
+Decímetro cúbico · dm³
+Galón US · US gal
+Litro · L
+Metro cúbico · m³
+Microlitro · µL
+Mililitro · mL
+Milímetro cúbico · mm³
+Onza líquida US · fl oz
+Pinta US · pt
+Taza US · cup
+Centímetro · cm
+Decímetro · dm
+Kilómetro · km
+Metro · m
+Micrómetro · µm
+Milímetro · mm
+Milla · mi
+Pie · ft
+Pulgada · in
+Yarda · yd
+Acre · ac
+Centímetro cuadrado · cm²
+Decímetro cuadrado · dm²
+Hectárea · ha
+Kilómetro cuadrado · km²
+Metro cuadrado · m²
+Milímetro cuadrado · mm²
+Milla cuadrada · mi²
+Pie cuadrado · ft²
+Pulgada cuadrada · in²
+Yarda cuadrada · yd²
+Año · año
+Década · década
+Día · d
+Hora · h
+Lustro · lustro
+Milisegundo · ms
+Minuto · min
+Segundo · s
+Siglo · siglo
+Actividad · ACT
+Paquete · PKG
+Unidad de servicio · US
+Unidad de servicio · US
++
+Costo
+Precio público *
+Precio de comparación
+Ganancia
+$1,000.00
+Margen
+66.67%
+SAT
+Datos fiscales y de facturación
+
+Captura los campos SAT sin depender de catálogos duros en frontend.
+
+Expandir
+MULTIMEDIA
+Evidencia del producto o servicio
+
+Agrega hasta 3 fotos, 1 video y 3 documentos para identificar este registro.
+
+Expandir
+Guardar cambios
+Cerrar

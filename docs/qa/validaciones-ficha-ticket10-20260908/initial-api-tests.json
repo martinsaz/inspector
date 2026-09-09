@@ -1,0 +1,42 @@
+[
+  {
+    "test": "initial same base",
+    "status": 400,
+    "response": {
+      "mensaje": "Esta unidad ya es la unidad base. La unidad base ya tiene su propia presentación. Selecciona una unidad de venta diferente.",
+      "id": null,
+      "codigo": "",
+      "nombre": ""
+    }
+  },
+  {
+    "test": "initial duplicate manual",
+    "status": 400,
+    "response": {
+      "mensaje": "Esta presentación ya existe. Ya existe una presentación con la misma cantidad, unidad y equivalencia en inventario. Edita la presentación existente si deseas cambiar su precio.",
+      "id": null,
+      "codigo": "",
+      "nombre": ""
+    }
+  },
+  {
+    "test": "physical calculated duplicate",
+    "status": 400,
+    "response": {
+      "mensaje": "Esta presentación ya existe. Ya existe una presentación con la misma cantidad, unidad y equivalencia en inventario. Edita la presentación existente si deseas cambiar su precio.",
+      "id": null,
+      "codigo": "",
+      "nombre": ""
+    }
+  },
+  {
+    "test": "precision duplicate manual",
+    "status": 400,
+    "response": {
+      "mensaje": "Esta presentación ya existe. Ya existe una presentación con la misma cantidad, unidad y equivalencia en inventario. Edita la presentación existente si deseas cambiar su precio.",
+      "id": null,
+      "codigo": "",
+      "nombre": ""
+    }
+  }
+]

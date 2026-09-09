@@ -129,6 +129,8 @@
                     actionColumn(),
                     { key: "codigo", title: "Código" },
                     { key: "nombre", title: "Nombre" },
+                    { key: "tipoUnidadNombre", title: "Tipo" },
+                    { key: "esSistema", title: "Origen", render: function (value) { return value ? "<span class='ps-catalog-chip'>Sistema</span>" : "<span class='ps-catalog-chip'>Personalizada</span>"; } },
                     { key: "abreviatura", title: "Abreviatura" },
                     {
                         key: "permiteDecimales",
@@ -152,7 +154,8 @@
                     nombre: ($("#txNombreCatalogo").val() || "").trim(),
                     descripcion: "",
                     abreviatura: ($("#txAbreviaturaCatalogo").val() || "").trim(),
-                    permiteDecimales: $("#chkPermiteDecimalesCatalogo").is(":checked")
+                    permiteDecimales: $("#chkPermiteDecimalesCatalogo").is(":checked"),
+                    tipoUnidad: "OTHER"
                 };
             },
             fillForm: function (data) {
@@ -169,6 +172,21 @@
     if (!config) {
         return;
     }
+
+    $(document).on("click", "#btAyudaUnidadPersonalizada", function (event) {
+        event.preventDefault();
+        const popover = $("#psAyudaUnidadPersonalizada");
+        const visible = !popover.prop("hidden");
+        popover.prop("hidden", visible);
+        $(this).attr("aria-expanded", String(!visible));
+    });
+
+    $(document).on("keydown", function (event) {
+        if (event.key === "Escape") {
+            $("#psAyudaUnidadPersonalizada").prop("hidden", true);
+            $("#btAyudaUnidadPersonalizada").attr("aria-expanded", "false");
+        }
+    });
 
     const modalBridge = window.ProductosServiciosCatalogModalShared.create({
         formSelector: "#frmCatalogoProductosServicios",
@@ -273,7 +291,8 @@
                 const query = new URLSearchParams();
                 appendQuery(query, "busqueda", $("#txBusquedaCatalogo").val());
                 appendQuery(query, "estatus", $("#cbFiltroEstatusCatalogo").val());
-                return fetchJson(config.listUrl(query));
+                // Los catálogos protegidos pueden cambiar por una migración; no reutilizar una respuesta GET anterior.
+                return fetchJson(config.listUrl(query), { cache: "no-store" });
             },
             columns: config.columns(),
             onLoaded: function (rows) {
@@ -306,6 +325,9 @@
             hideable: false,
             exportable: false,
             render: function (_value, row) {
+                if (pageKey === "unidades" && row.esSistema) {
+                    return "<span class='ps-catalog-chip'>Protegida</span>";
+                }
                 const actions = [
                     buildActionLink("Editar", "fa fa-edit", "psCatalogoEditar('" + escapeJs(row.id) + "')")
                 ];
@@ -445,7 +467,16 @@
             CheckAppUI.reloadGrid(config.gridId);
         }).catch(function (error) {
             finishSaveUi();
-            modalBridge.setStatus("danger", resolveErrorMessage(error));
+            const message = resolveErrorMessage(error);
+            modalBridge.setStatus("danger", message);
+            if (config === configs.unidades && message.indexOf("Esta unidad ya está disponible\n") === 0) {
+                Swal.fire({
+                    icon: "info",
+                    title: "Esta unidad ya está disponible",
+                    text: message.substring(message.indexOf("\n") + 1),
+                    confirmButtonText: "Aceptar"
+                });
+            }
         });
     }
 
@@ -499,6 +530,9 @@
             title: "Nueva " + config.title,
             saveButton: "Guardar"
         });
+        if (pageKey === "unidades") {
+            $("#cbTipoUnidadCatalogo").val("OTHER").prop("disabled", true);
+        }
         finishSaveUi();
     }
 

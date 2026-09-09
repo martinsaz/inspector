@@ -1,0 +1,1 @@
+SELECT DB_NAME() AS database_name, @@SERVERNAME AS server_name, SYSDATETIMEOFFSET() AS queried_at, HAS_PERMS_BY_NAME(DB_NAME(), 'DATABASE', 'VIEW DEFINITION') AS view_definition_permission

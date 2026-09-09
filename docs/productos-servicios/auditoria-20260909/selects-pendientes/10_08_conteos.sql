@@ -1,0 +1,1 @@
+SELECT idEmpresa, COUNT_BIG(*) AS total, SUM(CASE WHEN Activo=1 THEN 1 ELSE 0 END) AS activos, SUM(CASE WHEN Activo=0 THEN 1 ELSE 0 END) AS inactivos FROM dbo.[ProductosServiciosAtributos] GROUP BY idEmpresa

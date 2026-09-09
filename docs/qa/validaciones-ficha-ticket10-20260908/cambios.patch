@@ -1,0 +1,257 @@
+--- before/inspector/checklist/wwwroot/js/ProductosServicios/ProductosServicios.js
++++ after/inspector/checklist/wwwroot/js/ProductosServicios/ProductosServicios.js
+@@ -1558,7 +1558,7 @@
+     function fillUnitSelect(selector, units, selectedId) {
+         const node = document.querySelector(selector);
+         node.replaceChildren(new Option("Selecciona una unidad", ""));
+-        const groups = [["WEIGHT", "Peso"], ["VOLUME", "Volumen"], ["LENGTH", "Longitud"], ["AREA", "Área"], ["ITEM", "Por artículo"], ["TIME", "Tiempo"], ["OTHER", "Otra"]];
++        const groups = [["ITEM", "Por artículo"], ["WEIGHT", "Peso"], ["VOLUME", "Volumen"], ["LENGTH", "Longitud"], ["AREA", "Área"], ["TIME", "Tiempo"], ["OTHER", "Otra"]];
+         groups.forEach(function (group) {
+             const items = (units || []).filter(function (unit) { return unit.activo !== false && unit.tipoUnidad === group[0]; })
+                 .sort(function (a, b) { return a.nombre.localeCompare(b.nombre, "es", { sensitivity: "base" }); });
+@@ -2576,11 +2576,12 @@
+         }
+ 
+         const commercialItems = [
+-            buildFichaMetric("Unidad", buildUnitLabel(detail.unidadMedida, detail.unidadAbreviatura)),
++            buildFichaMetric(detail.tipo === 1 ? "Unidad Base" : "Unidad", buildUnitLabel(detail.unidadMedida, detail.unidadAbreviatura)),
+             detail.costo != null ? buildFichaMetric("Costo", formatCurrency(detail.costo)) : "",
+             buildFichaMetric("Precio público", formatCurrency(detail.precioPublico)),
+             detail.precioComparacion != null && Number(detail.precioComparacion) > 0 ? buildFichaMetric("Precio de comparación", formatCurrency(detail.precioComparacion)) : "",
+-            detail.precioUnitarioResumen ? buildFichaMetric("Precio unitario", escapeHtml(detail.precioUnitarioResumen)) : ""
++            detail.costo != null ? buildFichaMetric("Ganancia", formatCurrency(Number(detail.precioPublico) - Number(detail.costo))) : "",
++            detail.costo != null && Number(detail.precioPublico) > 0 ? buildFichaMetric("Margen", ((Number(detail.precioPublico) - Number(detail.costo)) / Number(detail.precioPublico) * 100).toFixed(2) + "%") : ""
+         ].filter(Boolean).join("");
+ 
+         const fiscalItems = [
+@@ -2630,7 +2631,7 @@
+             buildTagsSection(detail.tags || []),
+             "  </div>",
+             "</section>",
+-            commercialItems ? buildFichaSectionCard("Información comercial", commercialItems) : "",
++            commercialItems ? buildFichaSectionCard("Información comercial", commercialItems, buildFichaPresentations(detail)) : "",
+             fiscalItems ? buildFichaSectionCard("Información fiscal", fiscalItems) : "",
+             physicalItems ? buildFichaSectionCard("Información física y logística", physicalItems) : "",
+             inventoryItems ? buildFichaSectionCard("Inventario", inventoryItems) : "",
+@@ -2718,13 +2719,23 @@
+         return "<article class='ps-ficha-metric'><small>" + escapeHtml(label) + "</small><strong>" + value + "</strong></article>";
+     }
+ 
+-    function buildFichaSectionCard(title, contentHtml) {
++    function buildFichaPresentations(detail) {
++        const items = (detail.presentacionesVenta || []).filter(function (item) { return item.activo !== false; });
++        if (detail.tipo !== 1 || !items.length) return "";
++        return "<div class='ps-ficha-presentations'><span class='checkapp-panel-eyebrow'>Presentaciones de venta</span><table><thead><tr><th>Venta</th><th>Equivale en inventario</th><th>Precio</th></tr></thead><tbody>" + items.map(function (item) {
++            const base = item.idUnidadVenta === detail.idUnidadMedida && Number(item.cantidadVenta) === 1 && Number(item.equivalenciaBase) === 1;
++            return "<tr><td>" + escapeHtml(formatDecimal(item.cantidadVenta) + " " + item.unidadVenta) + (base ? " <strong>Base</strong>" : "") + "</td><td>" + escapeHtml(formatDecimal(item.equivalenciaBase) + " " + detail.unidadAbreviatura) + "</td><td>" + formatCurrency(item.precio) + "</td></tr>";
++        }).join("") + "</tbody></table></div>";
++    }
++
++    function buildFichaSectionCard(title, contentHtml, subsectionHtml) {
+         return [
+             "<section class='ps-ficha-section-card'>",
+             "  <span class='checkapp-panel-eyebrow'>" + escapeHtml(title) + "</span>",
+             "  <div class='ps-ficha-metrics'>",
+             contentHtml,
+             "  </div>",
++            subsectionHtml || "",
+             "</section>"
+         ].join("");
+     }
+@@ -3133,7 +3144,21 @@
+             return;
+         }
+         const payload = { id: state.currentProduct && state.currentProduct.id ? normalizeGuid($("#hdPresentacionVentaId").val()) : ($("#hdPresentacionVentaId").val() || null), idProductoServicio: state.currentProduct && state.currentProduct.id, cantidadVenta: cantidadVenta, idUnidadVenta: idUnidadVenta, equivalenciaBase: equivalenciaBase, precio: precio, esPredeterminada: false, orden: state.presentations.length };
+-        if (isBasePresentation(payload)) { setStatus("#txInfoPresentacionVenta", "danger", "La presentación base ya existe y toma su precio de Precio público."); return; }
++        const baseId = (state.currentProduct && state.currentProduct.idUnidadMedida) || $("#cbUnidadProductoServicio").val();
++        if (String(idUnidadVenta) === String(baseId)) {
++            Swal.fire({ icon: "warning", title: "Esta unidad ya es la unidad base", text: "La unidad base ya tiene su propia presentación. Selecciona una unidad de venta diferente." });
++            return;
++        }
++        const persistedNumber = function (value) { return Math.round((Number(value) + Number.EPSILON) * 10000); };
++        if (state.presentations.some(function (item) {
++            return item.activo !== false && String(item.id) !== String(payload.id)
++                && String(item.idUnidadVenta) === String(idUnidadVenta)
++                && persistedNumber(item.cantidadVenta) === persistedNumber(cantidadVenta)
++                && persistedNumber(item.equivalenciaBase) === persistedNumber(equivalenciaBase);
++        })) {
++            Swal.fire({ icon: "warning", title: "Esta presentación ya existe", text: "Ya existe una presentación con la misma cantidad, unidad y equivalencia en inventario. Edita la presentación existente si deseas cambiar su precio." });
++            return;
++        }
+         if (!payload.idProductoServicio) {
+             saveDraftPresentation(payload);
+             return;
+@@ -3146,7 +3171,12 @@
+                 const index = state.presentations.findIndex(function (entry) { return String(entry.id) === String(savedId); });
+                 if (index >= 0) state.presentations[index] = item; else state.presentations.push(item);
+                 renderPresentations(); state.presentationModal.hide(); showSuccess(resolveServerMessage(response) || "La presentación fue guardada.");
+-            }).catch(function (error) { setStatus("#txInfoPresentacionVenta", "danger", resolveErrorMessage(error)); });
++            }).catch(function (error) {
++                const message = resolveErrorMessage(error);
++                const title = ["Esta unidad ya es la unidad base", "Esta presentación ya existe"].find(function (value) { return message.startsWith(value + "."); });
++                if (title) Swal.fire({ icon: "warning", title: title, text: message.substring(title.length + 1).trim() });
++                else setStatus("#txInfoPresentacionVenta", "danger", message);
++            });
+     }
+ 
+     function archivePresentation(id) {
+@@ -3182,7 +3212,7 @@
+     function fillPresentationSaleUnits(selectedId) {
+         const base = (state.combos.unidadesMedida || []).find(function (item) { return String(item.id) === String((state.currentProduct && state.currentProduct.idUnidadMedida) || $("#cbUnidadProductoServicio").val()); }) || {};
+         const compatible = (state.combos.unidadesMedida || []).filter(function (unit) {
+-            if (unit.activo === false) return false;
++            if (unit.activo === false || String(unit.id) === String(base.id)) return false;
+             if (unit.tipoUnidad === "OTHER") return true;
+             if (!base.id) return false;
+             if (base.tipoUnidad === "ITEM") return unit.tipoUnidad === "ITEM" || unit.tipoUnidad === "OTHER";
+--- before/inspector/checklist/wwwroot/css/ProductosServicios/ProductosServicios.css
++++ after/inspector/checklist/wwwroot/css/ProductosServicios/ProductosServicios.css
+@@ -3077,3 +3077,9 @@
+     .ps-general-panel .ps-form-field--type { grid-column: 1 / span 3; }
+     .ps-general-panel .ps-form-field--status { grid-column: 4 / span 3; }
+ }
++
++.ps-ficha-presentations { margin-top: 1rem; min-width: 0; }
++.ps-ficha-presentations table { width: 100%; table-layout: fixed; margin-top: .6rem; }
++.ps-ficha-presentations th, .ps-ficha-presentations td { text-align: left; padding: .65rem .4rem; overflow-wrap: anywhere; }
++.ps-ficha-presentations th { color: var(--checkapp-color-muted); font-weight: 600; }
++.ps-ficha-presentations td { border-top: 1px solid var(--checkapp-color-border); }
+--- before/inspectorapi/checklistWs/Controllers/ProductosServicios/ProductosServiciosController.cs
++++ after/inspectorapi/checklistWs/Controllers/ProductosServicios/ProductosServiciosController.cs
+@@ -694,6 +694,9 @@
+                 return null;
+             }
+ 
++            ficha.PresentacionesVenta = ficha.Tipo == TipoProducto
++                ? await ObtenerPresentacionesVentaAsync(connection, null, idEmpresa, idProductoServicio, true)
++                : new List<ProductoServicioPresentacionVentaDto>();
+             ficha.Tags = await ObtenerTagsProductoAsync(connection, idEmpresa, idProductoServicio, string.Empty);
+             ficha.Atributos = await ObtenerAtributosProductoAsync(connection, idEmpresa, idProductoServicio);
+             ficha.Variantes = await ObtenerVariantesProductoAsync(connection, idEmpresa, idProductoServicio);
+@@ -1354,6 +1357,11 @@
+                     return BadRequest(new ProductoServicioOperacionResponse { Mensaje = "Las presentaciones de venta solo aplican a productos disponibles." });
+                 }
+ 
++                if (request.IdUnidadVenta == producto.IdUnidadMedida)
++                {
++                    transaction.Rollback();
++                    return BadRequest(new ProductoServicioOperacionResponse { Mensaje = UnidadBasePresentacionMensaje });
++                }
+                 ProductoServicioUnidadMedidaDto? unidad = await ObtenerUnidadInternaAsync(connection, transaction, context.IdEmpresa, producto.IdUnidadMedida);
+                 if (unidad == null || (!unidad.PermiteDecimales && decimal.Truncate(request.EquivalenciaBase) != request.EquivalenciaBase))
+                 {
+@@ -1392,6 +1400,11 @@
+                 {
+                     transaction.Rollback();
+                     return BadRequest(new ProductoServicioOperacionResponse { Mensaje = "La presentación base se administra automáticamente desde Unidad base y Precio público." });
++                }
++                if (activas.Any(item => item.Id != id && EsPresentacionDuplicada(item, request)))
++                {
++                    transaction.Rollback();
++                    return BadRequest(new ProductoServicioOperacionResponse { Mensaje = PresentacionDuplicadaMensaje });
+                 }
+                 bool makeDefault = false;
+ 
+@@ -3285,6 +3298,14 @@
+             return Convert.ToInt32(await command.ExecuteScalarAsync());
+         }
+ 
++        private const string UnidadBasePresentacionMensaje = "Esta unidad ya es la unidad base. La unidad base ya tiene su propia presentación. Selecciona una unidad de venta diferente.";
++        private const string PresentacionDuplicadaMensaje = "Esta presentación ya existe. Ya existe una presentación con la misma cantidad, unidad y equivalencia en inventario. Edita la presentación existente si deseas cambiar su precio.";
++
++        private static bool EsPresentacionDuplicada(ProductoServicioPresentacionVentaDto item, ProductoServicioPresentacionVentaGuardarRequest request)
++            => item.IdUnidadVenta == request.IdUnidadVenta
++                && item.CantidadVenta == decimal.Round(request.CantidadVenta, 4, MidpointRounding.AwayFromZero)
++                && item.EquivalenciaBase == decimal.Round(request.EquivalenciaBase, 4, MidpointRounding.AwayFromZero);
++
+         private static bool EsPresentacionBase(ProductoServicioPresentacionVentaDto item, Guid unidadId)
+             => item.IdUnidadVenta == unidadId && item.CantidadVenta == 1 && item.EquivalenciaBase == 1;
+ 
+@@ -3318,18 +3339,22 @@
+ 
+             foreach (ProductoServicioPresentacionVentaGuardarRequest presentacion in presentaciones)
+             {
+-                if (presentacion.IdUnidadVenta == unidadId && presentacion.CantidadVenta == 1 && presentacion.EquivalenciaBase == 1) continue;
++                if (presentacion.IdUnidadVenta == unidadId) throw new ProductoServicioValidationException(UnidadBasePresentacionMensaje);
+                 ProductoServicioUnidadMedidaDto? unidadVenta = await ObtenerUnidadInternaAsync(connection, transaction, idEmpresa, presentacion.IdUnidadVenta);
+                 bool fisica = unidadVenta != null && unidad.Convertible && unidadVenta.Convertible && unidad.TipoUnidad == unidadVenta.TipoUnidad && unidad.TipoUnidad != "OTHER";
+                 bool manual = unidadVenta != null && unidadVenta.TipoUnidad == "OTHER";
+                 if (!fisica && !manual) throw new ProductoServicioValidationException("La unidad de venta no es compatible con la unidad base.");
+                 presentacion.Nombre = Truncate(unidadVenta!.Nombre, 100); // No manual presentation name is required.
+                 if (fisica) presentacion.EquivalenciaBase = decimal.Round(presentacion.CantidadVenta * unidadVenta!.FactorConversion!.Value / unidad.FactorConversion!.Value, 4, MidpointRounding.AwayFromZero);
+-                if (presentacion.IdUnidadVenta == unidadId && presentacion.CantidadVenta == 1 && presentacion.EquivalenciaBase == 1) continue;
++                if (presentacion.IdUnidadVenta == unidadId) throw new ProductoServicioValidationException(UnidadBasePresentacionMensaje);
+                 if (!unidad.PermiteDecimales && decimal.Truncate(presentacion.EquivalenciaBase) != presentacion.EquivalenciaBase)
+                 {
+                     throw new ProductoServicioValidationException("La equivalencia no cumple con la precisión de la unidad base.");
+                 }
++
++                List<ProductoServicioPresentacionVentaDto> existentes = await ObtenerPresentacionesVentaAsync(connection, transaction, idEmpresa, productoId, true);
++                if (existentes.Any(item => EsPresentacionDuplicada(item, presentacion)))
++                    throw new ProductoServicioValidationException(PresentacionDuplicadaMensaje);
+ 
+                 presentacion.CantidadVenta = presentacion.CantidadVenta <= 0 ? 1 : presentacion.CantidadVenta;
+                 presentacion.IdUnidadVenta = presentacion.IdUnidadVenta == Guid.Empty ? unidadId : presentacion.IdUnidadVenta;
+@@ -7338,7 +7363,7 @@
+         {
+             List<(string Label, string Value)> rows = new List<(string Label, string Value)>
+             {
+-                ("Unidad", BuildUnidadLabel(ficha.UnidadMedida, ficha.UnidadAbreviatura)),
++                (ficha.Tipo == TipoProducto ? "Unidad Base" : "Unidad", BuildUnidadLabel(ficha.UnidadMedida, ficha.UnidadAbreviatura)),
+                 ("Precio público", FichaFormatCurrency(ficha.PrecioPublico))
+             };
+ 
+@@ -7352,12 +7377,37 @@
+                 rows.Add(("Precio de comparación", FichaFormatCurrency(ficha.PrecioComparacion.Value)));
+             }
+ 
+-            if (!string.IsNullOrWhiteSpace(ficha.PrecioUnitarioResumen))
+-            {
+-                rows.Add(("Precio unitario", ficha.PrecioUnitarioResumen));
+-            }
+-
+-            ComposeFichaInfoTable(container, "Información comercial", rows);
++            if (ficha.Costo.HasValue)
++            {
++                decimal ganancia = ficha.PrecioPublico - ficha.Costo.Value;
++                rows.Add(("Ganancia", FichaFormatCurrency(ganancia)));
++                if (ficha.PrecioPublico > 0) rows.Add(("Margen", (ganancia / ficha.PrecioPublico * 100).ToString("0.00", CultureInfo.InvariantCulture) + "%"));
++            }
++
++            container.Column(column =>
++            {
++                column.Spacing(10);
++                column.Item().Element(box => ComposeFichaInfoTable(box, "Información comercial", rows));
++                if (ficha.Tipo == TipoProducto && ficha.PresentacionesVenta.Count > 0)
++                {
++                    column.Item().Text("Presentaciones de venta").SemiBold();
++                    column.Item().Table(table =>
++                    {
++                        table.ColumnsDefinition(cols => { cols.RelativeColumn(); cols.RelativeColumn(); cols.RelativeColumn(); });
++                        table.Header(header =>
++                        {
++                            foreach (string label in new[] { "Venta", "Equivale en inventario", "Precio" }) header.Cell().Padding(5).Text(label).SemiBold();
++                        });
++                        foreach (var item in ficha.PresentacionesVenta)
++                        {
++                            string venta = item.CantidadVenta.ToString("0.####", CultureInfo.InvariantCulture) + " " + item.UnidadVenta + (EsPresentacionBase(item, ficha.IdUnidadMedida) ? " Base" : "");
++                            table.Cell().Padding(5).Text(venta);
++                            table.Cell().Padding(5).Text(item.EquivalenciaBase.ToString("0.####", CultureInfo.InvariantCulture) + " " + ficha.UnidadAbreviatura);
++                            table.Cell().Padding(5).Text(FichaFormatCurrency(item.Precio));
++                        }
++                    });
++                }
++            });
+         }
+ 
+         private static void ComposeFichaFiscalSection(IContainer container, ProductoServicioFichaTecnicaDto ficha)
+--- before/inspectorapi/checklistWs/Models/ProductosServicios/ProductosServiciosModels.cs
++++ after/inspectorapi/checklistWs/Models/ProductosServicios/ProductosServiciosModels.cs
+@@ -138,6 +138,7 @@
+ 
+     public class ProductoServicioFichaTecnicaDto
+     {
++        public List<ProductoServicioPresentacionVentaDto> PresentacionesVenta { get; set; } = new();
+         public Guid Id { get; set; }
+         public Guid IdEmpresa { get; set; }
+         public byte Tipo { get; set; }

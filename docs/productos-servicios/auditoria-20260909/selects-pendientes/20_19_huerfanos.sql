@@ -1,0 +1,1 @@
+SELECT COUNT_BIG(*) AS huerfanos FROM dbo.[ProductosServiciosVarianteValores] c WHERE c.[idEmpresa] IS NOT NULL AND c.[idAtributoValor] IS NOT NULL AND NOT EXISTS (SELECT 1 FROM dbo.[ProductosServiciosAtributosValores] p WHERE c.[idEmpresa]=p.[idEmpresa] AND c.[idAtributoValor]=p.[id])

@@ -1,0 +1,180 @@
+{
+  "advertencia": "Auditoría independiente de factores obtenidos por HTTP real. NO es ejecución del motor de aplicación. La fórmula con redondeo a 4 decimales se reproduce sólo para diagnóstico del código existente en Presentaciones; no se ejecutó ese flujo.",
+  "sistema": 53,
+  "tipos": {
+    "AREA": 11,
+    "TIME": 9,
+    "VOLUME": 14,
+    "LENGTH": 10,
+    "WEIGHT": 8,
+    "ITEM": 1
+  },
+  "duplicados_semanticos": 0,
+  "claves_esperadas_exactas": true,
+  "conversiones": [
+    {
+      "origen": "KG",
+      "destino": "LB",
+      "factor_ratio": "2.204622621848775807229738013",
+      "formula_presentaciones_4_decimales": "2.2046"
+    },
+    {
+      "origen": "LB",
+      "destino": "KG",
+      "factor_ratio": "0.45359237",
+      "formula_presentaciones_4_decimales": "0.4536"
+    },
+    {
+      "origen": "M",
+      "destino": "FT",
+      "factor_ratio": "3.280839895013123359580052493",
+      "formula_presentaciones_4_decimales": "3.2808"
+    },
+    {
+      "origen": "FT",
+      "destino": "M",
+      "factor_ratio": "0.3048",
+      "formula_presentaciones_4_decimales": "0.3048"
+    },
+    {
+      "origen": "CM",
+      "destino": "IN",
+      "factor_ratio": "0.3937007874015748031496062992",
+      "formula_presentaciones_4_decimales": "0.3937"
+    },
+    {
+      "origen": "IN",
+      "destino": "CM",
+      "factor_ratio": "2.54",
+      "formula_presentaciones_4_decimales": "2.5400"
+    },
+    {
+      "origen": "KM",
+      "destino": "MI",
+      "factor_ratio": "0.6213711922373339696174341844",
+      "formula_presentaciones_4_decimales": "0.6214"
+    },
+    {
+      "origen": "MI",
+      "destino": "KM",
+      "factor_ratio": "1.609344",
+      "formula_presentaciones_4_decimales": "1.6093"
+    },
+    {
+      "origen": "L",
+      "destino": "FL_OZ",
+      "factor_ratio": "33.81402270241469123427723240",
+      "formula_presentaciones_4_decimales": "33.8140"
+    },
+    {
+      "origen": "FL_OZ",
+      "destino": "L",
+      "factor_ratio": "0.029573529562",
+      "formula_presentaciones_4_decimales": "0.0296"
+    },
+    {
+      "origen": "L",
+      "destino": "GAL",
+      "factor_ratio": "0.2641720523581484153798999216",
+      "formula_presentaciones_4_decimales": "0.2642"
+    },
+    {
+      "origen": "GAL",
+      "destino": "L",
+      "factor_ratio": "3.785411784",
+      "formula_presentaciones_4_decimales": "3.7854"
+    },
+    {
+      "origen": "M2",
+      "destino": "FT2",
+      "factor_ratio": "10.76391041670972230833350556",
+      "formula_presentaciones_4_decimales": "10.7639"
+    },
+    {
+      "origen": "FT2",
+      "destino": "M2",
+      "factor_ratio": "0.09290304",
+      "formula_presentaciones_4_decimales": "0.0929"
+    },
+    {
+      "origen": "KG",
+      "destino": "G",
+      "factor_ratio": "1.0E+3",
+      "formula_presentaciones_4_decimales": "1000.0000"
+    },
+    {
+      "origen": "G",
+      "destino": "MG",
+      "factor_ratio": "1E+3",
+      "formula_presentaciones_4_decimales": "1000.0000"
+    },
+    {
+      "origen": "M",
+      "destino": "CM",
+      "factor_ratio": "1.0E+2",
+      "formula_presentaciones_4_decimales": "100.0000"
+    },
+    {
+      "origen": "CM",
+      "destino": "MM",
+      "factor_ratio": "1E+1",
+      "formula_presentaciones_4_decimales": "10.0000"
+    },
+    {
+      "origen": "L",
+      "destino": "ML",
+      "factor_ratio": "1.0E+3",
+      "formula_presentaciones_4_decimales": "1000.0000"
+    },
+    {
+      "origen": "CM3",
+      "destino": "ML",
+      "factor_ratio": "1",
+      "formula_presentaciones_4_decimales": "1.0000"
+    },
+    {
+      "origen": "DM3",
+      "destino": "L",
+      "factor_ratio": "1",
+      "formula_presentaciones_4_decimales": "1.0000"
+    },
+    {
+      "origen": "M3",
+      "destino": "L",
+      "factor_ratio": "1000",
+      "formula_presentaciones_4_decimales": "1000.0000"
+    },
+    {
+      "origen": "M2",
+      "destino": "CM2",
+      "factor_ratio": "1.0E+4",
+      "formula_presentaciones_4_decimales": "10000.0000"
+    }
+  ],
+  "ida_vuelta": [
+    {
+      "origen": "KG",
+      "intermedia": "LB",
+      "factor_sin_redondeo_ida_vuelta": "0.9999999999999999999999999998",
+      "formula_4_decimales_ida_vuelta": "1.0000"
+    },
+    {
+      "origen": "M",
+      "intermedia": "FT",
+      "factor_sin_redondeo_ida_vuelta": "0.9999999999999999999999999999",
+      "formula_4_decimales_ida_vuelta": "1.0000"
+    },
+    {
+      "origen": "L",
+      "intermedia": "GAL",
+      "factor_sin_redondeo_ida_vuelta": "1.00000000000000000000000000",
+      "formula_4_decimales_ida_vuelta": "1.0001"
+    },
+    {
+      "origen": "M2",
+      "intermedia": "FT2",
+      "factor_sin_redondeo_ida_vuelta": "1.00000000000000000000000000",
+      "formula_4_decimales_ida_vuelta": "1.0000"
+    }
+  ]
+}

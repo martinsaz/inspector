@@ -1,0 +1,142 @@
+--- antes/ProductosServiciosController.cs
++++ despues/ProductosServiciosController.cs
+@@ -7211,11 +7211,24 @@
+                     page.Header().PaddingBottom(10).Row(row =>
+                     {
+                         if (logo != null) row.ConstantItem(78).Height(17).Image(logo).FitArea();
+-                        row.RelativeItem().AlignRight().AlignMiddle().Text("FICHA TÉCNICA").FontSize(8).FontColor(FichaMuted);
++                        row.RelativeItem().AlignRight().AlignMiddle().Text(ficha.Tipo == TipoServicio ? "FICHA TÉCNICA · SERVICIO" : "FICHA TÉCNICA").FontSize(8).FontColor(FichaMuted);
+                     });
+ 
+                     page.Content().Column(content =>
+                     {
++                        if (ficha.Tipo == TipoServicio)
++                        {
++                            content.Spacing(15);
++                            content.Item().Element(container => ComposeFichaServiceHero(container, ficha, imagenPrincipal));
++                            content.Item().Element(container => ComposeFichaServiceDescription(container, ficha));
++                            content.Item().Element(container => ComposeFichaServiceMetadata(container, ficha));
++                            content.Item().Element(container => ComposeFichaCommercialSection(container, ficha));
++                            content.Item().Element(container => ComposeFichaFiscalSection(container, ficha));
++                            if (hasMultimediaSection)
++                                content.Item().Element(container => ComposeFichaMultimediaSection(container, ficha.Multimedia));
++                            return;
++                        }
++
+                         content.Spacing(6);
+                         content.Item().Element(container => ComposeFichaGeneralSection(container, ficha, imagenPrincipal));
+                         content.Item().Element(container => ComposeFichaCommercialSection(container, ficha));
+@@ -7251,6 +7264,80 @@
+         private const string FichaMuted = "#6B7280";
+         private const string FichaSurface = "#F7F3EF";
+         private const string FichaRule = "#E6E1DC";
++
++        private static void ComposeFichaServiceHero(IContainer container, ProductoServicioFichaTecnicaDto ficha, byte[]? image)
++        {
++            container.EnsureSpace(165).Row(row =>
++            {
++                row.RelativeItem(3.8f).PaddingRight(20).Height(145).Element(visual =>
++                {
++                    if (image != null)
++                        visual.AlignMiddle().Image(image).FitArea();
++                    else
++                    {
++                        string initials = string.Concat((ficha.Nombre ?? "").Split(' ', StringSplitOptions.RemoveEmptyEntries)
++                            .Take(2).Select(word => word.Substring(0, 1))).ToUpperInvariant();
++                        visual.Background(FichaSurface).Padding(16).AlignCenter().AlignMiddle().Column(fallback =>
++                        {
++                            fallback.Spacing(6);
++                            fallback.Item().AlignCenter().Text(initials.Length > 0 ? initials : "S").SemiBold().FontSize(36).FontColor(FichaMuted);
++                            fallback.Item().AlignCenter().Text(string.IsNullOrWhiteSpace(ficha.Categoria) ? "Servicio" : ficha.Categoria).FontSize(9).FontColor(FichaMuted);
++                        });
++                    }
++                });
++                row.RelativeItem(6.2f).AlignMiddle().Column(identity =>
++                {
++                    identity.Spacing(9);
++                    identity.Item().Text($"Servicio {FichaTextOrDash(ficha.Codigo)}").FontSize(9).FontColor(FichaMuted);
++                    identity.Item().Text(FichaTextOrDash(ficha.Nombre)).SemiBold().FontSize(24).LineHeight(1.05f);
++                    identity.Item().Row(badges =>
++                    {
++                        badges.AutoItem().Background(FichaSurface).PaddingVertical(4).PaddingHorizontal(8)
++                            .Text("SERVICIO").SemiBold().FontSize(7.5f);
++                        badges.AutoItem().PaddingLeft(6).Border(0.5f).BorderColor(FichaRule).PaddingVertical(4).PaddingHorizontal(8)
++                            .Text(FichaTextOrDash(ficha.EstatusNombre).ToUpperInvariant()).SemiBold().FontSize(7.5f);
++                    });
++                    if (!string.IsNullOrWhiteSpace(ficha.Categoria))
++                        identity.Item().Text(ficha.Categoria).FontSize(11).FontColor(FichaMuted);
++                });
++            });
++        }
++
++        private static void ComposeFichaServiceDescription(IContainer container, ProductoServicioFichaTecnicaDto ficha)
++        {
++            FichaCompactSection(container, "Descripción del servicio").PaddingTop(3).Text(text =>
++            {
++                text.DefaultTextStyle(style => style.FontSize(10).LineHeight(1.35f));
++                if (string.IsNullOrWhiteSpace(ficha.Descripcion)) text.Span("—");
++                else AppendRichTextToPdf(text, ficha.Descripcion);
++            });
++        }
++
++        private static void ComposeFichaServiceMetadata(IContainer container, ProductoServicioFichaTecnicaDto ficha)
++        {
++            var fields = new List<(string Label, string Value)>
++            {
++                ("Código", FichaTextOrDash(ficha.Codigo)),
++                ("Tipo", FichaTextOrDash(ficha.TipoNombre)),
++                ("Estatus", FichaTextOrDash(ficha.EstatusNombre)),
++                ("Categoría", FichaTextOrDash(ficha.Categoria)),
++                ("Unidad base", BuildUnidadLabel(ficha.UnidadMedida, ficha.UnidadAbreviatura)),
++                ("Etiquetas", string.Join(" · ", ficha.Tags.Select(tag => FichaTextOrDash(tag.Nombre))))
++            };
++            if (!string.IsNullOrWhiteSpace(ficha.Marca)) fields.Add(("Marca", ficha.Marca));
++            string collection = BuildColeccionLabel(ficha.ColeccionNumero, ficha.ColeccionNombre);
++            if (!string.IsNullOrWhiteSpace(collection)) fields.Add(("Colección", collection));
++            FichaCompactSection(container, "Información general").Table(table =>
++            {
++                table.ColumnsDefinition(cols => { cols.RelativeColumn(); cols.RelativeColumn(); cols.RelativeColumn(); });
++                foreach (var field in fields)
++                    table.Cell().PaddingVertical(5).PaddingRight(12).Column(value =>
++                    {
++                        value.Item().Text(field.Label).FontSize(8).FontColor(FichaMuted);
++                        value.Item().Text(FichaTextOrDash(field.Value)).SemiBold().FontSize(10);
++                    });
++            });
++        }
+ 
+         private static void ComposeFichaGeneralSection(IContainer container, ProductoServicioFichaTecnicaDto ficha, byte[]? imagenPrincipal)
+         {
+@@ -7345,6 +7432,32 @@
+             }
+ 
+             rows.RemoveAll(item => item.Label == "Precio público");
++            if (ficha.Tipo == TipoServicio)
++            {
++                // Unit is displayed in service metadata; reuse the same computed financial values.
++                rows.RemoveAll(item => item.Label == "Unidad Base");
++                var order = new[] { "Costo", "Ganancia", "Margen", "Precio de comparación" };
++                rows = rows.OrderBy(item => Array.IndexOf(order, item.Label)).ToList();
++                FichaCompactSection(container, "Precio y rentabilidad").Background(FichaSurface).Padding(12).Row(row =>
++                {
++                    row.RelativeItem(1.4f).AlignMiddle().Column(price =>
++                    {
++                        price.Item().Text("Precio público").FontSize(9).FontColor(FichaMuted);
++                        price.Item().Text(FichaFormatCurrency(ficha.PrecioPublico)).SemiBold().FontSize(25);
++                    });
++                    row.RelativeItem(2).Table(table =>
++                    {
++                        table.ColumnsDefinition(cols => { cols.RelativeColumn(); cols.RelativeColumn(); });
++                        foreach (var item in rows)
++                            table.Cell().PaddingVertical(5).PaddingLeft(10).Column(metric =>
++                            {
++                                metric.Item().Text(item.Label).FontSize(8).FontColor(FichaMuted);
++                                metric.Item().Text(item.Value).SemiBold().FontSize(12);
++                            });
++                    });
++                });
++                return;
++            }
+             FichaCompactSection(container, "Precios y Costos").Background(FichaSurface).Padding(6).Row(row =>
+             {
+                 row.RelativeItem(1.4f).PaddingRight(12).Column(price =>

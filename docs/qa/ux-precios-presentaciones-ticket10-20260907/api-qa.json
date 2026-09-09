@@ -1,0 +1,34 @@
+[
+  {
+    "codigo": "QA-T10-UX-CM",
+    "id": "539017ff-08ef-4934-aec4-5f1b2faeb775",
+    "base": "Centímetro",
+    "venta": "Metro",
+    "equivalencia": 100,
+    "createWithoutName": 200,
+    "editWithoutName": 200,
+    "nombreDerivado": "Metro",
+    "precioPublicoTrasEdicion": 55.0
+  },
+  {
+    "codigo": "QA-T10-UX-LB",
+    "id": "0f389efd-31cb-4957-b0ed-446e4de65637",
+    "base": "Libra",
+    "venta": "Kilogramo",
+    "equivalencia": 2.2046,
+    "createWithoutName": 200,
+    "editWithoutName": 200,
+    "nombreDerivado": "Kilogramo",
+    "precioPublicoTrasEdicion": 55.0
+  },
+  {
+    "codigo": "QA-T10-UX-PIEZA",
+    "id": "2c1a8b20-4757-47cb-a5ca-4b56e921a3bc",
+    "base": "Pieza",
+    "venta": "Sixpack QA T10",
+    "equivalencia": 6,
+    "nombreDerivado": "Sixpack QA T10",
+    "precioPublico": 50.0,
+    "creation": "UI Nuevo"
+  }
+]

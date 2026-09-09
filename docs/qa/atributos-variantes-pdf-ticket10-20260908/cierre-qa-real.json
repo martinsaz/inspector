@@ -1,0 +1,15 @@
+{
+  "pidsPOdetenidos": [
+    7529,
+    7531
+  ],
+  "pidsCodexDetenidos": {
+    "5200": 8185,
+    "5127": 8179
+  },
+  "listeners5200": [],
+  "listeners5127": [],
+  "datosProductoRestaurados": true,
+  "catalogoRojoPendiente": true,
+  "excepcionGuardarReproducida": false
+}

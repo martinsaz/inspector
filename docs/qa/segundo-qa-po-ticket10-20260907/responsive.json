@@ -1,0 +1,50 @@
+{
+  "desktop": {
+    "groups": [
+      "Peso",
+      "Volumen",
+      "Longitud",
+      "Área",
+      "Por artículo",
+      "Tiempo",
+      "Otra"
+    ],
+    "search": [
+      "paq → Paquete PKG",
+      "kg → Kilogramo kg",
+      "lib → Libra lb"
+    ]
+  },
+  "tablet": {
+    "width": 820,
+    "height": 1180,
+    "presentationDropdown": {
+      "left": 348.408,
+      "right": 643.77,
+      "top": 500.791,
+      "bottom": 830.342
+    },
+    "overflow": false
+  },
+  "mobile": {
+    "width": 390,
+    "height": 844,
+    "baseDropdown": {
+      "left": 33.633,
+      "right": 304.57,
+      "top": 441.855,
+      "bottom": 765.352
+    },
+    "presentationDropdown": {
+      "left": 21.016,
+      "right": 368.984,
+      "top": 369.424,
+      "bottom": 692.92
+    },
+    "modalHeight": 556.963,
+    "scrollHeight": 2347,
+    "scrollClientHeight": 250,
+    "overflow": false,
+    "search": "paq → Otra / Paquete PKG"
+  }
+}

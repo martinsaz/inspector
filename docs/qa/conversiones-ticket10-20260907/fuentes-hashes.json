@@ -1,0 +1,6 @@
+{
+  "inspectorapi/checklistWs/Controllers/ProductosServicios/ProductosServiciosController.cs": "5453ce8c1f049771a5964f266d742ed529f8d94f4c78ec9b12f88d5ba9e83b84",
+  "inspectorapi/checklistWs/bin/Debug/net8.0/checklistWs.dll": "aa553b61c38c76e2bb6ae9030bb7848d7198678b15bbd7e9767fadc01c56d728",
+  "inspector/checklist/wwwroot/js/ProductosServicios/ProductosServicios.js": "c99f92ede60628ec82a4666862b2ffeba42107b1383c12e7cb16c353cf905685",
+  "inspectorapi/checklistWs/Services/ProductosServicios/ProductoPresentacionVentaPricingEngine.cs": "64ad6cc84a855af0703f5e18b45039a629a51bef84102c6ff7bc11d98ce6039d"
+}

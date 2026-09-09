@@ -1,0 +1,197 @@
+[
+  {
+    "test": "duplicado Kilogramo",
+    "http": 400,
+    "response": {
+      "mensaje": "Esta unidad ya está disponible\nLa unidad que intentas crear ya forma parte de las unidades estándar de CheckApp.",
+      "id": null,
+      "codigo": "",
+      "nombre": ""
+    }
+  },
+  {
+    "test": "duplicado KILOGRAMO",
+    "http": 400,
+    "response": {
+      "mensaje": "Esta unidad ya está disponible\nLa unidad que intentas crear ya forma parte de las unidades estándar de CheckApp.",
+      "id": null,
+      "codigo": "",
+      "nombre": ""
+    }
+  },
+  {
+    "test": "duplicado   mEtRo  ",
+    "http": 400,
+    "response": {
+      "mensaje": "Esta unidad ya está disponible\nLa unidad que intentas crear ya forma parte de las unidades estándar de CheckApp.",
+      "id": null,
+      "codigo": "",
+      "nombre": ""
+    }
+  },
+  {
+    "test": "duplicado Caja QA T10 editada",
+    "http": 400,
+    "response": {
+      "mensaje": "Ya existe una unidad con ese nombre o abreviatura.",
+      "id": null,
+      "codigo": "",
+      "nombre": ""
+    }
+  },
+  {
+    "test": "duplicado cAJA qa t10 EDITADA",
+    "http": 400,
+    "response": {
+      "mensaje": "Ya existe una unidad con ese nombre o abreviatura.",
+      "id": null,
+      "codigo": "",
+      "nombre": ""
+    }
+  },
+  {
+    "test": "GuardarUnidadMedidaProductoServicio Kilogramo",
+    "http": 400,
+    "response": {
+      "mensaje": "Las unidades del sistema no pueden modificarse.",
+      "id": null,
+      "codigo": "",
+      "nombre": ""
+    }
+  },
+  {
+    "test": "BajaUnidadMedidaProductoServicio Kilogramo",
+    "http": 400,
+    "response": {
+      "mensaje": "Las unidades del sistema no pueden cambiar de estatus.",
+      "id": null,
+      "codigo": "",
+      "nombre": ""
+    }
+  },
+  {
+    "test": "GuardarUnidadMedidaProductoServicio Litro",
+    "http": 400,
+    "response": {
+      "mensaje": "Las unidades del sistema no pueden modificarse.",
+      "id": null,
+      "codigo": "",
+      "nombre": ""
+    }
+  },
+  {
+    "test": "BajaUnidadMedidaProductoServicio Litro",
+    "http": 400,
+    "response": {
+      "mensaje": "Las unidades del sistema no pueden cambiar de estatus.",
+      "id": null,
+      "codigo": "",
+      "nombre": ""
+    }
+  },
+  {
+    "test": "GuardarUnidadMedidaProductoServicio Metro",
+    "http": 400,
+    "response": {
+      "mensaje": "Las unidades del sistema no pueden modificarse.",
+      "id": null,
+      "codigo": "",
+      "nombre": ""
+    }
+  },
+  {
+    "test": "BajaUnidadMedidaProductoServicio Metro",
+    "http": 400,
+    "response": {
+      "mensaje": "Las unidades del sistema no pueden cambiar de estatus.",
+      "id": null,
+      "codigo": "",
+      "nombre": ""
+    }
+  },
+  {
+    "test": "GuardarUnidadMedidaProductoServicio Metro cuadrado",
+    "http": 400,
+    "response": {
+      "mensaje": "Las unidades del sistema no pueden modificarse.",
+      "id": null,
+      "codigo": "",
+      "nombre": ""
+    }
+  },
+  {
+    "test": "BajaUnidadMedidaProductoServicio Metro cuadrado",
+    "http": 400,
+    "response": {
+      "mensaje": "Las unidades del sistema no pueden cambiar de estatus.",
+      "id": null,
+      "codigo": "",
+      "nombre": ""
+    }
+  },
+  {
+    "test": "GuardarUnidadMedidaProductoServicio Pieza",
+    "http": 400,
+    "response": {
+      "mensaje": "Las unidades del sistema no pueden modificarse.",
+      "id": null,
+      "codigo": "",
+      "nombre": ""
+    }
+  },
+  {
+    "test": "BajaUnidadMedidaProductoServicio Pieza",
+    "http": 400,
+    "response": {
+      "mensaje": "Las unidades del sistema no pueden cambiar de estatus.",
+      "id": null,
+      "codigo": "",
+      "nombre": ""
+    }
+  },
+  {
+    "test": "GuardarUnidadMedidaProductoServicio Hora",
+    "http": 400,
+    "response": {
+      "mensaje": "Las unidades del sistema no pueden modificarse.",
+      "id": null,
+      "codigo": "",
+      "nombre": ""
+    }
+  },
+  {
+    "test": "BajaUnidadMedidaProductoServicio Hora",
+    "http": 400,
+    "response": {
+      "mensaje": "Las unidades del sistema no pueden cambiar de estatus.",
+      "id": null,
+      "codigo": "",
+      "nombre": ""
+    }
+  },
+  {
+    "test": "edicion no puede transformar personalizada a Sistema",
+    "http": 200,
+    "response": {
+      "abreviatura": "CJA-QA",
+      "permiteDecimales": false,
+      "tipoUnidad": "OTHER",
+      "tipoUnidadNombre": "Otra",
+      "esSistema": false,
+      "esPersonalizada": true,
+      "factorConversion": null,
+      "convertible": false,
+      "claveSistema": "",
+      "id": "ec00676c-e697-47ac-a5af-1b8f643dec21",
+      "idEmpresa": "b17aaece-2b78-4e35-b554-9e694eeb15a7",
+      "identityKey": "cfd2f470-fbff-4305-b49e-d08b8c67c89e",
+      "codigo": "004",
+      "nombre": "Caja QA T10",
+      "descripcion": "",
+      "activo": true,
+      "fechaCreacion": "2026-09-07T18:28:26",
+      "fechaActualizacion": "2026-09-07T18:33:22",
+      "fechaArchivado": null
+    }
+  }
+]

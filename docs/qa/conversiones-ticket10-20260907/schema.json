@@ -1,0 +1,23 @@
+[
+  {
+    "TABLE_NAME": "ProductosServiciosPresentacionesVenta",
+    "COLUMN_NAME": "EquivalenciaBase",
+    "DATA_TYPE": "decimal",
+    "NUMERIC_PRECISION": 18,
+    "NUMERIC_SCALE": 4
+  },
+  {
+    "TABLE_NAME": "ProductosServiciosPresentacionesVenta",
+    "COLUMN_NAME": "CantidadVenta",
+    "DATA_TYPE": "decimal",
+    "NUMERIC_PRECISION": 18,
+    "NUMERIC_SCALE": 4
+  },
+  {
+    "TABLE_NAME": "ProductosServiciosUnidadesMedida",
+    "COLUMN_NAME": "FactorConversion",
+    "DATA_TYPE": "decimal",
+    "NUMERIC_PRECISION": 28,
+    "NUMERIC_SCALE": 12
+  }
+]

@@ -1,0 +1,3 @@
+5200: libre.
+5127: libre.
+Verificado con lsof -nP -iTCP:5200 -iTCP:5127 -sTCP:LISTEN: sin salida, código 1.

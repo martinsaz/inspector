@@ -1,0 +1,1 @@
+SELECT idEmpresa,COUNT_BIG(*) AS filas,SUM(CASE WHEN ExistenciaActual<0 THEN 1 ELSE 0 END) AS saldos_negativos FROM dbo.ProductosServiciosExistencias GROUP BY idEmpresa

@@ -1,0 +1,10 @@
+{
+  "puertos_al_inicio": {
+    "5200": "sin listener",
+    "5127": "sin listener"
+  },
+  "iniciados_por_codex": {
+    "5200": 6365,
+    "5127": 6356
+  }
+}

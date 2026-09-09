@@ -1,0 +1,371 @@
+--- ProductosServicios.js
++++ inspector/checklist/wwwroot/js/ProductosServicios/ProductosServicios.js
+@@ -353,7 +353,9 @@
+             }
+             clearFieldError("#txPorcentajeIvaProductoServicio");
+         });
+-        $("#chkPredeterminadaPresentacionVenta, #txPrecioPresentacionVenta").on("change input", refreshPresentationExplanation);
++        $("#txPrecioPresentacionVenta").on("change input", refreshPresentationExplanation);
++        $("#txPrecioPublicoProductoServicio").on("input change", renderPresentations);
++        $("#cbUnidadProductoServicio").on("change", renderPresentations);
+         $("#frmQuickCatalogoProductoServicio input, #frmQuickCatalogoProductoServicio textarea").on("input", function () {
+             clearQuickCatalogFieldError("#" + this.id);
+         });
+@@ -1811,7 +1813,7 @@
+         });
+     }
+ 
+-    const pricingHelpSelector = "#btAyudaUnidadBase, #btAyudaPrecioPublico, #btAyudaPrecioComparacionProductoServicio, #btAyudaEquivalencia, #btAyudaPredeterminada";
++    const pricingHelpSelector = "#btAyudaUnidadBase, #btAyudaPrecioPublico, #btAyudaPrecioComparacionProductoServicio, #btAyudaEquivalencia";
+     let activePricingHelp = null;
+     let pricingHelpEventsBound = false;
+ 
+@@ -3069,21 +3071,26 @@
+         });
+     };
+ 
++    function isBasePresentation(item) {
++        const baseId = (state.currentProduct && state.currentProduct.idUnidadMedida) || $("#cbUnidadProductoServicio").val();
++        return String(item.idUnidadVenta) === String(baseId) && Number(item.cantidadVenta) === 1 && Number(item.equivalenciaBase) === 1;
++    }
++
+     function renderPresentations() {
+         const isProduct = Number(getSelectedTipoProductoServicio() || 0) === 1;
+-        const panel = $("#panelPresentacionesVentaProductoServicio");
+-        panel.prop("hidden", !isProduct);
++        $("#panelPresentacionesVentaProductoServicio").prop("hidden", !isProduct);
+         if (!isProduct) return;
+-
++        const baseId = (state.currentProduct && state.currentProduct.idUnidadMedida) || $("#cbUnidadProductoServicio").val();
++        const base = (state.combos.unidadesMedida || []).find(function (unit) { return String(unit.id) === String(baseId); });
+         const unit = getPresentationUnitLabel();
+-        const rows = state.presentations.map(function (item) {
+-            const defaultMarker = item.esPredeterminada ? "<span class='ps-presentations__default'>● Sí</span>" : "○";
+-            const archive = item.esPredeterminada ? "" : "<button type='button' class='checkapp-btn checkapp-btn-ghost bt-baja-presentacion-venta' data-id='" + item.id + "'>Baja</button>";
+-            const saleUnit = item.unidadVenta || item.unidadVentaAbreviatura || "";
+-            return "<tr><td data-label='Venta'>" + formatMeasure(Number(item.cantidadVenta || 1), 4) + " " + escapeHtml(saleUnit) + "</td><td data-label='Equivale en inventario'>" + formatMeasure(Number(item.equivalenciaBase || 0), 4) + " " + escapeHtml(unit) + "</td><td data-label='Precio'>" + formatCurrency(Number(item.precio || 0)) + "</td><td data-label='Predeterminada'>" + defaultMarker + "</td><td data-label='Acciones'><button type='button' class='checkapp-btn checkapp-btn-ghost bt-editar-presentacion-venta' data-id='" + item.id + "'>Editar</button> " + archive + "</td></tr>";
+-        });
+-        $("#tbPresentacionesVentaProductoServicio").html(rows.length ? rows.join("") : "<tr><td colspan='5'>Sin presentaciones configuradas.</td></tr>");
+-        syncPublicPriceWithPresentations();
++        const items = state.presentations.filter(function (item) { return !isBasePresentation(item); });
++        if (base) items.unshift({ isBase: true, cantidadVenta: 1, unidadVenta: base.nombre, equivalenciaBase: 1, precio: toNullableNumber($("#txPrecioPublicoProductoServicio").val()) || 0 });
++        const rows = items.map(function (item) {
++            const actions = item.isBase ? "—" : "<button type='button' class='checkapp-btn checkapp-btn-ghost bt-editar-presentacion-venta' data-id='" + item.id + "'>Editar</button> <button type='button' class='checkapp-btn checkapp-btn-ghost bt-baja-presentacion-venta' data-id='" + item.id + "'>Baja</button>";
++            return "<tr><td data-label='Venta'>" + formatMeasure(Number(item.cantidadVenta || 1), 4) + " " + escapeHtml(item.unidadVenta || item.unidadVentaAbreviatura || "") + (item.isBase ? " <span class='ps-presentations__default'>Base</span>" : "") + "</td><td data-label='Equivale en inventario'>" + formatMeasure(Number(item.equivalenciaBase || 0), 4) + " " + escapeHtml(unit) + "</td><td data-label='Precio'>" + formatCurrency(Number(item.precio || 0)) + "</td><td data-label='Acciones'>" + actions + "</td></tr>";
++        });
++        $("#tbPresentacionesVentaProductoServicio").html(rows.length ? rows.join("") : "<tr><td colspan='4'>Sin presentaciones configuradas.</td></tr>");
++        $("#txPrecioPublicoProductoServicio").prop("readonly", false);
+     }
+ 
+     function openCreatePresentationModal() {
+@@ -3093,7 +3100,6 @@
+         $("#hdPresentacionVentaId, #txEquivalenciaPresentacionVenta, #txPrecioPresentacionVenta").val("");
+         $("#txCantidadVentaPresentacionVenta").val("1");
+         fillPresentationSaleUnits();
+-        $("#chkPredeterminadaPresentacionVenta").prop("checked", state.presentations.length === 0);
+         $("#txModalPresentacionVentaTitulo").text("Agregar presentación");
+         $("#txUnidadPresentacionVenta").text(getPresentationUnitLabel());
+         refreshPresentationEquivalence();
+@@ -3103,13 +3109,12 @@
+ 
+     function openEditPresentationModal(id) {
+         const item = state.presentations.find(function (entry) { return String(entry.id) === String(id); });
+-        if (!item) return;
++        if (!item || isBasePresentation(item)) return;
+         $("#hdPresentacionVentaId").val(item.id);
+         $("#txCantidadVentaPresentacionVenta").val(item.cantidadVenta || 1);
+         fillPresentationSaleUnits(item.idUnidadVenta);
+         $("#txEquivalenciaPresentacionVenta").val(item.equivalenciaBase);
+         $("#txPrecioPresentacionVenta").val(item.precio);
+-        $("#chkPredeterminadaPresentacionVenta").prop("checked", !!item.esPredeterminada);
+         $("#txModalPresentacionVentaTitulo").text("Editar presentación");
+         $("#txUnidadPresentacionVenta").text(getPresentationUnitLabel());
+         refreshPresentationEquivalence();
+@@ -3127,7 +3132,8 @@
+             setStatus("#txInfoPresentacionVenta", "danger", "Captura cantidad, unidad de venta, equivalencia y precio válidos.");
+             return;
+         }
+-        const payload = { id: normalizeGuid($("#hdPresentacionVentaId").val()), idProductoServicio: state.currentProduct && state.currentProduct.id, cantidadVenta: cantidadVenta, idUnidadVenta: idUnidadVenta, equivalenciaBase: equivalenciaBase, precio: precio, esPredeterminada: $("#chkPredeterminadaPresentacionVenta").is(":checked"), orden: state.presentations.length };
++        const payload = { id: state.currentProduct && state.currentProduct.id ? normalizeGuid($("#hdPresentacionVentaId").val()) : ($("#hdPresentacionVentaId").val() || null), idProductoServicio: state.currentProduct && state.currentProduct.id, cantidadVenta: cantidadVenta, idUnidadVenta: idUnidadVenta, equivalenciaBase: equivalenciaBase, precio: precio, esPredeterminada: false, orden: state.presentations.length };
++        if (isBasePresentation(payload)) { setStatus("#txInfoPresentacionVenta", "danger", "La presentación base ya existe y toma su precio de Precio público."); return; }
+         if (!payload.idProductoServicio) {
+             saveDraftPresentation(payload);
+             return;
+@@ -3137,10 +3143,8 @@
+                 const savedId = response.id || payload.id;
+                 const selectedUnit = (state.combos.unidadesMedida || []).find(function (unit) { return String(unit.id) === String(idUnidadVenta); }) || {};
+                 const item = { id: savedId, nombre: nombre, cantidadVenta: cantidadVenta, idUnidadVenta: idUnidadVenta, unidadVenta: selectedUnit.nombre || "", unidadVentaAbreviatura: selectedUnit.abreviatura || "", equivalenciaBase: equivalenciaBase, precio: precio, esPredeterminada: payload.esPredeterminada, orden: payload.orden, activo: true };
+-                if (item.esPredeterminada) state.presentations.forEach(function (entry) { entry.esPredeterminada = false; });
+                 const index = state.presentations.findIndex(function (entry) { return String(entry.id) === String(savedId); });
+                 if (index >= 0) state.presentations[index] = item; else state.presentations.push(item);
+-                if (item.esPredeterminada) $("#txPrecioPublicoProductoServicio").val(precio).trigger("input");
+                 renderPresentations(); state.presentationModal.hide(); showSuccess(resolveServerMessage(response) || "La presentación fue guardada.");
+             }).catch(function (error) { setStatus("#txInfoPresentacionVenta", "danger", resolveErrorMessage(error)); });
+     }
+@@ -3163,10 +3167,8 @@
+         const id = payload.id || "draft-" + Date.now();
+         const unit = getSelectedPresentationUnit() || {};
+         const item = Object.assign({}, payload, { id: id, activo: true, nombre: unit.nombre || "", unidadVenta: unit.nombre || "", unidadVentaAbreviatura: unit.abreviatura || "" });
+-        if (item.esPredeterminada) state.presentations.forEach(function (entry) { entry.esPredeterminada = false; });
+         const index = state.presentations.findIndex(function (entry) { return String(entry.id) === String(id); });
+         if (index >= 0) state.presentations[index] = item; else state.presentations.push(item);
+-        if (item.esPredeterminada) $("#txPrecioPublicoProductoServicio").val(item.precio).trigger("input");
+         renderPresentations();
+         state.presentationModal.hide();
+     }
+@@ -3219,17 +3221,6 @@
+         if (physical) $("#txEquivalenciaPresentacionVenta").val(Number(qty * Number(sale.factorConversion) / Number(base.factorConversion)).toFixed(4)).prop("readonly", true);
+         else $("#txEquivalenciaPresentacionVenta").prop("readonly", false);
+         refreshPresentationExplanation();
+-    }
+-
+-    function syncPublicPriceWithPresentations() {
+-        const defaultPresentation = state.presentations.find(function (item) { return item.esPredeterminada; });
+-        const price = $("#txPrecioPublicoProductoServicio");
+-        if (!defaultPresentation) {
+-            price.prop("readonly", false);
+-            return;
+-        }
+-
+-        price.val(defaultPresentation.precio).trigger("input").prop("readonly", true);
+     }
+ 
+     function saveProductoServicio() {
+@@ -3364,13 +3355,13 @@
+             variantes: buildVariantsPayload(),
+             multimedia: buildMultimediaPayload(),
+             presentacionesVenta: !normalizeGuid($("#hdProductoServicioId").val()) && tipo === 1
+-                ? state.presentations.map(function (item, index) {
++                ? state.presentations.filter(function (item) { return !isBasePresentation(item); }).map(function (item, index) {
+                     return {
+                         cantidadVenta: Number(item.cantidadVenta || 1),
+                         idUnidadVenta: item.idUnidadVenta,
+                         equivalenciaBase: Number(item.equivalenciaBase),
+                         precio: Number(item.precio),
+-                        esPredeterminada: !!item.esPredeterminada,
++                        esPredeterminada: false,
+                         orden: index
+                     };
+                 })
+--- Index.cshtml
++++ inspector/checklist/Views/ProductosServicios/Index.cshtml
+@@ -338,7 +338,7 @@
+                                             <input id="txCostoProductoServicio" type="number" min="0" step="0.0001" inputmode="decimal" placeholder="$0.00" />
+                                         </label>
+                                         <label for="txPrecioPublicoProductoServicio" class="checkapp-field ps-form-field ps-form-field--price">
+-                                            <span class="ps-label-with-help"><span>Precio público *</span><button id="btAyudaPrecioPublico" type="button" class="ps-help-button" data-bs-toggle="tooltip" data-bs-trigger="click" data-bs-title="Configura el precio de venta del producto." aria-label="Ayuda sobre precio público"><i class="fa fa-question" aria-hidden="true"></i></button></span>
++                                            <span class="ps-label-with-help"><span>Precio público *</span><button id="btAyudaPrecioPublico" type="button" class="ps-help-button" data-bs-toggle="tooltip" data-bs-trigger="click" data-bs-title="Configura el precio de venta de una unidad base del producto." aria-label="Ayuda sobre precio público"><i class="fa fa-question" aria-hidden="true"></i></button></span>
+                                             <input id="txPrecioPublicoProductoServicio" type="number" min="0" step="0.0001" inputmode="decimal" placeholder="$0.00" />
+                                         </label>
+                                         <label for="txPrecioComparacionProductoServicio" class="checkapp-field ps-form-field ps-form-field--compare">
+@@ -371,7 +371,7 @@
+                                         </div>
+                                         <div class="table-responsive">
+                                             <table class="table ps-presentations__table">
+-                                                <thead><tr><th>Venta</th><th>Equivale en inventario</th><th>Precio</th><th>Predeterminada</th><th>Acciones</th></tr></thead>
++                                                <thead><tr><th>Venta</th><th>Equivale en inventario</th><th>Precio</th><th>Acciones</th></tr></thead>
+                                                 <tbody id="tbPresentacionesVentaProductoServicio"></tbody>
+                                             </table>
+                                         </div>
+@@ -698,7 +698,6 @@
+                 <section class="ps-presentation-modal__section">
+                     <span class="checkapp-panel-eyebrow">Precio</span>
+                     <label class="checkapp-field ps-form-field"><span>Precio de esta presentación</span><input id="txPrecioPresentacionVenta" type="number" min="0" step="0.01" inputmode="decimal" placeholder="$0.00" /></label>
+-                    <div class="ps-label-with-help"><label class="ps-tax-toggle-field"><input id="chkPredeterminadaPresentacionVenta" type="checkbox" /><span>Predeterminada</span></label><button id="btAyudaPredeterminada" type="button" class="ps-help-button" data-bs-toggle="tooltip" data-bs-trigger="click" data-bs-title="El precio de esta presentación será el Precio público del producto." aria-label="Ayuda sobre presentación predeterminada"><i class="fa fa-question" aria-hidden="true"></i></button></div>
+                 </section>
+                 <div class="checkapp-status-inline" id="txInfoPresentacionVenta"></div>
+             </div>
+--- ApiController.cs
++++ inspectorapi/checklistWs/Controllers/ProductosServicios/ProductosServiciosController.cs
+@@ -1275,10 +1275,7 @@
+                     {
+                         await GuardarPresentacionesInicialesAsync(connection, transaction, context.IdEmpresa, productoId, normalized.IdUnidadMedida, normalized.PresentacionesVenta, ahora);
+                     }
+-                    else
+-                    {
+-                        await EnsureAndSynchronizeDefaultPresentationAsync(connection, transaction, context.IdEmpresa, productoId, normalized.Tipo, normalized.IdUnidadMedida, normalized.PrecioPublico, ahora);
+-                    }
++                    await EnsureAndSynchronizeBasePresentationAsync(connection, transaction, context.IdEmpresa, productoId, normalized.Tipo, normalized.IdUnidadMedida, normalized.PrecioPublico, ahora);
+                     await SynchronizeInventoryForSaveAsync(connection, transaction, productoId, context.IdEmpresa, normalized, existente, existenciaActual, movimientosHistoricos, usuarioId, ahora);
+                     await SynchronizeProductoTagsAsync(connection, transaction, context.IdEmpresa, productoId, normalized.Tags, ahora);
+                     await SynchronizeProductoAtributosAsync(connection, transaction, context.IdEmpresa, productoId, normalized.Atributos, ahora);
+@@ -1390,21 +1387,13 @@
+                     transaction.Rollback();
+                     return NotFound(new ProductoServicioOperacionResponse { Mensaje = "La presentación no está disponible." });
+                 }
+-                if (actual != null && actual.EsPredeterminada && !request.EsPredeterminada)
++                if ((actual != null && EsPresentacionBase(actual, producto.IdUnidadMedida))
++                    || (request.IdUnidadVenta == producto.IdUnidadMedida && request.CantidadVenta == 1 && request.EquivalenciaBase == 1))
+                 {
+                     transaction.Rollback();
+-                    return BadRequest(new ProductoServicioOperacionResponse { Mensaje = "Selecciona otra presentación predeterminada antes de retirar esta selección." });
+-                }
+-
+-                bool makeDefault = request.EsPredeterminada || activas.Count == 0;
+-                if (makeDefault)
+-                {
+-                    using SqlCommand unset = new SqlCommand(@"UPDATE dbo.ProductosServiciosPresentacionesVenta SET EsPredeterminada = 0, FechaActualizacion = @Ahora WHERE idEmpresa = @IdEmpresa AND idProductoServicio = @ProductoId AND Activo = 1", connection, transaction);
+-                    unset.Parameters.AddWithValue("@Ahora", ahora);
+-                    unset.Parameters.AddWithValue("@IdEmpresa", context.IdEmpresa);
+-                    unset.Parameters.AddWithValue("@ProductoId", producto.Id);
+-                    await unset.ExecuteNonQueryAsync();
+-                }
++                    return BadRequest(new ProductoServicioOperacionResponse { Mensaje = "La presentación base se administra automáticamente desde Unidad base y Precio público." });
++                }
++                bool makeDefault = false;
+ 
+                 if (esNueva)
+                 {
+@@ -1420,10 +1409,7 @@
+                     await update.ExecuteNonQueryAsync();
+                 }
+ 
+-                if (makeDefault)
+-                {
+-                    await UpdatePrecioPublicoAsync(connection, transaction, context.IdEmpresa, producto.Id, request.Precio, ahora);
+-                }
++                await EnsureAndSynchronizeBasePresentationAsync(connection, transaction, context.IdEmpresa, producto.Id, producto.Tipo, producto.IdUnidadMedida, producto.PrecioPublico, ahora);
+                 transaction.Commit();
+                 return Ok(new ProductoServicioOperacionResponse { Id = id, Mensaje = esNueva ? "La presentación fue registrada." : "La presentación fue actualizada." });
+             }
+@@ -1440,7 +1426,8 @@
+                 List<ProductoServicioPresentacionVentaDto> item = await ObtenerPresentacionesVentaPorIdAsync(connection, transaction, context.IdEmpresa, idPresentacionVenta);
+                 ProductoServicioPresentacionVentaDto? presentacion = item.FirstOrDefault();
+                 if (presentacion == null) { transaction.Rollback(); return NotFound(new ProductoServicioOperacionResponse { Mensaje = "La presentación no está disponible." }); }
+-                if (presentacion.EsPredeterminada) { transaction.Rollback(); return BadRequest(new ProductoServicioOperacionResponse { Mensaje = "Selecciona otra presentación predeterminada antes de dar de baja esta presentación." }); }
++                ProductoServicioSnapshot? producto = await ObtenerProductoServicioSnapshotAsync(connection, transaction, context.IdEmpresa, presentacion.IdProductoServicio);
++                if (producto != null && EsPresentacionBase(presentacion, producto.IdUnidadMedida)) { transaction.Rollback(); return BadRequest(new ProductoServicioOperacionResponse { Mensaje = "La presentación base no se puede dar de baja; se mantiene desde el producto." }); }
+                 using SqlCommand archive = new SqlCommand(@"UPDATE dbo.ProductosServiciosPresentacionesVenta SET Activo = 0, FechaArchivado = @Ahora, FechaActualizacion = @Ahora WHERE idEmpresa = @IdEmpresa AND id = @Id", connection, transaction);
+                 archive.Parameters.AddWithValue("@Ahora", DateTime.UtcNow); archive.Parameters.AddWithValue("@IdEmpresa", context.IdEmpresa); archive.Parameters.AddWithValue("@Id", idPresentacionVenta);
+                 await archive.ExecuteNonQueryAsync(); transaction.Commit();
+@@ -3230,6 +3217,7 @@
+     ps.idCategoria,
+     ps.idMarca,
+     ps.idUnidadMedida,
++    ps.PrecioPublico,
+     ps.idColeccion,
+     ps.idPaquete,
+     ps.EsProductoFisico,
+@@ -3261,6 +3249,7 @@
+                 IdCategoria = ReadGuid(reader, "idCategoria"),
+                 IdMarca = ReadNullableGuid(reader, "idMarca"),
+                 IdUnidadMedida = ReadGuid(reader, "idUnidadMedida"),
++                PrecioPublico = ReadDecimal(reader, "PrecioPublico"),
+                 IdColeccion = ReadNullableGuid(reader, "idColeccion"),
+                 IdPaquete = ReadNullableGuid(reader, "idPaquete"),
+                 EsProductoFisico = ReadBool(reader, "EsProductoFisico"),
+@@ -3296,23 +3285,29 @@
+             return Convert.ToInt32(await command.ExecuteScalarAsync());
+         }
+ 
+-        private async Task EnsureAndSynchronizeDefaultPresentationAsync(SqlConnection connection, SqlTransaction transaction, Guid idEmpresa, Guid productoId, byte tipo, Guid unidadId, decimal precioPublico, DateTime ahora)
++        private static bool EsPresentacionBase(ProductoServicioPresentacionVentaDto item, Guid unidadId)
++            => item.IdUnidadVenta == unidadId && item.CantidadVenta == 1 && item.EquivalenciaBase == 1;
++
++        private async Task EnsureAndSynchronizeBasePresentationAsync(SqlConnection connection, SqlTransaction transaction, Guid idEmpresa, Guid productoId, byte tipo, Guid unidadId, decimal precioPublico, DateTime ahora)
+         {
+             if (tipo != TipoProducto) return;
+             List<ProductoServicioPresentacionVentaDto> activas = await ObtenerPresentacionesVentaAsync(connection, transaction, idEmpresa, productoId, true);
+-            ProductoServicioPresentacionVentaDto? predeterminada = activas.SingleOrDefault(item => item.EsPredeterminada);
+-            if (predeterminada == null)
++            ProductoServicioPresentacionVentaDto? basePresentation = activas.FirstOrDefault(item => EsPresentacionBase(item, unidadId));
++            // Keep the legacy flag as a derived base marker, never as a price source.
++            using SqlCommand unset = new SqlCommand(@"UPDATE dbo.ProductosServiciosPresentacionesVenta SET EsPredeterminada = 0, FechaActualizacion = @Ahora WHERE idEmpresa = @IdEmpresa AND idProductoServicio = @ProductoId AND Activo = 1 AND EsPredeterminada = 1 AND (@BaseId IS NULL OR id <> @BaseId)", connection, transaction);
++            unset.Parameters.AddWithValue("@IdEmpresa", idEmpresa); unset.Parameters.AddWithValue("@ProductoId", productoId); unset.Parameters.AddWithValue("@Ahora", ahora); unset.Parameters.AddWithValue("@BaseId", (object?)basePresentation?.Id ?? DBNull.Value);
++            await unset.ExecuteNonQueryAsync();
++            if (basePresentation == null)
+             {
+                 ProductoServicioUnidadMedidaDto? unidad = await ObtenerUnidadInternaAsync(connection, transaction, idEmpresa, unidadId);
+                 if (unidad == null) throw new ProductoServicioValidationException("La unidad base no está disponible.");
+                 using SqlCommand insert = new SqlCommand(@"INSERT INTO dbo.ProductosServiciosPresentacionesVenta (id, idEmpresa, identityKey, idProductoServicio, Nombre, CantidadVenta, idUnidadVenta, EquivalenciaBase, Precio, EsPredeterminada, Orden, Activo, FechaCreacion, FechaActualizacion) VALUES (NEWID(), @IdEmpresa, NEWID(), @ProductoId, @Nombre, 1, @UnidadId, 1, @Precio, 1, 0, 1, @Ahora, @Ahora)", connection, transaction);
+-                insert.Parameters.AddWithValue("@IdEmpresa", idEmpresa); insert.Parameters.AddWithValue("@ProductoId", productoId); insert.Parameters.AddWithValue("@UnidadId", unidadId); insert.Parameters.AddWithValue("@Nombre", unidad.Nombre); insert.Parameters.AddWithValue("@Precio", precioPublico); insert.Parameters.AddWithValue("@Ahora", ahora);
++                insert.Parameters.AddWithValue("@IdEmpresa", idEmpresa); insert.Parameters.AddWithValue("@ProductoId", productoId); insert.Parameters.AddWithValue("@UnidadId", unidadId); insert.Parameters.AddWithValue("@Nombre", Truncate(unidad.Nombre, 100)); insert.Parameters.AddWithValue("@Precio", precioPublico); insert.Parameters.AddWithValue("@Ahora", ahora);
+                 await insert.ExecuteNonQueryAsync();
+                 return;
+             }
+-
+-            using SqlCommand update = new SqlCommand(@"UPDATE dbo.ProductosServiciosPresentacionesVenta SET Precio = @Precio, FechaActualizacion = @Ahora WHERE idEmpresa = @IdEmpresa AND id = @Id", connection, transaction);
+-            update.Parameters.AddWithValue("@Precio", precioPublico); update.Parameters.AddWithValue("@Ahora", ahora); update.Parameters.AddWithValue("@IdEmpresa", idEmpresa); update.Parameters.AddWithValue("@Id", predeterminada.Id);
++            using SqlCommand update = new SqlCommand(@"UPDATE dbo.ProductosServiciosPresentacionesVenta SET Precio = @Precio, EsPredeterminada = 1, FechaActualizacion = @Ahora WHERE idEmpresa = @IdEmpresa AND id = @Id", connection, transaction);
++            update.Parameters.AddWithValue("@Precio", precioPublico); update.Parameters.AddWithValue("@Ahora", ahora); update.Parameters.AddWithValue("@IdEmpresa", idEmpresa); update.Parameters.AddWithValue("@Id", basePresentation.Id);
+             await update.ExecuteNonQueryAsync();
+         }
+ 
+@@ -3323,12 +3318,14 @@
+ 
+             foreach (ProductoServicioPresentacionVentaGuardarRequest presentacion in presentaciones)
+             {
++                if (presentacion.IdUnidadVenta == unidadId && presentacion.CantidadVenta == 1 && presentacion.EquivalenciaBase == 1) continue;
+                 ProductoServicioUnidadMedidaDto? unidadVenta = await ObtenerUnidadInternaAsync(connection, transaction, idEmpresa, presentacion.IdUnidadVenta);
+                 bool fisica = unidadVenta != null && unidad.Convertible && unidadVenta.Convertible && unidad.TipoUnidad == unidadVenta.TipoUnidad && unidad.TipoUnidad != "OTHER";
+                 bool manual = unidadVenta != null && unidadVenta.TipoUnidad == "OTHER";
+                 if (!fisica && !manual) throw new ProductoServicioValidationException("La unidad de venta no es compatible con la unidad base.");
+                 presentacion.Nombre = Truncate(unidadVenta!.Nombre, 100); // No manual presentation name is required.
+                 if (fisica) presentacion.EquivalenciaBase = decimal.Round(presentacion.CantidadVenta * unidadVenta!.FactorConversion!.Value / unidad.FactorConversion!.Value, 4, MidpointRounding.AwayFromZero);
++                if (presentacion.IdUnidadVenta == unidadId && presentacion.CantidadVenta == 1 && presentacion.EquivalenciaBase == 1) continue;
+                 if (!unidad.PermiteDecimales && decimal.Truncate(presentacion.EquivalenciaBase) != presentacion.EquivalenciaBase)
+                 {
+                     throw new ProductoServicioValidationException("La equivalencia no cumple con la precisión de la unidad base.");
+@@ -3337,16 +3334,9 @@
+                 presentacion.CantidadVenta = presentacion.CantidadVenta <= 0 ? 1 : presentacion.CantidadVenta;
+                 presentacion.IdUnidadVenta = presentacion.IdUnidadVenta == Guid.Empty ? unidadId : presentacion.IdUnidadVenta;
+                 using SqlCommand insert = new SqlCommand(@"INSERT INTO dbo.ProductosServiciosPresentacionesVenta (id, idEmpresa, identityKey, idProductoServicio, Nombre, CantidadVenta, idUnidadVenta, EquivalenciaBase, Precio, EsPredeterminada, Orden, Activo, FechaCreacion, FechaActualizacion) VALUES (@Id, @IdEmpresa, NEWID(), @ProductoId, @Nombre, @CantidadVenta, @IdUnidadVenta, @EquivalenciaBase, @Precio, @Predeterminada, @Orden, 1, @Ahora, @Ahora)", connection, transaction);
+-                AddPresentacionParameters(insert, Guid.NewGuid(), idEmpresa, productoId, presentacion, presentacion.EsPredeterminada, ahora);
++                AddPresentacionParameters(insert, Guid.NewGuid(), idEmpresa, productoId, presentacion, false, ahora);
+                 await insert.ExecuteNonQueryAsync();
+             }
+-        }
+-
+-        private static async Task UpdatePrecioPublicoAsync(SqlConnection connection, SqlTransaction transaction, Guid idEmpresa, Guid productoId, decimal precio, DateTime ahora)
+-        {
+-            using SqlCommand command = new SqlCommand(@"UPDATE dbo.ProductosServicios SET PrecioPublico = @Precio, FechaActualizacion = @Ahora WHERE idEmpresa = @IdEmpresa AND id = @ProductoId", connection, transaction);
+-            command.Parameters.AddWithValue("@Precio", precio); command.Parameters.AddWithValue("@Ahora", ahora); command.Parameters.AddWithValue("@IdEmpresa", idEmpresa); command.Parameters.AddWithValue("@ProductoId", productoId);
+-            await command.ExecuteNonQueryAsync();
+         }
+ 
+         private async Task<List<ProductoServicioPresentacionVentaDto>> ObtenerPresentacionesVentaAsync(SqlConnection connection, SqlTransaction? transaction, Guid idEmpresa, Guid productoId, bool soloActivas)
+@@ -3364,10 +3354,10 @@
+ 
+         private async Task<List<ProductoServicioPresentacionVentaDto>> ObtenerPresentacionesVentaPorIdAsync(SqlConnection connection, SqlTransaction transaction, Guid idEmpresa, Guid id)
+         {
+-            using SqlCommand command = new SqlCommand(@"SELECT id, idProductoServicio, Nombre, EquivalenciaBase, Precio, EsPredeterminada, Orden, Activo FROM dbo.ProductosServiciosPresentacionesVenta WHERE idEmpresa = @IdEmpresa AND id = @Id AND Activo = 1", connection, transaction);
++            using SqlCommand command = new SqlCommand(@"SELECT id, idProductoServicio, Nombre, CantidadVenta, idUnidadVenta, EquivalenciaBase, Precio, EsPredeterminada, Orden, Activo FROM dbo.ProductosServiciosPresentacionesVenta WHERE idEmpresa = @IdEmpresa AND id = @Id AND Activo = 1", connection, transaction);
+             command.Parameters.AddWithValue("@IdEmpresa", idEmpresa); command.Parameters.AddWithValue("@Id", id);
+             List<ProductoServicioPresentacionVentaDto> result = new(); using SqlDataReader reader = await command.ExecuteReaderAsync();
+-            while (await reader.ReadAsync()) result.Add(new ProductoServicioPresentacionVentaDto { Id = ReadGuid(reader, "id"), IdProductoServicio = ReadGuid(reader, "idProductoServicio"), Nombre = ReadString(reader, "Nombre"), EquivalenciaBase = ReadDecimal(reader, "EquivalenciaBase"), Precio = ReadDecimal(reader, "Precio"), EsPredeterminada = ReadBool(reader, "EsPredeterminada"), Orden = reader.GetInt32(reader.GetOrdinal("Orden")), Activo = ReadBool(reader, "Activo") });
++            while (await reader.ReadAsync()) result.Add(new ProductoServicioPresentacionVentaDto { Id = ReadGuid(reader, "id"), IdProductoServicio = ReadGuid(reader, "idProductoServicio"), Nombre = ReadString(reader, "Nombre"), CantidadVenta = ReadDecimal(reader, "CantidadVenta"), IdUnidadVenta = ReadGuid(reader, "idUnidadVenta"), EquivalenciaBase = ReadDecimal(reader, "EquivalenciaBase"), Precio = ReadDecimal(reader, "Precio"), EsPredeterminada = ReadBool(reader, "EsPredeterminada"), Orden = reader.GetInt32(reader.GetOrdinal("Orden")), Activo = ReadBool(reader, "Activo") });
+             return result;
+         }
+ 
+@@ -3979,11 +3969,6 @@
+             if (presentaciones.Any(p => p == null || p.CantidadVenta <= 0 || p.IdUnidadVenta == Guid.Empty || p.EquivalenciaBase <= 0 || p.Precio < 0 || p.Orden < 0))
+             {
+                 return "Los datos de la presentación no son válidos.";
+-            }
+-
+-            if (presentaciones.Count > 0 && presentaciones.Count(p => p.EsPredeterminada) != 1)
+-            {
+-                return "Selecciona exactamente una presentación predeterminada.";
+             }
+ 
+             // LEGACY - REEMPLAZADO POR PRESENTACIONES DE VENTA. No validar ni usar estos campos en guardados nuevos.
+@@ -4524,11 +4509,6 @@
+                     .ToList()
+             };
+ 
+-            if ((!normalized.Id.HasValue || normalized.Id.Value == Guid.Empty) && normalized.Tipo == TipoProducto && normalized.PresentacionesVenta.Count > 0)
+-            {
+-                normalized.PrecioPublico = normalized.PresentacionesVenta.Single(presentacion => presentacion.EsPredeterminada).Precio;
+-            }
+-
+             if (normalized.Tipo == TipoServicio)
+             {
+                 normalized.IdMarca = null;
+@@ -8000,6 +7980,7 @@
+             public Guid IdCategoria { get; set; }
+             public Guid? IdMarca { get; set; }
+             public Guid IdUnidadMedida { get; set; }
++            public decimal PrecioPublico { get; set; }
+             public Guid? IdColeccion { get; set; }
+             public Guid? IdPaquete { get; set; }
+             public bool EsProductoFisico { get; set; }

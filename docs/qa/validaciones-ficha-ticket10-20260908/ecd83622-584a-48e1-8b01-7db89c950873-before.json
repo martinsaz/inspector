@@ -1,0 +1,270 @@
+{
+  "idExistencia": "92a412e1-3132-4674-9825-b9a2635e1c11",
+  "tipoPaquete": "caja",
+  "paqueteLargoCm": 30.0,
+  "paqueteAnchoCm": 15.0,
+  "paqueteAltoCm": 8.0,
+  "paquetePesoEmpaqueVacioKg": 1.25,
+  "pesoFisicoTotalKg": 5.25,
+  "pesoVolumetricoKg": 0.72,
+  "pesoFacturableKg": 5.25,
+  "tags": [
+    {
+      "id": "61eddba2-3a34-474c-9254-7cc32d1a97f1",
+      "nombre": "ACEITES",
+      "activo": true,
+      "legacy": false
+    },
+    {
+      "id": "b14b2c94-1306-4acd-bf1d-5f3f1e61d149",
+      "nombre": "Ivan",
+      "activo": true,
+      "legacy": false
+    },
+    {
+      "id": "6f97ec3c-c39d-4826-9eca-4aae32632ffd",
+      "nombre": "LTH",
+      "activo": true,
+      "legacy": false
+    },
+    {
+      "id": "05d20eb3-0d29-44ef-ada9-825dfd634093",
+      "nombre": "M01",
+      "activo": true,
+      "legacy": false
+    },
+    {
+      "id": "7f591859-dddf-4dc7-85dd-8d1eba0cb126",
+      "nombre": "NEW",
+      "activo": true,
+      "legacy": false
+    },
+    {
+      "id": "1ad3433f-21ac-4cea-8a1d-af90cf413f50",
+      "nombre": "NUEVO",
+      "activo": true,
+      "legacy": false
+    },
+    {
+      "id": "95432937-0410-4876-8f5b-7486e883a774",
+      "nombre": "OTROS",
+      "activo": true,
+      "legacy": false
+    },
+    {
+      "id": "74548ffb-c6c6-4abd-b421-d711969e95f1",
+      "nombre": "PRIMAVERA",
+      "activo": true,
+      "legacy": false
+    }
+  ],
+  "movimientosRecientes": [],
+  "atributos": [
+    {
+      "idProductoAtributo": "48edf72d-f48f-4c6e-a070-f420f519bd11",
+      "idAtributo": "2d395975-3dd2-46dd-be4e-0235cc76dede",
+      "nombre": "Colores",
+      "orden": 1,
+      "valores": [
+        {
+          "idAtributoValor": "1aea80e2-916b-4022-b90a-76348a3ff5af",
+          "valor": "Negro",
+          "orden": 1
+        }
+      ]
+    },
+    {
+      "idProductoAtributo": "829db7f6-89d5-46a0-8198-dd44472c3885",
+      "idAtributo": "ecad9c8b-53bf-4071-aa76-bcd8e77ec117",
+      "nombre": "Material",
+      "orden": 2,
+      "valores": [
+        {
+          "idAtributoValor": "411fded2-5e47-4c70-a56a-0c6b5ca92851",
+          "valor": "Plastico",
+          "orden": 1
+        }
+      ]
+    },
+    {
+      "idProductoAtributo": "39a9c6d2-2e4c-418d-8072-3c8ce8809d24",
+      "idAtributo": "610c77b6-ae55-4828-8ca0-722fb4180fdd",
+      "nombre": "Consistencia",
+      "orden": 3,
+      "valores": [
+        {
+          "idAtributoValor": "f8dd5f55-bf34-485b-9e5b-9644691a877d",
+          "valor": "Viscosidad",
+          "orden": 1
+        }
+      ]
+    }
+  ],
+  "opcionesVariante": [
+    {
+      "id": "f6c35253-98ed-4ac3-8f43-ff9b1cd92a6c",
+      "idProductoServicio": "ecd83622-584a-48e1-8b01-7db89c950873",
+      "nombre": "Tamaño",
+      "orden": 1,
+      "activo": true,
+      "valores": [
+        {
+          "id": "f4c21cc7-1138-4998-a5a6-0916b59b9155",
+          "idOpcionVariante": "f6c35253-98ed-4ac3-8f43-ff9b1cd92a6c",
+          "valor": "946 ml",
+          "orden": 1,
+          "activo": true
+        },
+        {
+          "id": "7fdd61c9-a235-4846-bba9-5fc1e47c9aab",
+          "idOpcionVariante": "f6c35253-98ed-4ac3-8f43-ff9b1cd92a6c",
+          "valor": "5 L",
+          "orden": 2,
+          "activo": true
+        }
+      ]
+    }
+  ],
+  "variantes": [
+    {
+      "id": "ff0ebb45-4a52-491d-aae5-218b553a7543",
+      "idProductoServicio": "ecd83622-584a-48e1-8b01-7db89c950873",
+      "sku": "",
+      "nombre": "946 ml",
+      "claveCombinacion": "Tamaño:946 ml",
+      "imagenUrl": "https://firebasestorage.googleapis.com/v0/b/checklistapp1.appspot.com/o/163%2FProductosServicios%2Fecd83622584a48e18b017db89c950873%2FVariantes%2Fff0ebb454a52491daae5218b553a7543%2FImagen%2F5c880c91b0624e8ea07c08291f9be3d7.png?alt=media&token=3617f9ba-0ae5-4a3c-b037-05fb4bb89c6d",
+      "imagenNombre": "Captura de pantalla 2026-08-21 a la(s) 4.57.57 p.m..png",
+      "costo": 199.0,
+      "precioPublico": 445.55,
+      "precioComparacion": null,
+      "precioUnitarioMonto": null,
+      "precioUnitarioBaseCantidad": null,
+      "precioUnitarioUnidad": "",
+      "orden": 1,
+      "activo": true,
+      "valores": [
+        {
+          "idOpcionVariante": "f6c35253-98ed-4ac3-8f43-ff9b1cd92a6c",
+          "opcion": "Tamaño",
+          "idOpcionVarianteValor": "f4c21cc7-1138-4998-a5a6-0916b59b9155",
+          "valor": "946 ml",
+          "orden": 1
+        }
+      ]
+    },
+    {
+      "id": "fc6a2bef-37c7-46bc-b75b-b4f7df324fd0",
+      "idProductoServicio": "ecd83622-584a-48e1-8b01-7db89c950873",
+      "sku": "",
+      "nombre": "5 L",
+      "claveCombinacion": "Tamaño:5 L",
+      "imagenUrl": "https://firebasestorage.googleapis.com/v0/b/checklistapp1.appspot.com/o/163%2FProductosServicios%2Fecd83622584a48e18b017db89c950873%2FVariantes%2Ffc6a2bef37c746bcb75bb4f7df324fd0%2FImagen%2F24728076ef164d55a0fc962a565ac0d0.webp?alt=media&token=ea280262-eedd-4348-9c0c-a24d8eced623",
+      "imagenNombre": "aceite_motor.webp",
+      "costo": 299.0,
+      "precioPublico": 503.0,
+      "precioComparacion": null,
+      "precioUnitarioMonto": null,
+      "precioUnitarioBaseCantidad": null,
+      "precioUnitarioUnidad": "",
+      "orden": 2,
+      "activo": true,
+      "valores": [
+        {
+          "idOpcionVariante": "f6c35253-98ed-4ac3-8f43-ff9b1cd92a6c",
+          "opcion": "Tamaño",
+          "idOpcionVarianteValor": "7fdd61c9-a235-4846-bba9-5fc1e47c9aab",
+          "valor": "5 L",
+          "orden": 1
+        }
+      ]
+    }
+  ],
+  "multimedia": [],
+  "presentacionesVenta": [
+    {
+      "id": "0fa3e68d-1dc3-45b9-9c75-71decf4fa5b2",
+      "idProductoServicio": "ecd83622-584a-48e1-8b01-7db89c950873",
+      "nombre": "Pieza",
+      "cantidadVenta": 1.0,
+      "idUnidadVenta": "918fd4bc-74d8-42e8-a9fb-5a3d13067abf",
+      "unidadVenta": "Pieza",
+      "unidadVentaAbreviatura": "pz",
+      "equivalenciaBase": 1.0,
+      "precio": 680.0,
+      "esPredeterminada": true,
+      "orden": 0,
+      "activo": true
+    },
+    {
+      "id": "9e68040c-2b0c-4c64-b88b-113e9f294c8f",
+      "idProductoServicio": "ecd83622-584a-48e1-8b01-7db89c950873",
+      "nombre": "Paquete",
+      "cantidadVenta": 1.0,
+      "idUnidadVenta": "b5bae753-d0c9-4e43-a21a-e3ac7add6f84",
+      "unidadVenta": "Paquete",
+      "unidadVentaAbreviatura": "PKG",
+      "equivalenciaBase": 6.0,
+      "precio": 1500.0,
+      "esPredeterminada": false,
+      "orden": 1,
+      "activo": true
+    }
+  ],
+  "id": "ecd83622-584a-48e1-8b01-7db89c950873",
+  "idEmpresa": "b17aaece-2b78-4e35-b554-9e694eeb15a7",
+  "identityKey": "54adb9d0-aa78-4ef1-9e19-5421e8c4b4f5",
+  "tipo": 1,
+  "tipoNombre": "Producto",
+  "codigo": "001",
+  "tag": "ACEITES",
+  "nombre": "Aceite Motor Sintetico",
+  "descripcion": "<p><strong>LTH</strong> Aceite Motor Sintetico <em>5W-30</em> <br />Lubricante Max Pro Tec 5L</p>",
+  "idCategoria": "21927841-c96b-4414-be15-9249678ab576",
+  "categoria": "Alimentos",
+  "categoriaAplicaA": 1,
+  "idMarca": "6d7344c3-8923-4e55-9474-1b24d6987e67",
+  "marca": "Mobil 1",
+  "idUnidadMedida": "918fd4bc-74d8-42e8-a9fb-5a3d13067abf",
+  "unidadMedida": "Pieza",
+  "unidadAbreviatura": "pz",
+  "unidadPermiteDecimales": false,
+  "idColeccion": "bca91018-a2ba-43cd-9ef4-4b38e474ce55",
+  "coleccionNumero": "001",
+  "coleccionNombre": "Colección 01",
+  "idPaquete": "4a13a105-9b35-4713-838e-857a18e1bed5",
+  "paqueteNombre": "PKG QA T02 20260821 B",
+  "costo": 605.0,
+  "precioPublico": 680.0,
+  "precioComparacion": 700.0,
+  "precioUnitarioMonto": null,
+  "precioUnitarioCantidadTotal": null,
+  "precioUnitarioBaseCantidad": null,
+  "precioUnitarioUnidad": "",
+  "precioUnitarioUnidadTotal": "",
+  "precioUnitarioUnidadBase": "",
+  "objetoImpuesto": "03",
+  "porcentajeIVA": 0.0,
+  "claveProductoSat": "15121509",
+  "claveUnidadSat": "H87",
+  "esProductoFisico": true,
+  "pesoKg": 4.0,
+  "largoCm": null,
+  "anchoCm": null,
+  "altoCm": null,
+  "usaNumeroSerie": false,
+  "causaInventario": true,
+  "permiteVentaSinExistencia": true,
+  "existenciaActual": 10.0,
+  "existenciaMinima": 5.0,
+  "costoPromedio": 605.0,
+  "imagenUrl": "https://firebasestorage.googleapis.com/v0/b/checklistapp1.appspot.com/o/163%2FProductosServicios%2Fecd83622584a48e18b017db89c950873%2FImagen%2F496eb32ce9c641009be81fa2e0881863.webp?alt=media&token=c7d92197-a84f-441a-846f-36ef78f0a95f",
+  "imagenNombre": "aceite_motor.webp",
+  "cantidadFotos": 0,
+  "cantidadVideos": 0,
+  "cantidadDocumentos": 0,
+  "cantidadVariantes": 2,
+  "activo": true,
+  "fechaCreacion": "2026-08-04T01:33:57",
+  "fechaActualizacion": "2026-09-07T12:41:24",
+  "fechaArchivado": null
+}

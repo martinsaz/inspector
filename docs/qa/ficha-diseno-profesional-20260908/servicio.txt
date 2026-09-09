@@ -1,0 +1,21 @@
+FICHA TÉCNICA
+Cambio de Aceite
+El cambio de aceite de un vehículo consiste en retirar el aceite viejo y sucio del motor, reemplazar
+el filtro de aceite y rellenar con aceite nuevo que tenga la viscosidad y calidad correctas. Esto
+sirve para lubricar, limpiar y enfriar las piezas de metal que se mueven por dentro, evitando que el
+motor se dañe.
+Código Tipo Estatus
+002 Servicio Activo
+Categoría
+Mantenimiento
+Etiquetas
+M01
+Precios y Costos
+Precio público Unidad Base Costo Precio de Ganancia Margen
+$1,500.00 Unidad de $500.00 comparación $1,000.00 66.67%
+servicio (US) $1,750.00
+Información fiscal
+Clave producto/servicio SAT Clave unidad SAT Objeto de impuesto
+78181503 - Servicio de cambio fluidos de ACT - Actividad No
+transmisión o de aceite
+CheckApp · Ficha técnica · 1 / 1

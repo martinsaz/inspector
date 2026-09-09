@@ -1,0 +1,1 @@
+SELECT idEmpresa,Activo,COUNT_BIG(*) AS variantes,SUM(CASE WHEN NULLIF(LTRIM(RTRIM(ImagenUrl)),'') IS NOT NULL THEN 1 ELSE 0 END) AS con_imagen FROM dbo.ProductosServiciosVariantes GROUP BY idEmpresa,Activo

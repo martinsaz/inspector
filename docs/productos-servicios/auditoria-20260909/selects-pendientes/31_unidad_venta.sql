@@ -1,0 +1,1 @@
+SELECT COUNT_BIG(*) AS referencias_invalidas FROM dbo.ProductosServiciosPresentacionesVenta p WHERE NOT EXISTS(SELECT 1 FROM dbo.ProductosServiciosUnidadesMedida u WHERE u.id=p.idUnidadVenta AND u.idEmpresa=p.idEmpresa)

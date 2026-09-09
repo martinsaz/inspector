@@ -1,0 +1,1 @@
+SELECT COUNT_BIG(*) AS elementos_atributo_distinto FROM dbo.ProductosServiciosProductoAtributoValores v JOIN dbo.ProductosServiciosProductoAtributos pa ON pa.id=v.idProductoAtributo AND pa.idEmpresa=v.idEmpresa JOIN dbo.ProductosServiciosAtributosValores av ON av.id=v.idAtributoValor AND av.idEmpresa=v.idEmpresa WHERE av.idAtributo<>pa.idAtributo

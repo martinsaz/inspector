@@ -1,0 +1,16 @@
+{
+  "aceite-ampliado-real": {
+    "pages": 1,
+    "qa1": true,
+    "qa2": true,
+    "rojo": true,
+    "presentaciones": true
+  },
+  "servicio-real": {
+    "pages": 1,
+    "qa1": false,
+    "qa2": false,
+    "rojo": false,
+    "presentaciones": false
+  }
+}

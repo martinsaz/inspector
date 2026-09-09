@@ -1,0 +1,43 @@
+--- Index.cshtml
++++ inspector/checklist/Views/ProductosServicios/Index.cshtml
+@@ -206,6 +206,10 @@
+                                             <label class="checkapp-field ps-form-field ps-form-field--name ps-floating-field">
+                                                 <input id="txNombreProductoServicio" maxlength="150" type="text" placeholder=" " />
+                                                 <span>Nombre *</span>
++                                            </label>
++                                            <label class="checkapp-field ps-form-field ps-form-field--code ps-floating-field">
++                                                <input id="txCodigoProductoServicio" maxlength="50" type="text" placeholder=" " />
++                                                <span>Código *</span>
+                                             </label>
+                                             <label class="checkapp-field ps-form-field ps-form-field--description">
+                                                 <span>Descripción</span>
+@@ -238,10 +242,6 @@
+                                                     </label>
+                                                 </div>
+                                             </div>
+-                                            <label class="checkapp-field ps-form-field ps-form-field--code ps-floating-field">
+-                                                <input id="txCodigoProductoServicio" maxlength="50" type="text" placeholder=" " />
+-                                                <span>Código *</span>
+-                                            </label>
+                                         </div>
+ 
+                                         <div class="checkapp-filter-grid ps-form-grid ps-form-grid--catalogs">
+--- ProductosServicios.css
++++ inspector/checklist/wwwroot/css/ProductosServicios/ProductosServicios.css
+@@ -3064,3 +3064,16 @@
+ .ps-unit-dropdown .select2-results > .select2-results__options { max-height: min(18rem, 40dvh); overflow-y: auto; }
+ .ps-unit-dropdown { max-width: calc(100vw - 1rem); }
+ .ps-presentation-modal .select2-container { min-width: 0; max-width: 100%; }
++
++/* PO: only redistribute Name/Code and Type/Status within the existing left area. */
++@media (min-width: 992px) {
++    .ps-general-panel .ps-form-grid--hero {
++        grid-template-columns: repeat(6, minmax(0, 1fr));
++        grid-template-rows: 1fr auto 1fr;
++    }
++    .ps-general-panel .ps-form-field--name { grid-column: 1 / span 4; grid-row: 1; }
++    .ps-general-panel .ps-form-field--code { grid-column: 5 / span 2; grid-row: 1; }
++    .ps-general-panel .ps-form-field--description { grid-column: 1 / -1; }
++    .ps-general-panel .ps-form-field--type { grid-column: 1 / span 3; }
++    .ps-general-panel .ps-form-field--status { grid-column: 4 / span 3; }
++}

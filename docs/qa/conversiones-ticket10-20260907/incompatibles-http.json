@@ -1,0 +1,110 @@
+[
+  {
+    "origen": "KG",
+    "destino": "L",
+    "http": 400,
+    "response": {
+      "mensaje": "La unidad de venta no es compatible con la unidad base.",
+      "id": null,
+      "codigo": "",
+      "nombre": ""
+    },
+    "pass": true
+  },
+  {
+    "origen": "CM",
+    "destino": "KG",
+    "http": 400,
+    "response": {
+      "mensaje": "La unidad de venta no es compatible con la unidad base.",
+      "id": null,
+      "codigo": "",
+      "nombre": ""
+    },
+    "pass": true
+  },
+  {
+    "origen": "M2",
+    "destino": "L",
+    "http": 400,
+    "response": {
+      "mensaje": "La unidad de venta no es compatible con la unidad base.",
+      "id": null,
+      "codigo": "",
+      "nombre": ""
+    },
+    "pass": true
+  },
+  {
+    "origen": "H",
+    "destino": "KG",
+    "http": 400,
+    "response": {
+      "mensaje": "La unidad de venta no es compatible con la unidad base.",
+      "id": null,
+      "codigo": "",
+      "nombre": ""
+    },
+    "pass": true
+  },
+  {
+    "origen": "PZ",
+    "destino": "M",
+    "http": 400,
+    "response": {
+      "mensaje": "La unidad de venta no es compatible con la unidad base.",
+      "id": null,
+      "codigo": "",
+      "nombre": ""
+    },
+    "pass": true
+  },
+  {
+    "origen": "YEAR",
+    "destino": "D",
+    "http": 400,
+    "response": {
+      "mensaje": "La unidad de venta no es compatible con la unidad base.",
+      "id": null,
+      "codigo": "",
+      "nombre": ""
+    },
+    "pass": true
+  },
+  {
+    "origen": "LUSTRUM",
+    "destino": "D",
+    "http": 400,
+    "response": {
+      "mensaje": "La unidad de venta no es compatible con la unidad base.",
+      "id": null,
+      "codigo": "",
+      "nombre": ""
+    },
+    "pass": true
+  },
+  {
+    "origen": "DECADE",
+    "destino": "D",
+    "http": 400,
+    "response": {
+      "mensaje": "La unidad de venta no es compatible con la unidad base.",
+      "id": null,
+      "codigo": "",
+      "nombre": ""
+    },
+    "pass": true
+  },
+  {
+    "origen": "CENTURY",
+    "destino": "D",
+    "http": 400,
+    "response": {
+      "mensaje": "La unidad de venta no es compatible con la unidad base.",
+      "id": null,
+      "codigo": "",
+      "nombre": ""
+    },
+    "pass": true
+  }
+]
