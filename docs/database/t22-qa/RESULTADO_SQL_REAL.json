@@ -1,0 +1,185 @@
+{
+  "Status": "PASS",
+  "QA_A": "57340e54-f51c-4ec2-82b2-02f0c408cf77",
+  "QA_B": "11c3110c-0afc-4a55-8185-2e4767bfd0bc",
+  "FixtureCategoryA": "5a744440-15ea-446b-bb2b-96998ba8b0a8",
+  "FixtureCategoryB": "d640116c-c317-4cf1-a68e-6c6ab4b7599d",
+  "FixtureRowsCreated": 2,
+  "FixtureRowsDeleted": 2,
+  "PreexistingRowsDeleted": 0,
+  "OriginalDataRestored": true,
+  "CReadsABCategories": false,
+  "identity": "VPS3348900/CHECKAPPERP/A0E05B05-F509-44D3-8BE4-218F875720CA",
+  "QA_C": "d5fb3c96-deff-4c89-99fc-ec972be17114",
+  "QA_D": "99039fa5-53d2-4ffa-9e13-8067c0d5590c",
+  "ExistingProductCompanyCount": 0,
+  "SameDatabaseIdentity": true,
+  "Runs": 15,
+  "Results": [
+    {
+      "Status": "NO_CHANGES",
+      "ReasonCode": "NO_REQUIRED_COMPANY_SEEDS",
+      "Count": 0,
+      "ExecutedDdl": false
+    },
+    {
+      "Status": "NO_CHANGES",
+      "ReasonCode": "NO_REQUIRED_COMPANY_SEEDS",
+      "Count": 0,
+      "ExecutedDdl": false
+    },
+    {
+      "Status": "NO_CHANGES",
+      "ReasonCode": "NO_REQUIRED_COMPANY_SEEDS",
+      "Count": 0,
+      "ExecutedDdl": false
+    },
+    {
+      "Status": "NO_CHANGES",
+      "ReasonCode": "NO_REQUIRED_COMPANY_SEEDS",
+      "Count": 0,
+      "ExecutedDdl": false
+    },
+    {
+      "Status": "NO_CHANGES",
+      "ReasonCode": "NO_REQUIRED_COMPANY_SEEDS",
+      "Count": 0,
+      "ExecutedDdl": false
+    },
+    {
+      "Status": "NO_CHANGES",
+      "ReasonCode": "NO_REQUIRED_COMPANY_SEEDS",
+      "Count": 0,
+      "ExecutedDdl": false
+    },
+    {
+      "Status": "NO_CHANGES",
+      "ReasonCode": "NO_REQUIRED_COMPANY_SEEDS",
+      "Count": 0,
+      "ExecutedDdl": false
+    },
+    {
+      "Status": "NO_CHANGES",
+      "ReasonCode": "NO_REQUIRED_COMPANY_SEEDS",
+      "Count": 0,
+      "ExecutedDdl": false
+    },
+    {
+      "Status": "NO_CHANGES",
+      "ReasonCode": "NO_REQUIRED_COMPANY_SEEDS",
+      "Count": 0,
+      "ExecutedDdl": false
+    },
+    {
+      "Status": "NO_CHANGES",
+      "ReasonCode": "NO_REQUIRED_COMPANY_SEEDS",
+      "Count": 0,
+      "ExecutedDdl": false
+    },
+    {
+      "Status": "NO_CHANGES",
+      "ReasonCode": "NO_REQUIRED_COMPANY_SEEDS",
+      "Count": 0,
+      "ExecutedDdl": false
+    },
+    {
+      "Status": "NO_CHANGES",
+      "ReasonCode": "NO_REQUIRED_COMPANY_SEEDS",
+      "Count": 0,
+      "ExecutedDdl": false
+    },
+    {
+      "Status": "NO_CHANGES",
+      "ReasonCode": "NO_REQUIRED_COMPANY_SEEDS",
+      "Count": 0,
+      "ExecutedDdl": false
+    },
+    {
+      "Status": "NO_CHANGES",
+      "ReasonCode": "NO_REQUIRED_COMPANY_SEEDS",
+      "Count": 0,
+      "ExecutedDdl": false
+    },
+    {
+      "Status": "NO_CHANGES",
+      "ReasonCode": "NO_REQUIRED_COMPANY_SEEDS",
+      "Count": 0,
+      "ExecutedDdl": false
+    }
+  ],
+  "BeforeVersion": 1,
+  "AfterVersion": 1,
+  "ManifestHash": "4d51ce43a30ec3d583ce4252c8324f1053a52fdd89a7d80b3e01a6e8b780fb06",
+  "Counts": [
+    20,
+    255,
+    50,
+    24,
+    14
+  ],
+  "PhysicalSnapshotEqual": true,
+  "All20TableDataAndSchemaControlDigestsEqual": true,
+  "BeforeGate": "COMPATIBLE",
+  "AfterGate": "COMPATIBLE",
+  "Drift": 0,
+  "ListStatus": 200,
+  "MissingFichaStatus": 404,
+  "CrossTenantStatus": 403,
+  "CreatedRows": 0,
+  "DeletedRows": 0,
+  "FirebaseWrites": 0,
+  "ExecutedDdl": false,
+  "Cleanup": "PASS_TWO_QA_CATEGORIES_ONLY",
+  "BeforeDigests": {
+    "ProductosServiciosCategorias": "3C4324E8B35DE144BA5D67EC23B0DB10B7E0DC75738952B722DBEE940B8E5BF3",
+    "ProductosServiciosMarcas": "E3B0C44298FC1C149AFBF4C8996FB92427AE41E4649B934CA495991B7852B855",
+    "ProductosServiciosUnidadesMedida": "E3B0C44298FC1C149AFBF4C8996FB92427AE41E4649B934CA495991B7852B855",
+    "ProductosServicios": "E3B0C44298FC1C149AFBF4C8996FB92427AE41E4649B934CA495991B7852B855",
+    "ProductosServiciosExistencias": "E3B0C44298FC1C149AFBF4C8996FB92427AE41E4649B934CA495991B7852B855",
+    "ProductosServiciosMovimientosInventario": "E3B0C44298FC1C149AFBF4C8996FB92427AE41E4649B934CA495991B7852B855",
+    "ProductosServiciosColecciones": "E3B0C44298FC1C149AFBF4C8996FB92427AE41E4649B934CA495991B7852B855",
+    "ProductosServiciosPaquetes": "E3B0C44298FC1C149AFBF4C8996FB92427AE41E4649B934CA495991B7852B855",
+    "ProductosServiciosAtributos": "E3B0C44298FC1C149AFBF4C8996FB92427AE41E4649B934CA495991B7852B855",
+    "ProductosServiciosAtributosValores": "E3B0C44298FC1C149AFBF4C8996FB92427AE41E4649B934CA495991B7852B855",
+    "ProductosServiciosProductoAtributos": "E3B0C44298FC1C149AFBF4C8996FB92427AE41E4649B934CA495991B7852B855",
+    "ProductosServiciosProductoAtributoValores": "E3B0C44298FC1C149AFBF4C8996FB92427AE41E4649B934CA495991B7852B855",
+    "ProductosServiciosTags": "E3B0C44298FC1C149AFBF4C8996FB92427AE41E4649B934CA495991B7852B855",
+    "ProductosServiciosProductoTags": "E3B0C44298FC1C149AFBF4C8996FB92427AE41E4649B934CA495991B7852B855",
+    "ProductosServiciosOpcionesVariante": "E3B0C44298FC1C149AFBF4C8996FB92427AE41E4649B934CA495991B7852B855",
+    "ProductosServiciosOpcionesVarianteValores": "E3B0C44298FC1C149AFBF4C8996FB92427AE41E4649B934CA495991B7852B855",
+    "ProductosServiciosVariantes": "E3B0C44298FC1C149AFBF4C8996FB92427AE41E4649B934CA495991B7852B855",
+    "ProductosServiciosVarianteValores": "E3B0C44298FC1C149AFBF4C8996FB92427AE41E4649B934CA495991B7852B855",
+    "ProductosServiciosMultimedia": "E3B0C44298FC1C149AFBF4C8996FB92427AE41E4649B934CA495991B7852B855",
+    "ProductosServiciosPresentacionesVenta": "E3B0C44298FC1C149AFBF4C8996FB92427AE41E4649B934CA495991B7852B855",
+    "CheckAppSchemaState": "2DE6DFB6F63E21DF861171242C16F3DCD4A135F28410A77606850D0AED4DE166",
+    "CheckAppSchemaHistory": "324958ABCD03B40140EB17DBFDBA5419D76CA2ADE6DE572574D7E87227FCCE51",
+    "CheckAppSchemaAttempts": "CF0EA87D0913936ECFAC2A0E7F1E29E158F51C3284039670E741AAEA8F8C5685",
+    "objects": "830923AB02AE90C13728A7E36E6A30172B31843B5B2547BC29569C85839638E2"
+  },
+  "AfterDigests": {
+    "ProductosServiciosCategorias": "3C4324E8B35DE144BA5D67EC23B0DB10B7E0DC75738952B722DBEE940B8E5BF3",
+    "ProductosServiciosMarcas": "E3B0C44298FC1C149AFBF4C8996FB92427AE41E4649B934CA495991B7852B855",
+    "ProductosServiciosUnidadesMedida": "E3B0C44298FC1C149AFBF4C8996FB92427AE41E4649B934CA495991B7852B855",
+    "ProductosServicios": "E3B0C44298FC1C149AFBF4C8996FB92427AE41E4649B934CA495991B7852B855",
+    "ProductosServiciosExistencias": "E3B0C44298FC1C149AFBF4C8996FB92427AE41E4649B934CA495991B7852B855",
+    "ProductosServiciosMovimientosInventario": "E3B0C44298FC1C149AFBF4C8996FB92427AE41E4649B934CA495991B7852B855",
+    "ProductosServiciosColecciones": "E3B0C44298FC1C149AFBF4C8996FB92427AE41E4649B934CA495991B7852B855",
+    "ProductosServiciosPaquetes": "E3B0C44298FC1C149AFBF4C8996FB92427AE41E4649B934CA495991B7852B855",
+    "ProductosServiciosAtributos": "E3B0C44298FC1C149AFBF4C8996FB92427AE41E4649B934CA495991B7852B855",
+    "ProductosServiciosAtributosValores": "E3B0C44298FC1C149AFBF4C8996FB92427AE41E4649B934CA495991B7852B855",
+    "ProductosServiciosProductoAtributos": "E3B0C44298FC1C149AFBF4C8996FB92427AE41E4649B934CA495991B7852B855",
+    "ProductosServiciosProductoAtributoValores": "E3B0C44298FC1C149AFBF4C8996FB92427AE41E4649B934CA495991B7852B855",
+    "ProductosServiciosTags": "E3B0C44298FC1C149AFBF4C8996FB92427AE41E4649B934CA495991B7852B855",
+    "ProductosServiciosProductoTags": "E3B0C44298FC1C149AFBF4C8996FB92427AE41E4649B934CA495991B7852B855",
+    "ProductosServiciosOpcionesVariante": "E3B0C44298FC1C149AFBF4C8996FB92427AE41E4649B934CA495991B7852B855",
+    "ProductosServiciosOpcionesVarianteValores": "E3B0C44298FC1C149AFBF4C8996FB92427AE41E4649B934CA495991B7852B855",
+    "ProductosServiciosVariantes": "E3B0C44298FC1C149AFBF4C8996FB92427AE41E4649B934CA495991B7852B855",
+    "ProductosServiciosVarianteValores": "E3B0C44298FC1C149AFBF4C8996FB92427AE41E4649B934CA495991B7852B855",
+    "ProductosServiciosMultimedia": "E3B0C44298FC1C149AFBF4C8996FB92427AE41E4649B934CA495991B7852B855",
+    "ProductosServiciosPresentacionesVenta": "E3B0C44298FC1C149AFBF4C8996FB92427AE41E4649B934CA495991B7852B855",
+    "CheckAppSchemaState": "2DE6DFB6F63E21DF861171242C16F3DCD4A135F28410A77606850D0AED4DE166",
+    "CheckAppSchemaHistory": "324958ABCD03B40140EB17DBFDBA5419D76CA2ADE6DE572574D7E87227FCCE51",
+    "CheckAppSchemaAttempts": "CF0EA87D0913936ECFAC2A0E7F1E29E158F51C3284039670E741AAEA8F8C5685",
+    "objects": "830923AB02AE90C13728A7E36E6A30172B31843B5B2547BC29569C85839638E2"
+  }
+}

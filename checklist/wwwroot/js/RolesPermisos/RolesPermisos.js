@@ -193,6 +193,20 @@ jQuery(document).ready(function () {
         }
     });
 
+    $('#swMenuProveeduria').change(function () {
+        if (this.checked) {
+            $('#areaMenuProveeduria').show();
+        } else {
+            $('#areaMenuProveeduria').hide();
+            $('#sw05001000A').prop('checked', false).trigger('change');
+            $('#sw05001001A').prop('checked', false).trigger('change');
+            $('#sw05001002A').prop('checked', false).trigger('change');
+            $('#sw05001003A').prop('checked', false).trigger('change');
+            $('#sw05001004A').prop('checked', false).trigger('change');
+            $('#sw05001005A').prop('checked', false).trigger('change');
+        }
+    });
+
     // End Menus Principales
 
     // Listas
@@ -356,6 +370,21 @@ jQuery(document).ready(function () {
         $('#sw04005000W').prop('disabled', !this.checked);
     });
 
+    // Proveeduria
+    $('#sw05001001A').change(function () {
+        $('#sw05001001W').prop('disabled', !this.checked);
+    });
+    $('#sw05001003A').change(function () {
+        $('#sw05001003W').prop('disabled', !this.checked);
+    });
+    $('#sw05001004A').change(function () {
+        $('#sw05001004W').prop('disabled', !this.checked);
+    });
+    $('#sw05001005A').change(function () {
+        $('#sw05001005W').prop('disabled', !this.checked);
+    });
+    // End Proveeduria
+
     // End Ajustes
     $('#Guardar').click(function () {
         if ($('#cbRol option:selected').text() != 'SuperAdmin') {
@@ -457,6 +486,19 @@ jQuery(document).ready(function () {
                         //Regiones
                         mnregiones: $('#sw04005000A').is(':checked'),
                         mnregionesw: $('#sw04005000W').is(':checked'),
+
+                        //PROVEEDURIA
+                        mnproveeduria: $('#swMenuProveeduria').is(':checked'),
+                        mnproductosservicios: $('#sw05001000A').is(':checked'),
+                        mnproductosserviciosabc: $('#sw05001001A').is(':checked'),
+                        mnproductosserviciosabcw: $('#sw05001001W').is(':checked'),
+                        mnproductosservicioscatalogos: $('#sw05001002A').is(':checked'),
+                        mnproductosservicioscategorias: $('#sw05001003A').is(':checked'),
+                        mnproductosservicioscategoriasw: $('#sw05001003W').is(':checked'),
+                        mnproductosserviciosmarcas: $('#sw05001004A').is(':checked'),
+                        mnproductosserviciosmarcasw: $('#sw05001004W').is(':checked'),
+                        mnproductosserviciosunidades: $('#sw05001005A').is(':checked'),
+                        mnproductosserviciosunidadesw: $('#sw05001005W').is(':checked'),
 
                     },
                     dataType: 'json',
@@ -574,5 +616,17 @@ function deshabilita() {
     $('#sw04004000W').prop('checked', false);
     $('#sw04005000A').prop('checked', false);
     $('#sw04005000W').prop('checked', false);
+    //PROVEEDURIA
+    $('#swMenuProveeduria').prop('checked', false);
+    $('#sw05001000A').prop('checked', false);
+    $('#sw05001001A').prop('checked', false);
+    $('#sw05001001W').prop('checked', false);
+    $('#sw05001002A').prop('checked', false);
+    $('#sw05001003A').prop('checked', false);
+    $('#sw05001003W').prop('checked', false);
+    $('#sw05001004A').prop('checked', false);
+    $('#sw05001004W').prop('checked', false);
+    $('#sw05001005A').prop('checked', false);
+    $('#sw05001005W').prop('checked', false);
 
 }

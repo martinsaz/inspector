@@ -1,0 +1,197 @@
+{
+  "Status": "PASS_INDEPENDENT_SECURITY_QA",
+  "SignedProxySql": true,
+  "InvalidTenantsNoSql": true,
+  "InvalidOrExpiredProxyNoSql": true,
+  "T20Block503": true,
+  "AuthZ": "REQUIERE_DECISION_PO",
+  "QA_A": "289d9d7c-35a4-4d63-a198-6bbc18658163",
+  "QA_B": "10e4ed6e-ae23-44f9-8064-341cbfb45e3b",
+  "FixtureCategoryA": "f63e7fe3-71a5-4221-86df-0ce847c2d049",
+  "FixtureCategoryB": "fc41f55c-1602-47cb-925f-4887ca41a3c3",
+  "FixtureRowsCreated": 7,
+  "FixtureRowsDeleted": 7,
+  "PreexistingRowsDeleted": 0,
+  "OriginalDataRestored": true,
+  "ForeignDetailStatus": 404,
+  "ForeignPdfStatus": 404,
+  "ForeignWriteStatus": 404,
+  "OwnPdfStatus": 200,
+  "OwnDetailStatus": 200,
+  "JsonMismatchStatus": 400,
+  "MultipartMismatchStatus": 403,
+  "QA_C": "289d9d7c-35a4-4d63-a198-6bbc18658163",
+  "QA_D": "10e4ed6e-ae23-44f9-8064-341cbfb45e3b",
+  "ExistingProductCompanyCount": 2,
+  "SameDatabaseIdentity": true,
+  "Runs": 15,
+  "Results": [
+    {
+      "Status": "NO_CHANGES",
+      "ReasonCode": "NO_REQUIRED_COMPANY_SEEDS",
+      "Count": 0,
+      "ExecutedDdl": false
+    },
+    {
+      "Status": "NO_CHANGES",
+      "ReasonCode": "NO_REQUIRED_COMPANY_SEEDS",
+      "Count": 0,
+      "ExecutedDdl": false
+    },
+    {
+      "Status": "NO_CHANGES",
+      "ReasonCode": "NO_REQUIRED_COMPANY_SEEDS",
+      "Count": 0,
+      "ExecutedDdl": false
+    },
+    {
+      "Status": "NO_CHANGES",
+      "ReasonCode": "NO_REQUIRED_COMPANY_SEEDS",
+      "Count": 0,
+      "ExecutedDdl": false
+    },
+    {
+      "Status": "NO_CHANGES",
+      "ReasonCode": "NO_REQUIRED_COMPANY_SEEDS",
+      "Count": 0,
+      "ExecutedDdl": false
+    },
+    {
+      "Status": "NO_CHANGES",
+      "ReasonCode": "NO_REQUIRED_COMPANY_SEEDS",
+      "Count": 0,
+      "ExecutedDdl": false
+    },
+    {
+      "Status": "NO_CHANGES",
+      "ReasonCode": "NO_REQUIRED_COMPANY_SEEDS",
+      "Count": 0,
+      "ExecutedDdl": false
+    },
+    {
+      "Status": "NO_CHANGES",
+      "ReasonCode": "NO_REQUIRED_COMPANY_SEEDS",
+      "Count": 0,
+      "ExecutedDdl": false
+    },
+    {
+      "Status": "NO_CHANGES",
+      "ReasonCode": "NO_REQUIRED_COMPANY_SEEDS",
+      "Count": 0,
+      "ExecutedDdl": false
+    },
+    {
+      "Status": "NO_CHANGES",
+      "ReasonCode": "NO_REQUIRED_COMPANY_SEEDS",
+      "Count": 0,
+      "ExecutedDdl": false
+    },
+    {
+      "Status": "NO_CHANGES",
+      "ReasonCode": "NO_REQUIRED_COMPANY_SEEDS",
+      "Count": 0,
+      "ExecutedDdl": false
+    },
+    {
+      "Status": "NO_CHANGES",
+      "ReasonCode": "NO_REQUIRED_COMPANY_SEEDS",
+      "Count": 0,
+      "ExecutedDdl": false
+    },
+    {
+      "Status": "NO_CHANGES",
+      "ReasonCode": "NO_REQUIRED_COMPANY_SEEDS",
+      "Count": 0,
+      "ExecutedDdl": false
+    },
+    {
+      "Status": "NO_CHANGES",
+      "ReasonCode": "NO_REQUIRED_COMPANY_SEEDS",
+      "Count": 0,
+      "ExecutedDdl": false
+    },
+    {
+      "Status": "NO_CHANGES",
+      "ReasonCode": "NO_REQUIRED_COMPANY_SEEDS",
+      "Count": 0,
+      "ExecutedDdl": false
+    }
+  ],
+  "BeforeVersion": 1,
+  "AfterVersion": 1,
+  "ManifestHash": "4d51ce43a30ec3d583ce4252c8324f1053a52fdd89a7d80b3e01a6e8b780fb06",
+  "Counts": [
+    20,
+    255,
+    50,
+    24,
+    14
+  ],
+  "PhysicalSnapshotEqual": true,
+  "All20TableDataAndSchemaControlDigestsEqual": true,
+  "BeforeGate": "COMPATIBLE",
+  "AfterGate": "COMPATIBLE",
+  "Drift": 0,
+  "ListStatus": 200,
+  "CrossTenantStatus": 403,
+  "CreatedRows": 0,
+  "DeletedRows": 0,
+  "FirebaseWrites": 0,
+  "ExecutedDdl": false,
+  "Cleanup": "PASS_SEVEN_QA_ROWS_ONLY",
+  "BeforeDigests": {
+    "ProductosServiciosCategorias": "94B645C0ADFC910E3E1321B39841741359F526F905899424007093FD5C720B8D",
+    "ProductosServiciosMarcas": "E3B0C44298FC1C149AFBF4C8996FB92427AE41E4649B934CA495991B7852B855",
+    "ProductosServiciosUnidadesMedida": "F5BEBB26283E269807F05952F40395E526F1DD390DF450CA4767477465A81795",
+    "ProductosServicios": "F369081B2532D92C4324E17301C4B305668CDF0EBA1FBC30904F78E0EE5E6906",
+    "ProductosServiciosExistencias": "E3B0C44298FC1C149AFBF4C8996FB92427AE41E4649B934CA495991B7852B855",
+    "ProductosServiciosMovimientosInventario": "E3B0C44298FC1C149AFBF4C8996FB92427AE41E4649B934CA495991B7852B855",
+    "ProductosServiciosColecciones": "E3B0C44298FC1C149AFBF4C8996FB92427AE41E4649B934CA495991B7852B855",
+    "ProductosServiciosPaquetes": "E3B0C44298FC1C149AFBF4C8996FB92427AE41E4649B934CA495991B7852B855",
+    "ProductosServiciosAtributos": "E3B0C44298FC1C149AFBF4C8996FB92427AE41E4649B934CA495991B7852B855",
+    "ProductosServiciosAtributosValores": "E3B0C44298FC1C149AFBF4C8996FB92427AE41E4649B934CA495991B7852B855",
+    "ProductosServiciosProductoAtributos": "E3B0C44298FC1C149AFBF4C8996FB92427AE41E4649B934CA495991B7852B855",
+    "ProductosServiciosProductoAtributoValores": "E3B0C44298FC1C149AFBF4C8996FB92427AE41E4649B934CA495991B7852B855",
+    "ProductosServiciosTags": "E3B0C44298FC1C149AFBF4C8996FB92427AE41E4649B934CA495991B7852B855",
+    "ProductosServiciosProductoTags": "E3B0C44298FC1C149AFBF4C8996FB92427AE41E4649B934CA495991B7852B855",
+    "ProductosServiciosOpcionesVariante": "E3B0C44298FC1C149AFBF4C8996FB92427AE41E4649B934CA495991B7852B855",
+    "ProductosServiciosOpcionesVarianteValores": "E3B0C44298FC1C149AFBF4C8996FB92427AE41E4649B934CA495991B7852B855",
+    "ProductosServiciosVariantes": "E3B0C44298FC1C149AFBF4C8996FB92427AE41E4649B934CA495991B7852B855",
+    "ProductosServiciosVarianteValores": "E3B0C44298FC1C149AFBF4C8996FB92427AE41E4649B934CA495991B7852B855",
+    "ProductosServiciosMultimedia": "893E804A62C5676E121C7058836F0F6D4BB8EE50B48E054AB0AD62D965E0A9F6",
+    "ProductosServiciosPresentacionesVenta": "E3B0C44298FC1C149AFBF4C8996FB92427AE41E4649B934CA495991B7852B855",
+    "CheckAppSchemaState": "2DE6DFB6F63E21DF861171242C16F3DCD4A135F28410A77606850D0AED4DE166",
+    "CheckAppSchemaHistory": "324958ABCD03B40140EB17DBFDBA5419D76CA2ADE6DE572574D7E87227FCCE51",
+    "CheckAppSchemaAttempts": "CF0EA87D0913936ECFAC2A0E7F1E29E158F51C3284039670E741AAEA8F8C5685",
+    "objects": "830923AB02AE90C13728A7E36E6A30172B31843B5B2547BC29569C85839638E2"
+  },
+  "AfterDigests": {
+    "ProductosServiciosCategorias": "94B645C0ADFC910E3E1321B39841741359F526F905899424007093FD5C720B8D",
+    "ProductosServiciosMarcas": "E3B0C44298FC1C149AFBF4C8996FB92427AE41E4649B934CA495991B7852B855",
+    "ProductosServiciosUnidadesMedida": "F5BEBB26283E269807F05952F40395E526F1DD390DF450CA4767477465A81795",
+    "ProductosServicios": "F369081B2532D92C4324E17301C4B305668CDF0EBA1FBC30904F78E0EE5E6906",
+    "ProductosServiciosExistencias": "E3B0C44298FC1C149AFBF4C8996FB92427AE41E4649B934CA495991B7852B855",
+    "ProductosServiciosMovimientosInventario": "E3B0C44298FC1C149AFBF4C8996FB92427AE41E4649B934CA495991B7852B855",
+    "ProductosServiciosColecciones": "E3B0C44298FC1C149AFBF4C8996FB92427AE41E4649B934CA495991B7852B855",
+    "ProductosServiciosPaquetes": "E3B0C44298FC1C149AFBF4C8996FB92427AE41E4649B934CA495991B7852B855",
+    "ProductosServiciosAtributos": "E3B0C44298FC1C149AFBF4C8996FB92427AE41E4649B934CA495991B7852B855",
+    "ProductosServiciosAtributosValores": "E3B0C44298FC1C149AFBF4C8996FB92427AE41E4649B934CA495991B7852B855",
+    "ProductosServiciosProductoAtributos": "E3B0C44298FC1C149AFBF4C8996FB92427AE41E4649B934CA495991B7852B855",
+    "ProductosServiciosProductoAtributoValores": "E3B0C44298FC1C149AFBF4C8996FB92427AE41E4649B934CA495991B7852B855",
+    "ProductosServiciosTags": "E3B0C44298FC1C149AFBF4C8996FB92427AE41E4649B934CA495991B7852B855",
+    "ProductosServiciosProductoTags": "E3B0C44298FC1C149AFBF4C8996FB92427AE41E4649B934CA495991B7852B855",
+    "ProductosServiciosOpcionesVariante": "E3B0C44298FC1C149AFBF4C8996FB92427AE41E4649B934CA495991B7852B855",
+    "ProductosServiciosOpcionesVarianteValores": "E3B0C44298FC1C149AFBF4C8996FB92427AE41E4649B934CA495991B7852B855",
+    "ProductosServiciosVariantes": "E3B0C44298FC1C149AFBF4C8996FB92427AE41E4649B934CA495991B7852B855",
+    "ProductosServiciosVarianteValores": "E3B0C44298FC1C149AFBF4C8996FB92427AE41E4649B934CA495991B7852B855",
+    "ProductosServiciosMultimedia": "893E804A62C5676E121C7058836F0F6D4BB8EE50B48E054AB0AD62D965E0A9F6",
+    "ProductosServiciosPresentacionesVenta": "E3B0C44298FC1C149AFBF4C8996FB92427AE41E4649B934CA495991B7852B855",
+    "CheckAppSchemaState": "2DE6DFB6F63E21DF861171242C16F3DCD4A135F28410A77606850D0AED4DE166",
+    "CheckAppSchemaHistory": "324958ABCD03B40140EB17DBFDBA5419D76CA2ADE6DE572574D7E87227FCCE51",
+    "CheckAppSchemaAttempts": "CF0EA87D0913936ECFAC2A0E7F1E29E158F51C3284039670E741AAEA8F8C5685",
+    "objects": "830923AB02AE90C13728A7E36E6A30172B31843B5B2547BC29569C85839638E2"
+  },
+  "IdentityCorrelationSha256": "6E603D3474365601BFBFA4E49C1D056F5C59DE729E25D2FF73CB6AC9F03DD94C",
+  "DatabaseName": "CheckAppErp",
+  "EvidenceNote": "Identidad textual sustituida por SHA256 de correlaci\u00f3n; no es el fingerprint can\u00f3nico T12. QA controlada por invocaci\u00f3n de controllers actuales; AuthZ pendiente de regla PO. CreatedRows/DeletedRows corresponden exclusivamente al NO-OP T22."
+}
