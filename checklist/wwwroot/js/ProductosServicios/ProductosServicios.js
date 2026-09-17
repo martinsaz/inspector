@@ -108,7 +108,7 @@
             comboCollectionKey: "categorias",
             codeMax: 50,
             nameMax: 150,
-            descriptionMax: 500,
+            descriptionMax: 20000,
             showDescription: true,
             showAplicaA: true,
             showAbreviatura: false,
@@ -125,7 +125,7 @@
             comboCollectionKey: "marcas",
             codeMax: 50,
             nameMax: 150,
-            descriptionMax: 500,
+            descriptionMax: 20000,
             showDescription: true,
             showAplicaA: false,
             showAbreviatura: false,
@@ -195,6 +195,7 @@
         loadCombos()
             .then(function () {
                 initDescriptionEditor();
+                initCollectionDescriptionEditor();
                 syncTypeVisibility();
                 renderAttributesEditor();
                 renderVariantOptionsEditor();
@@ -4036,6 +4037,7 @@
         });
         $("#frmQuickCatalogoProductoServicio").attr("data-quick-catalog-layout", key);
         quickCatalogBridge.applyFieldVisibility(config);
+        quickCatalogBridge.initDescriptionEditor(config);
         syncQuickCatalogCodeField(false, "");
         state.quickCatalogModal.show();
     }
@@ -4217,6 +4219,7 @@
         if (form) {
             form.reset();
         }
+        setCollectionDescriptionEditorValue("");
         setStatus("#txInfoColeccionProductoServicio", "", "");
     }
 
@@ -4250,7 +4253,7 @@
     function saveCollection() {
         const payload = {
             nombre: ($("#txColeccionNombreProductoServicio").val() || "").trim(),
-            descripcion: ($("#txColeccionDescripcionProductoServicio").val() || "").trim()
+            descripcion: getCollectionDescriptionEditorValue()
         };
 
         if (!payload.nombre) {
@@ -5649,6 +5652,76 @@
                 }
                 return;
             }
+        }
+    }
+
+    function initCollectionDescriptionEditor() {
+        if (!window.tinymce || !document.getElementById("txColeccionDescripcionProductoServicio")) {
+            return;
+        }
+
+        if (window.tinymce.get("txColeccionDescripcionProductoServicio")) {
+            setCollectionDescriptionEditorValue($("#txColeccionDescripcionProductoServicio").val() || "");
+            return;
+        }
+
+        window.tinymce.init({
+            selector: "#txColeccionDescripcionProductoServicio",
+            menubar: false,
+            branding: false,
+            promotion: false,
+            height: 128,
+            resize: true,
+            placeholder: "Descripción",
+            aria_label: "Descripción",
+            plugins: "lists link code",
+            toolbar: "blocks | bold italic underline | bullist numlist | alignleft aligncenter alignright | link unlink | code removeformat",
+            block_formats: "Párrafo=p; Encabezado 2=h2; Encabezado 3=h3",
+            browser_spellcheck: true,
+            contextmenu: false,
+            setup: function (editor) {
+                editor.on("input change keyup undo redo", function () {
+                    clearFieldError("#txColeccionDescripcionProductoServicio");
+                });
+            }
+        }).then(function () {
+            setCollectionDescriptionEditorValue($("#txColeccionDescripcionProductoServicio").val() || "");
+        });
+    }
+
+    function getCollectionDescriptionEditorValue() {
+        if (window.tinymce) {
+            const editor = window.tinymce.get("txColeccionDescripcionProductoServicio");
+            if (editor) {
+                return normalizeDescriptionHtml(editor.getContent());
+            }
+        }
+
+        return normalizeDescriptionHtml($("#txColeccionDescripcionProductoServicio").val());
+    }
+
+    function setCollectionDescriptionEditorValue(value) {
+        const normalized = normalizeDescriptionHtml(value);
+        $("#txColeccionDescripcionProductoServicio").val(normalized);
+
+        if (!window.tinymce) {
+            return;
+        }
+
+        const editor = window.tinymce.get("txColeccionDescripcionProductoServicio");
+        if (!editor) {
+            return;
+        }
+
+        editor.setContent(normalized);
+        if (editor.undoManager && typeof editor.undoManager.clear === "function") {
+            editor.undoManager.clear();
+        }
+        if (typeof editor.setDirty === "function") {
+            editor.setDirty(false);
+        }
+        if (typeof editor.save === "function") {
+            editor.save();
         }
     }
 

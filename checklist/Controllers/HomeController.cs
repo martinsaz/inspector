@@ -504,24 +504,47 @@ namespace checklist.Controllers
                                                 case "04003000":
                                                     if (hijo.Permisos.Acceso == 1)
                                                     {
+                                                        StringBuilder sucursalesMenu = new StringBuilder();
+                                                        if (hijo.Hijos.Any())
+                                                        {
+                                                            foreach (var nieto in hijo.Hijos)
+                                                            {
+                                                                switch (nieto.Opcion)
+                                                                {
+                                                                    case "04003100":
+                                                                        if (nieto.Permisos.Acceso == 1)
+                                                                        {
+                                                                            sucursalesMenu.Append(@"<div id=""04003100"" class=""menu-item""> <a class=""menu-link"" href=""/Sucursales/SucursalesABC""> <span class=""menu-bullet""> <span class=""bullet bullet-dot""></span> </span> <span class=""menu-title"">ABC Sucursales</span> </a> </div>");
+                                                                        }
+                                                                        break;
+                                                                    case "04004000":
+                                                                        if (nieto.Permisos.Acceso == 1)
+                                                                        {
+                                                                            sucursalesMenu.Append(@"<div id=""04004000"" class=""menu-item""> <a class=""menu-link"" href=""/RazonesSociales/Index""> <span class=""menu-bullet""> <span class=""bullet bullet-dot""></span> </span> <span class=""menu-title"">Razones Sociales</span> </a> </div>");
+                                                                        }
+                                                                        break;
+                                                                    case "04005000":
+                                                                        if (nieto.Permisos.Acceso == 1)
+                                                                        {
+                                                                            sucursalesMenu.Append(@"<div id=""04005000"" class=""menu-item""> <a class=""menu-link"" href=""/Regiones/Index""> <span class=""menu-bullet""> <span class=""bullet bullet-dot""></span> </span> <span class=""menu-title"">Regiones</span> </a> </div>");
+                                                                        }
+                                                                        break;
+                                                                }
+                                                            }
+                                                        }
+                                                        else
+                                                        {
+                                                            sucursalesMenu.Append(@"<div id=""04003100"" class=""menu-item""> <a class=""menu-link"" href=""/Sucursales/SucursalesABC""> <span class=""menu-bullet""> <span class=""bullet bullet-dot""></span> </span> <span class=""menu-title"">ABC Sucursales</span> </a> </div>");
+                                                        }
 
-                                                        sb.Append(@"<div id=""04003000"" class=""menu-item""> <a class=""menu-link"" href=""/Sucursales/SucursalesABC""> <span class=""menu-bullet""> <span class=""bullet bullet-dot""></span> </span> <span class=""menu-title"">Sucursales</span> </a> </div>");
-
-                                                    }
-                                                    break;
-                                                case "04004000":
-                                                    if (hijo.Permisos.Acceso == 1)
-                                                    {
-
-                                                        sb.Append(@"<div id=""04004000"" class=""menu-item""> <a class=""menu-link"" href=""/RazonesSociales/Index""> <span class=""menu-bullet""> <span class=""bullet bullet-dot""></span> </span> <span class=""menu-title"">Razones Sociales</span> </a> </div>");
-
-                                                    }
-                                                    break;
-                                                case "04005000":
-                                                    if (hijo.Permisos.Acceso == 1)
-                                                    {
-
-                                                        sb.Append(@"<div id=""04005000"" class=""menu-item""> <a class=""menu-link"" href=""/Regiones/Index""> <span class=""menu-bullet""> <span class=""bullet bullet-dot""></span> </span> <span class=""menu-title"">Regiones</span> </a> </div>");
+                                                        if (sucursalesMenu.Length > 0)
+                                                        {
+                                                            sb.Append(@"<div id=""04003000"" data-kt-menu-trigger=""click"" class=""menu-item menu-accordion""> <span class=""menu-link""> <span class=""menu-bullet""> <span class=""bullet bullet-dot""></span> </span> <span class=""menu-title"">Sucursales</span> <span class=""menu-arrow""></span> </span>");
+                                                            sb.Append(@"<div class=""menu-sub menu-sub-accordion"">");
+                                                            sb.Append(sucursalesMenu.ToString());
+                                                            sb.Append(@"</div>");
+                                                            sb.Append(@"</div>");
+                                                        }
 
                                                     }
                                                     break;

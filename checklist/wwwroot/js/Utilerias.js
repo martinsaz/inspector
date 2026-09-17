@@ -304,15 +304,15 @@ function syncCurrentMenuState() {
             active: '04002000'
         },
         '/sucursales/sucursalesabc': {
-            ancestors: ['04000000'],
-            active: '04003000'
+            ancestors: ['04000000', '04003000'],
+            active: '04003100'
         },
         '/razonessociales/index': {
-            ancestors: ['04000000'],
+            ancestors: ['04000000', '04003000'],
             active: '04004000'
         },
         '/regiones/index': {
-            ancestors: ['04000000'],
+            ancestors: ['04000000', '04003000'],
             active: '04005000'
         },
         '/operadores/index': {

@@ -152,6 +152,12 @@ Archivos principales:
 - `/Users/denissemendiola/dev/Inspecciones/inspectorapi/checklistWs/Program.cs`
 - `/Users/denissemendiola/dev/Inspecciones/inspectorapi/checklistWs.Tests/Services/Tenant/SchemaDriftValidatorTests.cs`
 
+## Addendum 2026-09-16 — validación V2
+
+T18 reconoce ahora V1 histórico y V2 vigente. Para V2, `ProductosServiciosCategorias.Descripcion`, `ProductosServiciosMarcas.Descripcion` y `ProductosServiciosColecciones.Descripcion` deben reportar `nvarchar(max)` (`max_length=-1`) y nullable.
+
+Base 163 después de T17 V1 -> V2: `SchemaOk`, `DriftCount=0`, 20 tablas, 255 columnas, 50 índices, 24 FK y 14 CHECK.
+
 ## Contrato base preservado
 
 T18 usa exclusivamente el contrato T15 V1 para `ProductosServicios`:

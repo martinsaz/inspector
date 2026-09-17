@@ -4,6 +4,16 @@
 
 T17 implementa el motor general para resolver y ejecutar migraciones secuenciales por `DatabaseIdentity + Scope`, reutilizando la infraestructura de T13, T14, T15 y T16. No define una versión funcional V2 de ProductosServicios y no convierte fixtures de prueba en releases reales.
 
+## Addendum 2026-09-16 — primera migración real aprobada
+
+El paquete real de ProductosServicios ahora declara `LatestSchemaVersion = 2` y contiene una transición aprobada por PO:
+
+```text
+PS-M20260916-V1-V2-DESCRIPCIONES-NVARCHAR-MAX
+```
+
+La transición cambia únicamente `Descripcion` de Categorias, Marcas y Colecciones de `NVARCHAR(500)` a `NVARCHAR(MAX)`, con precondiciones, SQL hash, target manifest hash V2, lock, transacción, validación física, History/Attempts y State post-PASS. Segunda corrida no ejecuta DDL y no duplica `History MIGRATED`.
+
 ## Alcance
 
 El alcance queda limitado a infraestructura de migración: paquete/release, manifest de migración, resolución de cadena, validación de hashes, historial inmutable, ejecución transaccional, lock, rollback lógico, recuperación de commit incierto y pruebas automatizadas. No se modificó Firebase, Hosting, Login/Auth, tenants, UI, CRUD ni datos de negocio.

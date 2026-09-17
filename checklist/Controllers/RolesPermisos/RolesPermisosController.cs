@@ -433,7 +433,7 @@ namespace checklist.Controllers.RolesPermisos
              return Json(new { d = JsonConvert.DeserializeObject<string>(response.Content) });
          }*/
         //, string mnlistaa, string mnlistaw, string mnlistaabcw, string mncategorizacionw, string mnrecoleccionesa, string mnrecoleccionesw, string mnconlistasw, string mnconlistas, string mnajustesa, string mnajustesw, string mnusuariosw
-        public async Task<ActionResult> GuardaPerm(string llavero, string nombrer, string idEmpresa, string empresa, string correo, string cadena, string mnlista, string mnlistaabc, string mncrealistaa, string mncrealistaw, string mnprocesoa, string mnprocesow, string mnmislistasa, string mnmislistasw, string mncategorizacion, string mncategoria, string mncategoriaw, string mnsubcategoria, string mnsubcategoriaw, string mnrecolecciones, string mnnuevar, string mnnuevarw, string mninspeccioncampo, string mninspeccioncampow, string mnnuevaroff, string mnnuevaroffw, string mnresultados, string mnresultadosw, string mnrespuestas, string mnrespuestasw, string mnreportes, string mnestrella, string mnestrellaw, string mncontraido, string mncontraidow, string mnccat, string mnccatw, string mnlistado, string mnlistadow, string mnajustes, string mnusuarios, string mnabcus, string mnabcusw, string mndepto, string mndeptow, string mnpuesto, string mnpuestow, string mnroles, string mnrolesw, string mnsucursales, string mnsucursalesw, string mnrazones, string mnrazonesw, string mnregiones, string mnregionesw, string mnproveeduria, string mnproductosservicios, string mnproductosserviciosabc, string mnproductosserviciosabcw, string mnproductosservicioscatalogos, string mnproductosservicioscategorias, string mnproductosservicioscategoriasw, string mnproductosserviciosmarcas, string mnproductosserviciosmarcasw, string mnproductosserviciosunidades, string mnproductosserviciosunidadesw)
+        public async Task<ActionResult> GuardaPerm(string llavero, string nombrer, string idEmpresa, string empresa, string correo, string cadena, string mnlista, string mnlistaabc, string mncrealistaa, string mncrealistaw, string mnprocesoa, string mnprocesow, string mnmislistasa, string mnmislistasw, string mncategorizacion, string mncategoria, string mncategoriaw, string mnsubcategoria, string mnsubcategoriaw, string mnrecolecciones, string mnnuevar, string mnnuevarw, string mninspeccioncampo, string mninspeccioncampow, string mnnuevaroff, string mnnuevaroffw, string mnresultados, string mnresultadosw, string mnrespuestas, string mnrespuestasw, string mnreportes, string mnestrella, string mnestrellaw, string mncontraido, string mncontraidow, string mnccat, string mnccatw, string mnlistado, string mnlistadow, string mnajustes, string mnusuarios, string mnabcus, string mnabcusw, string mndepto, string mndeptow, string mnpuesto, string mnpuestow, string mnroles, string mnrolesw, string mnsucursales, string mnabcsucursales, string mnabcsucursalesw, string mnrazones, string mnrazonesw, string mnregiones, string mnregionesw, string mnproveeduria, string mnproductosservicios, string mnproductosserviciosabc, string mnproductosserviciosabcw, string mnproductosservicioscatalogos, string mnproductosservicioscategorias, string mnproductosservicioscategoriasw, string mnproductosserviciosmarcas, string mnproductosserviciosmarcasw, string mnproductosserviciosunidades, string mnproductosserviciosunidadesw)
         {
 
             respRoles item = new respRoles();
@@ -830,42 +830,51 @@ namespace checklist.Controllers.RolesPermisos
                     Opciones opciH = new Opciones
                     {
                         Opcion = "04003000",
-                        Permisos = new Permisos
-                        {
-                            Acceso = 1,
-                            Escritura = Convert.ToBoolean(mnsucursalesw) ? 1 : 0
-                        }
+                        Permisos = new Permisos { Acceso = 1 }
                     };
-                    opc.Hijos.Add(opciH);
-                }
 
-                // Opciones de razones sociales
-                if (Convert.ToBoolean(mnrazones))
-                {
-                    Opciones opciH = new Opciones
+                    if (Convert.ToBoolean(mnabcsucursales))
                     {
-                        Opcion = "04004000",
-                        Permisos = new Permisos
+                        Opciones opciN = new Opciones
                         {
-                            Acceso = 1,
-                            Escritura = Convert.ToBoolean(mnrazonesw) ? 1 : 0
-                        }
-                    };
-                    opc.Hijos.Add(opciH);
-                }
+                            Opcion = "04003100",
+                            Permisos = new Permisos
+                            {
+                                Acceso = 1,
+                                Escritura = Convert.ToBoolean(mnabcsucursalesw) ? 1 : 0
+                            }
+                        };
+                        opciH.Hijos.Add(opciN);
+                    }
 
-                // Opciones de regiones
-                if (Convert.ToBoolean(mnregiones))
-                {
-                    Opciones opciH = new Opciones
+                    if (Convert.ToBoolean(mnrazones))
                     {
-                        Opcion = "04005000",
-                        Permisos = new Permisos
+                        Opciones opciN = new Opciones
                         {
-                            Acceso = 1,
-                            Escritura = Convert.ToBoolean(mnregionesw) ? 1 : 0
-                        }
-                    };
+                            Opcion = "04004000",
+                            Permisos = new Permisos
+                            {
+                                Acceso = 1,
+                                Escritura = Convert.ToBoolean(mnrazonesw) ? 1 : 0
+                            }
+                        };
+                        opciH.Hijos.Add(opciN);
+                    }
+
+                    if (Convert.ToBoolean(mnregiones))
+                    {
+                        Opciones opciN = new Opciones
+                        {
+                            Opcion = "04005000",
+                            Permisos = new Permisos
+                            {
+                                Acceso = 1,
+                                Escritura = Convert.ToBoolean(mnregionesw) ? 1 : 0
+                            }
+                        };
+                        opciH.Hijos.Add(opciN);
+                    }
+
                     opc.Hijos.Add(opciH);
                 }
 
@@ -1312,11 +1321,64 @@ namespace checklist.Controllers.RolesPermisos
                                                     Nombre = "#sw04003000A",
                                                     Valor = hijo.Permisos.Acceso == 1 ? "true" : "false"
                                                 });
-                                                result.Add(new DataPair2()
+                                                if (hijo.Hijos.Any())
                                                 {
-                                                    Nombre = "#sw04003000W",
-                                                    Valor = hijo.Permisos.Escritura == 1 ? "true" : "false"
-                                                });
+                                                    foreach (var nieto in hijo.Hijos)
+                                                    {
+                                                        switch (nieto.Opcion)
+                                                        {
+                                                            case "04003100":
+                                                                result.Add(new DataPair2()
+                                                                {
+                                                                    Nombre = "#sw04003100A",
+                                                                    Valor = nieto.Permisos.Acceso == 1 ? "true" : "false"
+                                                                });
+                                                                result.Add(new DataPair2()
+                                                                {
+                                                                    Nombre = "#sw04003100W",
+                                                                    Valor = nieto.Permisos.Escritura == 1 ? "true" : "false"
+                                                                });
+                                                                break;
+                                                            case "04004000":
+                                                                result.Add(new DataPair2()
+                                                                {
+                                                                    Nombre = "#sw04004000A",
+                                                                    Valor = nieto.Permisos.Acceso == 1 ? "true" : "false"
+                                                                });
+                                                                result.Add(new DataPair2()
+                                                                {
+                                                                    Nombre = "#sw04004000W",
+                                                                    Valor = nieto.Permisos.Escritura == 1 ? "true" : "false"
+                                                                });
+                                                                break;
+                                                            case "04005000":
+                                                                result.Add(new DataPair2()
+                                                                {
+                                                                    Nombre = "#sw04005000A",
+                                                                    Valor = nieto.Permisos.Acceso == 1 ? "true" : "false"
+                                                                });
+                                                                result.Add(new DataPair2()
+                                                                {
+                                                                    Nombre = "#sw04005000W",
+                                                                    Valor = nieto.Permisos.Escritura == 1 ? "true" : "false"
+                                                                });
+                                                                break;
+                                                        }
+                                                    }
+                                                }
+                                                else
+                                                {
+                                                    result.Add(new DataPair2()
+                                                    {
+                                                        Nombre = "#sw04003100A",
+                                                        Valor = hijo.Permisos.Acceso == 1 ? "true" : "false"
+                                                    });
+                                                    result.Add(new DataPair2()
+                                                    {
+                                                        Nombre = "#sw04003100W",
+                                                        Valor = hijo.Permisos.Escritura == 1 ? "true" : "false"
+                                                    });
+                                                }
                                                 break;
                                             case "04004000":
                                                 result.Add(new DataPair2()
@@ -1390,7 +1452,7 @@ namespace checklist.Controllers.RolesPermisos
 
         private static string BuildDefaultRolePermissionsJson()
         {
-            List<Opciones> opciones = JsonConvert.DeserializeObject<List<Opciones>>("[{\"Opcion\":\"01000000\",\"Permisos\":{\"Acceso\":1,\"Escritura\":1},\"Hijos\":[{\"Opcion\":\"01001000\",\"Permisos\":{\"Acceso\":1,\"Escritura\":1},\"Hijos\":[{\"Opcion\":\"01001001\",\"Permisos\":{\"Acceso\":1,\"Escritura\":1},\"Hijos\":[]},{\"Opcion\":\"01001002\",\"Permisos\":{\"Acceso\":1,\"Escritura\":1},\"Hijos\":[]},{\"Opcion\":\"01001003\",\"Permisos\":{\"Acceso\":1,\"Escritura\":1},\"Hijos\":[]}]} ,{\"Opcion\":\"01002000\",\"Permisos\":{\"Acceso\":1,\"Escritura\":1},\"Hijos\":[{\"Opcion\":\"01002001\",\"Permisos\":{\"Acceso\":1,\"Escritura\":1},\"Hijos\":[]},{\"Opcion\":\"01002002\",\"Permisos\":{\"Acceso\":1,\"Escritura\":1},\"Hijos\":[]}]}]},{\"Opcion\":\"02000000\",\"Permisos\":{\"Acceso\":1,\"Escritura\":0},\"Hijos\":[{\"Opcion\":\"02001000\",\"Permisos\":{\"Acceso\":1,\"Escritura\":1},\"Hijos\":[]},{\"Opcion\":\"02002000\",\"Permisos\":{\"Acceso\":1,\"Escritura\":1},\"Hijos\":[]},{\"Opcion\":\"02003000\",\"Permisos\":{\"Acceso\":1,\"Escritura\":1},\"Hijos\":[]},{\"Opcion\":\"02004000\",\"Permisos\":{\"Acceso\":1,\"Escritura\":1},\"Hijos\":[]}]} ,{\"Opcion\":\"03000000\",\"Permisos\":{\"Acceso\":1,\"Escritura\":1},\"Hijos\":[{\"Opcion\":\"03001000\",\"Permisos\":{\"Acceso\":1,\"Escritura\":1},\"Hijos\":[{\"Opcion\":\"03001001\",\"Permisos\":{\"Acceso\":1,\"Escritura\":1},\"Hijos\":[]},{\"Opcion\":\"03001002\",\"Permisos\":{\"Acceso\":1,\"Escritura\":1},\"Hijos\":[]}]} ,{\"Opcion\":\"03002000\",\"Permisos\":{\"Acceso\":1,\"Escritura\":1},\"Hijos\":[]}]} ,{\"Opcion\":\"04000000\",\"Permisos\":{\"Acceso\":1,\"Escritura\":1},\"Hijos\":[{\"Opcion\":\"04001000\",\"Permisos\":{\"Acceso\":1,\"Escritura\":1},\"Hijos\":[{\"Opcion\":\"04001001\",\"Permisos\":{\"Acceso\":1,\"Escritura\":1},\"Hijos\":[]},{\"Opcion\":\"04001002\",\"Permisos\":{\"Acceso\":1,\"Escritura\":1},\"Hijos\":[]},{\"Opcion\":\"04001003\",\"Permisos\":{\"Acceso\":1,\"Escritura\":1},\"Hijos\":[]}]} ,{\"Opcion\":\"04002000\",\"Permisos\":{\"Acceso\":1,\"Escritura\":1},\"Hijos\":[]} ,{\"Opcion\":\"04003000\",\"Permisos\":{\"Acceso\":1,\"Escritura\":1},\"Hijos\":[]} ,{\"Opcion\":\"04004000\",\"Permisos\":{\"Acceso\":1,\"Escritura\":1},\"Hijos\":[]} ,{\"Opcion\":\"04005000\",\"Permisos\":{\"Acceso\":1,\"Escritura\":1},\"Hijos\":[]}]}]") ?? new List<Opciones>();
+            List<Opciones> opciones = JsonConvert.DeserializeObject<List<Opciones>>("[{\"Opcion\":\"01000000\",\"Permisos\":{\"Acceso\":1,\"Escritura\":1},\"Hijos\":[{\"Opcion\":\"01001000\",\"Permisos\":{\"Acceso\":1,\"Escritura\":1},\"Hijos\":[{\"Opcion\":\"01001001\",\"Permisos\":{\"Acceso\":1,\"Escritura\":1},\"Hijos\":[]},{\"Opcion\":\"01001002\",\"Permisos\":{\"Acceso\":1,\"Escritura\":1},\"Hijos\":[]},{\"Opcion\":\"01001003\",\"Permisos\":{\"Acceso\":1,\"Escritura\":1},\"Hijos\":[]}]} ,{\"Opcion\":\"01002000\",\"Permisos\":{\"Acceso\":1,\"Escritura\":1},\"Hijos\":[{\"Opcion\":\"01002001\",\"Permisos\":{\"Acceso\":1,\"Escritura\":1},\"Hijos\":[]},{\"Opcion\":\"01002002\",\"Permisos\":{\"Acceso\":1,\"Escritura\":1},\"Hijos\":[]}]}]},{\"Opcion\":\"02000000\",\"Permisos\":{\"Acceso\":1,\"Escritura\":0},\"Hijos\":[{\"Opcion\":\"02001000\",\"Permisos\":{\"Acceso\":1,\"Escritura\":1},\"Hijos\":[]},{\"Opcion\":\"02002000\",\"Permisos\":{\"Acceso\":1,\"Escritura\":1},\"Hijos\":[]},{\"Opcion\":\"02003000\",\"Permisos\":{\"Acceso\":1,\"Escritura\":1},\"Hijos\":[]},{\"Opcion\":\"02004000\",\"Permisos\":{\"Acceso\":1,\"Escritura\":1},\"Hijos\":[]}]} ,{\"Opcion\":\"03000000\",\"Permisos\":{\"Acceso\":1,\"Escritura\":1},\"Hijos\":[{\"Opcion\":\"03001000\",\"Permisos\":{\"Acceso\":1,\"Escritura\":1},\"Hijos\":[{\"Opcion\":\"03001001\",\"Permisos\":{\"Acceso\":1,\"Escritura\":1},\"Hijos\":[]},{\"Opcion\":\"03001002\",\"Permisos\":{\"Acceso\":1,\"Escritura\":1},\"Hijos\":[]}]} ,{\"Opcion\":\"03002000\",\"Permisos\":{\"Acceso\":1,\"Escritura\":1},\"Hijos\":[]}]} ,{\"Opcion\":\"04000000\",\"Permisos\":{\"Acceso\":1,\"Escritura\":0},\"Hijos\":[{\"Opcion\":\"04001000\",\"Permisos\":{\"Acceso\":1,\"Escritura\":1},\"Hijos\":[{\"Opcion\":\"04001001\",\"Permisos\":{\"Acceso\":1,\"Escritura\":1},\"Hijos\":[]},{\"Opcion\":\"04001002\",\"Permisos\":{\"Acceso\":1,\"Escritura\":1},\"Hijos\":[]},{\"Opcion\":\"04001003\",\"Permisos\":{\"Acceso\":1,\"Escritura\":1},\"Hijos\":[]}]} ,{\"Opcion\":\"04002000\",\"Permisos\":{\"Acceso\":1,\"Escritura\":1},\"Hijos\":[]} ,{\"Opcion\":\"04003000\",\"Permisos\":{\"Acceso\":1,\"Escritura\":0},\"Hijos\":[{\"Opcion\":\"04003100\",\"Permisos\":{\"Acceso\":1,\"Escritura\":1},\"Hijos\":[]},{\"Opcion\":\"04004000\",\"Permisos\":{\"Acceso\":1,\"Escritura\":1},\"Hijos\":[]},{\"Opcion\":\"04005000\",\"Permisos\":{\"Acceso\":1,\"Escritura\":1},\"Hijos\":[]}]}]}]") ?? new List<Opciones>();
             opciones.Add(new Opciones
             {
                 Opcion = ProveeduriaPermissionCode,

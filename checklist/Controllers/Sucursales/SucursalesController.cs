@@ -15,10 +15,12 @@ using System.Web;
 using System.Security.Claims;
 using System.Text.Json;
 using checklist.Models.RazonSocial;
+using Microsoft.AspNetCore.Authorization;
 
 
 namespace checklist.Controllers.Sucursales
 {
+    [Authorize]
     public class SucursalesController : Controller
     {
 
@@ -39,8 +41,8 @@ namespace checklist.Controllers.Sucursales
         {
             string idRol = Utilerias.IdRol;
 
-            Opciones opc = await Utilerias.GetOpcion("04003000", idEmpresa, idRol, empresa, cadena);
-            return Json(new { d = "Ok", perm = opc.Permisos.Escritura });
+            Opciones opc = await Utilerias.GetOpcion("04003100", idEmpresa, idRol, empresa, cadena);
+            return Json(new { d = "Ok", access = opc.Permisos.Acceso, perm = opc.Permisos.Escritura });
         }
         public async Task<ActionResult> GetRazonesSociales(string idEmpresa, string cadena, string empresa)
         {
@@ -50,6 +52,7 @@ namespace checklist.Controllers.Sucursales
             var client = new RestClient(url);
             var request = new RestRequest();
             request.Method = Method.Get;
+            request.AddCheckAppProxyHeaders(this, _configuration, idEmpresa, empresa);
             RestResponse response = await client.ExecuteAsync(request);
             List<respRazonSocial> respuesta = JsonConvert.DeserializeObject<List<respRazonSocial>>(response.Content);
             List<respRazonSocial> respuestaOrden = respuesta.OrderBy(r => r.Nombre).ToList();
@@ -100,6 +103,7 @@ namespace checklist.Controllers.Sucursales
             var client = new RestClient(url);
             var request = new RestRequest();
             request.Method = Method.Get;
+            request.AddCheckAppProxyHeaders(this, _configuration, idEmpresa, empresa);
             RestResponse response = await client.ExecuteAsync(request);
             List<respZona> respuesta = JsonConvert.DeserializeObject<List<respZona>>(response.Content);
             List<respZona> respuestaOrden = respuesta.OrderBy(r => r.Nombre).ToList();
@@ -119,6 +123,7 @@ namespace checklist.Controllers.Sucursales
             var client = new RestClient(url);
             var request = new RestRequest();
             request.Method = Method.Get;
+            request.AddCheckAppProxyHeaders(this, _configuration, idEmpresa, empresa);
             RestResponse response = await client.ExecuteAsync(request);
             List<respSucursalesTipos> respuesta = JsonConvert.DeserializeObject<List<respSucursalesTipos>>(response.Content);
             List<respSucursalesTipos> respuestaOrden = respuesta.OrderBy(r => r.Nombre).ToList();
@@ -135,11 +140,16 @@ namespace checklist.Controllers.Sucursales
         {
             string url = string.Format("{0}api/Sucursal/ObtenerSucursalesCompleta?idEmpresa={1}&empresa={2}&cadena={3}", Utilerias.UrlBase, idEmpresa, empresa, cadena);
             string idRol = Utilerias.IdRol;
-            Opciones opc = await Utilerias.GetOpcion("04003000", idEmpresa, idRol, empresa, cadena);
+            Opciones opc = await Utilerias.GetOpcion("04003100", idEmpresa, idRol, empresa, cadena);
+            if (opc.Permisos.Acceso != 1)
+            {
+                return Json(new { d = @"{""sEcho"":1,""iTotalRecords"":0,""iTotalDisplayRecords"":0,""aaData"":[]}" });
+            }
 
             var client = new RestClient(url);
             var request = new RestRequest();
             request.Method = Method.Get;
+            request.AddCheckAppProxyHeaders(this, _configuration, idEmpresa, empresa);
             RestResponse response = await client.ExecuteAsync(request);
             List<respSucursalCompleto> respuesta = JsonConvert.DeserializeObject<List<respSucursalCompleto>>(response.Content);
             List<respSucursalCompleto> respuestaOrden = respuesta.OrderBy(r => r.Nombre).ToList();
@@ -173,8 +183,8 @@ namespace checklist.Controllers.Sucursales
                 sb.Append("\"" + HttpUtility.JavaScriptStringEncode(resp.Telefono) + "\",");
                 sb.Append("\"" + HttpUtility.JavaScriptStringEncode(resp.Correo) + "\",");
                 sb.Append("\"" + HttpUtility.JavaScriptStringEncode(resp.Pais) + "\",");
-                sb.Append("\"" + HttpUtility.JavaScriptStringEncode(resp.NombreZona) + "\",");
-                sb.Append("\"" + HttpUtility.JavaScriptStringEncode(resp.NombreRzonSocial) + "\"");
+                sb.Append("\"" + HttpUtility.JavaScriptStringEncode(resp.NombreRzonSocial) + "\",");
+                sb.Append("\"" + HttpUtility.JavaScriptStringEncode(resp.NombreZona) + "\"");
                 sb.Append("]");
                 hasMoreRecords = true;
             }
@@ -191,6 +201,7 @@ namespace checklist.Controllers.Sucursales
             var client = new RestClient(url);
             var request = new RestRequest();
             request.Method = Method.Get;
+            request.AddCheckAppProxyHeaders(this, _configuration, idEmpresa, empresa);
             RestResponse response = await client.ExecuteAsync(request);
             List<respSucursal> respuesta = JsonConvert.DeserializeObject<List<respSucursal>>(response.Content);
             respSucursal result = new respSucursal();
@@ -224,6 +235,12 @@ namespace checklist.Controllers.Sucursales
             string empresa = parametros.TryGetProperty("empresa", out JsonElement empresaElement) ? empresaElement.GetString() : null;
             string cadena = parametros.TryGetProperty("cadena", out JsonElement cadenaElement) ? cadenaElement.GetString() : null;
 
+            string idRol = Utilerias.IdRol;
+            Opciones opc = await Utilerias.GetOpcion("04003100", idEmpresa, idRol, empresa, cadena);
+            if (opc.Permisos.Escritura != 1)
+            {
+                return Json(new { d = "No tienes permiso de escritura para ABC Sucursales." });
+            }
 
 
             string regresa = "Ok";
@@ -255,6 +272,7 @@ namespace checklist.Controllers.Sucursales
                     var clientS = new RestClient(url);
                     var request = new RestRequest();
                     request.Method = Method.Post;
+                    request.AddCheckAppProxyHeaders(this, _configuration, idEmpresa, empresa);
                     request.RequestFormat = DataFormat.Json;
                     request.AddJsonBody(json);
                     var response = clientS.Execute(request);
@@ -279,6 +297,7 @@ namespace checklist.Controllers.Sucursales
                 var clientS = new RestClient(url);
                 var request = new RestRequest();
                 request.Method = Method.Put;
+                request.AddCheckAppProxyHeaders(this, _configuration, idEmpresa, empresa);
                 request.RequestFormat = DataFormat.Json;
                 request.AddJsonBody(json);
                 var response = clientS.Execute(request);
@@ -319,6 +338,7 @@ namespace checklist.Controllers.Sucursales
                     var clientS = new RestClient(url);
                     var request = new RestRequest();
                     request.Method = Method.Post;
+                    request.AddCheckAppProxyHeaders(this, _configuration, idEmpresa, empresa);
                     request.RequestFormat = DataFormat.Json;
                     request.AddJsonBody(json);
                     var response = clientS.Execute(request);
@@ -343,6 +363,7 @@ namespace checklist.Controllers.Sucursales
                 var clientS = new RestClient(url);
                 var request = new RestRequest();
                 request.Method = Method.Put;
+                request.AddCheckAppProxyHeaders(this, _configuration, idEmpresa, empresa);
                 request.RequestFormat = DataFormat.Json;
                 request.AddJsonBody(json);
                 var response = clientS.Execute(request);
@@ -369,6 +390,7 @@ namespace checklist.Controllers.Sucursales
                     var clientS = new RestClient(url);
                     var request = new RestRequest();
                     request.Method = Method.Post;
+                    request.AddCheckAppProxyHeaders(this, _configuration, idEmpresa, empresa);
                     request.RequestFormat = DataFormat.Json;
                     request.AddJsonBody(json);
                     var response = clientS.Execute(request);
@@ -391,6 +413,7 @@ namespace checklist.Controllers.Sucursales
                 var clientS = new RestClient(url);
                 var request = new RestRequest();
                 request.Method = Method.Put;
+                request.AddCheckAppProxyHeaders(this, _configuration, idEmpresa, empresa);
                 request.RequestFormat = DataFormat.Json;
                 request.AddJsonBody(json);
                 var response = clientS.Execute(request);

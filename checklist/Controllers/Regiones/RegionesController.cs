@@ -12,9 +12,11 @@ using Microsoft.AspNetCore.WebUtilities;
 using checklist.Models.Firebase;
 using Microsoft.Extensions.Options;
 using checklist.Models.Sucursales;
+using Microsoft.AspNetCore.Authorization;
 
 namespace checklist.Controllers.Regiones
 {
+    [Authorize]
     public class RegionesController : Controller
     {
         private readonly IConfiguration _config;
@@ -37,7 +39,7 @@ namespace checklist.Controllers.Regiones
             idRol = Utilerias.IdRol;
 
             Opciones opc = await Utilerias.GetOpcion("04005000", idEmpresa, idRol, empresa, cadena);
-            return Json(new { d = "Ok", perm = opc.Permisos.Escritura });
+            return Json(new { d = "Ok", access = opc.Permisos.Acceso, perm = opc.Permisos.Escritura });
         }
 
         #region Nuevo 
@@ -47,6 +49,13 @@ namespace checklist.Controllers.Regiones
         }
         public async Task<ActionResult> Guardar(string llave, string nombre, string notas, string idEmpresa, string cadena, string empresa)
         {
+            string idRol = Utilerias.IdRol;
+            Opciones opc = await Utilerias.GetOpcion("04005000", idEmpresa, idRol, empresa, cadena);
+            if (opc.Permisos.Escritura != 1)
+            {
+                return Json(new { d = "No tienes permiso de escritura para Regiones." });
+            }
+
             string regresa = "Ok";
             respZona item = new respZona();
             item.IdEmpresa = idEmpresa;
@@ -67,6 +76,7 @@ namespace checklist.Controllers.Regiones
                     var clientS = new RestClient(url);
                     var request = new RestRequest();
                     request.Method = Method.Post;
+                    request.AddCheckAppProxyHeaders(this, _config, idEmpresa, empresa);
                     request.RequestFormat = DataFormat.Json;
                     request.AddJsonBody(json);
                     var response = clientS.Execute(request);
@@ -90,6 +100,7 @@ namespace checklist.Controllers.Regiones
                 var clientS = new RestClient(url);
                 var request = new RestRequest();
                 request.Method = Method.Put;
+                request.AddCheckAppProxyHeaders(this, _config, idEmpresa, empresa);
                 request.RequestFormat = DataFormat.Json;
                 request.AddJsonBody(json);
                 var response = clientS.Execute(request);
@@ -106,10 +117,15 @@ namespace checklist.Controllers.Regiones
             string url = string.Format("{0}ObtenerZonas?idEmpresa={1}", Utilerias.UrlBase, idEmpresa);
             string idRol = Utilerias.IdRol;
             Opciones opc = await Utilerias.GetOpcion("04005000", idEmpresa, idRol, empresa, cadena);
+            if (opc.Permisos.Acceso != 1)
+            {
+                return Json(new { d = @"{""sEcho"":1,""iTotalRecords"":0,""iTotalDisplayRecords"":0,""aaData"":[]}" });
+            }
 
             var client = new RestClient(url);
             var request = new RestRequest();
             request.Method = Method.Get;
+            request.AddCheckAppProxyHeaders(this, _config, idEmpresa, empresa);
             RestResponse response = await client.ExecuteAsync(request);
             List<respZona> respuesta = JsonConvert.DeserializeObject<List<respZona>>(response.Content);
             List<respZona> respuestaOrden = respuesta.OrderBy(r => r.Nombre).ToList();
@@ -155,6 +171,7 @@ namespace checklist.Controllers.Regiones
             var client = new RestClient(url);
             var request = new RestRequest();
             request.Method = Method.Get;
+            request.AddCheckAppProxyHeaders(this, _config, idEmpresa, empresa);
             RestResponse response = await client.ExecuteAsync(request);
             List<respZona> respuesta = JsonConvert.DeserializeObject<List<respZona>>(response.Content);
             respZona result = new respZona();

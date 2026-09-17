@@ -15,9 +15,11 @@ using Microsoft.AspNetCore.WebUtilities;
 using Microsoft.Extensions.Options;
 using System.Security.Claims;
 using checklist.Models.Zonas;
+using Microsoft.AspNetCore.Authorization;
 
 namespace checklist.Controllers.RazonesSociales
 {
+    [Authorize]
     public class RazonesSocialesController : Controller
     {
         private readonly IConfiguration _config;
@@ -42,7 +44,7 @@ namespace checklist.Controllers.RazonesSociales
 
 
             Opciones opc = await Utilerias.GetOpcion("04004000", idEmpresa, idRol, empresa, cadena);
-            return Json(new { d = "Ok", perm = opc.Permisos.Escritura });
+            return Json(new { d = "Ok", access = opc.Permisos.Acceso, perm = opc.Permisos.Escritura });
         }
 
         public async Task<ActionResult> GetData(string idEmpresa, string cadena, string empresa)
@@ -51,10 +53,15 @@ namespace checklist.Controllers.RazonesSociales
             string url = string.Format("{0}ObtenerRazonesSociales?idEmpresa={1}&empresa={2}&cadena={3}", Utilerias.UrlBase, idEmpresa, empresa, cadena);
             string idRol = Utilerias.IdRol;
             Opciones opc = await Utilerias.GetOpcion("04004000", idEmpresa, idRol, empresa, cadena);
+            if (opc.Permisos.Acceso != 1)
+            {
+                return Json(new { d = @"{""sEcho"":1,""iTotalRecords"":0,""iTotalDisplayRecords"":0,""aaData"":[]}" });
+            }
 
             var client = new RestClient(url);
             var request = new RestRequest();
             request.Method = Method.Get;
+            request.AddCheckAppProxyHeaders(this, _config, idEmpresa, empresa);
             RestResponse response = await client.ExecuteAsync(request);
             List<respRazonSocial> respuesta = JsonConvert.DeserializeObject<List<respRazonSocial>>(response.Content);
             List<respRazonSocial> respuestaOrden = respuesta.OrderBy(r => r.Nombre).ToList();
@@ -123,6 +130,7 @@ namespace checklist.Controllers.RazonesSociales
             var client = new RestClient(url);
             var request = new RestRequest();
             request.Method = Method.Get;
+            request.AddCheckAppProxyHeaders(this, _config, idEmpresa, empresa);
             RestResponse response = await client.ExecuteAsync(request);
             List<respRazonSocial> respuesta = JsonConvert.DeserializeObject<List<respRazonSocial>>(response.Content);
             respRazonSocial result = new respRazonSocial();
@@ -143,6 +151,13 @@ namespace checklist.Controllers.RazonesSociales
        string repr, string rfc, string dire, string colo, string cp_, string ciud,
        string esta, string pais, string tele, string im64, string imca, string nota, string regi)
         {
+            string idRol = Utilerias.IdRol;
+            Opciones opc = await Utilerias.GetOpcion("04004000", idEmpresa, idRol, empresa, cadena);
+            if (opc.Permisos.Escritura != 1)
+            {
+                return Json(new { d = "No tienes permiso de escritura para Razones Sociales." });
+            }
+
             string regresa = "Ok";
             respRazonSocial item = new respRazonSocial
             {
@@ -230,6 +245,7 @@ namespace checklist.Controllers.RazonesSociales
                 var clientS = new RestClient(url);
                 var request = new RestRequest();
                 request.Method = string.IsNullOrEmpty(llav) ? Method.Post : Method.Put;
+                request.AddCheckAppProxyHeaders(this, _config, idEmpresa, empresa);
                 request.RequestFormat = DataFormat.Json;
                 request.AddJsonBody(json);
 
@@ -282,6 +298,7 @@ namespace checklist.Controllers.RazonesSociales
                     var clientS = new RestClient(url);
                     var request = new RestRequest();
                     request.Method = Method.Post;
+                    request.AddCheckAppProxyHeaders(this, _config, idEmpresa, empresa);
                     request.RequestFormat = DataFormat.Json;
                     request.AddJsonBody(json);
                     var response = clientS.Execute(request);
@@ -305,6 +322,7 @@ namespace checklist.Controllers.RazonesSociales
                 var clientS = new RestClient(url);
                 var request = new RestRequest();
                 request.Method = Method.Put;
+                request.AddCheckAppProxyHeaders(this, _config, idEmpresa, empresa);
                 request.RequestFormat = DataFormat.Json;
                 request.AddJsonBody(json);
                 var response = clientS.Execute(request);
@@ -382,6 +400,7 @@ namespace checklist.Controllers.RazonesSociales
                     var clientS = new RestClient(url);
                     var request = new RestRequest();
                     request.Method = Method.Post;
+                    request.AddCheckAppProxyHeaders(this, _config, idEmpresa, empresa);
                     request.RequestFormat = DataFormat.Json;
                     request.AddStringBody(json, DataFormat.Json);
                     var response = clientS.Execute(request);
@@ -480,6 +499,7 @@ namespace checklist.Controllers.RazonesSociales
                     var clientS = new RestClient(url);
                     var request = new RestRequest();
                     request.Method = Method.Put;
+                    request.AddCheckAppProxyHeaders(this, _config, idEmpresa, empresa);
                     request.RequestFormat = DataFormat.Json;
                     request.AddStringBody(json, DataFormat.Json);
                     var response = clientS.Execute(request);
@@ -490,4 +510,3 @@ namespace checklist.Controllers.RazonesSociales
         }
     }
 }
-

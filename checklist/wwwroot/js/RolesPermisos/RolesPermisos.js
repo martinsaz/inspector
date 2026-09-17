@@ -68,6 +68,7 @@ jQuery(document).ready(function () {
     PintaRuta('m04002000');
     componentes.init();
     Inicializa()
+    refrescaAreasAjustes();
 
     $('#cbRol').change(function () {
         deshabilita();
@@ -91,6 +92,7 @@ jQuery(document).ready(function () {
                     data.result.forEach(function (item) {
                         $(item.nombre).prop('checked', (item.valor === 'true'));
                     });
+                    refrescaAreasAjustes();
                 },
                 error: function (xhr, textStatus, error) {
                     alert('[GetRol] status: ' + xhr.status + ', responseText: ' + xhr.responseText + ', textStatus: ' + textStatus + ', error: ' + error);
@@ -245,11 +247,11 @@ jQuery(document).ready(function () {
             $('#areaCategorizacion').hide();
         }
     });
-    //Categorías
+    //CategorÃ­as
     $('#sw01002001A').change(function () {
         $('#sw01002001W').prop('disabled', !this.checked);
     });
-    //Subcategorías
+    //SubcategorÃ­as
     $('#sw01002002A').change(function () {
         $('#sw01002002W').prop('disabled', !this.checked);
     });
@@ -315,7 +317,7 @@ jQuery(document).ready(function () {
     $('#sw03001001A').change(function () {
         $('#sw03001001W').prop('disabled', !this.checked);
     });
-    // Estrellas con Categorías
+    // Estrellas con CategorÃ­as
     $('#sw03001002A').change(function () {
         $('#sw03001002W').prop('disabled', !this.checked);
     });
@@ -358,7 +360,18 @@ jQuery(document).ready(function () {
     });
     // Sucursales
     $('#sw04003000A').change(function () {
-        $('#sw04003000W').prop('disabled', !this.checked);
+        if (this.checked) {
+            $('#areaSucursales').show();
+        } else {
+            $('#areaSucursales').hide();
+            $('#sw04003100A').prop('checked', false).trigger('change');
+            $('#sw04004000A').prop('checked', false).trigger('change');
+            $('#sw04005000A').prop('checked', false).trigger('change');
+        }
+    });
+    // ABC Sucursales
+    $('#sw04003100A').change(function () {
+        $('#sw04003100W').prop('disabled', !this.checked);
     });
 
     // Razones Sociales
@@ -416,7 +429,7 @@ jQuery(document).ready(function () {
                         mnmislistasa: $('#sw01001003A').is(':checked'),
                         mnmislistasw: $('#sw01001003W').is(':checked'),
 
-                        //Categorización
+                        //CategorizaciÃ³n
                         mncategorizacion: $('#sw01002000A').is(':checked'),
 
                         mncategoria: $('#sw01002001A').is(':checked'),
@@ -477,7 +490,8 @@ jQuery(document).ready(function () {
 
                         //Sucursales
                         mnsucursales: $('#sw04003000A').is(':checked'),
-                        mnsucursalesw: $('#sw04003000W').is(':checked'),
+                        mnabcsucursales: $('#sw04003100A').is(':checked'),
+                        mnabcsucursalesw: $('#sw04003100W').is(':checked'),
 
                         //Razones Sociales
                         mnrazones: $('#sw04004000A').is(':checked'),
@@ -574,7 +588,7 @@ function deshabilita() {
     $('#sw01002001W').prop('checked', false);
     $('#sw01002002A').prop('checked', false);
     $('#sw01002002W').prop('checked', false);
-    //RECOLECCIÓN
+    //RECOLECCIÃ“N
     $('#swMenuRecolecciones').prop('checked', false);
     $('#sw02000000A').prop('checked', false);
     $('#sw02001000A').prop('checked', false);
@@ -611,7 +625,8 @@ function deshabilita() {
     $('#sw04002000A').prop('checked', false);
     $('#sw04002000W').prop('checked', false);
     $('#sw04003000A').prop('checked', false);
-    $('#sw04003000W').prop('checked', false);
+    $('#sw04003100A').prop('checked', false);
+    $('#sw04003100W').prop('checked', false);
     $('#sw04004000A').prop('checked', false);
     $('#sw04004000W').prop('checked', false);
     $('#sw04005000A').prop('checked', false);
@@ -628,5 +643,15 @@ function deshabilita() {
     $('#sw05001004W').prop('checked', false);
     $('#sw05001005A').prop('checked', false);
     $('#sw05001005W').prop('checked', false);
+    refrescaAreasAjustes();
 
+}
+
+function refrescaAreasAjustes() {
+    $('#areaMenuAjustes').toggle($('#swMenuAjustes').is(':checked'));
+    $('#areaUsuarios').toggle($('#sw04001000A').is(':checked'));
+    $('#areaSucursales').toggle($('#sw04003000A').is(':checked'));
+    $('#sw04003100W').prop('disabled', !$('#sw04003100A').is(':checked'));
+    $('#sw04004000W').prop('disabled', !$('#sw04004000A').is(':checked'));
+    $('#sw04005000W').prop('disabled', !$('#sw04005000A').is(':checked'));
 }

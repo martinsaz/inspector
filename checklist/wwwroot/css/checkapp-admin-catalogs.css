@@ -1,0 +1,442 @@
+.checkapp-admin-page {
+    --ca-primary: #ff4336;
+    --ca-primary-hover: #e63629;
+    --ca-text: #0f172a;
+    --ca-text-secondary: #334155;
+    --ca-text-muted: #64748b;
+    --ca-border: rgba(15, 23, 42, 0.14);
+    --ca-surface: #fff;
+    --ca-page-bg: #f7f3ee;
+    color: var(--ca-text);
+}
+
+.checkapp-admin-page .checkapp-shell {
+    display: grid;
+    gap: 1rem;
+    padding: 0.75rem 0 1.5rem;
+}
+
+.checkapp-admin-page .checkapp-hero {
+    display: flex;
+    align-items: flex-end;
+    justify-content: space-between;
+    gap: 1rem;
+    padding: 1.1rem 1.25rem;
+    border: 1px solid var(--ca-border);
+    border-radius: 1rem;
+    background: var(--ca-surface);
+    box-shadow: 0 10px 24px rgba(15, 23, 42, 0.07);
+}
+
+.checkapp-admin-page .checkapp-kicker,
+.checkapp-admin-page .checkapp-panel-eyebrow {
+    margin: 0 0 0.25rem;
+    color: #dc2626;
+    font-size: 0.72rem;
+    font-weight: 800;
+    text-transform: uppercase;
+}
+
+.checkapp-admin-page .checkapp-hero h1,
+.checkapp-admin-page .checkapp-panel-head h2,
+.checkapp-admin-page .checkapp-accordion-toggle h3 {
+    margin: 0;
+    color: var(--ca-text);
+    font-weight: 800;
+    line-height: 1.15;
+    letter-spacing: 0;
+}
+
+.checkapp-admin-page .checkapp-hero h1 {
+    font-size: 1.7rem;
+}
+
+.checkapp-admin-page .checkapp-hero p,
+.checkapp-admin-page .checkapp-panel-copy {
+    margin: 0.25rem 0 0;
+    color: var(--ca-text-muted);
+}
+
+.checkapp-admin-page .checkapp-hero-actions,
+.checkapp-admin-page .checkapp-grid-actions,
+.checkapp-admin-page .checkapp-filter-actions {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    justify-content: flex-end;
+    gap: 0.55rem;
+}
+
+.checkapp-admin-page .checkapp-btn {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: 0.45rem;
+    min-height: 40px;
+    padding: 0.62rem 1rem;
+    border: 1px solid var(--ca-border);
+    border-radius: 0.9rem;
+    background: #fff;
+    color: var(--ca-text-secondary);
+    font-weight: 800;
+    line-height: 1.1;
+    white-space: nowrap;
+}
+
+.checkapp-admin-page .checkapp-btn-primary {
+    border-color: var(--ca-primary);
+    background: var(--ca-primary);
+    color: #fff !important;
+}
+
+.checkapp-admin-page .checkapp-btn-primary:hover,
+.checkapp-admin-page .checkapp-btn-primary:focus {
+    border-color: var(--ca-primary-hover);
+    background: var(--ca-primary-hover);
+}
+
+.checkapp-admin-page .checkapp-btn-secondary {
+    border-color: #ff4336;
+    background: #ff4336;
+    color: #fff !important;
+}
+
+.checkapp-admin-page .checkapp-btn-ghost {
+    background: #fff;
+}
+
+.checkapp-admin-page .checkapp-btn-excel {
+    border-color: #15803d;
+    background: #15803d;
+    color: #fff !important;
+}
+
+.checkapp-admin-page .checkapp-panel,
+.checkapp-admin-page .checkapp-accordion {
+    border: 1px solid var(--ca-border);
+    border-radius: 1rem;
+    background: var(--ca-surface);
+    box-shadow: 0 10px 24px rgba(15, 23, 42, 0.07);
+}
+
+.checkapp-admin-page .checkapp-panel {
+    padding: 1rem;
+}
+
+.checkapp-admin-page .checkapp-panel-head {
+    display: flex;
+    align-items: flex-start;
+    justify-content: space-between;
+    gap: 1rem;
+    margin-bottom: 0.9rem;
+}
+
+.checkapp-admin-page .checkapp-accordion-toggle {
+    width: 100%;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 1rem;
+    padding: 0.9rem 1rem 0.2rem;
+    border: 0;
+    background: transparent;
+    text-align: left;
+}
+
+.checkapp-admin-page .checkapp-accordion-summary {
+    display: inline-flex;
+    align-items: center;
+    min-height: 30px;
+    padding: 0.3rem 0.7rem;
+    border-radius: 999px;
+    background: rgba(100, 116, 139, 0.1);
+    color: var(--ca-text-muted);
+    font-size: 0.78rem;
+    font-weight: 800;
+}
+
+.checkapp-admin-page .checkapp-accordion-body {
+    display: none;
+}
+
+.checkapp-admin-page .checkapp-accordion.is-open .checkapp-accordion-body {
+    display: block;
+}
+
+.checkapp-admin-page .checkapp-accordion-inner {
+    padding: 0 1rem 0.85rem;
+}
+
+.checkapp-admin-page .checkapp-filter-grid,
+.checkapp-admin-page .ca-admin-form-grid {
+    display: grid;
+    grid-template-columns: repeat(4, minmax(0, 1fr));
+    gap: 0.65rem 0.85rem;
+}
+
+.checkapp-admin-page .checkapp-field {
+    display: grid;
+    gap: 0.25rem;
+    min-width: 0;
+}
+
+.checkapp-admin-page .checkapp-field span {
+    color: var(--ca-text-secondary);
+    font-size: 0.82rem;
+    font-weight: 700;
+}
+
+.checkapp-admin-page .checkapp-field input,
+.checkapp-admin-page .checkapp-field textarea,
+.checkapp-admin-page .checkapp-field select,
+.checkapp-admin-page .form-select {
+    width: 100%;
+    min-height: 2.4rem;
+    border: 1px solid rgba(15, 23, 42, 0.18);
+    border-radius: 0.85rem;
+    background: #fff;
+    color: var(--ca-text);
+    font-size: 0.95rem;
+}
+
+.checkapp-admin-page .checkapp-field textarea {
+    min-height: 7rem;
+    resize: vertical;
+}
+
+.checkapp-admin-page .ca-field-span-2 {
+    grid-column: span 2;
+}
+
+.checkapp-admin-page .ca-field-span-4 {
+    grid-column: 1 / -1;
+}
+
+.checkapp-admin-page .checkapp-grid-toolbar {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 0.75rem;
+    margin-bottom: 0.75rem;
+}
+
+.checkapp-admin-page .checkapp-grid-search {
+    display: flex;
+    align-items: center;
+    gap: 0.55rem;
+    width: min(420px, 100%);
+    min-height: 40px;
+    padding: 0 0.8rem;
+    border: 1px solid rgba(15, 23, 42, 0.18);
+    border-radius: 0.9rem;
+    background: #fff;
+}
+
+.checkapp-admin-page .checkapp-grid-search input {
+    width: 100%;
+    border: 0;
+    outline: 0;
+    background: transparent;
+}
+
+.checkapp-admin-page .checkapp-grid-scroll {
+    overflow-x: auto;
+}
+
+.checkapp-admin-page .checkapp-grid-table {
+    width: 100% !important;
+    min-width: 760px;
+}
+
+.checkapp-admin-page .checkapp-grid-table th {
+    color: var(--ca-text-muted);
+    font-size: 0.78rem;
+    font-weight: 800;
+    text-transform: uppercase;
+}
+
+.checkapp-admin-page .checkapp-grid-footer {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 0.75rem;
+    margin-top: 0.8rem;
+    color: var(--ca-text-muted);
+    font-weight: 700;
+}
+
+.checkapp-admin-page .checkapp-grid-page-size,
+.checkapp-admin-page .checkapp-grid-page-nav {
+    display: flex;
+    align-items: center;
+    gap: 0.4rem;
+}
+
+.checkapp-admin-page .checkapp-grid-page-chip,
+.checkapp-admin-page .checkapp-grid-nav-btn {
+    min-width: 34px;
+    min-height: 34px;
+    border: 1px solid var(--ca-border);
+    border-radius: 0.75rem;
+    background: #fff;
+    color: var(--ca-text-secondary);
+    font-weight: 800;
+}
+
+.checkapp-admin-page .checkapp-grid-page-chip.is-active {
+    border-color: var(--ca-primary);
+    color: #dc2626;
+}
+
+.checkapp-admin-page .checkapp-grid-columns {
+    position: relative;
+}
+
+.checkapp-admin-page .checkapp-grid-columns-panel {
+    position: absolute;
+    top: calc(100% + 0.45rem);
+    right: 0;
+    z-index: 20;
+    display: none;
+    min-width: 230px;
+    padding: 0.8rem;
+    border: 1px solid var(--ca-border);
+    border-radius: 0.9rem;
+    background: #fff;
+    box-shadow: 0 18px 36px rgba(15, 23, 42, 0.16);
+}
+
+.checkapp-admin-page .checkapp-grid-columns-panel.is-open {
+    display: grid;
+    gap: 0.55rem;
+}
+
+.checkapp-admin-page .checkapp-grid-columns-header,
+.checkapp-admin-page .checkapp-grid-columns-panel label {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 0.5rem;
+}
+
+.checkapp-admin-page .ca-chip,
+.checkapp-admin-page .checkapp-badge {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    min-height: 28px;
+    padding: 0.25rem 0.65rem;
+    border-radius: 999px;
+    font-weight: 800;
+}
+
+.checkapp-admin-page .ca-chip--secondary {
+    background: rgba(100, 116, 139, 0.1);
+    color: var(--ca-text-muted);
+}
+
+.checkapp-admin-page .ca-admin-actions {
+    display: flex;
+    gap: 0.35rem;
+}
+
+.checkapp-admin-page .ca-admin-icon-btn {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    width: 34px;
+    height: 34px;
+    border: 1px solid rgba(220, 38, 38, 0.25);
+    border-radius: 0.75rem;
+    background: rgba(255, 67, 54, 0.08);
+    color: #dc2626;
+}
+
+.checkapp-admin-page .checkapp-modal .modal-content,
+.modal.checkapp-modal .modal-content {
+    border: 1px solid var(--ca-border, rgba(15, 23, 42, 0.14));
+    border-radius: 1rem;
+    overflow: hidden;
+    box-shadow: 0 24px 48px rgba(15, 23, 42, 0.22);
+}
+
+.checkapp-admin-page .modal-header,
+.modal.checkapp-modal .modal-header {
+    align-items: flex-start;
+    border-bottom: 1px solid var(--ca-border, rgba(15, 23, 42, 0.14));
+}
+
+.checkapp-admin-page .modal-title,
+.modal.checkapp-modal .modal-title {
+    color: var(--ca-text, #0f172a);
+    font-weight: 800;
+}
+
+.checkapp-admin-page .modal-footer,
+.modal.checkapp-modal .modal-footer {
+    gap: 0.5rem;
+    border-top: 1px solid var(--ca-border, rgba(15, 23, 42, 0.14));
+}
+
+.checkapp-admin-page .ca-grid-state {
+    display: none;
+    margin-top: 0.75rem;
+    padding: 0.85rem;
+    border-radius: 0.9rem;
+    background: rgba(100, 116, 139, 0.1);
+    color: var(--ca-text-secondary);
+}
+
+.checkapp-admin-page .ca-grid-state.is-visible {
+    display: grid;
+    gap: 0.25rem;
+}
+
+.checkapp-admin-page .ca-grid-cards {
+    display: none;
+}
+
+@media (max-width: 991.98px) {
+    .checkapp-admin-page .checkapp-hero,
+    .checkapp-admin-page .checkapp-panel-head,
+    .checkapp-admin-page .checkapp-grid-toolbar,
+    .checkapp-admin-page .checkapp-grid-footer {
+        align-items: stretch;
+        flex-direction: column;
+    }
+
+    .checkapp-admin-page .checkapp-hero-actions,
+    .checkapp-admin-page .checkapp-grid-actions,
+    .checkapp-admin-page .checkapp-filter-actions {
+        justify-content: flex-start;
+    }
+
+    .checkapp-admin-page .checkapp-filter-grid,
+    .checkapp-admin-page .ca-admin-form-grid {
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+    }
+
+    .checkapp-admin-page .ca-field-span-4 {
+        grid-column: 1 / -1;
+    }
+}
+
+@media (max-width: 640px) {
+    .checkapp-admin-page .checkapp-hero h1 {
+        font-size: 1.35rem;
+    }
+
+    .checkapp-admin-page .checkapp-filter-grid,
+    .checkapp-admin-page .ca-admin-form-grid {
+        grid-template-columns: 1fr;
+    }
+
+    .checkapp-admin-page .ca-field-span-2,
+    .checkapp-admin-page .ca-field-span-4 {
+        grid-column: auto;
+    }
+
+    .checkapp-admin-page .checkapp-btn {
+        width: 100%;
+    }
+}

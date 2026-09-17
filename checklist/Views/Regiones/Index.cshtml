@@ -1,125 +1,164 @@
-﻿@{
-    ViewBag.Title = "Index";
+@{
+    ViewBag.Title = "Regiones";
     Layout = "~/Views/Shared/_Layout.cshtml";
 }
 
-<style>
-    .image-input-placeholder {
-        background-image: url('svg/avatars/blank.svg');
-    }
-
-    [data-bs-theme="dark"] .image-input-placeholder {
-        background-image: url('svg/avatars/blank-dark.svg');
-    }
-</style>
-
-<div class="card mb-5 mb-xxl-8">
-    <!--begin::Header-->
-    <div class="card-header border-0 pt-5">
-        <!--begin::Title-->
-        <h3 class="card-title align-items-start flex-column">
-            <span class="card-label fw-bold fs-3 mb-1">Regiones</span>
-            <span class="text-muted fw-semibold fs-7">ABC Regiones</span>
-        </h3>
-        <!--end::Title-->
-        <!--begin::Toolbar-->
-        <div class="card-toolbar">
-            <a id="btNuevo" href="javascript:;" class="btn btn-primary btn-block font-weight-bolder" data-toggle="modal"
-               data-target="#modalAgregar">
-                <span class="svg-icon svg-icon-md">
-                    <!--begin::Svg Icon | path:assets/media/svg/icons/Design/Flatten.svg-->
-                    <svg xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" width="24px"
-                         height="24px" viewBox="0 0 24 24" version="1.1">
-                        <g stroke="none" stroke-width="1" fill="none" fill-rule="evenodd">
-                            <rect x="0" y="0" width="24" height="24" />
-                            <circle fill="#000000" cx="9" cy="15" r="6" />
-                            <path d="M8.8012943,7.00241953 C9.83837775,5.20768121 11.7781543,4 14,4 C17.3137085,4 20,6.6862915 20,10 C20,12.2218457 18.7923188,14.1616223 16.9975805,15.1987057 C16.9991904,15.1326658 17,15.0664274 17,15 C17,10.581722 13.418278,7 9,7 C8.93357256,7 8.86733422,7.00080962 8.8012943,7.00241953 Z"
-                                  fill="#000000" opacity="0.3" />
-                        </g>
-                    </svg>
-                    <!--end::Svg Icon-->
-                </span>Nueva Región
-            </a>
-        </div>
-        <!--end::Toolbar-->
-    </div>
-    <!--end::Header-->
-    <!--begin::Body-->
-    <div class="card-body">
-        <div class="form-group row mt-3">
-            <div class="col-md-12" style="overflow-x:auto;">
-                <table class="table table-separate table-head-custom table-checkable display nowrap" id="grData">
-                    <thead>
-                        <tr>
-                            <th></th>
-                            <th>Región</th>
-                            <th>Notas</th>
-                        </tr>
-                    </thead>
-                    <tbody></tbody>
-                </table>
+<div class="checkapp-admin-page checkapp-page regiones-page">
+    <div class="container-fluid checkapp-shell">
+        <section class="checkapp-hero">
+            <div>
+                <p class="checkapp-kicker">CheckApp Pro</p>
+                <h1>Regiones</h1>
+                <p>Administra las regiones operativas disponibles para sucursales y reportes.</p>
             </div>
-        </div>
-    </div>
-    <!--end::Body-->
-    <div class="card-footer">
-        <div class="row">
-            <div class="col-lg-12">
-                <a href="/Home/Index" class="btn btn-light-danger btn-block font-weight-bolder">
-                    <span class="svg-icon svg-icon-primary svg-icon-2x">
-                        <i class="fa fa-ban"></i>
-                    </span>&nbsp;&nbsp;Regresar
-                </a>
+            <div class="checkapp-hero-actions">
+                <button id="btNuevo" type="button" class="checkapp-btn checkapp-btn-primary">
+                    <i class="fa fa-plus"></i>
+                    <span>Nuevo</span>
+                </button>
             </div>
-        </div>
+        </section>
+
+        <section id="accordionFiltrosRegiones" class="checkapp-panel checkapp-accordion is-open">
+            <button type="button" class="checkapp-accordion-toggle" aria-expanded="true" aria-controls="accordionFiltrosRegionesBody">
+                <div>
+                    <span class="checkapp-panel-eyebrow">Filtros</span>
+                    <h3>Encuentra regiones por nombre o notas.</h3>
+                </div>
+                <span class="checkapp-accordion-summary">Sin filtros activos</span>
+            </button>
+            <div class="checkapp-accordion-body" id="accordionFiltrosRegionesBody">
+                <div class="checkapp-accordion-inner">
+                    <div class="checkapp-filter-grid">
+                        <label class="checkapp-field ca-field-span-2">
+                            <span>Búsqueda general</span>
+                            <input id="txFiltroRegionesBusqueda" type="text" placeholder="Región o notas" />
+                        </label>
+                    </div>
+                    <div class="checkapp-filter-actions mt-4">
+                        <button id="btBuscarRegiones" type="button" class="checkapp-btn checkapp-btn-secondary">
+                            <i class="fa fa-search"></i>
+                            <span>Buscar</span>
+                        </button>
+                        <button id="btLimpiarRegiones" type="button" class="checkapp-btn checkapp-btn-ghost">
+                            <i class="fa fa-eraser"></i>
+                            <span>Limpiar</span>
+                        </button>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <section class="checkapp-panel">
+            <div class="checkapp-panel-head">
+                <div>
+                    <span class="checkapp-panel-eyebrow">Catálogo</span>
+                    <h2>Listado de regiones</h2>
+                    <p class="checkapp-panel-copy">Consulta, filtra y administra cada región desde una sola pantalla.</p>
+                </div>
+                <div class="checkapp-grid-actions">
+                    <span id="txRegionesVisibleCount" class="ca-chip ca-chip--secondary">0 visibles</span>
+                    <div class="checkapp-grid-columns">
+                        <button id="btColumnasRegiones" type="button" class="checkapp-btn checkapp-btn-ghost">
+                            <i class="fa fa-columns"></i>
+                            <span>Columnas</span>
+                        </button>
+                        <div id="panelColumnasRegiones" class="checkapp-grid-columns-panel"></div>
+                    </div>
+                    <button id="btExportarRegiones" type="button" class="checkapp-btn checkapp-btn-excel">
+                        <i class="fa fa-file-excel-o"></i>
+                        <span>Exportar Excel</span>
+                    </button>
+                </div>
+            </div>
+
+            <div id="gridRegionesHost">
+                <div class="checkapp-grid-toolbar">
+                    <label class="checkapp-grid-search" for="txBusquedaGridRegiones">
+                        <i class="fa fa-search"></i>
+                        <input id="txBusquedaGridRegiones" type="text" placeholder="Busca dentro del resultado filtrado" />
+                    </label>
+                    <span id="txGridRegionesCount" class="ca-grid-count">0 registros</span>
+                </div>
+                <div class="checkapp-grid-scroll">
+                    <table id="grData" class="table table-row-bordered align-middle checkapp-grid-table">
+                        <thead>
+                            <tr>
+                                <th>Acciones</th>
+                                <th>Región</th>
+                                <th>Notas</th>
+                            </tr>
+                        </thead>
+                        <tbody></tbody>
+                    </table>
+                </div>
+                <div class="checkapp-grid-footer">
+                    <span id="txGridRegionesRange" class="checkapp-grid-footer-range">Sin resultados</span>
+                    <div id="txGridRegionesPageSize" class="checkapp-grid-page-size">
+                        <span class="checkapp-grid-page-size-label">Filas:</span>
+                        <button type="button" class="checkapp-grid-page-chip is-active" data-page-size="25" aria-pressed="true">25</button>
+                        <button type="button" class="checkapp-grid-page-chip" data-page-size="50" aria-pressed="false">50</button>
+                        <button type="button" class="checkapp-grid-page-chip" data-page-size="100" aria-pressed="false">100</button>
+                    </div>
+                    <div class="checkapp-grid-page-nav">
+                        <span id="txGridRegionesPageIndicator" class="checkapp-grid-footer-page">Página 1 de 1</span>
+                        <button id="btGridRegionesPrev" type="button" class="checkapp-grid-nav-btn" aria-label="Página anterior">‹</button>
+                        <button id="btGridRegionesNext" type="button" class="checkapp-grid-nav-btn" aria-label="Página siguiente">›</button>
+                    </div>
+                </div>
+            </div>
+        </section>
     </div>
 </div>
-<!-- -->
-<div class="modal fade" tabindex="-1" id="modalNuevo">
+
+<div class="modal fade checkapp-modal" tabindex="-1" id="modalNuevo">
     <div class="modal-dialog modal-lg">
         <div class="modal-content">
-            <div class="modal-header">
-                <h3 id="modalTitle" class="modal-title">Nueva Región</h3>
-                <!--begin::Close-->
-                <div class="btn btn-icon btn-sm btn-active-light-primary ms-2" data-bs-dismiss="modal" aria-label="Close">
-                    <i class="ki-duotone ki-cross fs-1"><span class="path1"></span><span class="path2"></span></i>
+            <form id="frmZona" novalidate="novalidate">
+                <div class="modal-header">
+                    <div>
+                        <p class="checkapp-kicker" id="txRegionesModalKicker">Registro</p>
+                        <h3 id="modalTitle" class="modal-title">Nueva región</h3>
+                    </div>
+                    <button type="button" class="btn btn-icon btn-sm btn-active-light-primary" data-bs-dismiss="modal" aria-label="Cerrar">
+                        <i class="ki-duotone ki-cross fs-1"><span class="path1"></span><span class="path2"></span></i>
+                    </button>
                 </div>
-                <!--end::Close-->
-            </div>
-            <form class="form w-100" novalidate="novalidate" id="frmZona">
                 <div class="modal-body">
-                    <div class="form-group row">
-                        <div class="col-12">
-                            <div class="form-group row">
-                                <div class="col-lg-12 form-floating fv-row">
-                                    <input id="txNombre" name="txNombre" class="form-control form-control-lg form-control-solid" type="text" maxlength="200" placeholder="Región" />
-                                    <label class="ml-1" for="txNombre">Región<span class="text-danger">*</span></label>
-                                </div>
-                            </div>
-                            <div class="form-group row mt-3">
-                                <div class="col-lg-12 form-floating">
-                                    <textarea id="txNotas" class="form-control form-control-solid" placeholder="Notas" style="height: 120px"></textarea>
-                                    <label for="txNotas">Notas</label>
-                                </div>
-                            </div>
-                        </div>
+                    <div class="ca-admin-form-grid">
+                        <label class="checkapp-field ca-field-span-4">
+                            <span>Región *</span>
+                            <input id="txNombre" name="txNombre" maxlength="200" type="text" placeholder="Nombre de la región" />
+                        </label>
+                        <label class="checkapp-field ca-field-span-4">
+                            <span>Notas</span>
+                            <textarea id="txNotas" placeholder="Notas internas"></textarea>
+                        </label>
                     </div>
                 </div>
                 <div class="modal-footer">
-                    <a id="btGuardar" href="javascript:;" class="btn btn-primary btn-block font-weight-bolder">
-                        <span class="svg-icon svg-icon-primary svg-icon-2x">
-                            <i class="fa fa-save"></i>
-                        </span>&nbsp;&nbsp;Guardar
-                    </a>
-                    <a href="javascript:;" class="btn btn-light-danger btn-block font-weight-bolder" data-bs-dismiss="modal">
-                        <span class="svg-icon svg-icon-primary svg-icon-2x">
-                            <i class="fa fa-fast-ban"></i>
-                        </span>&nbsp;&nbsp;Cancelar
-                    </a>
+                    <button type="button" class="checkapp-btn checkapp-btn-ghost" data-bs-dismiss="modal">
+                        <i class="fa fa-ban"></i>
+                        <span>Cancelar</span>
+                    </button>
+                    <button id="btGuardar" type="button" class="checkapp-btn checkapp-btn-primary">
+                        <i class="fa fa-save"></i>
+                        <span>Guardar</span>
+                    </button>
                 </div>
             </form>
         </div>
     </div>
 </div>
+
 <input type="hidden" id="valorId" name="valorId" value="" />
-<script src="/js/regiones/regiones.js"></script>
+
+@section Scripts {
+    <link href="~/css/ProductosServicios/ProductosServicios.css" rel="stylesheet" asp-append-version="true" />
+    <link href="~/css/checkapp-admin-catalogs.css" rel="stylesheet" asp-append-version="true" />
+    <script>var XLSX = window.XLSX || {}; window.XLSX = XLSX;</script>
+    <script src="~/js/vendor/xlsx.full.min.js"></script>
+    <script src="~/js/checkapp-ui.js"></script>
+    <script src="~/js/checkapp-admin-catalogs.js" asp-append-version="true"></script>
+    <script src="~/js/Regiones/regiones.js" asp-append-version="true"></script>
+}

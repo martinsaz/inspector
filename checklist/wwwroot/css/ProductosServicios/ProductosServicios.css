@@ -1220,24 +1220,38 @@
     overflow-x: hidden;
 }
 
-.ps-form-field--description .tox-tinymce {
+.ps-form-field--description .tox-tinymce,
+.ps-catalog-field--description .tox-tinymce,
+#modalColeccionProductoServicio .tox-tinymce {
     border-radius: 1rem !important;
     border-color: rgba(15, 23, 42, 0.12) !important;
 }
 
-.ps-form-field--description .tox-tinymce:not(.tox-fullscreen) {
+.ps-form-field--description .tox-tinymce:not(.tox-fullscreen),
+.ps-catalog-field--description .tox-tinymce:not(.tox-fullscreen),
+#modalColeccionProductoServicio .tox-tinymce:not(.tox-fullscreen) {
     min-height: 128px !important;
 }
 
 .ps-form-field--description .tox-editor-header,
 .ps-form-field--description .tox-toolbar-overlord,
 .ps-form-field--description .tox-edit-area,
-.ps-form-field--description .tox-edit-area__iframe {
+.ps-form-field--description .tox-edit-area__iframe,
+.ps-catalog-field--description .tox-editor-header,
+.ps-catalog-field--description .tox-toolbar-overlord,
+.ps-catalog-field--description .tox-edit-area,
+.ps-catalog-field--description .tox-edit-area__iframe,
+#modalColeccionProductoServicio .tox-editor-header,
+#modalColeccionProductoServicio .tox-toolbar-overlord,
+#modalColeccionProductoServicio .tox-edit-area,
+#modalColeccionProductoServicio .tox-edit-area__iframe {
     min-height: 0;
 }
 
 /* The statusbar only exposed resize chrome and left unused editor space. */
-.ps-form-field--description .tox-statusbar {
+.ps-form-field--description .tox-statusbar,
+.ps-catalog-field--description .tox-statusbar,
+#modalColeccionProductoServicio .tox-statusbar {
     display: none !important;
 }
 

@@ -51,12 +51,12 @@
                     idEmpresa: resolveEmpresaId(),
                     codigo: ($("#txCodigoCatalogo").val() || "").trim(),
                     nombre: ($("#txNombreCatalogo").val() || "").trim(),
-                    descripcion: ($("#txDescripcionCatalogo").val() || "").trim(),
+                    descripcion: modalBridge.getDescriptionValue(),
                     aplicaA: Number($("#cbAplicaACatalogo").val() || 0)
                 };
             },
             fillForm: function (data) {
-                $("#txDescripcionCatalogo").val(data.descripcion || "");
+                modalBridge.setDescriptionValue(data.descripcion || "");
                 $("#cbAplicaACatalogo").val(String(data.aplicaA == null ? 0 : data.aplicaA));
             },
             validate: function () {
@@ -99,11 +99,11 @@
                     idEmpresa: resolveEmpresaId(),
                     codigo: ($("#txCodigoCatalogo").val() || "").trim(),
                     nombre: ($("#txNombreCatalogo").val() || "").trim(),
-                    descripcion: ($("#txDescripcionCatalogo").val() || "").trim()
+                    descripcion: modalBridge.getDescriptionValue()
                 };
             },
             fillForm: function (data) {
-                $("#txDescripcionCatalogo").val(data.descripcion || "");
+                modalBridge.setDescriptionValue(data.descripcion || "");
             },
             validate: function () {
                 return validateBasic(50, 150, true, false);
@@ -483,7 +483,7 @@
     function validateBasic(codeMax, nameMax, allowDescription, requiresAbbreviation) {
         return modalBridge.validate({
             nameMax: nameMax,
-            descriptionMax: allowDescription ? 500 : 0,
+            descriptionMax: allowDescription ? 20000 : 0,
             abreviaturaMax: requiresAbbreviation ? 20 : 0,
             showDescription: !!allowDescription,
             showAplicaA: $("#fieldAplicaACatalogo").is(":visible"),

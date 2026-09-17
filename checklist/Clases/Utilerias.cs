@@ -25,68 +25,48 @@ namespace checklist.Clases
             request.Method = Method.Get;
             RestResponse response = await client.ExecuteAsync(request);
             List<respRoles> roles = JsonConvert.DeserializeObject<List<respRoles>>(response.Content);
-            List<DataPair> result = new List<DataPair>();
             Opciones resultado = new Opciones();
-            bool salir = false;
             foreach (respRoles role in roles)
             {
                 List<Opciones> lstPerm = JsonConvert.DeserializeObject<List<Opciones>>(role.Permisos);
-                foreach (Opciones permiso in lstPerm)
+                Opciones? opcion = FindOpcion(lstPerm, cual);
+                if (opcion != null)
                 {
-                    if (permiso.Opcion.StartsWith(cual.Substring(0, 3)))
-                    {
-                        foreach (var hijo in permiso.Hijos)
-                        {
-                            if (hijo.Opcion.StartsWith(cual.Substring(0, 5)))
-                            {
-                                if (hijo.Hijos.Count > 0)
-                                {
-                                    if (cual.Length == 8)//CAMBIE DE 7 A 8 POR QUE NO ENTRABA LA OPCION
-                                    {
-                                        foreach (var nieto in hijo.Hijos)
-                                        {
-                                            if (nieto.Opcion == cual)
-                                            {
-                                                resultado = nieto;
-                                                salir = true;
-                                            }
-                                            if (salir) break;
-                                        }
-                                    }
-                                    else
-                                    {
-                                        foreach (var nieto in hijo.Hijos)
-                                        {
-                                            foreach (var bisnieto in nieto.Hijos)
-                                            {
-                                                if (bisnieto.Opcion == cual)
-                                                {
-                                                    resultado = bisnieto;
-                                                    salir = true;
-                                                }
-                                            }
-                                        }
-                                    }
-                                }
-                                else
-                                {
-                                    if (hijo.Opcion == cual)
-                                    {
-                                        resultado = hijo;
-                                        salir = true;
-                                    }
-                                }
-                                if (salir) break;
-                            }
-                        }
-                    }
-                    if (salir) break;
+                    resultado = opcion;
+                    break;
                 }
-                if (salir) break;
+
+                if (cual == "04003100")
+                {
+                    Opciones? legacySucursales = FindOpcion(lstPerm, "04003000");
+                    if (legacySucursales != null && !legacySucursales.Hijos.Any())
+                    {
+                        resultado = legacySucursales;
+                        break;
+                    }
+                }
             }
             return resultado;
 
 
+        }
+        private static Opciones? FindOpcion(IEnumerable<Opciones> opciones, string cual)
+        {
+            foreach (Opciones opcion in opciones)
+            {
+                if (opcion.Opcion == cual)
+                {
+                    return opcion;
+                }
+
+                Opciones? hijo = FindOpcion(opcion.Hijos, cual);
+                if (hijo != null)
+                {
+                    return hijo;
+                }
+            }
+
+            return null;
         }
         public static DateTime FechaActual(String zona = "")
         {

@@ -5,6 +5,20 @@ Estado: IMPLEMENTADO
 Scope: `ProductosServicios`  
 ContractVersion: `1`
 
+## Addendum 2026-09-16 — V2 vigente sin reescribir V1
+
+V1 permanece histórico e inmutable con hash `4d51ce43a30ec3d583ce4252c8324f1053a52fdd89a7d80b3e01a6e8b780fb06`.
+
+Por decisión PO se agregó contrato V2 para ampliar exclusivamente:
+
+- `dbo.ProductosServiciosCategorias.Descripcion`
+- `dbo.ProductosServiciosMarcas.Descripcion`
+- `dbo.ProductosServiciosColecciones.Descripcion`
+
+de `NVARCHAR(500)` a `NVARCHAR(MAX)`.
+
+Hash V2 vigente: `1b5c75e4b44fcfcb3af4219660095ddb2a99419db8da300aff6e4a38c731a705`. Detalle y evidencia: `TICKET24_SCHEMA_V2_DESCRIPCIONES_HTML_NVARCHAR_MAX_20260916.md`.
+
 ## Dictamen
 
 Se definió el contrato canónico versionado del schema esperado de Productos y Servicios como fuente de verdad técnica para fases posteriores. El contrato no adopta bases históricas, no escribe `CurrentVersion`, no escribe `ManifestHash`, no genera eventos `ADOPTED`, no crea historial ficticio y no registra attempts.

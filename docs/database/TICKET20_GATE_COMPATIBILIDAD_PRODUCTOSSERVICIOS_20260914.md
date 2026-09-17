@@ -5,6 +5,15 @@ Scope: `ProductosServicios`
 Base QA certificada: `CheckAppErp`  
 Hash V1 vigente: `4d51ce43a30ec3d583ce4252c8324f1053a52fdd89a7d80b3e01a6e8b780fb06`
 
+## Addendum 2026-09-16 — V2 vigente
+
+La versión soportada vigente de ProductosServicios es V2:
+
+- `LatestSupportedVersion=2`.
+- Hash V2: `1b5c75e4b44fcfcb3af4219660095ddb2a99419db8da300aff6e4a38c731a705`.
+- Bases con `CurrentVersion=1` quedan `SCHEMA_OUTDATED` hasta ejecutar la migración T17 aprobada.
+- Base 163 después de migración: `CurrentVersion=2`, T18 `SchemaOk`, `DriftCount=0`, T20 `COMPATIBLE`.
+
 ## Alcance implementado
 
 Se implementó un gate server-side para permitir CRUD de Productos y Servicios únicamente cuando el tenant resuelve a una base SQL compatible para `DatabaseIdentity + Scope`. El frontend MVC no decide compatibilidad: conserva su rol de proxy/visualización y recibe el estado controlado desde API.
