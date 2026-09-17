@@ -452,6 +452,7 @@ namespace checklist.Controllers
                                         sb.Append(@"<span class=""menu-link""> <span class=""menu-icon""> <i class=""ki-duotone ki-element-plus fs-2""> <span class=""path1""></span> <span class=""path2""></span> <span class=""path3""></span> <span class=""path4""></span> <span class=""path5""></span> </i> </span> <span class=""menu-title"">Ajustes</span> <span class=""menu-arrow""></span> </span>");
                                         sb.Append(@"<div class=""menu-sub menu-sub-accordion"">");
                                         // Hijos
+                                        bool sucursalesMenuAppended = false;
                                         foreach (var hijo in item.Hijos)
                                         {
                                             switch (hijo.Opcion)
@@ -502,54 +503,19 @@ namespace checklist.Controllers
                                                     }
                                                     break;
                                                 case "04003000":
-                                                    if (hijo.Permisos.Acceso == 1)
+                                                    string sucursalesMenu = AjustesSucursalesMenuBuilder.Build(item.Hijos);
+                                                    if (!string.IsNullOrEmpty(sucursalesMenu))
                                                     {
-                                                        StringBuilder sucursalesMenu = new StringBuilder();
-                                                        if (hijo.Hijos.Any())
-                                                        {
-                                                            foreach (var nieto in hijo.Hijos)
-                                                            {
-                                                                switch (nieto.Opcion)
-                                                                {
-                                                                    case "04003100":
-                                                                        if (nieto.Permisos.Acceso == 1)
-                                                                        {
-                                                                            sucursalesMenu.Append(@"<div id=""04003100"" class=""menu-item""> <a class=""menu-link"" href=""/Sucursales/SucursalesABC""> <span class=""menu-bullet""> <span class=""bullet bullet-dot""></span> </span> <span class=""menu-title"">ABC Sucursales</span> </a> </div>");
-                                                                        }
-                                                                        break;
-                                                                    case "04004000":
-                                                                        if (nieto.Permisos.Acceso == 1)
-                                                                        {
-                                                                            sucursalesMenu.Append(@"<div id=""04004000"" class=""menu-item""> <a class=""menu-link"" href=""/RazonesSociales/Index""> <span class=""menu-bullet""> <span class=""bullet bullet-dot""></span> </span> <span class=""menu-title"">Razones Sociales</span> </a> </div>");
-                                                                        }
-                                                                        break;
-                                                                    case "04005000":
-                                                                        if (nieto.Permisos.Acceso == 1)
-                                                                        {
-                                                                            sucursalesMenu.Append(@"<div id=""04005000"" class=""menu-item""> <a class=""menu-link"" href=""/Regiones/Index""> <span class=""menu-bullet""> <span class=""bullet bullet-dot""></span> </span> <span class=""menu-title"">Regiones</span> </a> </div>");
-                                                                        }
-                                                                        break;
-                                                                }
-                                                            }
-                                                        }
-                                                        else
-                                                        {
-                                                            sucursalesMenu.Append(@"<div id=""04003100"" class=""menu-item""> <a class=""menu-link"" href=""/Sucursales/SucursalesABC""> <span class=""menu-bullet""> <span class=""bullet bullet-dot""></span> </span> <span class=""menu-title"">ABC Sucursales</span> </a> </div>");
-                                                        }
-
-                                                        if (sucursalesMenu.Length > 0)
-                                                        {
-                                                            sb.Append(@"<div id=""04003000"" data-kt-menu-trigger=""click"" class=""menu-item menu-accordion""> <span class=""menu-link""> <span class=""menu-bullet""> <span class=""bullet bullet-dot""></span> </span> <span class=""menu-title"">Sucursales</span> <span class=""menu-arrow""></span> </span>");
-                                                            sb.Append(@"<div class=""menu-sub menu-sub-accordion"">");
-                                                            sb.Append(sucursalesMenu.ToString());
-                                                            sb.Append(@"</div>");
-                                                            sb.Append(@"</div>");
-                                                        }
-
+                                                        sb.Append(sucursalesMenu);
+                                                        sucursalesMenuAppended = true;
                                                     }
                                                     break;
 
                                             }
+                                        }
+                                        if (!sucursalesMenuAppended)
+                                        {
+                                            sb.Append(AjustesSucursalesMenuBuilder.Build(item.Hijos));
                                         }
                                         if (item.Hijos.Any(hijo => hijo.Opcion == "04001000" && hijo.Permisos.Acceso == 1))
                                         {

@@ -35,16 +35,6 @@ namespace checklist.Clases
                     resultado = opcion;
                     break;
                 }
-
-                if (cual == "04003100")
-                {
-                    Opciones? legacySucursales = FindOpcion(lstPerm, "04003000");
-                    if (legacySucursales != null && !legacySucursales.Hijos.Any())
-                    {
-                        resultado = legacySucursales;
-                        break;
-                    }
-                }
             }
             return resultado;
 
