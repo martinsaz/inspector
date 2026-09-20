@@ -34,6 +34,9 @@ namespace checklist.Controllers.Regiones
 
         public async Task<ActionResult> Inicializa(string idEmpresa, string cadena, string empresa)
         {
+            idEmpresa = this.ResolveCheckAppIdEmpresa(idEmpresa);
+            empresa = this.ResolveCheckAppEmpresa(empresa);
+            cadena = this.ResolveCheckAppCadena(cadena);
             string idRol;
     
             idRol = Utilerias.IdRol;
@@ -49,6 +52,9 @@ namespace checklist.Controllers.Regiones
         }
         public async Task<ActionResult> Guardar(string llave, string nombre, string notas, string idEmpresa, string cadena, string empresa)
         {
+            idEmpresa = this.ResolveCheckAppIdEmpresa(idEmpresa);
+            empresa = this.ResolveCheckAppEmpresa(empresa);
+            cadena = this.ResolveCheckAppCadena(cadena);
             string idRol = Utilerias.IdRol;
             Opciones opc = await Utilerias.GetOpcion("04005000", idEmpresa, idRol, empresa, cadena);
             if (opc.Permisos.Escritura != 1)
@@ -112,9 +118,12 @@ namespace checklist.Controllers.Regiones
         #endregion
 
         #region Get
-        public async Task<ActionResult> GetData(string idEmpresa, string cadena, string empresa)
+        public async Task<ActionResult> GetData(string idEmpresa, string cadena, string empresa, string estatus = "")
         {
-            string url = string.Format("{0}ObtenerZonas?idEmpresa={1}", Utilerias.UrlBase, idEmpresa);
+            idEmpresa = this.ResolveCheckAppIdEmpresa(idEmpresa);
+            empresa = this.ResolveCheckAppEmpresa(empresa);
+            cadena = this.ResolveCheckAppCadena(cadena);
+            string url = string.Format("{0}ObtenerZonas?idEmpresa={1}&estatus={2}", Utilerias.UrlBase, idEmpresa, HttpUtility.UrlEncode(estatus ?? ""));
             string idRol = Utilerias.IdRol;
             Opciones opc = await Utilerias.GetOpcion("04005000", idEmpresa, idRol, empresa, cadena);
             if (opc.Permisos.Acceso != 1)
@@ -154,7 +163,8 @@ namespace checklist.Controllers.Regiones
                 }
 
                 sb.Append("\"" + HttpUtility.JavaScriptStringEncode(resp.Nombre) + "\",");
-                sb.Append("\"" + HttpUtility.JavaScriptStringEncode(resp.Notas) + "\"");
+                sb.Append("\"" + HttpUtility.JavaScriptStringEncode(resp.Notas) + "\",");
+                sb.Append("\"" + (!(resp.borrado ?? false)).ToString().ToLowerInvariant() + "\"");
                 sb.Append("]");
                 hasMoreRecords = true;
             }
@@ -164,8 +174,44 @@ namespace checklist.Controllers.Regiones
             return jsonResult;
         }
 
+        public async Task<ActionResult> BajaZona(string id, string idEmpresa, string cadena, string empresa)
+        {
+            return await CambiarEstatusZona(id, idEmpresa, cadena, empresa, false);
+        }
+
+        public async Task<ActionResult> ReactivarZona(string id, string idEmpresa, string cadena, string empresa)
+        {
+            return await CambiarEstatusZona(id, idEmpresa, cadena, empresa, true);
+        }
+
+        private async Task<ActionResult> CambiarEstatusZona(string id, string idEmpresa, string cadena, string empresa, bool activar)
+        {
+            idEmpresa = this.ResolveCheckAppIdEmpresa(idEmpresa);
+            empresa = this.ResolveCheckAppEmpresa(empresa);
+            cadena = this.ResolveCheckAppCadena(cadena);
+            string idRol = Utilerias.IdRol;
+            Opciones opc = await Utilerias.GetOpcion("04005000", idEmpresa, idRol, empresa, cadena);
+            if (opc.Permisos.Escritura != 1)
+            {
+                return Json(new { d = "No tienes permiso de escritura para Regiones." });
+            }
+
+            string action = activar ? "ReactivarZona" : "BajaZona";
+            string url = string.Format("{0}{1}?id={2}&empresa={3}&cadena={4}", Utilerias.UrlBase, action, id, empresa, cadena);
+            var client = new RestClient(url);
+            var request = new RestRequest();
+            request.Method = Method.Post;
+            request.AddCheckAppProxyHeaders(this, _config, idEmpresa, empresa);
+            RestResponse response = await client.ExecuteAsync(request);
+            string content = Utilerias.LimpiaCadena(response.Content);
+            return Json(new { d = string.IsNullOrWhiteSpace(content) ? "Ok" : content });
+        }
+
         public async Task<ActionResult> GetZona(string lla, string cua, string idEmpresa, string cadena, string empresa)
         {
+            idEmpresa = this.ResolveCheckAppIdEmpresa(idEmpresa);
+            empresa = this.ResolveCheckAppEmpresa(empresa);
+            cadena = this.ResolveCheckAppCadena(cadena);
 
             string url = string.Format("{0}ObtenerZona?idEmpresa={1}&id={2}", Utilerias.UrlBase, idEmpresa, cua);
             var client = new RestClient(url);

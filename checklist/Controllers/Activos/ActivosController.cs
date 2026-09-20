@@ -1,3 +1,4 @@
+using System.Globalization;
 using System.Net;
 using System.Net.Http;
 using System.Net.Http.Headers;
@@ -22,6 +23,7 @@ namespace checklist.Controllers.Activos
         private const string ProxyUsuarioIdHeader = "X-Activos-Proxy-UsuarioId";
         private const string ProxyTimestampHeader = "X-Activos-Proxy-Timestamp";
         private const string ProxySignatureHeader = "X-Activos-Proxy-Signature";
+        private const string ProveedoresPermissionCode = "03506003";
 
         private readonly IHttpClientFactory _clientFactory;
         private static readonly JsonSerializerSettings CamelCaseJson = new JsonSerializerSettings
@@ -67,7 +69,7 @@ namespace checklist.Controllers.Activos
 
         public async Task<IActionResult> Proveedores()
         {
-            if (!await HasCatalogosAccessAsync())
+            if (!await HasProveedoresAccessAsync(requireWrite: false))
             {
                 return RedirectToAction(nameof(Index));
             }
@@ -98,7 +100,8 @@ namespace checklist.Controllers.Activos
                     editar = isSuperAdmin || await HasPermAsync("03503000", requireWrite: true),
                     baja = isSuperAdmin || await HasPermAsync("03504000", requireWrite: true),
                     exportar = isSuperAdmin || await HasPermAsync("03505000", requireWrite: true),
-                    catalogos = isSuperAdmin || await HasPermAsync("03506000", requireWrite: true)
+                    catalogos = isSuperAdmin || await HasPermAsync("03506000", requireWrite: true),
+                    proveedores = isSuperAdmin || await HasPermAsync(ProveedoresPermissionCode, requireWrite: true)
                 }
             });
         }
@@ -300,7 +303,7 @@ namespace checklist.Controllers.Activos
 
         public async Task<IActionResult> GetProveedoresActivos(string busqueda = "", string estatus = "")
         {
-            if (!await HasCatalogosAccessAsync())
+            if (!await HasProveedoresAccessAsync(requireWrite: false))
             {
                 return Content(@"{""items"":[]}", "application/json");
             }
@@ -314,7 +317,7 @@ namespace checklist.Controllers.Activos
 
         public async Task<IActionResult> GetProveedorActivo(string idProveedor)
         {
-            if (!await HasActivosAccessAsync("03506000", requireWrite: true))
+            if (!await HasProveedoresAccessAsync(requireWrite: false))
             {
                 return Json(new { d = "" });
             }
@@ -408,7 +411,7 @@ namespace checklist.Controllers.Activos
 
         public async Task<IActionResult> GuardarProveedorActivo([FromBody] JsonElement parametros)
         {
-            if (!await HasActivosAccessAsync("03506000", requireWrite: true))
+            if (!await HasProveedoresAccessAsync(requireWrite: true))
             {
                 return Json(new { d = "No tienes permiso para administrar proveedores." });
             }
@@ -421,7 +424,17 @@ namespace checklist.Controllers.Activos
                 id = ParseNullableGuid(ReadString(parametros, "id")),
                 codigo = ReadString(parametros, "codigo"),
                 nombre = ReadString(parametros, "nombre"),
-                descripcion = ReadString(parametros, "descripcion")
+                descripcion = ReadString(parametros, "descripcion"),
+                razonSocial = ReadString(parametros, "razonSocial"),
+                rfc = ReadString(parametros, "rfc"),
+                telefono = ReadString(parametros, "telefono"),
+                telefono1 = ReadString(parametros, "telefono1"),
+                email = ReadString(parametros, "email"),
+                limite = ReadDecimal(parametros, "limite"),
+                clasificacionContable = ReadBool(parametros, "clasificacionContable"),
+                cuentaContable = ReadString(parametros, "cuentaContable"),
+                contacto = ReadString(parametros, "contacto"),
+                cuentaBancaria = ReadString(parametros, "cuentaBancaria")
             };
 
             ActivoOperacionResponse? respuesta = await ExecuteJsonAsync<ActivoOperacionResponse>(HttpMethod.Post, url, payload);
@@ -488,12 +501,24 @@ namespace checklist.Controllers.Activos
 
         public async Task<IActionResult> BajaProveedorActivo([FromBody] JsonElement parametros)
         {
-            return await EjecutaCambioEstatusCatalogo(parametros, "idProveedor", "BajaProveedorActivo", "No fue posible dar de baja el proveedor.");
+            return await EjecutaCambioEstatusCatalogo(
+                parametros,
+                "idProveedor",
+                "BajaProveedorActivo",
+                "No fue posible dar de baja el proveedor.",
+                ProveedoresPermissionCode,
+                "No tienes permiso para administrar proveedores.");
         }
 
         public async Task<IActionResult> ActivarProveedorActivo([FromBody] JsonElement parametros)
         {
-            return await EjecutaCambioEstatusCatalogo(parametros, "idProveedor", "ActivarProveedorActivo", "No fue posible activar el proveedor.");
+            return await EjecutaCambioEstatusCatalogo(
+                parametros,
+                "idProveedor",
+                "ActivarProveedorActivo",
+                "No fue posible activar el proveedor.",
+                ProveedoresPermissionCode,
+                "No tienes permiso para administrar proveedores.");
         }
 
         public async Task<IActionResult> BajaEstadoOperativo([FromBody] JsonElement parametros)
@@ -531,11 +556,17 @@ namespace checklist.Controllers.Activos
             return await GetCatalogoAsync("ObtenerCatalogoSucursales", searchTerm);
         }
 
-        private async Task<IActionResult> EjecutaCambioEstatusCatalogo(JsonElement parametros, string parameterName, string actionName, string fallbackMessage)
+        private async Task<IActionResult> EjecutaCambioEstatusCatalogo(
+            JsonElement parametros,
+            string parameterName,
+            string actionName,
+            string fallbackMessage,
+            string permissionCode = "03506000",
+            string deniedMessage = "No tienes permiso para administrar catálogos de activos.")
         {
-            if (!await HasActivosAccessAsync("03506000", requireWrite: true))
+            if (!await HasActivosAccessAsync(permissionCode, requireWrite: true))
             {
-                return Json(new { d = "No tienes permiso para administrar catálogos de activos." });
+                return Json(new { d = deniedMessage });
             }
 
             string idEmpresa = ResolveIdEmpresa();
@@ -574,6 +605,14 @@ namespace checklist.Controllers.Activos
                 || await HasActivosAccessAsync("03501000", requireWrite: false);
         }
 
+        private async Task<bool> HasProveedoresAccessAsync(bool requireWrite)
+        {
+            return await IsSuperAdminSessionAsync()
+                || await HasPermAsync(ProveedoresPermissionCode, requireWrite)
+                || await HasPermAsync("03506000", requireWrite)
+                || (!requireWrite && await HasPermAsync("03501000", requireWrite: false));
+        }
+
         private async Task<bool> HasAnyActivosAccessAsync()
         {
             return await IsSuperAdminSessionAsync()
@@ -582,7 +621,8 @@ namespace checklist.Controllers.Activos
                 || await HasPermAsync("03503000", true)
                 || await HasPermAsync("03504000", true)
                 || await HasPermAsync("03505000", true)
-                || await HasPermAsync("03506000", true);
+                || await HasPermAsync("03506000", true)
+                || await HasPermAsync(ProveedoresPermissionCode, true);
         }
 
         private async Task<bool> CanOpenActivosAsync()
@@ -862,9 +902,14 @@ namespace checklist.Controllers.Activos
         private string? ResolveUsuarioId()
         {
             string? claimValue = User.FindFirstValue(ClaimTypes.NameIdentifier);
-            return Guid.TryParse(claimValue, out Guid usuarioId) && usuarioId != Guid.Empty
-                ? usuarioId.ToString()
-                : null;
+            if (!string.IsNullOrWhiteSpace(claimValue))
+            {
+                return claimValue.Trim();
+            }
+
+            return ResolveSessionValue("userUid")
+                ?? ResolveSessionValue("uid")
+                ?? ResolveSessionValue("idFirebase");
         }
 
         private void AddProxyHeaders(HttpRequestMessage request)
@@ -973,6 +1018,29 @@ namespace checklist.Controllers.Activos
             }
 
             return bool.TryParse(value.ToString(), out bool result) && result;
+        }
+
+        private static decimal ReadDecimal(JsonElement element, string propertyName)
+        {
+            if (!element.TryGetProperty(propertyName, out JsonElement value))
+            {
+                return 0m;
+            }
+
+            if (value.ValueKind == JsonValueKind.Number && value.TryGetDecimal(out decimal numeric))
+            {
+                return numeric;
+            }
+
+            string raw = value.ValueKind == JsonValueKind.String
+                ? value.GetString() ?? string.Empty
+                : value.ToString();
+
+            return decimal.TryParse(raw, NumberStyles.Number, CultureInfo.InvariantCulture, out decimal invariant)
+                ? invariant
+                : decimal.TryParse(raw, NumberStyles.Number, CultureInfo.CurrentCulture, out decimal current)
+                    ? current
+                    : 0m;
         }
 
         private static int ReadInt(JsonElement element, string propertyName)

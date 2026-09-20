@@ -34,6 +34,9 @@
             listUrl: "/RazonesSociales/GetData",
             detailUrl: "/RazonesSociales/GetRazon",
             saveUrl: "/RazonesSociales/Guardar",
+            bajaUrl: "/RazonesSociales/BajaRazon",
+            reactivarUrl: "/RazonesSociales/ReactivarRazon",
+            statusEnabled: true,
             exportSheetName: "RazonesSociales",
             exportFilePrefix: "RazonesSociales",
             createTitle: "Nueva razón social",
@@ -54,7 +57,8 @@
                 { key: "pais", title: "País" },
                 { key: "telefono", title: "Teléfono" },
                 { key: "regimenFiscal", title: "Régimen Fiscal" },
-                { key: "notas", title: "Notas" }
+                { key: "notas", title: "Notas", type: "htmlText" },
+                { key: "activo", title: "Estatus", type: "status" }
             ],
             filters: [
                 {
@@ -71,6 +75,13 @@
                     selector: "#txFiltroRazonesEstado",
                     label: "Estado",
                     keys: ["estado"]
+                },
+                {
+                    selector: "#cbFiltroRazonesEstatus",
+                    label: "Estatus",
+                    defaultValue: "activo",
+                    serverSide: true,
+                    keys: ["activo"]
                 }
             ],
             fields: [
@@ -85,10 +96,16 @@
                 { key: "pais", source: "pais", selector: "#txPais", required: true },
                 { key: "telefono", source: "telefono", selector: "#txTelefono", required: true },
                 { key: "regimenFiscal", source: "regimen1", selector: "#txRegimenFiscal", required: true },
-                { key: "notas", source: "notas", selector: "#txNotas" }
+                { key: "notas", source: "notas", selector: "#txNotas", richText: true, placeholder: "Notas internas" }
             ],
             detailParams: function (id) {
                 return { lla: id };
+            },
+            listParams: function () {
+                return { estatus: $("#cbFiltroRazonesEstatus").val() };
+            },
+            statusParams: function (id) {
+                return { id: id };
             },
             saveParams: function (id, values) {
                 return {

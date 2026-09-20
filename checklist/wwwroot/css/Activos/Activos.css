@@ -541,6 +541,98 @@
     grid-template-columns: repeat(3, minmax(0, 1fr));
 }
 
+.activos-proveedor-modal-grid {
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+    align-items: start;
+}
+
+.activos-proveedor-field-name {
+    grid-column: 1 / -1;
+}
+
+.activos-proveedor-field-description {
+    grid-column: 1 / -1;
+}
+
+.activos-proveedor-limit-classification {
+    min-width: 0;
+}
+
+.activos-proveedor-accounting-subgrid {
+    display: grid;
+    grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
+    gap: 0.75rem;
+}
+
+.activos-proveedor-subfield {
+    margin: 0;
+    min-width: 0;
+}
+
+.activos-proveedor-subfield span {
+    font-size: 0.72rem;
+}
+
+.activos-proveedor-code-readonly {
+    grid-column: 1 / -1;
+    padding: 0.85rem 1rem;
+    border: 1px solid rgba(15, 23, 42, 0.12);
+    border-radius: 0.9rem;
+    background: rgba(100, 116, 139, 0.08);
+}
+
+.activos-proveedor-code-readonly strong {
+    display: block;
+    color: var(--ca-text, #0f172a);
+    font-size: 1rem;
+    font-weight: 800;
+}
+
+#modalProveedoresActivos .tox.tox-tinymce {
+    border: 1px solid rgba(15, 23, 42, 0.18);
+    border-radius: 0.9rem;
+    overflow: hidden;
+}
+
+#modalProveedoresActivos .tox .tox-toolbar__primary,
+#modalProveedoresActivos .tox .tox-toolbar-overlord {
+    background: #fff;
+}
+
+#modalProveedoresActivos .tox .tox-edit-area__iframe {
+    background: #fff;
+}
+
+#modalProveedoresActivos .checkapp-btn {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: 0.45rem;
+    min-height: 40px;
+    padding: 0.62rem 1rem;
+    border: 1px solid rgba(15, 23, 42, 0.14);
+    border-radius: 0.9rem;
+    background: #fff;
+    color: #334155;
+    font-weight: 800;
+    line-height: 1.1;
+    white-space: nowrap;
+}
+
+#modalProveedoresActivos .checkapp-btn-primary {
+    border-color: #ff4336;
+    background: #ff4336;
+    color: #fff !important;
+}
+
+#modalProveedoresActivos .checkapp-btn-primary i {
+    color: currentColor !important;
+}
+
+#modalProveedoresActivos .checkapp-btn-ghost {
+    background: #fff;
+}
+
 .activos-quick-modal-field-code {
     grid-column: span 1;
 }

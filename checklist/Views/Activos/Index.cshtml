@@ -680,7 +680,13 @@
                                         <th>Acciones</th>
                                         <th>Código</th>
                                         <th>Nombre</th>
+                                        <th>R.F.C.</th>
+                                        <th>Teléfono</th>
+                                        <th>Teléfono 1</th>
                                         <th>Descripción</th>
+                                        <th>Email</th>
+                                        <th>Razón social</th>
+                                        <th>Límite</th>
                                         <th>Estatus</th>
                                         <th>Actualización</th>
                                     </tr>
@@ -970,9 +976,52 @@
                                 <span>Nombre *</span>
                                 <input id="txNombreProveedorActivo" maxlength="160" type="text" />
                             </label>
+                            <label class="checkapp-field">
+                                <span>Razón social</span>
+                                <input id="txRazonSocialProveedorActivo" maxlength="250" type="text" />
+                            </label>
+                            <label class="checkapp-field">
+                                <span>R.F.C.</span>
+                                <input id="txRfcProveedorActivo" maxlength="15" type="text" placeholder="XAXX010101000" />
+                            </label>
+                            <label class="checkapp-field">
+                                <span>Teléfono</span>
+                                <input id="txTelefonoProveedorActivo" maxlength="15" type="tel" />
+                            </label>
+                            <label class="checkapp-field">
+                                <span>Teléfono 1</span>
+                                <input id="txTelefono1ProveedorActivo" maxlength="15" type="tel" />
+                            </label>
+                            <label class="checkapp-field">
+                                <span>Email</span>
+                                <input id="txEmailProveedorActivo" maxlength="50" type="email" />
+                            </label>
                             <label class="checkapp-field" style="grid-column:1 / -1;">
                                 <span>Descripción</span>
-                                <textarea id="txDescripcionProveedorActivo" maxlength="400"></textarea>
+                                <textarea id="txDescripcionProveedorActivo"></textarea>
+                            </label>
+                            <label class="checkapp-field">
+                                <span>Límite</span>
+                                <input id="txLimiteProveedorActivo" min="0" step="0.01" type="number" value="0" />
+                            </label>
+                            <label class="checkapp-field">
+                                <span>Clasificación contable</span>
+                                <select id="cbClasificacionContableProveedorActivo" class="form-select">
+                                    <option value="false">Indirecto</option>
+                                    <option value="true">Directo</option>
+                                </select>
+                            </label>
+                            <label class="checkapp-field">
+                                <span>Cuenta contable</span>
+                                <input id="txCuentaContableProveedorActivo" maxlength="255" type="text" />
+                            </label>
+                            <label class="checkapp-field">
+                                <span>Contacto</span>
+                                <input id="txContactoProveedorActivo" maxlength="255" type="text" />
+                            </label>
+                            <label class="checkapp-field">
+                                <span>Cuenta bancaria</span>
+                                <input id="txCuentaBancariaProveedorActivo" maxlength="255" type="text" />
                             </label>
                         </div>
                         <div class="checkapp-status-inline" id="txInfoProveedorActivo" style="margin-top:1rem;"></div>

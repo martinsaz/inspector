@@ -1,10 +1,19 @@
 # PATRON CHECKAPP OFICIAL - PRODUCTOSSERVICIOS - 2026-09-16
 
+- 2026-09-17 #MOKA V3: el core PO de 30 controles del Patron CheckApp permanece congelado; los controles 31-36 son extension operativa separada. ProductosServicios es GOLDEN MASTER LITERAL. Descripcion/Notas libres requieren editor HTML oficial TinyMCE, persistencia `NVARCHAR(MAX)` versionada, sanitizacion server-side, iconos con contraste oficial y comparacion runtime real A-Y contra ProductosServicios. QA manual PO posterior invalida PASS tecnico contradictorio.
+- 2026-09-18 #MOKA DynamicGrid catalogos: Golden Master literal `/ProductosServicios/Categorias`. Sucursales/Razones/Regiones deben usar `CheckAppUI.createDynamicGrid`/adaptador oficial con `Estatus`, baja logica, reactivacion, filtro Estatus, Columnas, Excel, buscador, paginacion 25/50/100 y responsive. Default activos preserva conteos PO 5/1/5; `Todos` incluye baja logica. No hard delete, no UI/CSS paralelo.
+- 2026-09-18 #MOKA acciones DynamicGrid: los catalogos deben usar `.ps-catalog-actions` desde `ProductosServicios.css`. `Editar`, `Dar de baja` y `Reactivar` son botones de icono independientes con tooltip, foco/hover, separacion y contraste oficial; nunca icono gris sobre rojo/rosa/primario ni baja logica como delete fisico.
+- 2026-09-17 #MOKA reconstruccion UI/UX: para Sucursales/Razones/Regiones usar `inspector/docs/pattern/PATRON_CHECKAPP_GOLDEN_MASTER_COMPONENT_MATRIX_20260917.md`. No reintroducir `checkapp-admin-page` ni CSS que redefina hero/panel/botones/grid base; `checkapp-admin-catalogs.css` debe ser adaptador minimo sobre `checkapp-theme.css` + `ProductosServicios.css`.
+- 2026-09-17 #MOKA catalogos simples: el Golden Master especifico es `ProductosServicios -> quick-add -> Nueva categoria`. ABC Sucursales, Razones Sociales y Regiones no deben usar segunda card interna, textos `Informacion de...`, subtitulos tecnicos ni huecos artificiales; usar header -> campos -> editor HTML si aplica -> footer.
+- Proveedores V3: codigo autogenerado/no capturable; filas oficiales: 01 Nombre, 02 Descripcion HTML, 03 Razon social/RFC/Telefono, 04 Telefono 1/Email/[Limite+Clasificacion contable], 05 Cuenta contable/Contacto/Cuenta bancaria; no fila 06.
+- Scope Sucursales V2: `RazonesSociales.Notas`, `Zonas.Notas`, `SucursalesTipos.Notas`, `Sucursales.Notas` a `NVARCHAR(MAX)` solo por migracion oficial `SUC-M20260917-V1-V2-NOTAS-NVARCHAR-MAX`; preservar datos existentes Proveedores=3, Sucursales=5, Razones=1, Regiones=5.
+- Puertos: liberar solo procesos que Codex haya iniciado. Si `5200`/`5127` ya estaban levantados manualmente por el Product Owner, dejarlos intactos y reportarlo.
 - 2026-09-16 #MOKA: Patron CheckApp aplicado en MVC a Sucursales, Razones Sociales y Regiones con DynamicGrid/filtros/modales CheckApp y `[Authorize]` MVC. Documento: `docs/pattern/APLICACION_PATRON_CHECKAPP_SUCURSALES_RAZONES_REGIONES_20260916.md`. No DDL, no Firebase, no Hosting, no Conexiones; T25 sigue `FROZEN`.
 - Antes de homologar UI/UX CheckApp, leer `inspector/docs/pattern/PATRON_CHECKAPP_OFICIAL_20260916.md`.
 - La pantalla base oficial es `/ProductosServicios/Index`; no extrapolar a otras rutas sin autorizacion PO.
 - T25 permanece `FROZEN`; no iniciar T25, Hosting, Firebase, Conexiones, bases QA ni bootstrap.
-- En trabajo local con servidores MVC/API, liberar y verificar puertos `5200` y `5127` al terminar.
+- En trabajo local con servidores MVC/API, liberar y verificar puertos `5200` y `5127` al terminar solo si Codex los inicio; no cerrar procesos preexistentes del Product Owner.
+- Excepcion PO vigente para MOKA DynamicGrid 2026-09-18: si el ticket usa `5200`/`5127`, liberarlos al final y verificar `lsof` sin listeners.
 
 # PRODUCTOSSERVICIOS_SCHEMA_V2_DESCRIPCIONES_HTML - 2026-09-16
 
@@ -215,6 +224,7 @@
 ## Patron CheckApp
 
 - Antes de modificar una pantalla, lee `AGENTS.md` y la documentacion de `docs/ui/`.
+- Para homologaciones nuevas, `/ProductosServicios/Index` es el Golden Master literal y debe auditarse mediante `inspector/docs/pattern/PATRON_CHECKAPP_GOLDEN_MASTER_COMPONENT_MATRIX_20260917.md` antes de implementar. Si el formulario es catalogo simple, usar el quick-add `Nueva categoria` como referencia especifica.
 - Si la tarea impacta UI, ejecuta este flujo:
   - audita comportamiento actual
   - detecta riesgos funcionales y responsive
@@ -1442,3 +1452,9 @@
 - Scope tecnico aprobado para estos tres catalogos: `Sucursales`. T25 permanece FROZEN; no tocar Hosting, Firebase, Conexiones, bases T25, Denisse/SuperAdmin, DDL destructivo ni ProductosServicios por este patron.
 - Certificacion SQL real `CheckAppErp` del scope `Sucursales` V1: PASS para bootstrap, idempotencia, drift reversible, locking, CRUD multitenant, limpieza de fixtures y gate `COMPATIBLE`. Documento: `inspector/docs/database/TICKET_SCOPE_SUCURSALES_V1_CERTIFICACION_CHECKAPPERP_20260917.md`.
 - Cierre final posterior: AuthZ real PASS contra `db_a883c3_checklist`; `CheckAppErp` no requiere `dbo.Usuarios`/`dbo.Roles`. ProductosServicios en `CheckAppErp` migrado a V2 por T17, `SchemaOk`, `DriftCount=0`, gate `COMPATIBLE`. T25 sigue `FROZEN`.
+
+# MOKA UI/UX runtime - 2026-09-17
+
+- Para declarar UI/UX CheckApp PASS se requiere comparacion visual autenticada en navegador contra ProductosServicios; build, CSS y markup no sustituyen runtime real.
+- Si Codex levanta un puerto temporal, debe detenerlo y verificarlo libre antes de entregar.
+- Si `5200`/`5127` ya estaban activos manualmente por el Product Owner antes del trabajo, no detenerlos; dejarlos intactos y reportarlo.

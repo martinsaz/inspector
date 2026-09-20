@@ -39,6 +39,24 @@ namespace checklist.Clases
             }
         }
 
+        public static string ResolveCheckAppIdEmpresa(this Controller controller, string? idEmpresa = null)
+        {
+            return ResolveIdEmpresa(controller, idEmpresa);
+        }
+
+        public static string ResolveCheckAppEmpresa(this Controller controller, string? empresa = null)
+        {
+            return ResolveEmpresa(controller, empresa);
+        }
+
+        public static string ResolveCheckAppCadena(this Controller controller, string? cadena = null)
+        {
+            return NormalizeSerializedValue(controller.HttpContext.Session.GetString("cadena"))
+                ?? controller.User.FindFirstValue(ClaimTypes.Uri)
+                ?? cadena
+                ?? string.Empty;
+        }
+
         private static string ComputeSignature(string secret, string empresaId, string empresa, string usuarioId, string timestamp)
         {
             using HMACSHA256 hmac = new HMACSHA256(Encoding.UTF8.GetBytes(secret));
@@ -65,9 +83,27 @@ namespace checklist.Clases
         private static string? ResolveUsuarioId(Controller controller)
         {
             string? claimValue = controller.User.FindFirstValue(ClaimTypes.NameIdentifier);
-            return Guid.TryParse(claimValue, out Guid usuarioId) && usuarioId != Guid.Empty
-                ? usuarioId.ToString()
-                : null;
+            if (Guid.TryParse(claimValue, out Guid usuarioId) && usuarioId != Guid.Empty)
+            {
+                return usuarioId.ToString();
+            }
+
+            string? safeClaim = NormalizeSerializedValue(claimValue);
+            if (IsSafeUsuarioId(safeClaim))
+            {
+                return safeClaim;
+            }
+
+            return NormalizeSerializedValue(controller.HttpContext.Session.GetString("userUid"))
+                ?? NormalizeSerializedValue(controller.HttpContext.Session.GetString("uid"))
+                ?? NormalizeSerializedValue(controller.HttpContext.Session.GetString("idFirebase"));
+        }
+
+        private static bool IsSafeUsuarioId(string? value)
+        {
+            return !string.IsNullOrWhiteSpace(value)
+                && value.Length <= 256
+                && !value.Any(char.IsControl);
         }
 
         private static string? NormalizeSerializedValue(string? value)

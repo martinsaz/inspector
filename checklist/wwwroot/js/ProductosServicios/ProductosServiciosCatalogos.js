@@ -333,9 +333,9 @@
                 ];
 
                 if (row.activo) {
-                    actions.push(buildActionLink("Baja lógica", "fa fa-ban", "psCatalogoCambiarEstatus('" + escapeJs(row.id) + "', false)", true));
+                    actions.push(buildActionLink("Dar de baja", "fa fa-ban", "psCatalogoCambiarEstatus('" + escapeJs(row.id) + "', false)", "is-danger"));
                 } else {
-                    actions.push(buildActionLink("Reactivar", "fa fa-check", "psCatalogoCambiarEstatus('" + escapeJs(row.id) + "', true)"));
+                    actions.push(buildActionLink("Reactivar", "fa fa-check", "psCatalogoCambiarEstatus('" + escapeJs(row.id) + "', true)", "is-success"));
                 }
 
                 return "<div class='ps-catalog-actions'>" + actions.join("") + "</div>";
@@ -371,8 +371,8 @@
         };
     }
 
-    function buildActionLink(label, iconClass, onclick, danger) {
-        return "<a href='javascript:void(0)' class='" + (danger ? "is-danger" : "") + "' onclick=\"" + onclick + "\" title='" + escapeHtml(label) + "' aria-label='" + escapeHtml(label) + "'><i class='" + iconClass + "'></i></a>";
+    function buildActionLink(label, iconClass, onclick, actionClass) {
+        return "<a href='javascript:void(0)' role='button' class='" + escapeHtml(actionClass || "") + "' onclick=\"" + onclick + "\" title='" + escapeHtml(label) + "' aria-label='" + escapeHtml(label) + "'><i class='" + iconClass + "'></i></a>";
     }
 
     function openCreateModal() {

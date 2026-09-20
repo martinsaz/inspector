@@ -52,6 +52,16 @@ namespace checklist.Models.Activos
 
     public class ProveedorActivoDto : TipoActivoDto
     {
+        public string RazonSocial { get; set; } = string.Empty;
+        public string Rfc { get; set; } = string.Empty;
+        public string Telefono { get; set; } = string.Empty;
+        public string Telefono1 { get; set; } = string.Empty;
+        public string Email { get; set; } = string.Empty;
+        public decimal Limite { get; set; }
+        public bool ClasificacionContable { get; set; }
+        public string CuentaContable { get; set; } = string.Empty;
+        public string Contacto { get; set; } = string.Empty;
+        public string CuentaBancaria { get; set; } = string.Empty;
     }
 
     public class EstadoOperativoDto

@@ -34,6 +34,12 @@ const activosValidationLimits = {
     catalogoCodigo: 64,
     catalogoNombre: 160,
     catalogoDescripcion: 400,
+    proveedorDescripcion: 20000,
+    proveedorRazonSocial: 250,
+    proveedorRfc: 15,
+    proveedorTelefono: 15,
+    proveedorEmail: 50,
+    proveedorCuenta: 255,
     estadoCodigo: 64,
     estadoNombre: 160,
     estadoDescripcion: 400
@@ -126,7 +132,17 @@ const activosCatalogConfigs = {
         fieldSelectors: {
             codigo: "#txCodigoProveedorActivo",
             nombre: "#txNombreProveedorActivo",
-            descripcion: "#txDescripcionProveedorActivo"
+            descripcion: "#txDescripcionProveedorActivo",
+            razonSocial: "#txRazonSocialProveedorActivo",
+            rfc: "#txRfcProveedorActivo",
+            telefono: "#txTelefonoProveedorActivo",
+            telefono1: "#txTelefono1ProveedorActivo",
+            email: "#txEmailProveedorActivo",
+            limite: "#txLimiteProveedorActivo",
+            clasificacionContable: "#cbClasificacionContableProveedorActivo",
+            cuentaContable: "#txCuentaContableProveedorActivo",
+            contacto: "#txContactoProveedorActivo",
+            cuentaBancaria: "#txCuentaBancariaProveedorActivo"
         },
         resetCombos: resetCatalogoProveedorActivo
     }
@@ -787,20 +803,54 @@ function inicializaGridCatalogo(config, selectors) {
                     return items;
                 });
         },
-        columns: [
-            {
-                key: "acciones",
-                title: "Acciones",
-                sortable: false,
-                hideable: false,
-                exportable: false,
-                render: function (_value, row) {
-                    return buildAccionesCatalogo(config, row);
-                }
-            },
-            { key: "codigo", title: "Código" },
-            { key: "nombre", title: "Nombre" },
+        columns: buildCatalogGridColumns(config),
+        onLoaded: function (rows) {
+            $(config.visibleCountSelector).text(rows.length + " visibles");
+        },
+        emptyText: "No hay " + config.labelPlural + " disponibles."
+    });
+}
+
+function buildCatalogGridColumns(config) {
+    const columns = [
+        {
+            key: "acciones",
+            title: "Acciones",
+            sortable: false,
+            hideable: false,
+            exportable: false,
+            render: function (_value, row) {
+                return buildAccionesCatalogo(config, row);
+            }
+        },
+        { key: "codigo", title: "Código" },
+        { key: "nombre", title: "Nombre" }
+    ];
+
+    if (config.key === "proveedor") {
+        columns.push(
+            { key: "rfc", title: "R.F.C." },
+            { key: "telefono", title: "Teléfono" },
+            { key: "telefono1", title: "Teléfono 1" },
             { key: "descripcion", title: "Descripción" },
+            { key: "email", title: "Email" },
+            { key: "razonSocial", title: "Razón social" },
+            {
+                key: "limite",
+                title: "Límite",
+                exportValue: function (value) {
+                    return Number(value || 0);
+                },
+                render: function (value) {
+                    return formatCurrencyActivos(value);
+                }
+            }
+        );
+    } else {
+        columns.push({ key: "descripcion", title: "Descripción" });
+    }
+
+    columns.push(
             {
                 key: "activo",
                 title: "Estatus",
@@ -823,12 +873,9 @@ function inicializaGridCatalogo(config, selectors) {
                     return formatDisplayDate(value);
                 }
             }
-        ],
-        onLoaded: function (rows) {
-            $(config.visibleCountSelector).text(rows.length + " visibles");
-        },
-        emptyText: "No hay " + config.labelPlural + " disponibles."
-    });
+    );
+
+    return columns;
 }
 
 function inicializaGridEstados() {
@@ -953,6 +1000,7 @@ function inicializaCatalogoStandalone(pageMode) {
             break;
         case "proveedores":
             inicializaGridCatalogo(activosCatalogConfigs.proveedor, activosCatalogGridSelectors.proveedor);
+            normalizeProveedorStandaloneRuntime();
             break;
         case "estadosoperativos":
             inicializaGridEstados();
@@ -1099,10 +1147,84 @@ function cerrarCatalogoStandalone(tipo) {
     handleCatalogCancelAction(config);
 }
 
+function normalizeProveedorStandaloneRuntime() {
+    if (activosPageMode !== "proveedores") {
+        return;
+    }
+
+    const config = activosCatalogConfigs.proveedor;
+    const modal = $("#modalProveedoresActivos");
+    const formGrid = modal.find(".activos-quick-modal-grid, .checkapp-filter-grid").first();
+    if (!modal.length || !formGrid.length) {
+        return;
+    }
+
+    modal.addClass("checkapp-modal activos-standalone-catalog-modal");
+    modal.find(".modal-dialog").addClass("modal-lg modal-dialog-centered");
+    formGrid
+        .addClass("activos-quick-modal-grid--catalog activos-proveedor-modal-grid")
+        .css("margin-top", 0);
+
+    const codeInput = $("#txCodigoProveedorActivo");
+    if (!$("#hdProveedorActivoId").val()) {
+        codeInput
+            .attr("type", "hidden")
+            .removeAttr("placeholder")
+            .prop("readonly", false)
+            .hide();
+        $("#fieldCodigoProveedorActivo").prop("hidden", true).hide();
+    }
+
+    $("#txNombreProveedorActivo").closest("label, .checkapp-field, .form-group, div").first()
+        .addClass("checkapp-field activos-proveedor-field-name");
+    $("#txDescripcionProveedorActivo").closest("label, .checkapp-field, .form-group, div").first()
+        .addClass("checkapp-field activos-proveedor-field-description");
+    normalizeProveedorAccountingRuntime();
+
+    modal.find("label").addClass("checkapp-field");
+    modal.find(".modal-footer").addClass("activos-quick-modal-footer");
+    $("#btGuardarProveedorActivo span").text("Guardar");
+    $("#btGuardarProveedorActivo").contents().filter(function () {
+        return this.nodeType === 3 && /Guardar proveedor/i.test(this.nodeValue || "");
+    }).remove();
+
+    initProveedorDescriptionEditor(config);
+}
+
+function normalizeProveedorAccountingRuntime() {
+    const limitField = $("#txLimiteProveedorActivo").closest("label, .checkapp-field, .form-group, div").first();
+    const classField = $("#cbClasificacionContableProveedorActivo").closest("label, .checkapp-field, .form-group, div").first();
+    if (!limitField.length || !classField.length) {
+        return;
+    }
+
+    let wrapper = $(".activos-proveedor-limit-classification").first();
+    if (!wrapper.length) {
+        wrapper = $("<div class='checkapp-field activos-proveedor-limit-classification'></div>");
+        wrapper.append("<span>Límite y clasificación contable</span>");
+        wrapper.append("<div class='activos-proveedor-accounting-subgrid'></div>");
+        limitField.before(wrapper);
+    }
+
+    const subgrid = wrapper.find(".activos-proveedor-accounting-subgrid").first();
+    limitField.addClass("checkapp-field activos-proveedor-subfield");
+    classField.addClass("checkapp-field activos-proveedor-subfield");
+    if (!subgrid.find("#txLimiteProveedorActivo").length) {
+        subgrid.append(limitField);
+    }
+    if (!subgrid.find("#cbClasificacionContableProveedorActivo").length) {
+        subgrid.append(classField);
+    }
+}
+
 function handleCatalogCreateAction(config) {
     limpiarFormularioCatalogo(config);
     if (isStandaloneCatalogPage(config.key)) {
         openStandaloneCatalogModal(config.modalSelector);
+        if (config.key === "proveedor") {
+            normalizeProveedorStandaloneRuntime();
+            window.setTimeout(normalizeProveedorStandaloneRuntime, 0);
+        }
     }
 }
 
@@ -1578,9 +1700,17 @@ function limpiarFormularioCatalogo(config) {
     const fieldSelectors = config.fieldSelectors;
     $(config.idSelector).val("");
     $(fieldSelectors.codigo).val("");
-    $(fieldSelectors.codigo).prop("readonly", true).attr("placeholder", "Se generará automáticamente");
+    if (config.key === "proveedor") {
+        $(fieldSelectors.codigo).attr("type", "hidden").removeAttr("placeholder").prop("readonly", false).hide();
+    } else {
+        $(fieldSelectors.codigo).prop("readonly", true).attr("placeholder", "Se generará automáticamente");
+    }
     $(fieldSelectors.nombre).val("");
     $(fieldSelectors.descripcion).val("");
+    resetProveedorFields(config);
+    syncProveedorCodeVisibility(config, false, "");
+    setProveedorDescriptionValue(config, "");
+    initProveedorDescriptionEditor(config);
     $(config.titleSelector).text(buildCatalogCreateTitle(config.label));
     $(config.infoSelector).removeClass("is-danger is-success").text("");
     clearGenericFieldError(fieldSelectors.codigo, config.infoSelector);
@@ -1613,6 +1743,10 @@ function editarCatalogo(tipo, id) {
             $(config.fieldSelectors.codigo).prop("readonly", true).attr("placeholder", "");
             $(config.fieldSelectors.nombre).val(data.d.nombre || "");
             $(config.fieldSelectors.descripcion).val(data.d.descripcion || "");
+            hydrateProveedorFields(config, data.d);
+            syncProveedorCodeVisibility(config, true, data.d.codigo || "");
+            setProveedorDescriptionValue(config, data.d.descripcion || "");
+            initProveedorDescriptionEditor(config);
             $(config.titleSelector).text("Editar " + config.label);
             $(config.infoSelector).removeClass("is-danger").text("");
             if (isStandaloneCatalogPage(config.key)) {
@@ -1625,12 +1759,7 @@ function editarCatalogo(tipo, id) {
 }
 
 function guardarCatalogo(config) {
-    const payload = {
-        id: $(config.idSelector).val(),
-        codigo: ($(config.fieldSelectors.codigo).val() || "").trim(),
-        nombre: ($(config.fieldSelectors.nombre).val() || "").trim(),
-        descripcion: ($(config.fieldSelectors.descripcion).val() || "").trim()
-    };
+    const payload = buildCatalogPayload(config);
 
     const validation = validateCatalogoPayload(config, payload);
     if (validation) {
@@ -1667,6 +1796,194 @@ function guardarCatalogo(config) {
         .catch(function (error) {
             mensajeErrorActivos(error && error.message ? error.message : "No fue posible guardar el " + config.label + ".");
         });
+}
+
+function buildCatalogPayload(config) {
+    const payload = {
+        id: $(config.idSelector).val(),
+        codigo: ($(config.fieldSelectors.codigo).val() || "").trim(),
+        nombre: ($(config.fieldSelectors.nombre).val() || "").trim(),
+        descripcion: getProveedorDescriptionValue(config) || ($(config.fieldSelectors.descripcion).val() || "").trim()
+    };
+
+    if (config.key === "proveedor") {
+        if (!payload.id) {
+            delete payload.codigo;
+        }
+        payload.razonSocial = ($(config.fieldSelectors.razonSocial).val() || "").trim();
+        payload.rfc = ($(config.fieldSelectors.rfc).val() || "").trim().toUpperCase();
+        payload.telefono = ($(config.fieldSelectors.telefono).val() || "").trim();
+        payload.telefono1 = ($(config.fieldSelectors.telefono1).val() || "").trim();
+        payload.email = ($(config.fieldSelectors.email).val() || "").trim().toLowerCase();
+        payload.limite = parseDecimalActivos($(config.fieldSelectors.limite).val());
+        payload.clasificacionContable = String($(config.fieldSelectors.clasificacionContable).val()).toLowerCase() === "true";
+        payload.cuentaContable = ($(config.fieldSelectors.cuentaContable).val() || "").trim();
+        payload.contacto = ($(config.fieldSelectors.contacto).val() || "").trim();
+        payload.cuentaBancaria = ($(config.fieldSelectors.cuentaBancaria).val() || "").trim();
+    }
+
+    return payload;
+}
+
+function resetProveedorFields(config) {
+    if (!config || config.key !== "proveedor") {
+        return;
+    }
+
+    const fields = config.fieldSelectors;
+    $(fields.razonSocial).val("");
+    $(fields.rfc).val("");
+    $(fields.telefono).val("");
+    $(fields.telefono1).val("");
+    $(fields.email).val("");
+    $(fields.limite).val("0");
+    $(fields.clasificacionContable).val("false");
+    $(fields.cuentaContable).val("");
+    $(fields.contacto).val("");
+    $(fields.cuentaBancaria).val("");
+    syncProveedorCodeVisibility(config, false, "");
+}
+
+function hydrateProveedorFields(config, item) {
+    if (!config || config.key !== "proveedor") {
+        return;
+    }
+
+    const fields = config.fieldSelectors;
+    $(fields.razonSocial).val(item.razonSocial || "");
+    $(fields.rfc).val(item.rfc || "");
+    $(fields.telefono).val(item.telefono || "");
+    $(fields.telefono1).val(item.telefono1 || "");
+    $(fields.email).val(item.email || "");
+    $(fields.limite).val(Number(item.limite || 0).toFixed(2));
+    $(fields.clasificacionContable).val(item.clasificacionContable ? "true" : "false");
+    $(fields.cuentaContable).val(item.cuentaContable || "");
+    $(fields.contacto).val(item.contacto || "");
+    $(fields.cuentaBancaria).val(item.cuentaBancaria || "");
+    syncProveedorCodeVisibility(config, true, item.codigo || "");
+}
+
+function syncProveedorCodeVisibility(config, isEditing, codigo) {
+    if (!config || config.key !== "proveedor") {
+        return;
+    }
+
+    const value = (codigo || "").trim();
+    const showReadonly = !!isEditing && !!value;
+    $("#fieldCodigoProveedorActivo").prop("hidden", !showReadonly);
+    $("#txCodigoProveedorActivoReadonly").text(value);
+}
+
+function initProveedorDescriptionEditor(config) {
+    if (!config || config.key !== "proveedor" || !document.getElementById("txDescripcionProveedorActivo")) {
+        return;
+    }
+
+    if (!window.tinymce) {
+        loadProveedorTinyMce(function () {
+            initProveedorDescriptionEditor(config);
+        });
+        return;
+    }
+
+    if (window.tinymce.get("txDescripcionProveedorActivo")) {
+        setProveedorDescriptionValue(config, $(config.fieldSelectors.descripcion).val() || "");
+        return;
+    }
+
+    window.tinymce.init({
+        selector: "#txDescripcionProveedorActivo",
+        menubar: false,
+        branding: false,
+        promotion: false,
+        statusbar: false,
+        height: 150,
+        resize: true,
+        placeholder: "Descripción",
+        aria_label: "Descripción",
+        plugins: "lists link code",
+        toolbar: "blocks | bold italic underline | bullist numlist | alignleft aligncenter alignright | link unlink | code removeformat",
+        block_formats: "Párrafo=p; Encabezado 2=h2; Encabezado 3=h3",
+        browser_spellcheck: true,
+        contextmenu: false
+    }).then(function () {
+        setProveedorDescriptionValue(config, $(config.fieldSelectors.descripcion).val() || "");
+    });
+}
+
+function loadProveedorTinyMce(onLoaded) {
+    const existingScript = document.querySelector("script[data-proveedor-tinymce-loader]");
+    if (existingScript) {
+        if (typeof onLoaded === "function") {
+            existingScript.addEventListener("load", onLoaded, { once: true });
+        }
+        return;
+    }
+
+    const script = document.createElement("script");
+    script.src = "/assets/plugins/custom/tinymce/tinymce.bundle.js";
+    script.async = true;
+    script.setAttribute("data-proveedor-tinymce-loader", "true");
+    if (typeof onLoaded === "function") {
+        script.addEventListener("load", onLoaded, { once: true });
+    }
+    document.head.appendChild(script);
+}
+
+function getProveedorDescriptionValue(config) {
+    if (!config || config.key !== "proveedor") {
+        return "";
+    }
+
+    const editor = window.tinymce ? window.tinymce.get("txDescripcionProveedorActivo") : null;
+    const value = editor ? editor.getContent() : $(config.fieldSelectors.descripcion).val();
+    const normalized = normalizeRichTextActivos(value);
+    $(config.fieldSelectors.descripcion).val(normalized);
+    return normalized;
+}
+
+function setProveedorDescriptionValue(config, value) {
+    if (!config || config.key !== "proveedor") {
+        return;
+    }
+
+    const normalized = normalizeRichTextActivos(value);
+    $(config.fieldSelectors.descripcion).val(normalized);
+    const editor = window.tinymce ? window.tinymce.get("txDescripcionProveedorActivo") : null;
+    if (editor) {
+        editor.setContent(normalized);
+        if (editor.undoManager && typeof editor.undoManager.clear === "function") {
+            editor.undoManager.clear();
+        }
+        if (typeof editor.setDirty === "function") {
+            editor.setDirty(false);
+        }
+        if (typeof editor.save === "function") {
+            editor.save();
+        }
+    }
+}
+
+function normalizeRichTextActivos(value) {
+    return String(value || "")
+        .replace(/\u0000/g, "")
+        .replace(/<p>(?:\s|&nbsp;|<br\s*\/?>)*<\/p>/gi, "")
+        .trim();
+}
+
+function parseDecimalActivos(value) {
+    const normalized = String(value || "0").replace(/,/g, "").trim();
+    const parsed = Number(normalized);
+    return Number.isFinite(parsed) ? parsed : 0;
+}
+
+function formatCurrencyActivos(value) {
+    const parsed = Number(value || 0);
+    try {
+        return new Intl.NumberFormat("es-MX", { style: "currency", currency: "MXN" }).format(Number.isFinite(parsed) ? parsed : 0);
+    } catch (_error) {
+        return "$" + (Number.isFinite(parsed) ? parsed : 0).toFixed(2);
+    }
 }
 
 function guardarAltaRapidaCatalogo(config) {
@@ -2961,11 +3278,43 @@ function validateCatalogoPayload(config, payload) {
         };
     }
 
-    if (payload.descripcion.length > activosValidationLimits.catalogoDescripcion) {
+    const descripcionLimit = config.fieldSelectors && config.fieldSelectors.razonSocial
+        ? activosValidationLimits.proveedorDescripcion
+        : activosValidationLimits.catalogoDescripcion;
+
+    if (payload.descripcion.length > descripcionLimit) {
         return {
             selector: config.fieldSelectors.descripcion,
-            message: "La descripción no puede exceder " + activosValidationLimits.catalogoDescripcion + " caracteres."
+            message: "La descripción no puede exceder " + descripcionLimit + " caracteres."
         };
+    }
+
+    if (config.fieldSelectors && config.fieldSelectors.razonSocial) {
+        if ((payload.razonSocial || "").length > activosValidationLimits.proveedorRazonSocial) {
+            return { selector: config.fieldSelectors.razonSocial, message: "La razón social no puede exceder " + activosValidationLimits.proveedorRazonSocial + " caracteres." };
+        }
+
+        if ((payload.rfc || "").length > activosValidationLimits.proveedorRfc) {
+            return { selector: config.fieldSelectors.rfc, message: "El RFC no puede exceder " + activosValidationLimits.proveedorRfc + " caracteres." };
+        }
+
+        if ((payload.telefono || "").length > activosValidationLimits.proveedorTelefono || (payload.telefono1 || "").length > activosValidationLimits.proveedorTelefono) {
+            return { selector: config.fieldSelectors.telefono, message: "Los teléfonos no pueden exceder " + activosValidationLimits.proveedorTelefono + " caracteres." };
+        }
+
+        if ((payload.email || "").length > activosValidationLimits.proveedorEmail) {
+            return { selector: config.fieldSelectors.email, message: "El email no puede exceder " + activosValidationLimits.proveedorEmail + " caracteres." };
+        }
+
+        if (payload.limite < 0) {
+            return { selector: config.fieldSelectors.limite, message: "El límite no puede ser negativo." };
+        }
+
+        if ((payload.cuentaContable || "").length > activosValidationLimits.proveedorCuenta ||
+            (payload.contacto || "").length > activosValidationLimits.proveedorCuenta ||
+            (payload.cuentaBancaria || "").length > activosValidationLimits.proveedorCuenta) {
+            return { selector: config.fieldSelectors.cuentaContable, message: "Cuenta contable, contacto y cuenta bancaria no pueden exceder " + activosValidationLimits.proveedorCuenta + " caracteres." };
+        }
     }
 
     return null;

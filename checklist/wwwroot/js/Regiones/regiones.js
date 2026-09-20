@@ -34,6 +34,9 @@
             listUrl: "/Regiones/GetData",
             detailUrl: "/Regiones/GetZona",
             saveUrl: "/Regiones/Guardar",
+            bajaUrl: "/Regiones/BajaZona",
+            reactivarUrl: "/Regiones/ReactivarZona",
+            statusEnabled: true,
             exportSheetName: "Regiones",
             exportFilePrefix: "Regiones",
             createTitle: "Nueva región",
@@ -44,21 +47,35 @@
             columns: [
                 { key: "acciones", title: "Acciones" },
                 { key: "nombre", title: "Región" },
-                { key: "notas", title: "Notas" }
+                { key: "notas", title: "Notas", type: "htmlText" },
+                { key: "activo", title: "Estatus", type: "status" }
             ],
             filters: [
                 {
                     selector: "#txFiltroRegionesBusqueda",
                     label: "Búsqueda",
                     keys: ["nombre", "notas"]
+                },
+                {
+                    selector: "#cbFiltroRegionesEstatus",
+                    label: "Estatus",
+                    defaultValue: "activo",
+                    serverSide: true,
+                    keys: ["activo"]
                 }
             ],
             fields: [
                 { key: "nombre", source: "nombre", selector: "#txNombre", required: true },
-                { key: "notas", source: "notas", selector: "#txNotas" }
+                { key: "notas", source: "notas", selector: "#txNotas", richText: true, placeholder: "Notas internas" }
             ],
             detailParams: function (id) {
                 return { lla: id, cua: id };
+            },
+            listParams: function () {
+                return { estatus: $("#cbFiltroRegionesEstatus").val() };
+            },
+            statusParams: function (id) {
+                return { id: id };
             },
             saveParams: function (id, values) {
                 return {

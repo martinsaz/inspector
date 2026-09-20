@@ -31,8 +31,8 @@
             </div>
             <div class="checkapp-filter-grid activos-catalog-filter-grid">
                 <label class="checkapp-field">
-                    <span>Búsqueda</span>
-                    <input id="txBusquedaProveedores" type="text" placeholder="Código, nombre o descripción" />
+                        <span>Búsqueda</span>
+                    <input id="txBusquedaProveedores" type="text" placeholder="Código, nombre, RFC, razón social o contacto" />
                 </label>
                 <label class="checkapp-field">
                     <span>Estatus</span>
@@ -87,7 +87,13 @@
                                 <th>Acciones</th>
                                 <th>Código</th>
                                 <th>Nombre</th>
+                                <th>R.F.C.</th>
+                                <th>Teléfono</th>
+                                <th>Teléfono 1</th>
                                 <th>Descripción</th>
+                                <th>Email</th>
+                                <th>Razón social</th>
+                                <th>Límite</th>
                                 <th>Estatus</th>
                                 <th>Actualización</th>
                             </tr>
@@ -130,18 +136,67 @@
                     </button>
                 </div>
                 <div class="modal-body">
-                    <div class="checkapp-filter-grid activos-quick-modal-grid activos-quick-modal-grid--catalog" style="margin-top:0;">
-                        <label class="checkapp-field activos-quick-modal-field-code">
-                            <span>Código *</span>
-                            <input id="txCodigoProveedorActivo" maxlength="64" type="text" readonly placeholder="Se generará automáticamente" />
-                        </label>
-                        <label class="checkapp-field activos-quick-modal-field-name">
+                    <div class="checkapp-filter-grid activos-quick-modal-grid activos-quick-modal-grid--catalog activos-proveedor-modal-grid" style="margin-top:0;">
+                        <input id="txCodigoProveedorActivo" maxlength="64" type="hidden" />
+                        <div class="checkapp-field activos-proveedor-code-readonly" id="fieldCodigoProveedorActivo" hidden>
+                            <span>Código</span>
+                            <strong id="txCodigoProveedorActivoReadonly"></strong>
+                        </div>
+                        <label class="checkapp-field activos-proveedor-field-name">
                             <span>Nombre *</span>
                             <input id="txNombreProveedorActivo" maxlength="160" type="text" />
                         </label>
-                        <label class="checkapp-field activos-quick-modal-field-full">
+                        <label class="checkapp-field activos-proveedor-field-description">
                             <span>Descripción</span>
-                            <textarea id="txDescripcionProveedorActivo" maxlength="400"></textarea>
+                            <textarea id="txDescripcionProveedorActivo"></textarea>
+                        </label>
+                        <label class="checkapp-field">
+                            <span>Razón social</span>
+                            <input id="txRazonSocialProveedorActivo" maxlength="250" type="text" />
+                        </label>
+                        <label class="checkapp-field">
+                            <span>R.F.C.</span>
+                            <input id="txRfcProveedorActivo" maxlength="15" type="text" placeholder="XAXX010101000" />
+                        </label>
+                        <label class="checkapp-field">
+                            <span>Teléfono</span>
+                            <input id="txTelefonoProveedorActivo" maxlength="15" type="tel" />
+                        </label>
+                        <label class="checkapp-field">
+                            <span>Teléfono 1</span>
+                            <input id="txTelefono1ProveedorActivo" maxlength="15" type="tel" />
+                        </label>
+                        <label class="checkapp-field">
+                            <span>Email</span>
+                            <input id="txEmailProveedorActivo" maxlength="50" type="email" />
+                        </label>
+                        <div class="checkapp-field activos-proveedor-limit-classification">
+                            <span>Límite y clasificación contable</span>
+                            <div class="activos-proveedor-accounting-subgrid">
+                                <label class="checkapp-field activos-proveedor-subfield">
+                                    <span>Límite</span>
+                                    <input id="txLimiteProveedorActivo" min="0" step="0.01" type="number" value="0" />
+                                </label>
+                                <label class="checkapp-field activos-proveedor-subfield">
+                                    <span>Clasificación contable</span>
+                                    <select id="cbClasificacionContableProveedorActivo" class="form-select">
+                                        <option value="false">Indirecto</option>
+                                        <option value="true">Directo</option>
+                                    </select>
+                                </label>
+                            </div>
+                        </div>
+                        <label class="checkapp-field">
+                            <span>Cuenta contable</span>
+                            <input id="txCuentaContableProveedorActivo" maxlength="255" type="text" />
+                        </label>
+                        <label class="checkapp-field">
+                            <span>Contacto</span>
+                            <input id="txContactoProveedorActivo" maxlength="255" type="text" />
+                        </label>
+                        <label class="checkapp-field">
+                            <span>Cuenta bancaria</span>
+                            <input id="txCuentaBancariaProveedorActivo" maxlength="255" type="text" />
                         </label>
                     </div>
                     <div class="checkapp-status-inline" id="txInfoProveedorActivo" style="margin-top:1rem;"></div>
@@ -150,7 +205,7 @@
                     <button id="btCancelarProveedorActivo" type="button" class="checkapp-btn checkapp-btn-ghost" onclick="cerrarCatalogoStandalone('proveedor'); return false;">Cancelar</button>
                     <button id="btGuardarProveedorActivo" type="button" class="checkapp-btn checkapp-btn-primary">
                         <i class="fa fa-save"></i>
-                        <span>Guardar proveedor</span>
+                        <span>Guardar</span>
                     </button>
                 </div>
             </form>
@@ -163,6 +218,7 @@
     <link href="~/css/Activos/Activos.css" rel="stylesheet" asp-append-version="true" />
     <script>var XLSX = window.XLSX || {}; window.XLSX = XLSX;</script>
     <script src="~/js/vendor/xlsx.full.min.js"></script>
+    <script src="~/assets/plugins/custom/tinymce/tinymce.bundle.js"></script>
     <script src="~/js/checkapp-ui.js"></script>
     <script src="~/js/Activos/Activos.js" asp-append-version="true"></script>
 }

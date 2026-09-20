@@ -93,3 +93,12 @@ T25 permanece `FROZEN`. No se modificaron Hosting, Firebase, Conexiones ni bases
 ## Dictamen
 
 PATRON CHECKAPP APLICADO EN MVC A SUCURSALES, RAZONES SOCIALES Y REGIONES; JERARQUIA APROBADA DE AJUSTES -> SUCURSALES -> ABC SUCURSALES/RAZONES SOCIALES/REGIONES IMPLEMENTADA EN MENU, ROLESPERMISOS, DEFAULT ROLES, UTILITARIAS Y MVC AUTHZ; DISEÑO, RESPONSIVE, DYNAMICGRID, FILTROS, FORMULARIOS, MODALES, CANCELAR/GUARDAR Y PROTECCION MVC HOMOLOGADOS CONTRA PRODUCTOSSERVICIOS; API CON SCOPE SUCURSALES V1, GATE, FIRMA HMAC Y AUTHZ FUNCIONAL CONTRA FUENTE REAL LEGACY; FUNCIONALIDAD PREEXISTENTE PRESERVADA; SIN FIREBASE/HOSTING/CONEXIONES; T25 PERMANECE FROZEN. SCOPE SUCURSALES V1 CERTIFICADO EN SQL REAL CHECKAPPERP. PRODUCTOSSERVICIOS V2 COMPATIBLE EN CHECKAPPERP. CIERRE TOTAL #MOKA PASS.
+
+## Seguimiento UI/UX 2026-09-17
+
+- Se corrigio el encabezado de identidad del proxy MVC/API: `CheckAppProxyHeaders.ResolveUsuarioId` ahora cae a sesion `userUid`, `uid` o `idFirebase` cuando el claim principal no existe. Esto evita que las pantallas del bloque Sucursales pierdan AuthZ API aunque la sesion MVC sea valida.
+- `ZonaController1` ya no usa la conexion global legacy para listado, lectura individual ni baja de Regiones; resuelve contexto `Scope=Sucursales`, permiso `04005000`, `idEmpresa` autorizado y conexion tenant antes de tocar SQL.
+- Modales de `ABC Sucursales`, `Razones Sociales` y `Regiones` fueron reorganizados con grillas responsivas CheckApp, campos preservados, notas como textarea, Select2 sin apariencia browser-default y footer visual homologado.
+- QA automatizada posterior: JS syntax PASS, build MVC PASS, build API PASS, `dotnet test inspectorapi/checklistWs.sln --no-restore --verbosity minimal` PASS 415/415, `git diff --check` PASS en ambos repos.
+- QA visual autenticada: se levanto puerto temporal Codex `5201`, se comparo acceso a ProductosServicios y se intento Proveedores/bloque; la sesion fue redirigida por aviso de sesion duplicada. No se declara PASS visual total hasta repetir comparacion autenticada en los puertos manuales del Product Owner.
+- Puertos: Codex libero `5201`; `5200` y `5127` ya estaban levantados manualmente y se dejaron intactos conforme regla del Product Owner.

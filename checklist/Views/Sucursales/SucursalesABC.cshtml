@@ -3,7 +3,7 @@
     Layout = "~/Views/Shared/_Layout.cshtml";
 }
 
-<div class="checkapp-admin-page checkapp-page sucursales-page">
+<div class="checkapp-scope checkapp-page ca-catalog-page sucursales-page">
     <div class="container-fluid checkapp-shell">
         <section class="checkapp-hero">
             <div>
@@ -29,22 +29,30 @@
             </button>
             <div class="checkapp-accordion-body" id="accordionFiltrosSucursalesBody">
                 <div class="checkapp-accordion-inner">
-                    <div class="checkapp-filter-grid">
-                        <label class="checkapp-field ca-field-span-2">
+                    <div class="checkapp-filter-grid ps-filter-grid ca-filter-grid">
+                        <label class="checkapp-field ps-filter-field ps-filter-field--search">
                             <span>Búsqueda general</span>
                             <input id="txFiltroSucursalesBusqueda" type="text" placeholder="Sucursal, dirección, teléfono o correo" />
                         </label>
-                        <label class="checkapp-field">
+                        <label class="checkapp-field ps-filter-field">
                             <span>Razón Social</span>
                             <input id="txFiltroSucursalesRazon" type="text" placeholder="Razón social" />
                         </label>
-                        <label class="checkapp-field">
+                        <label class="checkapp-field ps-filter-field">
                             <span>Región</span>
                             <input id="txFiltroSucursalesRegion" type="text" placeholder="Región" />
                         </label>
+                        <label class="checkapp-field ps-filter-field">
+                            <span>Estatus</span>
+                            <select id="cbFiltroSucursalesEstatus" class="form-select" aria-label="Estatus">
+                                <option value="activo" selected>Activo</option>
+                                <option value="todos">Todos</option>
+                                <option value="inactivo">Baja lógica</option>
+                            </select>
+                        </label>
                     </div>
-                    <div class="checkapp-filter-actions mt-4">
-                        <button id="btBuscarSucursales" type="button" class="checkapp-btn checkapp-btn-secondary">
+                    <div class="ps-filter-tail ca-filter-tail">
+                        <button id="btBuscarSucursales" type="button" class="checkapp-btn checkapp-btn-secondary ps-filter-search-btn">
                             <i class="fa fa-search"></i>
                             <span>Buscar</span>
                         </button>
@@ -101,6 +109,7 @@
                                 <th>País</th>
                                 <th>Razón Social</th>
                                 <th>Región</th>
+                                <th>Estatus</th>
                             </tr>
                         </thead>
                         <tbody></tbody>
@@ -125,10 +134,10 @@
     </div>
 </div>
 
-<div class="modal fade checkapp-modal" tabindex="-1" id="modalNuevo">
-    <div class="modal-dialog modal-xl">
-        <div class="modal-content">
-            <form id="frmSucursal" novalidate="novalidate">
+<div class="modal fade checkapp-modal activos-quick-modal ps-catalog-modal ca-catalog-modal" tabindex="-1" id="modalNuevo">
+    <div class="modal-dialog modal-lg modal-dialog-centered ps-catalog-modal-dialog ca-catalog-modal-dialog ca-catalog-modal-dialog--wide">
+        <div class="modal-content ps-catalog-modal-content ca-catalog-modal-content">
+            <form id="frmSucursal" class="ps-catalog-modal-form ca-catalog-modal-form" data-quick-catalog-layout="sucursal" novalidate="novalidate">
                 <div class="modal-header">
                     <div>
                         <p class="checkapp-kicker" id="txSucursalesModalKicker">Registro</p>
@@ -138,47 +147,47 @@
                         <i class="ki-duotone ki-cross fs-1"><span class="path1"></span><span class="path2"></span></i>
                     </button>
                 </div>
-                <div class="modal-body">
-                    <div class="ca-admin-form-grid">
-                        <label class="checkapp-field ca-field-span-2">
+                <div class="modal-body ps-catalog-modal-body">
+                    <div class="checkapp-filter-grid activos-quick-modal-grid ps-catalog-form-grid ca-catalog-form-grid ca-catalog-form-grid--sucursal">
+                        <label class="checkapp-field ps-catalog-field ca-span-6">
                             <span>Nombre *</span>
                             <input id="txNombre" name="txNombre" maxlength="50" type="text" placeholder="Nombre de la sucursal" />
                         </label>
-                        <label class="checkapp-field ca-field-span-2">
+                        <label class="checkapp-field ps-catalog-field ca-span-6">
                             <span>Dirección *</span>
                             <input id="txCalle" name="txCalle" maxlength="50" type="text" placeholder="Dirección" />
                         </label>
-                        <label class="checkapp-field">
+                        <label class="checkapp-field ps-catalog-field ca-span-4">
                             <span>Ciudad *</span>
                             <input id="txCiudad" name="txCiudad" maxlength="50" type="text" placeholder="Ciudad" />
                         </label>
-                        <label class="checkapp-field">
+                        <label class="checkapp-field ps-catalog-field ca-span-4">
                             <span>Teléfono *</span>
                             <input id="txTelefono" name="txTelefono" maxlength="10" type="text" placeholder="Teléfono" />
                         </label>
-                        <label class="checkapp-field">
+                        <label class="checkapp-field ps-catalog-field ca-span-4">
                             <span>Correo *</span>
                             <input id="txCorreo" name="txCorreo" maxlength="50" type="email" placeholder="correo@empresa.com" />
                         </label>
-                        <label class="checkapp-field">
+                        <label class="checkapp-field ps-catalog-field ca-span-4">
                             <span>País *</span>
                             <input id="txPais" name="txPais" maxlength="50" type="text" placeholder="País" />
                         </label>
-                        <label class="checkapp-field ca-field-span-2">
+                        <label class="checkapp-field ps-catalog-field ca-span-4">
                             <span>Razón Social *</span>
                             <select id="cbRazon" name="cbRazon" class="form-select select2" aria-label="Razón Social"></select>
                         </label>
-                        <label class="checkapp-field ca-field-span-2">
+                        <label class="checkapp-field ps-catalog-field ca-span-4">
                             <span>Región *</span>
                             <select id="cbZonas" name="cbZonas" class="form-select select2" aria-label="Región"></select>
                         </label>
-                        <label class="checkapp-field ca-field-span-4">
+                        <label class="checkapp-field ps-catalog-field ps-catalog-field--description ca-span-12 ca-field-notes">
                             <span>Notas</span>
-                            <textarea id="txNotas" placeholder="Notas internas"></textarea>
+                            <textarea id="txNotas" class="checkapp-richtext-input" data-checkapp-rich-text="true" placeholder="Notas internas"></textarea>
                         </label>
                     </div>
                 </div>
-                <div class="modal-footer">
+                <div class="modal-footer activos-quick-modal-footer ps-catalog-modal-footer">
                     <button type="button" class="checkapp-btn checkapp-btn-ghost" data-bs-dismiss="modal">
                         <i class="fa fa-ban"></i>
                         <span>Cancelar</span>
@@ -196,11 +205,13 @@
 <input type="hidden" id="valorId" name="valorId" value="" />
 
 @section Scripts {
+    <link href="~/css/checkapp-theme.css" rel="stylesheet" />
     <link href="~/css/ProductosServicios/ProductosServicios.css" rel="stylesheet" asp-append-version="true" />
     <link href="~/css/checkapp-admin-catalogs.css" rel="stylesheet" asp-append-version="true" />
     <script>var XLSX = window.XLSX || {}; window.XLSX = XLSX;</script>
     <script src="~/js/vendor/xlsx.full.min.js"></script>
     <script src="~/js/checkapp-ui.js"></script>
+    <script src="~/assets/plugins/custom/tinymce/tinymce.bundle.js"></script>
     <script src="~/js/checkapp-admin-catalogs.js" asp-append-version="true"></script>
     <script src="~/js/Sucursales/Sucursales.js" asp-append-version="true"></script>
 }

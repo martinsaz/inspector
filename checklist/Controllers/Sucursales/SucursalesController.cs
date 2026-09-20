@@ -39,6 +39,9 @@ namespace checklist.Controllers.Sucursales
 
         public async Task<ActionResult> Inicializa(string idEmpresa, string cadena, string empresa)
         {
+            idEmpresa = this.ResolveCheckAppIdEmpresa(idEmpresa);
+            empresa = this.ResolveCheckAppEmpresa(empresa);
+            cadena = this.ResolveCheckAppCadena(cadena);
             string idRol = Utilerias.IdRol;
 
             Opciones opc = await Utilerias.GetOpcion("04003100", idEmpresa, idRol, empresa, cadena);
@@ -46,6 +49,9 @@ namespace checklist.Controllers.Sucursales
         }
         public async Task<ActionResult> GetRazonesSociales(string idEmpresa, string cadena, string empresa)
         {
+            idEmpresa = this.ResolveCheckAppIdEmpresa(idEmpresa);
+            empresa = this.ResolveCheckAppEmpresa(empresa);
+            cadena = this.ResolveCheckAppCadena(cadena);
 
             string url = string.Format("{0}ObtenerRazonesSociales?idEmpresa={1}&empresa={2}&cadena={3}", Utilerias.UrlBase, idEmpresa, empresa, cadena);
 
@@ -97,6 +103,9 @@ namespace checklist.Controllers.Sucursales
 
         public async Task<ActionResult> GetZonas(string idEmpresa, string cadena, string empresa)
         {
+            idEmpresa = this.ResolveCheckAppIdEmpresa(idEmpresa);
+            empresa = this.ResolveCheckAppEmpresa(empresa);
+            cadena = this.ResolveCheckAppCadena(cadena);
 
             string url = string.Format("{0}ObtenerZonas?idEmpresa={1}&empresa={2}", Utilerias.UrlBase, idEmpresa, empresa);
 
@@ -117,6 +126,9 @@ namespace checklist.Controllers.Sucursales
 
         public async Task<ActionResult> GetTipos(string idEmpresa, string cadena, string empresa)
         {
+            idEmpresa = this.ResolveCheckAppIdEmpresa(idEmpresa);
+            empresa = this.ResolveCheckAppEmpresa(empresa);
+            cadena = this.ResolveCheckAppCadena(cadena);
 
             string url = string.Format("{0}api/SucursalesTipos?idEmpresa={1}&empresa={2}", Utilerias.UrlBase, idEmpresa, empresa);
 
@@ -136,9 +148,12 @@ namespace checklist.Controllers.Sucursales
         }
         #endregion
 
-        public async Task<ActionResult> GetDataSucursales(string idEmpresa, string cadena, string empresa)
+        public async Task<ActionResult> GetDataSucursales(string idEmpresa, string cadena, string empresa, string estatus = "")
         {
-            string url = string.Format("{0}api/Sucursal/ObtenerSucursalesCompleta?idEmpresa={1}&empresa={2}&cadena={3}", Utilerias.UrlBase, idEmpresa, empresa, cadena);
+            idEmpresa = this.ResolveCheckAppIdEmpresa(idEmpresa);
+            empresa = this.ResolveCheckAppEmpresa(empresa);
+            cadena = this.ResolveCheckAppCadena(cadena);
+            string url = string.Format("{0}api/Sucursal/ObtenerSucursalesCompleta?idEmpresa={1}&empresa={2}&cadena={3}&estatus={4}", Utilerias.UrlBase, idEmpresa, empresa, cadena, HttpUtility.UrlEncode(estatus ?? ""));
             string idRol = Utilerias.IdRol;
             Opciones opc = await Utilerias.GetOpcion("04003100", idEmpresa, idRol, empresa, cadena);
             if (opc.Permisos.Acceso != 1)
@@ -184,7 +199,8 @@ namespace checklist.Controllers.Sucursales
                 sb.Append("\"" + HttpUtility.JavaScriptStringEncode(resp.Correo) + "\",");
                 sb.Append("\"" + HttpUtility.JavaScriptStringEncode(resp.Pais) + "\",");
                 sb.Append("\"" + HttpUtility.JavaScriptStringEncode(resp.NombreRzonSocial) + "\",");
-                sb.Append("\"" + HttpUtility.JavaScriptStringEncode(resp.NombreZona) + "\"");
+                sb.Append("\"" + HttpUtility.JavaScriptStringEncode(resp.NombreZona) + "\",");
+                sb.Append("\"" + (!resp.borrado).ToString().ToLowerInvariant() + "\"");
                 sb.Append("]");
                 hasMoreRecords = true;
             }
@@ -194,8 +210,44 @@ namespace checklist.Controllers.Sucursales
             return jsonResult;
         }
 
+        public async Task<ActionResult> BajaSucursal(string id, string idEmpresa, string cadena, string empresa)
+        {
+            return await CambiarEstatusSucursal(id, idEmpresa, cadena, empresa, false);
+        }
+
+        public async Task<ActionResult> ReactivarSucursal(string id, string idEmpresa, string cadena, string empresa)
+        {
+            return await CambiarEstatusSucursal(id, idEmpresa, cadena, empresa, true);
+        }
+
+        private async Task<ActionResult> CambiarEstatusSucursal(string id, string idEmpresa, string cadena, string empresa, bool activar)
+        {
+            idEmpresa = this.ResolveCheckAppIdEmpresa(idEmpresa);
+            empresa = this.ResolveCheckAppEmpresa(empresa);
+            cadena = this.ResolveCheckAppCadena(cadena);
+            string idRol = Utilerias.IdRol;
+            Opciones opc = await Utilerias.GetOpcion("04003100", idEmpresa, idRol, empresa, cadena);
+            if (opc.Permisos.Escritura != 1)
+            {
+                return Json(new { d = "No tienes permiso de escritura para ABC Sucursales." });
+            }
+
+            string action = activar ? "ReactivarSucursal" : "BajaSucursal";
+            string url = string.Format("{0}api/Sucursal/{1}?id={2}&empresa={3}&cadena={4}", Utilerias.UrlBase, action, id, empresa, cadena);
+            var client = new RestClient(url);
+            var request = new RestRequest();
+            request.Method = Method.Post;
+            request.AddCheckAppProxyHeaders(this, _configuration, idEmpresa, empresa);
+            RestResponse response = await client.ExecuteAsync(request);
+            string content = Utilerias.LimpiaCadena(response.Content);
+            return Json(new { d = string.IsNullOrWhiteSpace(content) ? "Ok" : content });
+        }
+
         public async Task<ActionResult> GetSucursal(string lla, string cua, string idEmpresa, string cadena, string empresa)
         {
+            idEmpresa = this.ResolveCheckAppIdEmpresa(idEmpresa);
+            empresa = this.ResolveCheckAppEmpresa(empresa);
+            cadena = this.ResolveCheckAppCadena(cadena);
 
             string url = string.Format("{0}api/Sucursal/ObtenerSucursal?idEmpresa={1}&id={2}&empresa={3}&cadena={4}", Utilerias.UrlBase, idEmpresa, cua, empresa, cadena);
             var client = new RestClient(url);
@@ -234,6 +286,9 @@ namespace checklist.Controllers.Sucursales
             string idEmpresa = parametros.TryGetProperty("idEmpresa", out JsonElement idEmpresaElement) ? idEmpresaElement.GetString() : null;
             string empresa = parametros.TryGetProperty("empresa", out JsonElement empresaElement) ? empresaElement.GetString() : null;
             string cadena = parametros.TryGetProperty("cadena", out JsonElement cadenaElement) ? cadenaElement.GetString() : null;
+            idEmpresa = this.ResolveCheckAppIdEmpresa(idEmpresa);
+            empresa = this.ResolveCheckAppEmpresa(empresa);
+            cadena = this.ResolveCheckAppCadena(cadena);
 
             string idRol = Utilerias.IdRol;
             Opciones opc = await Utilerias.GetOpcion("04003100", idEmpresa, idRol, empresa, cadena);

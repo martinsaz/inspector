@@ -38,6 +38,9 @@ namespace checklist.Controllers.RazonesSociales
 
         public async Task<ActionResult> Inicializa(string idEmpresa, string cadena, string empresa)
         {
+            idEmpresa = this.ResolveCheckAppIdEmpresa(idEmpresa);
+            empresa = this.ResolveCheckAppEmpresa(empresa);
+            cadena = this.ResolveCheckAppCadena(cadena);
             string idRol;
 
             idRol = Utilerias.IdRol;
@@ -47,10 +50,13 @@ namespace checklist.Controllers.RazonesSociales
             return Json(new { d = "Ok", access = opc.Permisos.Acceso, perm = opc.Permisos.Escritura });
         }
 
-        public async Task<ActionResult> GetData(string idEmpresa, string cadena, string empresa)
+        public async Task<ActionResult> GetData(string idEmpresa, string cadena, string empresa, string estatus = "")
         {
+            idEmpresa = this.ResolveCheckAppIdEmpresa(idEmpresa);
+            empresa = this.ResolveCheckAppEmpresa(empresa);
+            cadena = this.ResolveCheckAppCadena(cadena);
 
-            string url = string.Format("{0}ObtenerRazonesSociales?idEmpresa={1}&empresa={2}&cadena={3}", Utilerias.UrlBase, idEmpresa, empresa, cadena);
+            string url = string.Format("{0}ObtenerRazonesSociales?idEmpresa={1}&empresa={2}&cadena={3}&estatus={4}", Utilerias.UrlBase, idEmpresa, empresa, cadena, HttpUtility.UrlEncode(estatus ?? ""));
             string idRol = Utilerias.IdRol;
             Opciones opc = await Utilerias.GetOpcion("04004000", idEmpresa, idRol, empresa, cadena);
             if (opc.Permisos.Acceso != 1)
@@ -101,7 +107,8 @@ namespace checklist.Controllers.RazonesSociales
                 sb.Append("\"" + HttpUtility.JavaScriptStringEncode(resp.Pais) + "\",");
                 sb.Append("\"" + HttpUtility.JavaScriptStringEncode(resp.Telefono) + "\",");
                 sb.Append("\"" + HttpUtility.JavaScriptStringEncode(resp.Regimen1) + "\",");
-                sb.Append("\"" + HttpUtility.JavaScriptStringEncode(resp.Notas) + "\"");
+                sb.Append("\"" + HttpUtility.JavaScriptStringEncode(resp.Notas) + "\",");
+                sb.Append("\"" + (!(resp.borrado ?? false)).ToString().ToLowerInvariant() + "\"");
 
                /* if (!string.IsNullOrEmpty(resp.IMGFIREBASE))
                 {
@@ -123,8 +130,44 @@ namespace checklist.Controllers.RazonesSociales
             return jsonResult;
         }
 
+        public async Task<ActionResult> BajaRazon(string id, string idEmpresa, string cadena, string empresa)
+        {
+            return await CambiarEstatusRazon(id, idEmpresa, cadena, empresa, false);
+        }
+
+        public async Task<ActionResult> ReactivarRazon(string id, string idEmpresa, string cadena, string empresa)
+        {
+            return await CambiarEstatusRazon(id, idEmpresa, cadena, empresa, true);
+        }
+
+        private async Task<ActionResult> CambiarEstatusRazon(string id, string idEmpresa, string cadena, string empresa, bool activar)
+        {
+            idEmpresa = this.ResolveCheckAppIdEmpresa(idEmpresa);
+            empresa = this.ResolveCheckAppEmpresa(empresa);
+            cadena = this.ResolveCheckAppCadena(cadena);
+            string idRol = Utilerias.IdRol;
+            Opciones opc = await Utilerias.GetOpcion("04004000", idEmpresa, idRol, empresa, cadena);
+            if (opc.Permisos.Escritura != 1)
+            {
+                return Json(new { d = "No tienes permiso de escritura para Razones Sociales." });
+            }
+
+            string action = activar ? "ReactivarRazonSocial" : "BajaRazonSocial";
+            string url = string.Format("{0}{1}?id={2}&empresa={3}&cadena={4}", Utilerias.UrlBase, action, id, empresa, cadena);
+            var client = new RestClient(url);
+            var request = new RestRequest();
+            request.Method = Method.Post;
+            request.AddCheckAppProxyHeaders(this, _config, idEmpresa, empresa);
+            RestResponse response = await client.ExecuteAsync(request);
+            string content = Utilerias.LimpiaCadena(response.Content);
+            return Json(new { d = string.IsNullOrWhiteSpace(content) ? "Ok" : content });
+        }
+
         public async Task<ActionResult> GetRazon(string lla, string idEmpresa, string cadena, string empresa)
         {
+            idEmpresa = this.ResolveCheckAppIdEmpresa(idEmpresa);
+            empresa = this.ResolveCheckAppEmpresa(empresa);
+            cadena = this.ResolveCheckAppCadena(cadena);
 
             string url = string.Format("{0}ObtenerRazonSocial?idEmpresa={1}&id={2}&empresa={3}&cadena={4}", Utilerias.UrlBase, idEmpresa, lla, empresa, cadena);
             var client = new RestClient(url);
@@ -151,6 +194,9 @@ namespace checklist.Controllers.RazonesSociales
        string repr, string rfc, string dire, string colo, string cp_, string ciud,
        string esta, string pais, string tele, string im64, string imca, string nota, string regi)
         {
+            idEmpresa = this.ResolveCheckAppIdEmpresa(idEmpresa);
+            empresa = this.ResolveCheckAppEmpresa(empresa);
+            cadena = this.ResolveCheckAppCadena(cadena);
             string idRol = Utilerias.IdRol;
             Opciones opc = await Utilerias.GetOpcion("04004000", idEmpresa, idRol, empresa, cadena);
             if (opc.Permisos.Escritura != 1)

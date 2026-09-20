@@ -58,6 +58,9 @@
             listUrl: "/Sucursales/GetDataSucursales",
             detailUrl: "/Sucursales/GetSucursal",
             saveUrl: "/Sucursales/GuardaSucursal",
+            bajaUrl: "/Sucursales/BajaSucursal",
+            reactivarUrl: "/Sucursales/ReactivarSucursal",
+            statusEnabled: true,
             saveMethod: "POST",
             saveContentType: "application/json; charset=utf-8",
             saveBody: JSON.stringify,
@@ -77,7 +80,8 @@
                 { key: "correo", title: "Correo" },
                 { key: "pais", title: "País" },
                 { key: "razonSocial", title: "Razón Social" },
-                { key: "region", title: "Región" }
+                { key: "region", title: "Región" },
+                { key: "activo", title: "Estatus", type: "status" }
             ],
             filters: [
                 {
@@ -94,6 +98,13 @@
                     selector: "#txFiltroSucursalesRegion",
                     label: "Región",
                     keys: ["region"]
+                },
+                {
+                    selector: "#cbFiltroSucursalesEstatus",
+                    label: "Estatus",
+                    defaultValue: "activo",
+                    serverSide: true,
+                    keys: ["activo"]
                 }
             ],
             fields: [
@@ -105,10 +116,16 @@
                 { key: "pais", source: "pais", selector: "#txPais", required: true },
                 { key: "idRazonSocial", source: "idRazonSocial", selector: "#cbRazon", required: true },
                 { key: "idZona", source: "idZona", selector: "#cbZonas", required: true },
-                { key: "notas", source: "notas", selector: "#txNotas" }
+                { key: "notas", source: "notas", selector: "#txNotas", richText: true, placeholder: "Notas internas" }
             ],
             detailParams: function (id) {
                 return { lla: id, cua: id };
+            },
+            listParams: function () {
+                return { estatus: $("#cbFiltroSucursalesEstatus").val() };
+            },
+            statusParams: function (id) {
+                return { id: id };
             },
             saveParams: function (id, values) {
                 return {

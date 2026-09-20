@@ -54,3 +54,23 @@ Se audito el rol `SuperAdmin` de empresa `163` en SQL real. El estado BEFORE ten
 Se normalizo exclusivamente el rol `SuperAdmin` agregando `04003100` bajo `04003000` con `Acceso = 1` y `Escritura = 1`. No se modificaron otros roles.
 
 Adicionalmente se elimino la compatibilidad insegura de MVC que hacia que `Utilerias.GetOpcion("04003100")` regresara `04003000` cuando ABC no existia. ABC Sucursales queda fail-closed y depende exclusivamente de `04003100`.
+
+## Regresion post-certificacion: carga de datos
+
+Fecha: 2026-09-17
+
+Se detecto que la vista podia renderizar menu y estructura, pero las cargas API de Sucursales/Razones/Regiones dependian de encabezados proxy completos. En sesiones donde el usuario autenticado vive en variables de sesion y no en `ClaimTypes.NameIdentifier`, MVC no enviaba `X-ProductosServicios-Proxy-UsuarioId`; la API resolvia tenant/AuthZ incompleto y fallaba la carga.
+
+Correccion aplicada:
+
+- `CheckAppProxyHeaders` resuelve usuario desde claim principal y, como fallback, desde sesion `userUid`, `uid` o `idFirebase`.
+- `Regiones` usa `SucursalesScopeRequestContextResolver` tambien en listado, detalle y baja, con `idEmpresa` del contexto autorizado.
+- No se altero Firebase, Hosting, Conexiones, T25 ni la jerarquia de permisos.
+
+Validacion posterior:
+
+- Build MVC PASS.
+- Build API PASS.
+- Suite API PASS 415/415.
+- `git diff --check` PASS en MVC/API.
+- QA visual autenticada queda pendiente de repeticion en runtime manual por bloqueo de sesion duplicada durante la prueba temporal Codex.
