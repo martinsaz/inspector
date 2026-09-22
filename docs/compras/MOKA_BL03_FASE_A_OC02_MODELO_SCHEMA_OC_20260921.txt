@@ -1,0 +1,148 @@
+#MOKA
+BL-03 — FASE A — OC-02
+MODELO Y SCHEMA TÉCNICO VERSIONADO DE ÓRDENES DE COMPRA
+PREDECESORES: OC-01 PASS; SEC-01 PASS; ARQ-01 PASS técnico + decisión PO.
+
+DECISIONES PO NUEVAS
+1) Inventario V1 por SUCURSAL.
+2) Arquitectura aprobada: Scope Inventario separado, ledger + saldo materializado, granularidad idEmpresa+SucursalId+ProductoServicioId+VarianteId nullable, stock en unidad base.
+3) NO conservar como UNKNOWN la existencia histórica que no pueda mapearse a sucursal/variante.
+4) Registros históricos incompatibles podrán ELIMINARSE sólo de manera SEGURA, CONTROLADA Y TRAZABLE. Esta autorización NO permite borrado ciego: antes demostrar registros exactos, dependencias, que son modelo viejo y que eliminarlos no rompe OC, ProductosServicios, FK, reportes ni datos válidos. Evidencia BEFORE, transacción/idempotencia, AFTER.
+5) Serie activa única por empresa+producto+variante+número; mover sucursal no duplica serie.
+
+OBJETIVO
+Convertir OC-01 en modelo/schema técnico versionado para Productos, Servicios, OC mixta, Variantes, PresentacionCompra, snapshots y cantidades ordenadas/recibidas/pendientes. Aplicar Patrón CheckApp de schema: contrato, EMPTY bootstrap, adopción histórica, migraciones, locking, transacción, idempotencia, State/History/Attempts, drift y Gate.
+NO UI final. NO Recepción funcional. NO REC-01. NO Legacy.
+
+FUENTES
+Leer OC-01, SEC-01, ARQ-01, reauditorías, Patrón CheckApp, AGENTS/CLAUDE y código/schema/modelos/API actuales de OC y ProductosServicios.
+
+1 BEFORE
+Auditar OrdenesCompra, OrdenesCompraDetalle, Folios y relacionados: columnas/tipos/null/default/PK/FK/UNIQUE/CHECK/índices/datos/estados/idEmpresa. Auditar concepto reutilizable PresentacionCompra. No duplicar.
+
+2 PRESENTACIONCOMPRA V1
+Implementar contrato físico separado de PresentacionVenta. Debe soportar tenant, ProductoServicio, Variante nullable cuando aplique, nombre, unidad compra, factor a unidad base, estatus y mínimos demostrados. NO precio/semántica de venta. Proveedor no requisito V1 salvo nueva evidencia/decisión. Índices/constraints reales.
+
+3 DETALLE OC
+Evolucionar para soportar: TipoPartida Producto/Servicio; ProductoServicioId; VarianteId nullable; PresentacionCompraId nullable; snapshots Nombre/Descripción/Tipo/Variante/Presentación/Unidad/Factor/Costo; CantidadCompra; FactorConversionSnapshot; CantidadBaseOrdenada; CantidadBaseRecibidaAcumulada; CantidadBasePendiente; EstadoPartida. Usar nombres físicos coherentes con repo.
+
+4 CABECERA
+Evolucionar sólo lo necesario para Borrador/Generada/ParcialmenteRecibida/Recibida/Cancelada y contratos Proveedor/Razón/Sucursal. No duplicar existentes. No implementar lógica Recepción.
+
+5 CASOS
+Schema debe representar Producto sin variante; Producto con variante; Servicio sin inventario/serie; OC mixta en misma cabecera. No tablas separadas por tipo.
+
+6 CANTIDADES
+CantidadCompra>0. Factor>0 cuando aplique. BaseOrdenada=CantidadCompra*Factor o CantidadCompra en base. RecibidaAcumulada=0 nuevas. Pendiente=BaseOrdenada. No negativos.
+
+7 SNAPSHOTS
+Persistir snapshots aprobados por OC-01 para que histórico no cambie por catálogo. Documentar origen de cada snapshot.
+
+8 FK/ÍNDICES/CONSTRAINTS
+Sólo con evidencia. Tenant-safe, preferir relaciones compuestas con idEmpresa donde corresponda. Índices para folio/estado/proveedor/sucursal/producto/variante/presentación/reporte sin redundancia.
+
+9 SCOPE/VERSIONADO
+Definir Scope OC real. Contrato latest, hash determinístico, EMPTY→latest, adopción/migración histórica, lock DatabaseIdentity+Scope, History/Attempts/State, drift, Gate. No alterar manifests históricos.
+
+10 HISTÓRICO OC
+Preservar conteos reales actuales (ARQ-01 observó 43 OC/88 detalles, revalidar). Sin Variante=>NULL. Sin PresentacionCompra=>NULL + snapshots disponibles. No inventar datos.
+
+11 LIMPIEZA INVENTARIO HISTÓRICO AUTORIZADA
+ARQ-01 detectó ProductosServiciosExistencias vieja sin Sucursal/Variante.
+Antes de borrar: reidentificar registros exactos; revisar FK/referencias/dependencias; demostrar que no son necesarios para OC histórica; evidencia/snapshot BEFORE; determinar limpieza coherente; NO borrar ProductosServicios, Variantes, OC, Detalles, Proveedores, Sucursales ni maestros; NO borrar datos mapeables con evidencia.
+Si es seguro: eliminación transaccional, idempotente, trazada; AFTER; residuos; regresiones.
+Si NO se demuestra seguridad: NO BORRAR, marcar BLOQUEADO y causa exacta. “Eliminar de manera segura” NO significa forzar borrado.
+
+12 INVENTARIO
+No construir todo Scope Inventario desde OC-02 si arquitectura/backlog exige ticket propio. Registrar decisión PO y dependencias. OC no mueve inventario.
+
+13 AUTHZ
+Preservar SEC-01: 05003000 agrupador; 05003001 Nueva; 05003002 Reporte. No cambiar códigos.
+
+14 MULTITENANT
+idEmpresa server-side. No cruces de empresa. Tests cross-tenant.
+
+15 API/MODELOS
+Actualizar sólo lo necesario para representar/compilar nuevo contrato técnico sin UI final ni Recepción ficticia. No romper endpoints actuales.
+
+16 CHECKAPPERP
+Certificación real según Patrón: BEFORE, bootstrap/migration/adoption según estado, latest/hash/History/Attempts/State, segunda corrida idempotente, drift, Gate COMPATIBLE, históricos OC preservados, limpieza inventario sólo si segura, fixtures limpios.
+
+17 TESTS
+Producto sin variante; con variante; Servicio; Mixta; PresentacionCompra; factor/base; snapshots; tenant; constraints; bootstrap; migration; idempotencia; drift; Gate; histórico; limpieza segura si aplica. Regresión ProductosServicios/Proveedores/Sucursales/SEC-01.
+
+18 DOCUMENTACIÓN
+Crear docs/compras/BL03_FASE_A_OC02_MODELO_SCHEMA_OC_20260921.md.
+Actualizar AGENTS/CLAUDE MVC/API y backlog sólo con hechos finales. No iniciar REC-01.
+
+DoD
+BEFORE auditado; PresentacionCompra física/versionada; detalle soporta Producto/Servicio/Mixta/Variante; snapshots; cantidades; estados; FK/índices/constraints; multitenant; Scope/contrato/hash; EMPTY bootstrap; histórica adoptada/migrada; históricos OC preservados; segunda corrida idempotente; drift=0; Gate COMPATIBLE; limpieza inventario SEGURA EJECUTADA o BLOQUEADA CON CAUSA; regresiones/tests/build/diff; no Legacy/REC-01; T25 y reporte líder FROZEN; 5200/5127 libres.
+
+NO HACER
+No Legacy, UI final, Recepción funcional, REC-01, borrado inseguro, borrar OC/detalles, reutilizar PresentacionesVenta, cambiar SEC-01, Firebase/Hosting/Conexiones, T25/reporte líder.
+
+PUERTOS
+Puede usar 5200/5127. AL FINAL liberar ambos y lsof sin listeners. Preservar 8080 si preexistente.
+
+ENTREGA #MOKA
+1 Ticket:
+2 Estado:
+3 Documento:
+4 OC-01:
+5 SEC-01:
+6 ARQ-01 decisiones PO:
+7 BEFORE schema:
+8 OC BEFORE:
+9 detalles BEFORE:
+10 PresentacionCompra:
+11 Variante:
+12 Servicio:
+13 Mixta:
+14 Snapshots:
+15 CantidadCompra:
+16 Factor:
+17 BaseOrdenada:
+18 Recibida:
+19 Pendiente:
+20 Estados:
+21 Scope:
+22 Versión:
+23 Hash:
+24 EMPTY:
+25 Migración/adopción:
+26 Idempotencia:
+27 History:
+28 Attempts:
+29 State:
+30 Drift:
+31 Gate:
+32 Multitenant:
+33 AuthZ:
+34 Inventario histórico detectado:
+35 Dependencias inventario:
+36 BEFORE limpieza:
+37 Limpieza segura: SÍ/NO/BLOQUEADA
+38 Registros eliminados:
+39 Justificación:
+40 AFTER:
+41 ProductosServicios regresión:
+42 OC históricas:
+43 Proveedores:
+44 Sucursales:
+45 Tests:
+46 Build API:
+47 Build MVC:
+48 diff:
+49 Legacy:NO
+50 REC-01:NO
+51 T25:FROZEN
+52 REPORTE LÍDER:FROZEN
+53 5200:
+54 5127:
+55 lsof:
+56 Bloqueos:
+57 Dictamen:
+58 Siguiente ticket recomendado: determinar según dependencias reales; NO EJECUTAR.
+
+NO declarar PASS forzando limpieza insegura.
+EJECUTA DE PRINCIPIO A FIN.

@@ -150,6 +150,17 @@
 - Comparacion visual runtime contra ProductosServicios: obligatoria para declarar UI/UX PASS. Markup/CSS/build/tests no sustituyen inspeccion autenticada real en navegador. Controles con apariencia browser-default o legacy visible son FAIL.
 - Si Codex levanta servidores locales, debe liberar y verificar los puertos que abrio antes de entregar. En tickets #MOKA donde PM/PO ordene liberar `5200`/`5127`, ambos puertos deben quedar sin listeners al final para QA manual del PO.
 
+## Anexo 2026-09-21 - Pantallas operativas complejas
+
+- Las pantallas complejas usan `/ProductosServicios/Index` como Golden Master real, no como inspiracion parcial.
+- En tablas operativas desktop, controles y acciones tienen prioridad visual; la descripcion debe ser compacta/truncada y no puede forzar scroll horizontal obligatorio.
+- El scroll horizontal se conserva como fallback responsive para tablet/mobile o ventanas estrechas.
+- HTML saneado de descripciones/notas se edita como HTML donde aplique, pero en grillas, revision y detalle se muestra como texto seguro; nunca se imprimen tags crudos.
+- El copy tecnico de inventario, snapshots, schema, gate, tenant o ids no pertenece a la UI operativa.
+- Borrador y emision deben tener nomenclatura inequívoca: `Guardar borrador` no emite; `Generar orden` emite.
+- `PresentacionCompra` y `PresentacionVenta` son contratos independientes; no copiar venta para simular compra.
+- LISTO QA PO requiere navegador autenticado real y comparacion visual contra Golden Master.
+
 ## Dictamen documental
 
 ProductosServicios queda formalizado como pantalla base oficial CheckApp para homologaciones futuras. Los cambios de esta fase corrigen el footer del modal principal, centralizan el editor HTML para descripciones conceptuales de ProductosServicios y catalogos aplicables, preservan sanitizacion backend, y dejan resuelta por Product Owner la decision de tipo SQL: las descripciones HTML futuras en catalogos/colecciones deben usar `NVARCHAR(MAX)` mediante contrato versionado y migracion T17.

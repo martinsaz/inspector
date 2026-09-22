@@ -19,12 +19,7 @@ namespace checklist.Controllers
 {
     public class HomeController : Controller
     {
-        private const string ProductosServiciosPermissionCode = "05001000";
-        private const string ProductosServiciosAbcPermissionCode = "05001001";
-        private const string ProductosServiciosCatalogosPermissionCode = "05001002";
-        private const string ProductosServiciosCategoriasPermissionCode = "05001003";
-        private const string ProductosServiciosMarcasPermissionCode = "05001004";
-        private const string ProductosServiciosUnidadesPermissionCode = "05001005";
+        private const string SuperAdminRoleCookie = "chkRoleName";
         private readonly ILogger<HomeController> _logger;
         private readonly IConfiguration _configuration;
 
@@ -204,11 +199,22 @@ namespace checklist.Controllers
                                 // Intenta deserializar solo si la respuesta es válida
                                 List<respRoles> roles = JsonConvert.DeserializeObject<List<respRoles>>(response.Content);
 
+                                bool isSuperAdminRole = false;
                                 foreach (var role in roles)
                                 {
                                     HttpContext.Response.Cookies.Append("prmmnu", role.Permisos);
+                                    if (string.Equals(role.NombreRol?.Trim(), "SuperAdmin", StringComparison.OrdinalIgnoreCase))
+                                    {
+                                        HttpContext.Response.Cookies.Append(SuperAdminRoleCookie, "SuperAdmin");
+                                        isSuperAdminRole = true;
+                                    }
+                                    else
+                                    {
+                                        HttpContext.Response.Cookies.Delete(SuperAdminRoleCookie);
+                                    }
                                     cookieValue = role.Permisos;
                                 }
+                                HttpContext.Items["IsSuperAdminRole"] = isSuperAdminRole;
                             }
                             catch (JsonSerializationException ex)
                             {
@@ -224,8 +230,13 @@ namespace checklist.Controllers
                             Console.WriteLine($"Error en la solicitud HTTP: {response.StatusDescription}");
                             throw new Exception("Error en la solicitud al servicio.");
                         }
+                        bool isSuperAdminMenu = HttpContext.Items["IsSuperAdminRole"] is bool value && value;
                         List<Opciones> opciones = JsonConvert.DeserializeObject<List<Opciones>>(cookieValue);
-                        ProductosServiciosMenuAccess productosServiciosAccess = ResolveProductosServiciosMenuAccess(opciones);
+                        if (isSuperAdminMenu)
+                        {
+                            opciones = ProveeduriaMenuBuilder.AddOfficialSuperAdminPermissions(opciones);
+                        }
+                        ProveeduriaMenuAccess proveeduriaAccess = ProveeduriaMenuBuilder.ResolveAccess(opciones);
                         StringBuilder sb = new StringBuilder();
                         foreach (var item in opciones)
                         {
@@ -380,7 +391,7 @@ namespace checklist.Controllers
                                         sb.Append(BuildCotizacionesMenu(currentMenuPath));
                                         sb.Append(BuildClientesMenu());
                                         sb.Append(BuildActivosMenu());
-                                        sb.Append(BuildProveeduriaMenu(productosServiciosAccess));
+                                        sb.Append(ProveeduriaMenuBuilder.Build(opciones));
                                         renderedProveeduria = true;
                                     }
                                     break;
@@ -554,9 +565,9 @@ namespace checklist.Controllers
                                 sb.Append(@"</div>");
                             }
                         }
-                        if (productosServiciosAccess.ShowModule && !renderedProveeduria)
+                        if (proveeduriaAccess.ShowModule && !renderedProveeduria)
                         {
-                            sb.Append(BuildProveeduriaMenu(productosServiciosAccess));
+                            sb.Append(ProveeduriaMenuBuilder.Build(opciones));
                         }
                         result = sb.ToString();
                     }
@@ -823,113 +834,6 @@ namespace checklist.Controllers
             sb.Append(@"</div>");
             sb.Append(@"</div>");
             return sb.ToString();
-        }
-
-        private ProductosServiciosMenuAccess ResolveProductosServiciosMenuAccess(List<Opciones> opciones)
-        {
-            bool module = HasAccess(opciones, ProductosServiciosPermissionCode);
-            bool catalogos = HasAccess(opciones, ProductosServiciosCatalogosPermissionCode);
-            bool categorias = HasAccess(opciones, ProductosServiciosCategoriasPermissionCode);
-            bool marcas = HasAccess(opciones, ProductosServiciosMarcasPermissionCode);
-            bool unidades = HasAccess(opciones, ProductosServiciosUnidadesPermissionCode);
-            return new ProductosServiciosMenuAccess
-            {
-                ShowAbc = module && HasAccess(opciones, ProductosServiciosAbcPermissionCode),
-                ShowCatalogos = module && catalogos && (categorias || marcas || unidades),
-                ShowCategorias = module && catalogos && categorias,
-                ShowMarcas = module && catalogos && marcas,
-                ShowUnidades = module && catalogos && unidades
-            };
-        }
-
-        private static bool HasAccess(List<Opciones> opciones, string permissionCode)
-        {
-            return FindPermission(opciones, permissionCode)?.Permisos?.Acceso == 1;
-        }
-
-        private static Opciones? FindPermission(IEnumerable<Opciones>? opciones, string permissionCode)
-        {
-            if (opciones == null)
-            {
-                return null;
-            }
-
-            foreach (Opciones option in opciones)
-            {
-                if (string.Equals(option.Opcion, permissionCode, StringComparison.OrdinalIgnoreCase))
-                {
-                    return option;
-                }
-
-                Opciones? child = FindPermission(option.Hijos, permissionCode);
-                if (child != null)
-                {
-                    return child;
-                }
-            }
-
-            return null;
-        }
-
-        private static string BuildProveeduriaMenu(ProductosServiciosMenuAccess productosServicios)
-        {
-            StringBuilder sb = new StringBuilder();
-            sb.Append(@"<div id=""menu-proveeduria"" data-kt-menu-trigger=""click"" class=""menu-item menu-accordion"">");
-            sb.Append(@"<span class=""menu-link""> <span class=""menu-icon""> <i class=""ki-duotone ki-element-plus fs-2""> <span class=""path1""></span> <span class=""path2""></span> <span class=""path3""></span> <span class=""path4""></span> <span class=""path5""></span> </i> </span> <span class=""menu-title"">Proveeduría</span> <span class=""menu-arrow""></span> </span>");
-            sb.Append(@"<div class=""menu-sub menu-sub-accordion"">");
-            if (productosServicios.ShowModule)
-            {
-                sb.Append(@"<div id=""menu-proveeduria-productos-servicios"" data-kt-menu-trigger=""click"" class=""menu-item menu-accordion"">");
-                sb.Append(@"<span class=""menu-link""> <span class=""menu-bullet""> <span class=""bullet bullet-dot""></span> </span> <span class=""menu-title"">Productos y Servicios</span> <span class=""menu-arrow""></span> </span>");
-                sb.Append(@"<div class=""menu-sub menu-sub-accordion"">");
-                if (productosServicios.ShowAbc)
-                {
-                    sb.Append(@"<div id=""menu-productos-servicios-abc"" class=""menu-item""> <a class=""menu-link"" href=""/ProductosServicios/Index""> <span class=""menu-bullet""> <span class=""bullet bullet-dot""></span> </span> <span class=""menu-title"">ABC Productos y Servicios</span> </a> </div>");
-                }
-                if (productosServicios.ShowCatalogos)
-                {
-                    sb.Append(@"<div id=""menu-productos-servicios-catalogos"" data-kt-menu-trigger=""click"" class=""menu-item menu-accordion"">");
-                    sb.Append(@"<span class=""menu-link""> <span class=""menu-bullet""> <span class=""bullet bullet-dot""></span> </span> <span class=""menu-title"">Catálogos</span> <span class=""menu-arrow""></span> </span>");
-                    sb.Append(@"<div class=""menu-sub menu-sub-accordion"">");
-                    if (productosServicios.ShowCategorias)
-                    {
-                        sb.Append(@"<div id=""menu-productos-servicios-categorias"" class=""menu-item""> <a class=""menu-link"" href=""/ProductosServicios/Categorias""> <span class=""menu-bullet""> <span class=""bullet bullet-dot""></span> </span> <span class=""menu-title"">Categorías</span> </a> </div>");
-                    }
-                    if (productosServicios.ShowMarcas)
-                    {
-                        sb.Append(@"<div id=""menu-productos-servicios-marcas"" class=""menu-item""> <a class=""menu-link"" href=""/ProductosServicios/Marcas""> <span class=""menu-bullet""> <span class=""bullet bullet-dot""></span> </span> <span class=""menu-title"">Marcas</span> </a> </div>");
-                    }
-                    if (productosServicios.ShowUnidades)
-                    {
-                        sb.Append(@"<div id=""menu-productos-servicios-unidades"" class=""menu-item""> <a class=""menu-link"" href=""/ProductosServicios/UnidadesMedida""> <span class=""menu-bullet""> <span class=""bullet bullet-dot""></span> </span> <span class=""menu-title"">Unidades de medida</span> </a> </div>");
-                    }
-                    sb.Append(@"</div>");
-                    sb.Append(@"</div>");
-                }
-                sb.Append(@"</div>");
-                sb.Append(@"</div>");
-            }
-            sb.Append(@"<div id=""menu-proveeduria-proveedores"" class=""menu-item""> <a class=""menu-link"" href=""/Activos/Proveedores""> <span class=""menu-bullet""> <span class=""bullet bullet-dot""></span> </span> <span class=""menu-title"">Proveedores</span> </a> </div>");
-            sb.Append(@"<div id=""menu-proveeduria-ordenes-compra"" data-kt-menu-trigger=""click"" class=""menu-item menu-accordion"">");
-            sb.Append(@"<span class=""menu-link""> <span class=""menu-bullet""> <span class=""bullet bullet-dot""></span> </span> <span class=""menu-title"">Órdenes de compra</span> <span class=""menu-arrow""></span> </span>");
-            sb.Append(@"<div class=""menu-sub menu-sub-accordion"">");
-            sb.Append(@"<div id=""menu-proveeduria-ordenes-compra-nueva"" class=""menu-item""> <a class=""menu-link"" href=""/Activos/OrdenesCompra/Nueva""> <span class=""menu-bullet""> <span class=""bullet bullet-dot""></span> </span> <span class=""menu-title"">Nueva</span> </a> </div>");
-            sb.Append(@"<div id=""menu-proveeduria-ordenes-compra-reporte"" class=""menu-item""> <a class=""menu-link"" href=""/Activos/OrdenesCompra/Reporte""> <span class=""menu-bullet""> <span class=""bullet bullet-dot""></span> </span> <span class=""menu-title"">Reporte</span> </a> </div>");
-            sb.Append(@"</div>");
-            sb.Append(@"</div>");
-            sb.Append(@"</div>");
-            sb.Append(@"</div>");
-            return sb.ToString();
-        }
-
-        private sealed class ProductosServiciosMenuAccess
-        {
-            public bool ShowAbc { get; init; }
-            public bool ShowCatalogos { get; init; }
-            public bool ShowCategorias { get; init; }
-            public bool ShowMarcas { get; init; }
-            public bool ShowUnidades { get; init; }
-            public bool ShowModule => ShowAbc || ShowCatalogos;
         }
 
         private static string BuildClientesMenu()

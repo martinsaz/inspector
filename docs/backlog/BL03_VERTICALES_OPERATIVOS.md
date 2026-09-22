@@ -4,18 +4,18 @@ Objetivo: gestionar proximos modulos/procesos que requieren auditoria, construcc
 
 Etapas esperadas para cada vertical:
 
-A. Auditoria funcional actual.  
-B. Auditoria Legacy cuando corresponda.  
-C. Contrato funcional/campos/reglas.  
-D. Diseno UI/UX Patron CheckApp.  
-E. Permisos.  
-F. API/AuthZ.  
-G. Multitenant/idEmpresa.  
-H. Schema/versionamiento.  
-I. Migracion/bootstrap si aplica.  
-J. Tests.  
-K. QA runtime.  
-L. QA PO.  
+A. Auditoria funcional actual.
+B. Auditoria Legacy cuando corresponda.
+C. Contrato funcional/campos/reglas.
+D. Diseno UI/UX Patron CheckApp.
+E. Permisos.
+F. API/AuthZ.
+G. Multitenant/idEmpresa.
+H. Schema/versionamiento.
+I. Migracion/bootstrap si aplica.
+J. Tests.
+K. QA runtime.
+L. QA PO.
 M. Cierre.
 
 ## VO-001 - Ordenes de Compra
@@ -28,20 +28,22 @@ M. Cierre.
 - Fuera de alcance: iniciar implementacion, DDL, SQL writes, T25, Recepcion como ejecucion separada.
 - Dependencias: Proveedores/Proveeduria, ProductosServicios certificado, Razones Sociales/Sucursales, decision PO sobre backlog definitivo.
 - Criterios de aceptacion: auditoria consolidada; contrato funcional aprobado; dependencias confirmadas; DoD Patron CheckApp definido; cierre PO para pasar a ejecucion.
-- Estado: `EN AUDITORIA`.
-- Avance: `25%`.
-- Evidencia: `inspector/docs/compras/AUDITORIA_INTEGRAL_OC_CHECKAPP_ACTUAL_2026-08-19.md`; `inspector/docs/compras/AUDITORIA_INTEGRAL_OC_SKNC_LEGACY_2026-08-18.md`; `inspector/docs/compras/BACKLOG_MAESTRO_PROVEEDURIA_ORDENES_COMPRA.md`; `inspector/docs/ordenes-compra/ORDENES_COMPRA_BACKLOG_FINAL.md`; `inspector/docs/compras/checkapp-actual/05_COMPARATIVO_CHECKAPP_VS_SKNC.md`.
-- Bloqueos: requiere decision PM/PO sobre si usar backlog final de `ordenes-compra` o backlog maestro de `compras` como fuente primaria.
+- Estado: `OC-01 CERRADO / CONTRATO FUNCIONAL APROBADO`; `SEC-01 CERRADO / PASS TECNICO`; `SEC-01R CERRADO / PASS TECNICO RESTAURADO`; `ARQ-01 CERRADO / ALTERNATIVA B APROBADA POR PO`; `OC-02 CERRADO / MODELO SCHEMA OC V1`; `INV-01 CERRADO / PASS TECNICO`; `INV-02 CERRADO / PASS TECNICO`; `REC-01 CERRADO / PASS TECNICO`; `FASE B OC-03R PASS TECNICO / PENDIENTE QA PO`.
+- Avance: `FASE A cerrada; SEC-01R corrige RolesPermisos para hijos OC/Recepcion y restaura menu global SuperAdmin con fusion aditiva; FASE B OC-03 actualiza Nueva OC existente con Patron CheckApp, productos, servicios, variantes, PresentacionCompra, snapshots, cantidades compra/base, AuthZ, multitenant y gate; Recepcion UI no iniciada`.
+- Evidencia: `inspector/docs/compras/BL03_FASE_B_OC03R_QA_PO_PATRON_CHECKAPP_20260921.md`; `inspector/docs/compras/BL03_SEC01R_INCIDENTE_RESTAURACION_MENU_SUPERADMIN_20260921.md`; `inspector/docs/compras/BL03_REAPERTURA_SEC01R_ROLES_PERMISOS_OC_RECEPCION_20260921.md`; `inspector/docs/compras/BL03_FASE_B_OC03_NUEVA_OC_PATRON_CHECKAPP_20260921.md`; `inspector/docs/compras/BL03_FASE_A_REC01_MODELO_SCHEMA_RECEPCION_20260921.md`; `inspector/docs/compras/BL03_FASE_A_INV02_LIMPIEZA_HISTORICO_INVENTARIO_20260921.md`; `inspector/docs/compras/BL03_FASE_A_INV01_SCOPE_INVENTARIO_V1_20260921.md`; `inspector/docs/compras/BL03_FASE_A_OC02_MODELO_SCHEMA_OC_20260921.md`; `inspector/docs/compras/BL03_FASE_A_ARQ01_INVENTARIO_VARIANTE_SUCURSAL_20260921.md`; `inspector/docs/compras/BL03_FASE_A_SEC01_PERMISOS_CODIGOS_OC_RECEPCION_20260921.md`; `inspector/docs/compras/BL03_FASE_A_OC01_CONTRATO_FUNCIONAL_OC_RECEPCION_20260921.md`; `inspector/docs/compras/MOKA_REAUDITORIA_INTEGRAL_OC_RECEPCION_PERMISOS_20260921.md`; `inspector/docs/compras/MOKA_AUDITORIA_OC_RECEPCION_COMPLETO_20260920.md`; `inspector/docs/compras/AUDITORIA_INTEGRAL_OC_CHECKAPP_ACTUAL_2026-08-19.md`; `inspector/docs/compras/AUDITORIA_INTEGRAL_OC_SKNC_LEGACY_2026-08-18.md`; `inspector/docs/compras/BACKLOG_MAESTRO_PROVEEDURIA_ORDENES_COMPRA.md`; `inspector/docs/ordenes-compra/ORDENES_COMPRA_BACKLOG_FINAL.md`; `inspector/docs/compras/checkapp-actual/05_COMPARATIVO_CHECKAPP_VS_SKNC.md`.
+- Bloqueos: no queda bloqueo tecnico de modelo Recepcion V1 ni de Nueva OC V1; pendiente QA PO.
 - Responsable tecnico: pendiente.
 - QA requerido: QA funcional/manual posterior, no iniciado.
-- Siguiente accion: PM/PO debe validar alcance y separar que entra en OC vs Recepcion.
-- Fecha ultima actualizacion: 2026-09-17.
+- Siguiente accion: QA PO OC-03; no ejecutar OC-04 ni ticket posterior automaticamente.
+- Fecha ultima actualizacion: 2026-09-21.
 
 Checklist inicial:
 
-- A: iniciada por documentacion existente.
-- B: iniciada por auditoria SKNC.
-- C-M: pendiente de confirmacion para esta reorganizacion.
+- A: cerrada por reauditoria consolidada.
+- B: cerrada como fuente Legacy solo lectura.
+- C: cerrada por OC-01 contrato funcional.
+- E/F: SEC-01 cerrada para permisos/codigos/menu/AuthZ OC.
+- D y J-K: SEC-01R y OC-03 cerrados tecnicamente con pruebas y QA runtime real reversible; OC-03 queda LISTO QA PO, no aprobado PO; L-M pendientes de QA PO/cierre PO; T25 FROZEN y reporte lider FROZEN.
 
 ## VO-002 - Recepcion
 
@@ -53,20 +55,22 @@ Checklist inicial:
 - Fuera de alcance: iniciar implementacion, afectar existencias, crear tablas, DDL, ejecutar vertical.
 - Dependencias: VO-001 Ordenes de Compra; evidencia documental confirma relacion OC -> Recepcion -> Inventario.
 - Criterios de aceptacion: contrato funcional validado; eventos y estados definidos; dependencias con OC e Inventario separadas.
-- Estado: `EN AUDITORIA`.
-- Avance: `25%`.
-- Evidencia: `inspector/docs/compras/BACKLOG_MAESTRO_PROVEEDURIA_ORDENES_COMPRA.md`; `inspector/docs/compras/checkapp-actual/05_COMPARATIVO_CHECKAPP_VS_SKNC.md`; `inspector/docs/compras/legacy-sknc/08_RECEPCION_OC.md`; `inspector/docs/compras/AUDITORIA_INTEGRAL_OC_SKNC_LEGACY_2026-08-18.md`.
-- Bloqueos: requiere PO para alcance exacto de Recepcion y si se implementa antes o despues de aprobaciones.
+- Estado: `OC-01 CERRADO / CONTRATO FUNCIONAL APROBADO`; `SEC-01 CERRADO / PASS TECNICO`; `ARQ-01 CERRADO / ALTERNATIVA B APROBADA POR PO`; `OC-02 CERRADO / MODELO SCHEMA OC V1`; `INV-01 CERRADO / PASS TECNICO`; `INV-02 CERRADO / PASS TECNICO`; `REC-01 CERRADO / PASS TECNICO`.
+- Avance: `Contrato funcional de Recepcion definido; permisos/codigos persistibles definidos; Inventario V1 aprobado y certificado; Recepcion V1 implementada como modelo/API tecnico sin UI final, con QA real reversible y cleanup total`.
+- Evidencia: `inspector/docs/compras/BL03_FASE_A_REC01_MODELO_SCHEMA_RECEPCION_20260921.md`; `inspector/docs/compras/BL03_FASE_A_INV02_LIMPIEZA_HISTORICO_INVENTARIO_20260921.md`; `inspector/docs/compras/BL03_FASE_A_INV01_SCOPE_INVENTARIO_V1_20260921.md`; `inspector/docs/compras/BL03_FASE_A_OC02_MODELO_SCHEMA_OC_20260921.md`; `inspector/docs/compras/BL03_FASE_A_ARQ01_INVENTARIO_VARIANTE_SUCURSAL_20260921.md`; `inspector/docs/compras/BL03_FASE_A_SEC01_PERMISOS_CODIGOS_OC_RECEPCION_20260921.md`; `inspector/docs/compras/BL03_FASE_A_OC01_CONTRATO_FUNCIONAL_OC_RECEPCION_20260921.md`; `inspector/docs/compras/MOKA_REAUDITORIA_INTEGRAL_OC_RECEPCION_PERMISOS_20260921.md`; `inspector/docs/compras/MOKA_AUDITORIA_OC_RECEPCION_COMPLETO_20260920.md`; `inspector/docs/compras/BACKLOG_MAESTRO_PROVEEDURIA_ORDENES_COMPRA.md`; `inspector/docs/compras/checkapp-actual/05_COMPARATIVO_CHECKAPP_VS_SKNC.md`; `inspector/docs/compras/legacy-sknc/08_RECEPCION_OC.md`; `inspector/docs/compras/AUDITORIA_INTEGRAL_OC_SKNC_LEGACY_2026-08-18.md`.
+- Bloqueos: sin bloqueo tecnico de modelo/schema Recepcion V1; pendiente subticket de UI/flujo final si PO lo solicita.
 - Responsable tecnico: pendiente.
 - QA requerido: no iniciado.
-- Siguiente accion: definir contrato Recepcion y limites con Inventario/Evidencia.
-- Fecha ultima actualizacion: 2026-09-17.
+- Siguiente accion: ejecutar siguiente subticket funcional de Recepcion/UI segun PO; no ejecutar automaticamente.
+- Fecha ultima actualizacion: 2026-09-21.
 
 Checklist inicial:
 
-- A: iniciada por comparativo y backlog maestro.
-- B: iniciada en auditoria legacy SKNC.
-- C-M: pendiente.
+- A: cerrada por reauditoria consolidada.
+- B: cerrada como fuente Legacy solo lectura.
+- C: cerrada por OC-01 contrato funcional.
+- E/F: SEC-01 cerrada para codigos/permisos; sin endpoints funcionales ficticios de Recepcion.
+- D, G-M: pendientes de tickets posteriores; REC-01 no iniciado; T25 FROZEN y reporte lider FROZEN.
 
 ## VO-003 - Catalogo de Curvas
 
@@ -142,3 +146,11 @@ Checklist inicial:
 | Aprobaciones OC vs Recepcion | Definir orden de ejecucion con PO. |
 | Evidencia Checklist para Recepcion | Definir si entra en VO-002 o subticket posterior. |
 
+## Incidente QA real SuperAdmin / OC-03 - 2026-09-21
+
+- Estado: `CORREGIDO / LISTO QA PO`.
+- Documento: `inspector/docs/compras/BL03_INCIDENTE_QA_REAL_SUPERADMIN_USUARIO_ACTIVO_OC03_20260921.md`.
+- Se reprodujo en navegador real: RolesPermisos SuperAdmin mostraba OC/Recepcion OFF y Nueva OC fallaba con `No fue posible resolver el usuario activo`.
+- Fix: overlay oficial SuperAdmin ON + disabled sin mutar JSON; Nueva OC MVC/API transmite identidad efectiva string/Firebase UID para AuthZ.
+- Runtime real completo: Home -> RolesPermisos -> Nueva OC -> Paso 1 -> Paso 2 -> Partidas -> Revision con producto+variante y servicio, sin guardar OC.
+- Regla permanente: nunca exigir al PO activar switches de SuperAdmin para nuevas opciones oficiales.

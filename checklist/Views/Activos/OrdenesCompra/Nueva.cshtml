@@ -114,7 +114,7 @@
                         <div>
                             <span class="checkapp-panel-eyebrow">Paso 2</span>
                             <h2>Productos y servicios</h2>
-                            <p class="checkapp-panel-copy">Busca artículos activos por código o nombre y agrega partidas sin mover inventario.</p>
+                            <p class="checkapp-panel-copy">Busca artículos activos por código o nombre y agrega partidas a la orden.</p>
                         </div>
                     </div>
 
@@ -158,8 +158,10 @@
                                         <th>Tipo</th>
                                         <th>Código</th>
                                         <th>Producto o servicio</th>
-                                        <th>Unidad</th>
-                                        <th>Costo actual</th>
+                                        <th>Variante</th>
+                                        <th>Presentación compra</th>
+                                        <th>Factor</th>
+                                        <th>Costo</th>
                                     </tr>
                                 </thead>
                                 <tbody></tbody>
@@ -183,7 +185,7 @@
                         <div>
                             <span class="checkapp-panel-eyebrow">Paso 3</span>
                             <h2>Partidas</h2>
-                            <p class="checkapp-panel-copy">Ajusta cantidades y costos, consolida duplicados y valida el total antes de revisar la orden.</p>
+                            <p class="checkapp-panel-copy">Ajusta cantidades, factores y costos para validar el total antes de revisar la orden.</p>
                         </div>
                     </div>
 
@@ -202,15 +204,16 @@
                             <table class="table table-row-bordered align-middle checkapp-grid-table oc-grid-table" id="grOcPartidas">
                                 <thead>
                                     <tr>
-                                        <th>Número</th>
-                                        <th>Tipo</th>
-                                        <th>Código</th>
                                         <th>Producto o servicio</th>
+                                        <th>Variante</th>
+                                        <th>Presentación compra</th>
+                                        <th>Cantidad compra</th>
                                         <th>Unidad</th>
-                                        <th>Cantidad</th>
+                                        <th>Factor</th>
+                                        <th>Cantidad base</th>
                                         <th>Costo unitario</th>
                                         <th>Subtotal</th>
-                                        <th>Acción</th>
+                                        <th>Editar/Quitar</th>
                                     </tr>
                                 </thead>
                                 <tbody></tbody>
@@ -276,8 +279,11 @@
                                             <th>Tipo</th>
                                             <th>Código</th>
                                             <th>Producto o servicio</th>
-                                            <th>Unidad</th>
-                                            <th>Cantidad</th>
+                                            <th>Variante</th>
+                                            <th>Presentación compra</th>
+                                            <th>Cantidad compra</th>
+                                            <th>Factor</th>
+                                            <th>Cantidad base</th>
                                             <th>Costo</th>
                                             <th>Subtotal</th>
                                         </tr>
@@ -314,7 +320,7 @@
                         </button>
                         <button id="btOcGuardar" type="button" class="checkapp-btn checkapp-btn-secondary">
                             <i class="fa fa-save"></i>
-                            <span>Guardar orden</span>
+                            <span>Guardar borrador</span>
                         </button>
                         <button id="btOcGenerar" type="button" class="checkapp-btn checkapp-btn-primary" hidden>
                             <i class="fa fa-check-circle"></i>

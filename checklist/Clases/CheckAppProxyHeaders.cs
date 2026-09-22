@@ -57,6 +57,9 @@ namespace checklist.Clases
                 ?? string.Empty;
         }
 
+        public static string? ResolveCheckAppUsuarioId(this Controller controller)
+            => ResolveUsuarioId(controller);
+
         private static string ComputeSignature(string secret, string empresaId, string empresa, string usuarioId, string timestamp)
         {
             using HMACSHA256 hmac = new HMACSHA256(Encoding.UTF8.GetBytes(secret));

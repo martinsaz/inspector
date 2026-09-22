@@ -79,7 +79,8 @@
             activeSearchSequence: 0,
             lastSearchKey: "",
             lastAddedProductId: null,
-            lastAddedProductTimerId: 0
+            lastAddedProductTimerId: 0,
+            searchSelections: {}
         },
         ui: {
             cancelModal: null
@@ -212,8 +213,13 @@
             addPartidaFromSearch(item);
         });
 
+        $("#grOcResultadosBusqueda").on("change", "[data-oc-variant-for], [data-oc-presentation-for]", function () {
+            rememberSearchSelection($(this).data("ocVariantFor") || $(this).data("ocPresentationFor"));
+            renderSearchResults(state.editor.searchResults);
+        });
+
         $("#grOcPartidas").on("input", "[data-oc-qty]", function () {
-            updatePartidaField($(this).data("ocQty"), "cantidad", $(this).val());
+            updatePartidaField($(this).data("ocQty"), "cantidadCompra", $(this).val());
         });
 
         $("#grOcPartidas").on("input", "[data-oc-cost]", function () {
@@ -355,6 +361,7 @@
         }
         state.editor.searching = false;
         state.editor.searchResults = [];
+        state.editor.searchSelections = {};
         renderSearchResults([]);
         setStatus("#txOcBusquedaEstado", "", "");
         state.editor.lastSearchKey = "";
@@ -373,58 +380,192 @@
 
         if (!Array.isArray(items) || !items.length) {
             const row = document.createElement("tr");
-            row.innerHTML = "<td colspan='6'><div class='oc-empty-state'>No hay resultados para mostrar.</div></td>";
+            row.innerHTML = "<td colspan='8'><div class='oc-empty-state'>No hay resultados para mostrar.</div></td>";
             tbody.appendChild(row);
             return;
         }
 
         items.forEach(function (item) {
             const isAdding = String(state.editor.addingProductId || "") === String(item.id || "");
-            const wasAdded = String(state.editor.lastAddedProductId || "") === String(item.id || "");
+            const selection = resolveSearchSelection(item);
+            const presentation = findSelectedPresentation(item, selection.idPresentacionCompra);
+            const variant = findSelectedVariant(item, selection.idVariante);
+            const selectedKey = buildPartidaKey(item.id, variant ? variant.id : "", presentation ? presentation.id : "");
+            const wasAdded = String(state.editor.lastAddedProductId || "") === String(selectedKey);
+            const factor = presentation ? Number(presentation.factorConversionBase || 1) : 1;
+            const unidadCompra = presentation
+                ? resolveUnidadDisplay(presentation.unidadCompra, presentation.unidadCompraAbreviatura)
+                : resolveUnidadDisplay(item.unidad, item.abreviatura);
+            const costo = variant && variant.costoActual !== null && variant.costoActual !== undefined
+                ? variant.costoActual
+                : item.costoActual;
             const tr = document.createElement("tr");
             tr.innerHTML = [
                 "<td><button type='button' class='checkapp-btn " + (wasAdded ? "checkapp-btn-primary" : "checkapp-btn-secondary") + " checkapp-btn-sm' data-oc-add-item='" + escapeHtml(item.id) + "'" + (state.editor.readOnly || state.editor.addingProductId ? " disabled" : "") + "><i class='fa " + (wasAdded ? "fa-check" : "fa-plus") + "'></i><span>" + (isAdding ? "Agregando..." : (wasAdded ? "✔ Producto agregado" : "Agregar")) + "</span></button></td>",
                 "<td>" + escapeHtml(item.tipoNombre || "") + "</td>",
                 "<td>" + escapeHtml(item.codigo || "") + "</td>",
-                "<td><div class='oc-line-title'><strong>" + escapeHtml(item.nombre || "") + "</strong><small>" + escapeHtml(item.descripcion || "") + "</small></div></td>",
-                "<td>" + escapeHtml(resolveUnidadDisplay(item.unidad, item.abreviatura)) + "</td>",
-                "<td>" + formatCurrency(item.costoActual || 0) + "</td>"
+                "<td><div class='oc-line-title'><strong>" + escapeHtml(item.nombre || "") + "</strong><small title='" + escapeHtml(toPlainText(item.descripcion || "")) + "'>" + escapeHtml(toPlainText(item.descripcion || "")) + "</small></div></td>",
+                "<td>" + buildVariantSelectHtml(item, selection.idVariante) + "</td>",
+                "<td>" + buildPresentationSelectHtml(item, selection.idVariante, selection.idPresentacionCompra, unidadCompra) + "</td>",
+                "<td><span class='oc-factor-pill'>" + escapeHtml(formatFactor(factor)) + "</span></td>",
+                "<td>" + formatCurrency(costo || 0) + "</td>"
             ].join("");
             tbody.appendChild(tr);
         });
     }
 
+    function rememberSearchSelection(productId) {
+        const normalizedProductId = normalizeGuid(productId);
+        if (!normalizedProductId) {
+            return;
+        }
+
+        const variant = normalizeGuid($("[data-oc-variant-for='" + cssEscape(normalizedProductId) + "']").val());
+        const presentation = normalizeGuid($("[data-oc-presentation-for='" + cssEscape(normalizedProductId) + "']").val());
+        state.editor.searchSelections[normalizedProductId] = {
+            idVariante: variant,
+            idPresentacionCompra: presentation
+        };
+    }
+
+    function resolveSearchSelection(item) {
+        const productId = normalizeGuid(item && item.id);
+        const stored = state.editor.searchSelections[productId] || {};
+        const variant = findSelectedVariant(item, stored.idVariante)
+            ? normalizeGuid(stored.idVariante)
+            : "";
+        const presentation = findSelectedPresentation(item, stored.idPresentacionCompra)
+            ? normalizeGuid(stored.idPresentacionCompra)
+            : "";
+
+        return {
+            idVariante: variant,
+            idPresentacionCompra: presentation
+        };
+    }
+
+    function buildVariantSelectHtml(item, selectedId) {
+        const variants = Array.isArray(item.variantes) ? item.variantes : [];
+        if (Number(item.tipo || 0) !== 1) {
+            return "<span class='oc-muted'>No aplica</span>";
+        }
+
+        if (!variants.length) {
+            return "<span class='oc-muted'>Base</span>";
+        }
+
+        const options = ["<option value=''>Selecciona variante</option>"].concat(variants.map(function (variant) {
+            const text = [variant.nombre, variant.sku].filter(Boolean).join(" · ");
+            return "<option value='" + escapeHtml(variant.id) + "'" + (String(selectedId || "") === String(variant.id || "") ? " selected" : "") + ">" + escapeHtml(text || variant.claveCombinacion || "Variante") + "</option>";
+        }));
+
+        return "<select class='form-select oc-inline-select' data-oc-variant-for='" + escapeHtml(item.id) + "'>" + options.join("") + "</select>";
+    }
+
+    function buildPresentationSelectHtml(item, selectedVariantId, selectedPresentationId, unidadCompra) {
+        if (Number(item.tipo || 0) !== 1) {
+            return "<span class='oc-muted'>No aplica</span>";
+        }
+
+        const presentations = getPresentationsForVariant(item, selectedVariantId);
+        const options = ["<option value=''>Base directa (" + escapeHtml(unidadCompra || "unidad") + ")</option>"].concat(presentations.map(function (presentation) {
+            const label = presentation.nombre + " · " + formatFactor(presentation.factorConversionBase || 1) + " " + resolveUnidadDisplay(item.unidad, item.abreviatura);
+            return "<option value='" + escapeHtml(presentation.id) + "'" + (String(selectedPresentationId || "") === String(presentation.id || "") ? " selected" : "") + ">" + escapeHtml(label) + "</option>";
+        }));
+
+        return "<select class='form-select oc-inline-select' data-oc-presentation-for='" + escapeHtml(item.id) + "'>" + options.join("") + "</select>";
+    }
+
+    function findSelectedVariant(item, idVariante) {
+        const id = normalizeGuid(idVariante);
+        if (!id) {
+            return null;
+        }
+
+        return (Array.isArray(item.variantes) ? item.variantes : []).find(function (variant) {
+            return String(variant.id) === String(id);
+        }) || null;
+    }
+
+    function findSelectedPresentation(item, idPresentacionCompra) {
+        const id = normalizeGuid(idPresentacionCompra);
+        if (!id) {
+            return null;
+        }
+
+        return (Array.isArray(item.presentacionesCompra) ? item.presentacionesCompra : []).find(function (presentation) {
+            return String(presentation.id) === String(id);
+        }) || null;
+    }
+
+    function getPresentationsForVariant(item, idVariante) {
+        const selectedVariantId = normalizeGuid(idVariante);
+        return (Array.isArray(item.presentacionesCompra) ? item.presentacionesCompra : []).filter(function (presentation) {
+            const presentationVariantId = normalizeGuid(presentation.idVariante);
+            return !presentationVariantId || !selectedVariantId || presentationVariantId === selectedVariantId;
+        });
+    }
+
+    function buildPartidaKey(idProductoServicio, idVariante, idPresentacionCompra) {
+        return [
+            normalizeGuid(idProductoServicio),
+            normalizeGuid(idVariante) || "base",
+            normalizeGuid(idPresentacionCompra) || "base"
+        ].join(":");
+    }
+
     function addPartidaFromSearch(item) {
+        const selection = resolveSearchSelection(item);
+        const variant = findSelectedVariant(item, selection.idVariante);
+        const presentation = findSelectedPresentation(item, selection.idPresentacionCompra);
+
+        if (Number(item.tipo || 0) === 1 && Array.isArray(item.variantes) && item.variantes.length && !variant) {
+            setStatus("#txOcBusquedaEstado", "danger", "Selecciona una variante para agregar este producto.");
+            return;
+        }
+
         state.editor.addingProductId = item.id;
         renderSearchResults(state.editor.searchResults);
 
         window.setTimeout(function () {
+            const factor = presentation ? Number(presentation.factorConversionBase || 1) : 1;
+            const uid = buildPartidaKey(item.id, variant ? variant.id : "", presentation ? presentation.id : "");
             const existing = state.editor.partidas.find(function (partida) {
-                return String(partida.idProductoServicio) === String(item.id);
+                return String(partida.uid) === String(uid);
             });
 
             if (existing) {
-                existing.cantidad = roundQuantity(existing.cantidad + 1);
+                existing.cantidadCompra = roundQuantity(existing.cantidadCompra + 1);
                 recalcPartida(existing);
                 state.editor.addingProductId = null;
-                markRecentlyAddedProduct(item.id);
+                markRecentlyAddedProduct(uid);
                 renderSearchResults(state.editor.searchResults);
-                renderPartidas(existing.idProductoServicio);
+                renderPartidas(existing.uid);
                 setStatus("#txOcFormStatus", "success", "✔ Producto agregado");
                 return;
             }
 
             const partida = {
+                uid: uid,
                 idProductoServicio: item.id,
                 tipoProductoServicio: Number(item.tipo || 0),
                 tipoProductoServicioNombre: item.tipoNombre || "",
+                idVariante: variant ? variant.id : null,
+                varianteSnapshot: variant ? variant.nombre : "",
+                idPresentacionCompra: presentation ? presentation.id : null,
+                presentacionCompraSnapshot: presentation ? presentation.nombre : "",
                 codigo: item.codigo || "",
                 nombre: item.nombre || "",
                 descripcion: item.descripcion || "",
                 unidadMedida: item.unidad || "",
                 unidadAbreviatura: item.abreviatura || "",
-                cantidad: 1,
-                costoUnitario: Number(item.costoActual || 0),
+                unidadCompraSnapshot: presentation ? presentation.unidadCompra : (item.unidad || ""),
+                unidadCompraAbreviaturaSnapshot: presentation ? presentation.unidadCompraAbreviatura : (item.abreviatura || ""),
+                cantidadCompra: 1,
+                factorConversionSnapshot: factor,
+                cantidadBaseOrdenada: 0,
+                cantidad: 0,
+                costoUnitario: Number(variant && variant.costoActual !== null && variant.costoActual !== undefined ? variant.costoActual : (item.costoActual || 0)),
                 subtotal: 0,
                 total: 0
             };
@@ -432,9 +573,9 @@
             recalcPartida(partida);
             state.editor.partidas.push(partida);
             state.editor.addingProductId = null;
-            markRecentlyAddedProduct(item.id);
+            markRecentlyAddedProduct(uid);
             renderSearchResults(state.editor.searchResults);
-            renderPartidas(partida.idProductoServicio);
+            renderPartidas(partida.uid);
             setStatus("#txOcFormStatus", "success", "✔ Producto agregado");
         }, 120);
     }
@@ -452,9 +593,9 @@
         }, 1600);
     }
 
-    function updatePartidaField(idProductoServicio, field, rawValue) {
+    function updatePartidaField(uid, field, rawValue) {
         const partida = state.editor.partidas.find(function (item) {
-            return String(item.idProductoServicio) === String(idProductoServicio);
+            return String(item.uid) === String(uid);
         });
 
         if (!partida) {
@@ -462,26 +603,29 @@
         }
 
         const parsed = toNumber(rawValue);
-        partida[field] = field === "cantidad" ? roundQuantity(parsed) : roundMoney(parsed);
+        partida[field] = field === "cantidadCompra" ? roundQuantity(parsed) : roundMoney(parsed);
         recalcPartida(partida);
-        renderPartidas(partida.idProductoServicio);
+        renderPartidas(partida.uid);
     }
 
-    function removePartida(idProductoServicio) {
+    function removePartida(uid) {
         if (state.editor.readOnly) {
             return;
         }
 
         state.editor.partidas = state.editor.partidas.filter(function (item) {
-            return String(item.idProductoServicio) !== String(idProductoServicio);
+            return String(item.uid) !== String(uid);
         });
         renderPartidas();
     }
 
     function recalcPartida(partida) {
-        partida.cantidad = Math.max(0, roundQuantity(partida.cantidad));
+        partida.cantidadCompra = Math.max(0, roundQuantity(partida.cantidadCompra));
+        partida.factorConversionSnapshot = Math.max(0, roundQuantity(partida.factorConversionSnapshot || 1));
+        partida.cantidadBaseOrdenada = roundQuantity(partida.cantidadCompra * partida.factorConversionSnapshot);
+        partida.cantidad = partida.cantidadBaseOrdenada;
         partida.costoUnitario = Math.max(0, roundMoney(partida.costoUnitario));
-        partida.subtotal = roundMoney(partida.cantidad * partida.costoUnitario);
+        partida.subtotal = roundMoney(partida.cantidadCompra * partida.costoUnitario);
         partida.total = partida.subtotal;
     }
 
@@ -498,23 +642,24 @@
         partidasFiltradas.forEach(function (partida, index) {
             subtotal += Number(partida.subtotal || 0);
             const tr = document.createElement("tr");
-            if (highlightId && String(partida.idProductoServicio) === String(highlightId)) {
+            if (highlightId && String(partida.uid) === String(highlightId)) {
                 tr.classList.add("oc-row-flash");
             }
 
-            const isInvalidQuantity = !(Number(partida.cantidad) > 0);
+            const isInvalidQuantity = !(Number(partida.cantidadCompra) > 0);
             const isInvalidCostForGenerate = !(Number(partida.costoUnitario) > 0);
 
             tr.innerHTML = [
-                "<td>" + (index + 1) + "</td>",
-                "<td>" + escapeHtml(partida.tipoProductoServicioNombre || "") + "</td>",
-                "<td>" + escapeHtml(partida.codigo || "") + "</td>",
-                "<td><div class='oc-line-title'><strong>" + escapeHtml(partida.nombre || "") + "</strong><small>" + escapeHtml(partida.descripcion || "") + "</small></div></td>",
-                "<td>" + escapeHtml(resolveUnidadDisplay(partida.unidadMedida, partida.unidadAbreviatura)) + "</td>",
-                "<td><input class='form-control oc-inline-input" + (isInvalidQuantity ? " is-invalid" : "") + "' type='number' min='0' step='0.0001' data-oc-qty='" + escapeHtml(partida.idProductoServicio) + "' value='" + escapeHtml(formatDecimalInput(partida.cantidad)) + "'" + (state.editor.readOnly ? " disabled" : "") + " /></td>",
-                "<td><input class='form-control oc-inline-input" + (isInvalidCostForGenerate ? " is-invalid" : "") + "' type='number' min='0' step='0.01' data-oc-cost='" + escapeHtml(partida.idProductoServicio) + "' value='" + escapeHtml(formatDecimalInput(partida.costoUnitario)) + "'" + (state.editor.readOnly ? " disabled" : "") + " /></td>",
+                "<td><div class='oc-line-title oc-line-title--partida'><span class='oc-row-number'>#" + (index + 1) + " · " + escapeHtml(partida.tipoProductoServicioNombre || "") + " · " + escapeHtml(partida.codigo || "") + "</span><strong>" + escapeHtml(partida.nombre || "") + "</strong><small title='" + escapeHtml(toPlainText(partida.descripcion || "")) + "'>" + escapeHtml(toPlainText(partida.descripcion || "")) + "</small></div></td>",
+                "<td>" + escapeHtml(partida.varianteSnapshot || "Base") + "</td>",
+                "<td>" + escapeHtml(partida.presentacionCompraSnapshot || "Base directa") + "</td>",
+                "<td><input class='form-control oc-inline-input" + (isInvalidQuantity ? " is-invalid" : "") + "' type='number' min='0' step='0.0001' data-oc-qty='" + escapeHtml(partida.uid) + "' value='" + escapeHtml(formatDecimalInput(partida.cantidadCompra)) + "'" + (state.editor.readOnly ? " disabled" : "") + " /></td>",
+                "<td>" + escapeHtml(resolveUnidadDisplay(partida.unidadCompraSnapshot || partida.unidadMedida, partida.unidadCompraAbreviaturaSnapshot || partida.unidadAbreviatura)) + "</td>",
+                "<td>" + escapeHtml(formatFactor(partida.factorConversionSnapshot || 1)) + "</td>",
+                "<td>" + escapeHtml(formatDecimalInput(partida.cantidadBaseOrdenada || 0)) + "</td>",
+                "<td><input class='form-control oc-inline-input" + (isInvalidCostForGenerate ? " is-invalid" : "") + "' type='number' min='0' step='0.01' data-oc-cost='" + escapeHtml(partida.uid) + "' value='" + escapeHtml(formatDecimalInput(partida.costoUnitario)) + "'" + (state.editor.readOnly ? " disabled" : "") + " /></td>",
                 "<td>" + formatCurrency(partida.subtotal) + "</td>",
-                "<td><button type='button' class='checkapp-btn checkapp-btn-ghost checkapp-btn-sm' data-oc-remove-item='" + escapeHtml(partida.idProductoServicio) + "'" + (state.editor.readOnly ? " disabled" : "") + "><i class='fa fa-trash'></i><span>Eliminar</span></button></td>"
+                "<td><button type='button' class='checkapp-btn checkapp-btn-ghost checkapp-btn-sm' data-oc-remove-item='" + escapeHtml(partida.uid) + "'" + (state.editor.readOnly ? " disabled" : "") + "><i class='fa fa-trash'></i><span>Quitar</span></button></td>"
             ].join("");
             tbody.appendChild(tr);
         });
@@ -532,7 +677,7 @@
 
         if (state.editor.partidas.length > 0 && partidasFiltradas.length === 0) {
             const row = document.createElement("tr");
-            row.innerHTML = "<td colspan='9'><div class='oc-empty-state'>No hay partidas que coincidan con la búsqueda actual.</div></td>";
+            row.innerHTML = "<td colspan='10'><div class='oc-empty-state'>No hay partidas que coincidan con la búsqueda actual.</div></td>";
             tbody.appendChild(row);
         }
 
@@ -553,7 +698,11 @@
                 partida.descripcion,
                 partida.tipoProductoServicioNombre,
                 partida.unidadMedida,
-                partida.unidadAbreviatura
+                partida.unidadAbreviatura,
+                partida.varianteSnapshot,
+                partida.presentacionCompraSnapshot,
+                partida.unidadCompraSnapshot,
+                partida.unidadCompraAbreviaturaSnapshot
             ].join(" ");
 
             return normalizeSearchText(searchable).indexOf(filter) >= 0;
@@ -579,7 +728,11 @@
             partidas: state.editor.partidas.map(function (partida) {
                 return {
                     idProductoServicio: partida.idProductoServicio,
-                    cantidad: roundQuantity(partida.cantidad),
+                    idVariante: normalizeGuid(partida.idVariante),
+                    idPresentacionCompra: normalizeGuid(partida.idPresentacionCompra),
+                    cantidad: roundQuantity(partida.cantidadBaseOrdenada),
+                    cantidadCompra: roundQuantity(partida.cantidadCompra),
+                    factorConversionSnapshot: roundQuantity(partida.factorConversionSnapshot || 1),
                     costoUnitario: roundMoney(partida.costoUnitario)
                 };
             })
@@ -666,8 +819,14 @@
         }
 
         state.editor.partidas.forEach(function (partida, index) {
-            if (!(Number(partida.cantidad) > 0)) {
+            if (!(Number(partida.cantidadCompra) > 0)) {
                 errors.push("La cantidad de la partida " + (index + 1) + " debe ser mayor a cero.");
+            }
+            if (!(Number(partida.factorConversionSnapshot || 1) > 0)) {
+                errors.push("El factor de la partida " + (index + 1) + " debe ser mayor a cero.");
+            }
+            if (Number(partida.tipoProductoServicio || 0) === 1 && partida.varianteSnapshot && !normalizeGuid(partida.idVariante)) {
+                errors.push("Selecciona una variante válida en la partida " + (index + 1) + ".");
             }
             if (Number(partida.costoUnitario) < 0) {
                 errors.push("El costo unitario de la partida " + (index + 1) + " no puede ser negativo.");
@@ -715,8 +874,8 @@
 
         state.editor.saving = true;
         syncActionButtons();
-        showEditorOverlay(true, "Guardando orden...", "Estamos registrando los cambios de tu orden.");
-        setStatus("#txOcFormStatus", "info", "Guardando orden...");
+        showEditorOverlay(true, "Guardando borrador...", "Estamos registrando los cambios de tu orden.");
+        setStatus("#txOcFormStatus", "info", "Guardando borrador...");
 
         fetchJson("/Activos/OrdenesCompra/GuardarBorradorOrdenCompra", {
             method: "POST",
@@ -733,8 +892,8 @@
                     }
                 }
 
-                showSuccess(resolveServerMessage(response) || "La orden se guardó correctamente.");
-                setStatus("#txOcFormStatus", "success", resolveServerMessage(response) || "La orden se guardó correctamente.");
+                showSuccess(resolveServerMessage(response) || "El borrador se guardó correctamente.");
+                setStatus("#txOcFormStatus", "success", resolveServerMessage(response) || "El borrador se guardó correctamente.");
                 return loadOrderDetail(nextId || state.detailId);
             })
             .catch(function (error) {
@@ -993,16 +1152,29 @@
             updateHeaderSummary(detail.folio || "Pendiente", resolveUserFacingOrderState(detail.estado, detail.estadoNombre));
 
             state.editor.partidas = (Array.isArray(detail.partidas) ? detail.partidas : []).map(function (partida) {
+                const idVariante = normalizeGuid(partida.idVariante);
+                const idPresentacionCompra = normalizeGuid(partida.idPresentacionCompra);
+                const uid = buildPartidaKey(partida.idProductoServicio, idVariante, idPresentacionCompra);
                 return {
+                    uid: uid,
                     idProductoServicio: partida.idProductoServicio,
                     tipoProductoServicio: Number(partida.tipoProductoServicio || 0),
                     tipoProductoServicioNombre: partida.tipoProductoServicioNombre || "",
+                    idVariante: idVariante,
+                    varianteSnapshot: partida.varianteSnapshot || "",
+                    idPresentacionCompra: idPresentacionCompra,
+                    presentacionCompraSnapshot: partida.presentacionCompraSnapshot || "",
                     codigo: partida.codigo || "",
                     nombre: partida.nombre || "",
                     descripcion: partida.descripcion || "",
                     unidadMedida: partida.unidadMedida || "",
                     unidadAbreviatura: partida.unidadAbreviatura || "",
-                    cantidad: roundQuantity(partida.cantidad || 0),
+                    unidadCompraSnapshot: partida.unidadCompraSnapshot || partida.unidadMedida || "",
+                    unidadCompraAbreviaturaSnapshot: partida.unidadCompraAbreviaturaSnapshot || partida.unidadAbreviatura || "",
+                    cantidadCompra: roundQuantity(partida.cantidadCompra || partida.cantidad || 0),
+                    factorConversionSnapshot: roundQuantity(partida.factorConversionSnapshot || 1),
+                    cantidadBaseOrdenada: roundQuantity(partida.cantidadBaseOrdenada || partida.cantidad || 0),
+                    cantidad: roundQuantity(partida.cantidad || partida.cantidadBaseOrdenada || 0),
                     costoUnitario: roundMoney(partida.costoUnitario || 0),
                     subtotal: roundMoney(partida.subtotal || 0),
                     total: roundMoney(partida.total || 0)
@@ -1171,7 +1343,7 @@
 
         if (!state.editor.partidas.length) {
             const row = document.createElement("tr");
-            row.innerHTML = "<td colspan='7'><div class='oc-empty-state'>Todavía no hay partidas para revisar.</div></td>";
+            row.innerHTML = "<td colspan='10'><div class='oc-empty-state'>Todavía no hay partidas para revisar.</div></td>";
             tbody.appendChild(row);
             return;
         }
@@ -1181,9 +1353,12 @@
             tr.innerHTML = [
                 "<td>" + escapeHtml(partida.tipoProductoServicioNombre || "") + "</td>",
                 "<td>" + escapeHtml(partida.codigo || "") + "</td>",
-                "<td><div class='oc-line-title'><strong>" + escapeHtml(partida.nombre || "") + "</strong><small>" + escapeHtml(partida.descripcion || "") + "</small></div></td>",
-                "<td>" + escapeHtml(resolveUnidadDisplay(partida.unidadMedida, partida.unidadAbreviatura)) + "</td>",
-                "<td>" + escapeHtml(formatDecimalInput(partida.cantidad)) + "</td>",
+                "<td><div class='oc-line-title'><strong>" + escapeHtml(partida.nombre || "") + "</strong><small title='" + escapeHtml(toPlainText(partida.descripcion || "")) + "'>" + escapeHtml(toPlainText(partida.descripcion || "")) + "</small></div></td>",
+                "<td>" + escapeHtml(partida.varianteSnapshot || "Base") + "</td>",
+                "<td>" + escapeHtml(partida.presentacionCompraSnapshot || "Base directa") + "</td>",
+                "<td>" + escapeHtml(formatDecimalInput(partida.cantidadCompra)) + " " + escapeHtml(resolveUnidadDisplay(partida.unidadCompraSnapshot || partida.unidadMedida, partida.unidadCompraAbreviaturaSnapshot || partida.unidadAbreviatura)) + "</td>",
+                "<td>" + escapeHtml(formatFactor(partida.factorConversionSnapshot || 1)) + "</td>",
+                "<td>" + escapeHtml(formatDecimalInput(partida.cantidadBaseOrdenada || 0)) + " " + escapeHtml(resolveUnidadDisplay(partida.unidadMedida, partida.unidadAbreviatura)) + "</td>",
                 "<td>" + formatCurrency(partida.costoUnitario) + "</td>",
                 "<td>" + formatCurrency(partida.subtotal) + "</td>"
             ].join("");
@@ -1227,7 +1402,7 @@
 
         $("#btOcGuardar").prop("hidden", !isDraft)
             .prop("disabled", !canSave || state.currentStep !== 4)
-            .find("span").text(state.editor.saving ? "Guardando..." : "Guardar orden");
+            .find("span").text(state.editor.saving ? "Guardando..." : "Guardar borrador");
         $("#btOcGenerar").prop("hidden", !(hasPersistedOrder && estado === estadoBorrador))
             .prop("disabled", !canGenerate || state.currentStep !== 4)
             .find("span").text(state.editor.generating ? "Generando..." : "Generar orden");
@@ -1885,7 +2060,7 @@
                 "<td>" + escapeHtml(partida.numeroPartida || "—") + "</td>",
                 "<td>" + escapeHtml(partida.tipoProductoServicioNombre || "—") + "</td>",
                 "<td>" + escapeHtml(partida.codigo || "—") + "</td>",
-                "<td><div class='oc-line-title'><strong>" + escapeHtml(partida.nombre || "—") + "</strong><small>" + escapeHtml(descripcion || "Sin descripción") + "</small></div></td>",
+                "<td><div class='oc-line-title'><strong>" + escapeHtml(partida.nombre || "—") + "</strong><small title='" + escapeHtml(toPlainText(descripcion || "")) + "'>" + escapeHtml(toPlainText(descripcion || "Sin descripción")) + "</small></div></td>",
                 "<td>" + escapeHtml(resolveUnidadDisplay(partida.unidadMedida, partida.unidadAbreviatura) || "—") + "</td>",
                 "<td>" + escapeHtml(String(roundQuantity(partida.cantidad || 0))) + "</td>",
                 "<td>" + escapeHtml(formatCurrency(partida.costoUnitario || 0)) + "</td>",
@@ -2132,6 +2307,15 @@
         return String(number);
     }
 
+    function formatFactor(value) {
+        const number = Number(value || 0);
+        if (!Number.isFinite(number) || number <= 0) {
+            return "1";
+        }
+
+        return String(Math.round((number + Number.EPSILON) * 1000000) / 1000000);
+    }
+
     function normalizeSearchText(value) {
         return String(value || "")
             .normalize("NFD")
@@ -2326,6 +2510,15 @@
         return text ? text : null;
     }
 
+    function cssEscape(value) {
+        const text = String(value || "");
+        if (window.CSS && typeof window.CSS.escape === "function") {
+            return window.CSS.escape(text);
+        }
+
+        return text.replace(/'/g, "\\'");
+    }
+
     function toNumber(value) {
         const parsed = Number(String(value == null ? "" : value).trim());
         return Number.isFinite(parsed) ? parsed : 0;
@@ -2382,6 +2575,22 @@
             .replace(/>/g, "&gt;")
             .replace(/"/g, "&quot;")
             .replace(/'/g, "&#39;");
+    }
+
+    function toPlainText(value) {
+        const raw = String(value || "");
+        if (!raw) {
+            return "";
+        }
+
+        const textarea = document.createElement("textarea");
+        textarea.innerHTML = raw;
+        const decoded = textarea.value;
+        const container = document.createElement("div");
+        container.innerHTML = decoded;
+        return String(container.textContent || container.innerText || decoded)
+            .replace(/\s+/g, " ")
+            .trim();
     }
 
     function showSuccess(message) {

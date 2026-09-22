@@ -3,6 +3,7 @@ using System.Security.Claims;
 using System.Security.Cryptography;
 using System.Text;
 using System.Text.Json;
+using System.Text.Json.Nodes;
 using checklist.Clases;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
@@ -22,6 +23,9 @@ namespace checklist.Controllers.Activos
         private const string ProxyUsuarioIdHeader = "X-ProductosServicios-Proxy-UsuarioId";
         private const string ProxyTimestampHeader = "X-ProductosServicios-Proxy-Timestamp";
         private const string ProxySignatureHeader = "X-ProductosServicios-Proxy-Signature";
+        private const string SuperAdminRoleCookie = "chkRoleName";
+        private const string OrdenesCompraNuevaPermissionCode = "05003001";
+        private const string OrdenesCompraReportePermissionCode = "05003002";
 
         private readonly IHttpClientFactory _clientFactory;
         private readonly IConfiguration _configuration;
@@ -37,6 +41,12 @@ namespace checklist.Controllers.Activos
         [HttpGet("Nueva")]
         public IActionResult Nueva()
         {
+            IActionResult? auth = AuthorizeOrdenCompraMvc(OrdenesCompraNuevaPermissionCode, requireWrite: false);
+            if (auth != null)
+            {
+                return auth;
+            }
+
             ViewData["OrdenesCompraPageMode"] = "new";
             ViewData["OrdenesCompraDetailId"] = string.Empty;
             return View("~/Views/Activos/OrdenesCompra/Nueva.cshtml");
@@ -45,6 +55,12 @@ namespace checklist.Controllers.Activos
         [HttpGet("Reporte")]
         public IActionResult Reporte()
         {
+            IActionResult? auth = AuthorizeOrdenCompraMvc(OrdenesCompraReportePermissionCode, requireWrite: false);
+            if (auth != null)
+            {
+                return auth;
+            }
+
             return View("~/Views/Activos/OrdenesCompra/Index.cshtml");
         }
 
@@ -57,6 +73,12 @@ namespace checklist.Controllers.Activos
         [HttpGet("Detalle/{id:guid}")]
         public IActionResult Detalle(Guid id)
         {
+            IActionResult? auth = AuthorizeOrdenCompraMvcAny(requireWrite: false, OrdenesCompraNuevaPermissionCode, OrdenesCompraReportePermissionCode);
+            if (auth != null)
+            {
+                return auth;
+            }
+
             ViewData["OrdenesCompraPageMode"] = "detail";
             ViewData["OrdenesCompraDetailId"] = id.ToString();
             return View("~/Views/Activos/OrdenesCompra/Nueva.cshtml");
@@ -69,29 +91,35 @@ namespace checklist.Controllers.Activos
         }
 
         [HttpGet("ObtenerOrdenesCompra")]
-        public Task<IActionResult> ObtenerOrdenesCompra() => ProxyGetAsync("ObtenerOrdenesCompra");
+        public Task<IActionResult> ObtenerOrdenesCompra() => ProxyGetAsync("ObtenerOrdenesCompra", OrdenesCompraReportePermissionCode);
 
         [HttpGet("ObtenerOrdenCompra")]
-        public Task<IActionResult> ObtenerOrdenCompra() => ProxyGetAsync("ObtenerOrdenCompra");
+        public Task<IActionResult> ObtenerOrdenCompra() => ProxyGetAsync("ObtenerOrdenCompra", OrdenesCompraNuevaPermissionCode, OrdenesCompraReportePermissionCode);
 
         [HttpGet("ObtenerResumenOrdenesCompra")]
-        public Task<IActionResult> ObtenerResumenOrdenesCompra() => ProxyGetAsync("ObtenerResumenOrdenesCompra");
+        public Task<IActionResult> ObtenerResumenOrdenesCompra() => ProxyGetAsync("ObtenerResumenOrdenesCompra", OrdenesCompraReportePermissionCode);
 
         [HttpGet("ObtenerCombosOrdenCompra")]
-        public Task<IActionResult> ObtenerCombosOrdenCompra() => ProxyGetAsync("ObtenerCombosOrdenCompra");
+        public Task<IActionResult> ObtenerCombosOrdenCompra() => ProxyGetAsync("ObtenerCombosOrdenCompra", OrdenesCompraNuevaPermissionCode);
 
         [HttpGet("BuscarProductosServiciosOrdenCompra")]
-        public Task<IActionResult> BuscarProductosServiciosOrdenCompra() => ProxyGetAsync("BuscarProductosServiciosOrdenCompra");
+        public Task<IActionResult> BuscarProductosServiciosOrdenCompra() => ProxyGetAsync("BuscarProductosServiciosOrdenCompra", OrdenesCompraNuevaPermissionCode);
 
         [HttpPost("ValidarPendientesOrdenCompra")]
-        public Task<IActionResult> ValidarPendientesOrdenCompra() => ProxyJsonAsync(HttpMethod.Post, "ValidarPendientesOrdenCompra");
+        public Task<IActionResult> ValidarPendientesOrdenCompra() => ProxyJsonAsync(HttpMethod.Post, "ValidarPendientesOrdenCompra", requireWrite: false, OrdenesCompraNuevaPermissionCode);
 
         [HttpGet("ExportarOrdenesCompra")]
-        public Task<IActionResult> ExportarOrdenesCompra() => ProxyGetAsync("ExportarOrdenesCompra");
+        public Task<IActionResult> ExportarOrdenesCompra() => ProxyGetAsync("ExportarOrdenesCompra", OrdenesCompraReportePermissionCode);
 
         [HttpGet("ExportarOrdenCompraPdf")]
         public async Task<IActionResult> ExportarOrdenCompraPdf(Guid idOrdenCompra)
         {
+            IActionResult? auth = AuthorizeOrdenCompraMvc(OrdenesCompraReportePermissionCode, requireWrite: false);
+            if (auth != null)
+            {
+                return auth;
+            }
+
             if (idOrdenCompra == Guid.Empty)
             {
                 return BadRequest(new { mensaje = "La orden de compra no está disponible." });
@@ -119,29 +147,123 @@ namespace checklist.Controllers.Activos
         }
 
         [HttpGet("ExportarOrdenCompraExcel")]
-        public Task<IActionResult> ExportarOrdenCompraExcel() => ProxyGetAsync("ExportarOrdenCompraExcel");
+        public Task<IActionResult> ExportarOrdenCompraExcel() => ProxyGetAsync("ExportarOrdenCompraExcel", OrdenesCompraReportePermissionCode);
 
         [HttpPost("GuardarBorradorOrdenCompra")]
-        public Task<IActionResult> GuardarBorradorOrdenCompra() => ProxyJsonAsync(HttpMethod.Post, "GuardarBorradorOrdenCompra");
+        public Task<IActionResult> GuardarBorradorOrdenCompra() => ProxyJsonAsync(HttpMethod.Post, "GuardarBorradorOrdenCompra", requireWrite: true, OrdenesCompraNuevaPermissionCode);
 
         [HttpPost("GenerarOrdenCompra")]
-        public Task<IActionResult> GenerarOrdenCompra() => ProxyJsonAsync(HttpMethod.Post, "GenerarOrdenCompra");
+        public Task<IActionResult> GenerarOrdenCompra() => ProxyJsonAsync(HttpMethod.Post, "GenerarOrdenCompra", requireWrite: true, OrdenesCompraNuevaPermissionCode);
 
         [HttpPost("CancelarOrdenCompra")]
-        public Task<IActionResult> CancelarOrdenCompra() => ProxyJsonAsync(HttpMethod.Post, "CancelarOrdenCompra");
+        public Task<IActionResult> CancelarOrdenCompra() => ProxyJsonAsync(HttpMethod.Post, "CancelarOrdenCompra", requireWrite: true, OrdenesCompraReportePermissionCode);
 
-        private async Task<IActionResult> ProxyGetAsync(string actionName)
+        private async Task<IActionResult> ProxyGetAsync(string actionName, params string[] permissionCodes)
         {
+            IActionResult? auth = AuthorizeOrdenCompraMvcAny(requireWrite: false, permissionCodes);
+            if (auth != null)
+            {
+                return auth;
+            }
+
             using HttpRequestMessage request = CreateApiRequest(HttpMethod.Get, actionName);
             return await SendAsync(request);
         }
 
-        private async Task<IActionResult> ProxyJsonAsync(HttpMethod method, string actionName)
+        private async Task<IActionResult> ProxyJsonAsync(HttpMethod method, string actionName, bool requireWrite, params string[] permissionCodes)
         {
+            IActionResult? auth = AuthorizeOrdenCompraMvcAny(requireWrite, permissionCodes);
+            if (auth != null)
+            {
+                return auth;
+            }
+
             using HttpRequestMessage request = CreateApiRequest(method, actionName);
             string body = await ReadBodyAsync();
             request.Content = new StringContent(string.IsNullOrWhiteSpace(body) ? "{}" : body, Encoding.UTF8, Request.ContentType ?? "application/json");
             return await SendAsync(request);
+        }
+
+        private IActionResult? AuthorizeOrdenCompraMvcAny(bool requireWrite, params string[] permissionCodes)
+        {
+            IActionResult? lastDenied = null;
+            foreach (string permissionCode in permissionCodes)
+            {
+                IActionResult? auth = AuthorizeOrdenCompraMvc(permissionCode, requireWrite);
+                if (auth == null)
+                {
+                    return null;
+                }
+
+                lastDenied = auth;
+            }
+
+            return lastDenied;
+        }
+
+        private IActionResult? AuthorizeOrdenCompraMvc(string permissionCode, bool requireWrite)
+        {
+            if (IsSuperAdminSession() &&
+                ProveeduriaMenuBuilder.HasOfficialSuperAdminPermission(permissionCode, requireWrite))
+            {
+                return null;
+            }
+
+            try
+            {
+                string permisos = Request.Cookies["prmmnu"] ?? string.Empty;
+                JsonNode? permission = string.IsNullOrWhiteSpace(permisos)
+                    ? null
+                    : FindPermission(JsonNode.Parse(permisos), permissionCode);
+                bool hasAccess = permission?["Permisos"]?["Acceso"]?.GetValue<int>() == 1 ||
+                                 permission?["permisos"]?["acceso"]?.GetValue<int>() == 1;
+                bool canWrite = permission?["Permisos"]?["Escritura"]?.GetValue<int>() == 1 ||
+                                permission?["permisos"]?["escritura"]?.GetValue<int>() == 1;
+
+                if (hasAccess && (!requireWrite || canWrite))
+                {
+                    return null;
+                }
+            }
+            catch (JsonException)
+            {
+                return Forbid();
+            }
+
+            return Forbid();
+        }
+
+        private bool IsSuperAdminSession()
+            => string.Equals(Request.Cookies[SuperAdminRoleCookie]?.Trim(), "SuperAdmin", StringComparison.OrdinalIgnoreCase);
+
+        private static JsonNode? FindPermission(JsonNode? node, string permissionCode)
+        {
+            if (node is JsonArray array)
+            {
+                foreach (JsonNode? child in array)
+                {
+                    JsonNode? match = FindPermission(child, permissionCode);
+                    if (match != null)
+                    {
+                        return match;
+                    }
+                }
+
+                return null;
+            }
+
+            if (node is not JsonObject obj)
+            {
+                return null;
+            }
+
+            string option = obj["Opcion"]?.GetValue<string>() ?? obj["opcion"]?.GetValue<string>() ?? string.Empty;
+            if (string.Equals(option, permissionCode, StringComparison.OrdinalIgnoreCase))
+            {
+                return obj;
+            }
+
+            return FindPermission(obj["Hijos"] ?? obj["hijos"], permissionCode);
         }
 
         private HttpRequestMessage CreateApiRequest(HttpMethod method, string actionName)
@@ -670,10 +792,7 @@ namespace checklist.Controllers.Activos
 
         private string? ResolveUsuarioId()
         {
-            string? claimValue = User.FindFirstValue(ClaimTypes.NameIdentifier);
-            return Guid.TryParse(claimValue, out Guid usuarioId) && usuarioId != Guid.Empty
-                ? usuarioId.ToString()
-                : null;
+            return this.ResolveCheckAppUsuarioId();
         }
 
         private string? ResolveSessionValue(string key)
