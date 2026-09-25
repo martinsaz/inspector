@@ -100,7 +100,7 @@ app.Use(async (context, next) =>
         //}
         await next.Invoke();
     }
-    catch (Exception ex) { }
+    catch (Exception ex) { Console.Error.WriteLine(ex); throw; }
 });
 
 // Mapear rutas

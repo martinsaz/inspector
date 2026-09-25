@@ -7,6 +7,7 @@
 
     const grids = new Map();
     const accordions = new Map();
+    let xlsxLoadPromise = null;
     const formatters = {
         number: new Intl.NumberFormat("es-MX", { maximumFractionDigits: 2 }),
         currency: new Intl.NumberFormat("es-MX", { style: "currency", currency: "MXN" }),
@@ -139,6 +140,53 @@
 
             return { wch: Math.min(Math.max(maxLength, 12), 40) };
         });
+    }
+
+    function buildSpreadsheetHtml(exportData, sheetName) {
+        const renderCellValue = function (value, tagName) {
+            return "<" + tagName + ">" + escapeHtml(value == null ? "" : value) + "</" + tagName + ">";
+        };
+        const headers = exportData.headers.map(function (header) {
+            return renderCellValue(header, "th");
+        }).join("");
+        const rows = exportData.rows.map(function (row) {
+            return "<tr>" + row.map(function (value) {
+                return renderCellValue(value, "td");
+            }).join("") + "</tr>";
+        }).join("");
+
+        return [
+            "<!DOCTYPE html>",
+            "<html>",
+            "<head><meta charset=\"utf-8\"></head>",
+            "<body>",
+            "<table data-sheet-name=\"", escapeHtml(sheetName), "\">",
+            "<thead><tr>", headers, "</tr></thead>",
+            "<tbody>", rows, "</tbody>",
+            "</table>",
+            "</body>",
+            "</html>"
+        ].join("");
+    }
+
+    function exportSpreadsheetFallback(exportData, sheetName, fileName) {
+        const fallbackFileName = String(fileName || "checkapp-grid.xlsx").replace(/\.xlsx$/i, ".xls");
+        const blob = new Blob([buildSpreadsheetHtml(exportData, sheetName)], {
+            type: "application/vnd.ms-excel;charset=utf-8"
+        });
+        const link = document.createElement("a");
+        const objectUrl = URL.createObjectURL(blob);
+
+        link.href = objectUrl;
+        link.download = fallbackFileName;
+        link.style.display = "none";
+        document.body.appendChild(link);
+        link.click();
+
+        window.setTimeout(function () {
+            URL.revokeObjectURL(objectUrl);
+            link.remove();
+        }, 0);
     }
 
     function getVisibleColumns(grid) {
@@ -342,14 +390,82 @@
         return Array.isArray(config.data) ? config.data.slice() : [];
     }
 
-    function exportGrid(gridId) {
-        const grid = grids.get(gridId);
-        if (!grid || !grid.instance || grid.exportLock) {
-            return;
+    function resolveXlsxLibrary() {
+        if (typeof window !== "undefined" && window.XLSX) {
+            return window.XLSX;
         }
 
-        if (typeof window.XLSX === "undefined") {
-            showExportMessage("error", "No fue posible generar el archivo de Excel. Intenta nuevamente.");
+        if (typeof XLSX !== "undefined") {
+            return XLSX;
+        }
+
+        return null;
+    }
+
+    function loadXlsxLibrary() {
+        const current = resolveXlsxLibrary();
+        if (current) {
+            return Promise.resolve(current);
+        }
+
+        if (xlsxLoadPromise) {
+            return xlsxLoadPromise;
+        }
+
+        xlsxLoadPromise = new Promise(function (resolve, reject) {
+            const existing = document.querySelector("script[src*='xlsx.full.min.js']");
+            const source = existing && existing.src
+                ? existing.src.split("?")[0]
+                : "/js/vendor/xlsx.full.min.js";
+            const script = document.createElement("script");
+            const hadDefine = Object.prototype.hasOwnProperty.call(window, "define");
+            const previousDefine = window.define;
+
+            window.XLSX = window.XLSX || {};
+            if (window.define && window.define.amd) {
+                window.define = undefined;
+            }
+
+            function restoreDefine() {
+                if (hadDefine) {
+                    window.define = previousDefine;
+                    return;
+                }
+
+                try {
+                    delete window.define;
+                } catch (_error) {
+                    window.define = previousDefine;
+                }
+            }
+
+            script.src = source + "?caExportReload=" + Date.now();
+            script.onload = function () {
+                restoreDefine();
+                const loaded = resolveXlsxLibrary();
+                if (loaded) {
+                    resolve(loaded);
+                    return;
+                }
+
+                reject(new Error("XLSX_UNAVAILABLE"));
+            };
+            script.onerror = function () {
+                restoreDefine();
+                reject(new Error("XLSX_LOAD_FAILED"));
+            };
+            document.head.appendChild(script);
+        }).catch(function (error) {
+            xlsxLoadPromise = null;
+            throw error;
+        });
+
+        return xlsxLoadPromise;
+    }
+
+    async function exportGrid(gridId) {
+        const grid = grids.get(gridId);
+        if (!grid || !grid.instance || grid.exportLock) {
             return;
         }
 
@@ -366,19 +482,25 @@
 
         try {
             const exportData = buildExportRows(grid, visibleColumns);
-            const worksheet = window.XLSX.utils.aoa_to_sheet([exportData.headers].concat(exportData.rows));
-            const workbook = window.XLSX.utils.book_new();
             const sheetName = grid.config.exportSheetName || "Datos";
             const fileName = typeof grid.config.exportFileName === "function"
                 ? grid.config.exportFileName()
                 : (grid.config.exportFileName || "checkapp-grid.xlsx");
 
-            worksheet["!autofilter"] = {
-                ref: "A1:" + window.XLSX.utils.encode_cell({ c: exportData.headers.length - 1, r: 0 })
-            };
-            applyWorksheetWidths(worksheet, exportData.headers, exportData.rows);
-            window.XLSX.utils.book_append_sheet(workbook, worksheet, sheetName);
-            window.XLSX.writeFile(workbook, fileName);
+            try {
+                const xlsx = resolveXlsxLibrary() || await loadXlsxLibrary();
+                const worksheet = xlsx.utils.aoa_to_sheet([exportData.headers].concat(exportData.rows));
+                const workbook = xlsx.utils.book_new();
+
+                worksheet["!autofilter"] = {
+                    ref: "A1:" + xlsx.utils.encode_cell({ c: exportData.headers.length - 1, r: 0 })
+                };
+                applyWorksheetWidths(worksheet, exportData.headers, exportData.rows);
+                xlsx.utils.book_append_sheet(workbook, worksheet, sheetName);
+                xlsx.writeFile(workbook, fileName);
+            } catch (_xlsxError) {
+                exportSpreadsheetFallback(exportData, sheetName, fileName);
+            }
 
             if (exportData.filteredCount === 0) {
                 showExportMessage("info", "Se generó un archivo sin registros porque no hay resultados para los filtros aplicados.");

@@ -49,15 +49,15 @@
 | --- | --- | --- |
 | VO-001 | `inspector/docs/compras/AUDITORIA_INTEGRAL_OC_CHECKAPP_ACTUAL_2026-08-19.md`; `inspector/docs/compras/AUDITORIA_INTEGRAL_OC_SKNC_LEGACY_2026-08-18.md`; `inspector/docs/compras/BACKLOG_MAESTRO_PROVEEDURIA_ORDENES_COMPRA.md`; `inspector/docs/ordenes-compra/ORDENES_COMPRA_BACKLOG_FINAL.md` | Depende de Proveedores/Proveeduria, ProductosServicios, Sucursales/Razones; requiere decision de alcance. |
 | VO-002 | `inspector/docs/compras/BACKLOG_MAESTRO_PROVEEDURIA_ORDENES_COMPRA.md`; `inspector/docs/compras/checkapp-actual/05_COMPARATIVO_CHECKAPP_VS_SKNC.md`; `inspector/docs/compras/legacy-sknc/08_RECEPCION_OC.md` | Depende de OC generada; posterior impacto inventario pendiente. |
-| VO-003 | `inspector/docs/ordenes-compra/ORDENES_COMPRA_BACKLOG_FINAL.md` | Bloqueado: Curvas excluido por PO en OC, pero solicitado como vertical nuevo. |
-| VO-004 | `inspector/docs/ordenes-compra/ORDENES_COMPRA_BACKLOG_FINAL.md` | Bloqueado: Hueco excluido por PO en OC, pero solicitado como vertical nuevo. |
-| VO-005 | `inspector/docs/ordenes-compra/ORDENES_COMPRA_BACKLOG_FINAL.md` | Bloqueado: Copete excluido por PO en OC, pero solicitado como vertical nuevo. |
+| VO-003 / OC-CUR-01 | `inspector/docs/compras/MOKA_AUDITORIA_TARAHUMARA_CURVAS_OC_CHECKAPP_20260922.md`; `inspector/docs/compras/BL03_FASE_C_OC_CUR_01_CONTRATO_FUNCIONAL_CURVAS_CHECKAPP_20260923.md` | Curvas reabierto por decision PO. OC-CUR-01 cerrado como contrato funcional PM/PO; redondeo PresentacionCompra resuelto el 2026-09-23. |
+| VO-003B / OC-CUR-02 | `inspector/docs/compras/BL03_FASE_C_OC_CUR_02_SCHEMA_VERSIONADO_CURVAS_SIEMBRA_20260923.md` | CERRADO / PASS tecnico SQL real CheckAppErp: Scope Curvas V1, OrdenesCompra V2, State/History/Attempts, drift 0, Gate compatible, fixtures reversibles, cross-tenant, OperationKey y cleanup 0; sin UI y sin OC-CUR-03. |
+| VO-004 / OC-CUR-03 | `inspector/docs/compras/BL03_FASE_C_OC_CUR_03_MOTOR_HUECOS_COPETES_SUGERENCIAS_20260923.md` | CERRADO / PASS tecnico SQL real CheckAppErp: motor Huecos implementado read-only con Inventario V1, transito OC/Recepcion, modos, PresentacionCompra y cleanup 0; sin UI final. |
+| VO-005 / OC-CUR-03 | `inspector/docs/compras/BL03_FASE_C_OC_CUR_03_MOTOR_HUECOS_COPETES_SUGERENCIAS_20260923.md` | CERRADO / PASS tecnico SQL real CheckAppErp: motor Copetes/Sugerencias implementado read-only con multisucursal aislada, cross-tenant fail closed, snapshot payload no persistido por preview; sin generar OCs hijas. |
+| VO-006 / OC-CUR-04 | `inspector/docs/compras/BL03_FASE_D_OC_CUR_04_CATALOGO_CURVAS_PATRON_CHECKAPP_20260923.md` | Implementado tecnico + SQL real PASS: Catalogo de Curvas con permisos `05005000/05005001`, DynamicGrid, CRUD, detalle producto/variante, servicios rechazados, Gate, multitenant y cleanup 0. Bloqueado QA visual autenticada local porque localhost redirige a Login; no declarar LISTO QA PO. |
 
 ## Tickets sin evidencia suficiente
 
-- VO-003 Curvas: falta decision PM/PO para reabrir fuera de OC.
-- VO-004 Huecos: falta decision PM/PO para reabrir fuera de OC.
-- VO-005 Copetes: falta decision PM/PO para reabrir fuera de OC.
+- OC-CUR-04: pendiente cierre visual autenticado local/PO; implementacion tecnica y SQL real PASS, pero no `LISTO QA PO`.
 - Cierre PO formal de T11-T24: no localizado en la documentacion auditada, salvo referencias a certificacion tecnica/listo para cierre.
 - QA visual autenticada final de Proveedores/Sucursales/Razones/Regiones: documentada como incompleta en pruebas temporales por sesion duplicada.
 
@@ -65,6 +65,4 @@
 
 - Confirmar si T11-T24 se aceptan como `CERRADO` o permanecen `EN QA PO`.
 - Confirmar si el cierre tecnico 30/30 de Proveedores equivale a cierre PO o requiere repeticion visual.
-- Confirmar reactivacion o no de Curvas/Huecos/Copetes como verticales independientes.
 - Definir fuente primaria para Ordenes de Compra: backlog maestro de compras vs backlog final de ordenes-compra.
-

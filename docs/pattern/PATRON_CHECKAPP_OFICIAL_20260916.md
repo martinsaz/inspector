@@ -28,6 +28,23 @@
 - Endpoints de baja/reactivacion deben validar AuthZ especifico, Scope Sucursales, Gate compatible, `DatabaseIdentity`, `idEmpresa` server-side y permiso de escritura; padres no autorizan hijos.
 - Para esta ejecucion PO 2026-09-18, si se usan `5200`/`5127` durante QA tecnico, deben quedar liberados al final y verificados con `lsof` sin listeners.
 
+## Patron CheckApp - Catalogos V1 - 2026-09-25
+
+- Estado: `APROBADO PO`.
+- Documento oficial: `inspector/docs/pattern/PATRON_CHECKAPP_CATALOGOS_V1_20260925.md`.
+- Golden Master SIMPLE / COMPACTO: `PS-ACT-01S-R5`.
+- Referencias compactas aprobadas: Categorias, Marcas, Unidades de medida, Colecciones y Etiquetas de Productos y Servicios.
+- La referencia aplica por igual a quick-create desde `/ProductosServicios/Index`, Alta CRUD y Edicion CRUD.
+- Regla permanente: el Patron CheckApp de Catalogos NO define un ancho unico universal para todos los catalogos.
+- Variante `SIMPLE / COMPACTO`: pocos campos, captura directa y ancho compacto aprobado en PS-ACT-01S-R5.
+- Variante `AMPLIADO`: mayor cantidad de campos, grupos, relaciones, direccion, configuracion o selectores multiples; no forzar ancho compacto.
+- La altura nunca se homologa artificialmente; depende del contenido real y usa scroll cuando corresponde.
+- Antes de implementar un catalogo nuevo, clasificar por estructura real del formulario como `SIMPLE` o `AMPLIADO`; si hay duda real, consultar al PO antes de reinterpretar el diseno.
+- TinyMCE solo aplica cuando el contrato funcional requiere descripcion enriquecida. Etiqueta oficial expone solo `Nombre`, sin `Descripcion` ni TinyMCE.
+- Quick-create debe reutilizar el mismo patron visual y funcional del CRUD; no crear segunda version visual del mismo catalogo.
+- Sucursales queda solo como ejemplo conceptual de catalogo ampliado; no se declara Golden Master ampliado ni se implementa por esta formalizacion.
+- No migrar otros catalogos todavia. BL-03, OC, Recepcion, Curvas, T25, Reporte Lider, Legacy/Tarahumara y Parte 2 de ProductosServicios permanecen FROZEN.
+
 ## Extension operativa V3 - controles 31-36
 
 31. Descripcion/Notas libres usan editor HTML oficial.
@@ -89,7 +106,7 @@
 
 - Golden Master literal vigente: `/ProductosServicios/Index`; matriz obligatoria para homologacion en `inspector/docs/pattern/PATRON_CHECKAPP_GOLDEN_MASTER_COMPONENT_MATRIX_20260917.md`.
 - Golden Master literal de DynamicGrid para catalogos administrables: `/ProductosServicios/Categorias`.
-- Golden Master de catalogo simple: `/ProductosServicios/Index` -> quick-add -> `Nueva categoria`. Aplica a ABC Sucursales, Razones Sociales, Regiones y catalogos equivalentes.
+- Golden Master de catalogo simple compacto: `PS-ACT-01S-R5` sobre Categorias, Marcas, Unidades de medida, Colecciones y Etiquetas. Antes de usarlo en un catalogo nuevo, clasificar como SIMPLE o AMPLIADO segun el formulario real.
 - Botones: `checkapp-btn`, `checkapp-btn-primary`, `checkapp-btn-secondary`, `checkapp-btn-ghost`, `checkapp-btn-excel`.
 - Paneles: `checkapp-panel`, `checkapp-panel-head`, `checkapp-panel-eyebrow`, `checkapp-panel-copy`.
 - Filtros: accordion `checkapp-accordion`, resumen de chips, acciones Buscar/Limpiar.

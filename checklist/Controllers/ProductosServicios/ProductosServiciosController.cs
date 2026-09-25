@@ -27,6 +27,8 @@ namespace checklist.Controllers.ProductosServicios
         private const string CategoriasPermissionCode = "05001003";
         private const string MarcasPermissionCode = "05001004";
         private const string UnidadesMedidaPermissionCode = "05001005";
+        private const string ColeccionesPermissionCode = "05001006";
+        private const string EtiquetasPermissionCode = "05001007";
         private static readonly HashSet<string> CategoriaActions = new HashSet<string>(StringComparer.OrdinalIgnoreCase)
         {
             "Categorias",
@@ -44,7 +46,6 @@ namespace checklist.Controllers.ProductosServicios
             "ObtenerMarcasProductosServicios",
             "ObtenerMarcaProductoServicio",
             "GuardarMarcaProductoServicio",
-            "GuardarTagProductoServicio",
             "BajaMarcaProductoServicio",
             "ActivarMarcaProductoServicio",
             "ObtenerCatalogoMarcasProductosServicios",
@@ -60,6 +61,29 @@ namespace checklist.Controllers.ProductosServicios
             "ActivarUnidadMedidaProductoServicio",
             "ObtenerCatalogoUnidadesMedidaProductosServicios",
             "ExportarUnidadesMedidaProductosServicios"
+        };
+        private static readonly HashSet<string> ColeccionActions = new HashSet<string>(StringComparer.OrdinalIgnoreCase)
+        {
+            "Colecciones",
+            "ObtenerColeccionesProductosServicios",
+            "ObtenerColeccionProductoServicio",
+            "GuardarColeccionProductoServicio",
+            "BajaColeccionProductoServicio",
+            "ActivarColeccionProductoServicio",
+            "ObtenerCatalogoColeccionesProductosServicios",
+            "ExportarColeccionesProductosServicios"
+        };
+        private static readonly HashSet<string> EtiquetaActions = new HashSet<string>(StringComparer.OrdinalIgnoreCase)
+        {
+            "Etiquetas",
+            "ObtenerEtiquetasProductosServicios",
+            "ObtenerEtiquetaProductoServicio",
+            "GuardarEtiquetaProductoServicio",
+            "GuardarTagProductoServicio",
+            "BajaEtiquetaProductoServicio",
+            "ActivarEtiquetaProductoServicio",
+            "ObtenerCatalogoEtiquetasProductosServicios",
+            "ExportarEtiquetasProductosServicios"
         };
 
         private readonly IHttpClientFactory _clientFactory;
@@ -118,6 +142,18 @@ namespace checklist.Controllers.ProductosServicios
 
         [HttpGet("UnidadesMedida")]
         public IActionResult UnidadesMedida()
+        {
+            return View();
+        }
+
+        [HttpGet("Colecciones")]
+        public IActionResult Colecciones()
+        {
+            return View();
+        }
+
+        [HttpGet("Etiquetas")]
+        public IActionResult Etiquetas()
         {
             return View();
         }
@@ -232,6 +268,45 @@ namespace checklist.Controllers.ProductosServicios
 
         [HttpPost("GuardarColeccionProductoServicio")]
         public Task<IActionResult> GuardarColeccionProductoServicio() => ProxyJsonAsync(HttpMethod.Post, "GuardarColeccionProductoServicio");
+
+        [HttpGet("ObtenerColeccionesProductosServicios")]
+        public Task<IActionResult> ObtenerColeccionesProductosServicios() => ProxyGetAsync("ObtenerColeccionesProductosServicios");
+
+        [HttpGet("ObtenerColeccionProductoServicio")]
+        public Task<IActionResult> ObtenerColeccionProductoServicio() => ProxyGetAsync("ObtenerColeccionProductoServicio");
+
+        [HttpPost("BajaColeccionProductoServicio")]
+        public Task<IActionResult> BajaColeccionProductoServicio() => ProxyJsonAsync(HttpMethod.Post, "BajaColeccionProductoServicio");
+
+        [HttpPost("ActivarColeccionProductoServicio")]
+        public Task<IActionResult> ActivarColeccionProductoServicio() => ProxyJsonAsync(HttpMethod.Post, "ActivarColeccionProductoServicio");
+
+        [HttpGet("ObtenerCatalogoColeccionesProductosServicios")]
+        public Task<IActionResult> ObtenerCatalogoColeccionesProductosServicios() => ProxyGetAsync("ObtenerCatalogoColeccionesProductosServicios");
+
+        [HttpGet("ExportarColeccionesProductosServicios")]
+        public Task<IActionResult> ExportarColeccionesProductosServicios() => ProxyFileAsync("ExportarColeccionesProductosServicios");
+
+        [HttpGet("ObtenerEtiquetasProductosServicios")]
+        public Task<IActionResult> ObtenerEtiquetasProductosServicios() => ProxyGetAsync("ObtenerEtiquetasProductosServicios");
+
+        [HttpGet("ObtenerEtiquetaProductoServicio")]
+        public Task<IActionResult> ObtenerEtiquetaProductoServicio() => ProxyGetAsync("ObtenerEtiquetaProductoServicio");
+
+        [HttpPost("GuardarEtiquetaProductoServicio")]
+        public Task<IActionResult> GuardarEtiquetaProductoServicio() => ProxyJsonAsync(HttpMethod.Post, "GuardarEtiquetaProductoServicio");
+
+        [HttpPost("BajaEtiquetaProductoServicio")]
+        public Task<IActionResult> BajaEtiquetaProductoServicio() => ProxyJsonAsync(HttpMethod.Post, "BajaEtiquetaProductoServicio");
+
+        [HttpPost("ActivarEtiquetaProductoServicio")]
+        public Task<IActionResult> ActivarEtiquetaProductoServicio() => ProxyJsonAsync(HttpMethod.Post, "ActivarEtiquetaProductoServicio");
+
+        [HttpGet("ObtenerCatalogoEtiquetasProductosServicios")]
+        public Task<IActionResult> ObtenerCatalogoEtiquetasProductosServicios() => ProxyGetAsync("ObtenerCatalogoEtiquetasProductosServicios");
+
+        [HttpGet("ExportarEtiquetasProductosServicios")]
+        public Task<IActionResult> ExportarEtiquetasProductosServicios() => ProxyFileAsync("ExportarEtiquetasProductosServicios");
 
         [HttpPost("GuardarPaqueteProductoServicio")]
         public Task<IActionResult> GuardarPaqueteProductoServicio() => ProxyJsonAsync(HttpMethod.Post, "GuardarPaqueteProductoServicio");
@@ -556,6 +631,12 @@ namespace checklist.Controllers.ProductosServicios
                 string content = await response.Content.ReadAsStringAsync();
                 JsonNode? parsed = JsonNode.Parse(content);
                 JsonObject? role = parsed as JsonArray is { Count: > 0 } roles ? roles[0] as JsonObject : null;
+                string nombreRol = role?["nombreRol"]?.GetValue<string>() ?? role?["NombreRol"]?.GetValue<string>() ?? string.Empty;
+                if (string.Equals(nombreRol?.Trim(), "SuperAdmin", StringComparison.OrdinalIgnoreCase))
+                {
+                    return ProveeduriaMenuBuilder.HasOfficialSuperAdminPermission(permissionCode, requireWrite: false);
+                }
+
                 string permisos = role?["permisos"]?.GetValue<string>() ?? role?["Permisos"]?.GetValue<string>() ?? string.Empty;
                 JsonNode? permission = FindPermission(JsonNode.Parse(permisos), permissionCode);
                 return permission?["Permisos"]?["Acceso"]?.GetValue<int>() == 1 ||
@@ -585,6 +666,16 @@ namespace checklist.Controllers.ProductosServicios
             if (UnidadMedidaActions.Contains(actionName))
             {
                 return UnidadesMedidaPermissionCode;
+            }
+
+            if (ColeccionActions.Contains(actionName))
+            {
+                return ColeccionesPermissionCode;
+            }
+
+            if (EtiquetaActions.Contains(actionName))
+            {
+                return EtiquetasPermissionCode;
             }
 
             return string.Equals(actionName, "Index", StringComparison.OrdinalIgnoreCase) ||

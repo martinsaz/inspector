@@ -22,12 +22,16 @@ namespace checklist.Controllers.RolesPermisos
         private const string ProductosServiciosCategoriasPermissionCode = "05001003";
         private const string ProductosServiciosMarcasPermissionCode = "05001004";
         private const string ProductosServiciosUnidadesPermissionCode = "05001005";
+        private const string ProductosServiciosColeccionesPermissionCode = "05001006";
+        private const string ProductosServiciosEtiquetasPermissionCode = "05001007";
         private const string OrdenesCompraPermissionCode = "05003000";
         private const string OrdenesCompraNuevaPermissionCode = "05003001";
         private const string OrdenesCompraReportePermissionCode = "05003002";
         private const string RecepcionPermissionCode = "05004000";
         private const string RecepcionNuevaPermissionCode = "05004001";
         private const string RecepcionReportePermissionCode = "05004002";
+        private const string CurvasPermissionCode = "05005000";
+        private const string CurvasCatalogoPermissionCode = "05005001";
 
         private readonly IConfiguration _configuration;
         private readonly IHttpClientFactory _clientFactory;
@@ -439,7 +443,7 @@ namespace checklist.Controllers.RolesPermisos
              return Json(new { d = JsonConvert.DeserializeObject<string>(response.Content) });
          }*/
         //, string mnlistaa, string mnlistaw, string mnlistaabcw, string mncategorizacionw, string mnrecoleccionesa, string mnrecoleccionesw, string mnconlistasw, string mnconlistas, string mnajustesa, string mnajustesw, string mnusuariosw
-        public async Task<ActionResult> GuardaPerm(string llavero, string nombrer, string idEmpresa, string empresa, string correo, string cadena, string mnlista, string mnlistaabc, string mncrealistaa, string mncrealistaw, string mnprocesoa, string mnprocesow, string mnmislistasa, string mnmislistasw, string mncategorizacion, string mncategoria, string mncategoriaw, string mnsubcategoria, string mnsubcategoriaw, string mnrecolecciones, string mnnuevar, string mnnuevarw, string mninspeccioncampo, string mninspeccioncampow, string mnnuevaroff, string mnnuevaroffw, string mnresultados, string mnresultadosw, string mnrespuestas, string mnrespuestasw, string mnreportes, string mnestrella, string mnestrellaw, string mncontraido, string mncontraidow, string mnccat, string mnccatw, string mnlistado, string mnlistadow, string mnajustes, string mnusuarios, string mnabcus, string mnabcusw, string mndepto, string mndeptow, string mnpuesto, string mnpuestow, string mnroles, string mnrolesw, string mnsucursales, string mnabcsucursales, string mnabcsucursalesw, string mnrazones, string mnrazonesw, string mnregiones, string mnregionesw, string mnproveeduria, string mnproductosservicios, string mnproductosserviciosabc, string mnproductosserviciosabcw, string mnproductosservicioscatalogos, string mnproductosservicioscategorias, string mnproductosservicioscategoriasw, string mnproductosserviciosmarcas, string mnproductosserviciosmarcasw, string mnproductosserviciosunidades, string mnproductosserviciosunidadesw, string mnordenescompra, string mnordenescompranueva, string mnordenescompranuevaw, string mnordenescomprareporte, string mnordenescomprareportew, string mnrecepcion, string mnrecepcionnueva, string mnrecepcionnuevaw, string mnrecepcionreporte, string mnrecepcionreportew)
+        public async Task<ActionResult> GuardaPerm(string llavero, string nombrer, string idEmpresa, string empresa, string correo, string cadena, string mnlista, string mnlistaabc, string mncrealistaa, string mncrealistaw, string mnprocesoa, string mnprocesow, string mnmislistasa, string mnmislistasw, string mncategorizacion, string mncategoria, string mncategoriaw, string mnsubcategoria, string mnsubcategoriaw, string mnrecolecciones, string mnnuevar, string mnnuevarw, string mninspeccioncampo, string mninspeccioncampow, string mnnuevaroff, string mnnuevaroffw, string mnresultados, string mnresultadosw, string mnrespuestas, string mnrespuestasw, string mnreportes, string mnestrella, string mnestrellaw, string mncontraido, string mncontraidow, string mnccat, string mnccatw, string mnlistado, string mnlistadow, string mnajustes, string mnusuarios, string mnabcus, string mnabcusw, string mndepto, string mndeptow, string mnpuesto, string mnpuestow, string mnroles, string mnrolesw, string mnsucursales, string mnabcsucursales, string mnabcsucursalesw, string mnrazones, string mnrazonesw, string mnregiones, string mnregionesw, string mnproveeduria, string mnproductosservicios, string mnproductosserviciosabc, string mnproductosserviciosabcw, string mnproductosservicioscatalogos, string mnproductosservicioscategorias, string mnproductosservicioscategoriasw, string mnproductosserviciosmarcas, string mnproductosserviciosmarcasw, string mnproductosserviciosunidades, string mnproductosserviciosunidadesw, string mnproductosservicioscolecciones, string mnproductosservicioscoleccionesw, string mnproductosserviciosetiquetas, string mnproductosserviciosetiquetasw, string mnordenescompra, string mnordenescompranueva, string mnordenescompranuevaw, string mnordenescomprareporte, string mnordenescomprareportew, string mnrecepcion, string mnrecepcionnueva, string mnrecepcionnuevaw, string mnrecepcionreporte, string mnrecepcionreportew, string mncurvas, string mncurvascatalogo, string mncurvascatalogow)
         {
 
             respRoles item = new respRoles();
@@ -904,13 +908,17 @@ namespace checklist.Controllers.RolesPermisos
             bool categoriasAcceso = IsChecked(mnproductosservicioscategorias);
             bool marcasAcceso = IsChecked(mnproductosserviciosmarcas);
             bool unidadesAcceso = IsChecked(mnproductosserviciosunidades);
+            bool coleccionesAcceso = IsChecked(mnproductosservicioscolecciones);
+            bool etiquetasAcceso = IsChecked(mnproductosserviciosetiquetas);
             bool ordenesCompraNuevaAcceso = IsChecked(mnordenescompranueva);
             bool ordenesCompraReporteAcceso = IsChecked(mnordenescomprareporte);
             bool ordenesCompraAcceso = IsChecked(mnordenescompra) || ordenesCompraNuevaAcceso || ordenesCompraReporteAcceso;
             bool recepcionNuevaAcceso = IsChecked(mnrecepcionnueva);
             bool recepcionReporteAcceso = IsChecked(mnrecepcionreporte);
             bool recepcionAcceso = IsChecked(mnrecepcion) || recepcionNuevaAcceso || recepcionReporteAcceso;
-            bool proveeduriaAcceso = IsChecked(mnproveeduria) || productosServiciosAcceso || ordenesCompraAcceso || recepcionAcceso;
+            bool curvasCatalogoAcceso = IsChecked(mncurvascatalogo);
+            bool curvasAcceso = IsChecked(mncurvas) || curvasCatalogoAcceso;
+            bool proveeduriaAcceso = IsChecked(mnproveeduria) || productosServiciosAcceso || ordenesCompraAcceso || recepcionAcceso || curvasAcceso;
             Opciones proveeduria = new Opciones
             {
                 Opcion = ProveeduriaPermissionCode,
@@ -960,6 +968,24 @@ namespace checklist.Controllers.RolesPermisos
                 {
                     Acceso = unidadesAcceso ? 1 : 0,
                     Escritura = unidadesAcceso && IsChecked(mnproductosserviciosunidadesw) ? 1 : 0
+                }
+            });
+            catalogos.Hijos.Add(new Opciones
+            {
+                Opcion = ProductosServiciosColeccionesPermissionCode,
+                Permisos = new Permisos
+                {
+                    Acceso = coleccionesAcceso ? 1 : 0,
+                    Escritura = coleccionesAcceso && IsChecked(mnproductosservicioscoleccionesw) ? 1 : 0
+                }
+            });
+            catalogos.Hijos.Add(new Opciones
+            {
+                Opcion = ProductosServiciosEtiquetasPermissionCode,
+                Permisos = new Permisos
+                {
+                    Acceso = etiquetasAcceso ? 1 : 0,
+                    Escritura = etiquetasAcceso && IsChecked(mnproductosserviciosetiquetasw) ? 1 : 0
                 }
             });
             productosServicios.Hijos.Add(catalogos);
@@ -1013,6 +1039,21 @@ namespace checklist.Controllers.RolesPermisos
                 }
             });
             proveeduria.Hijos.Add(recepcion);
+            Opciones curvas = new Opciones
+            {
+                Opcion = CurvasPermissionCode,
+                Permisos = new Permisos { Acceso = curvasAcceso ? 1 : 0, Escritura = 0 }
+            };
+            curvas.Hijos.Add(new Opciones
+            {
+                Opcion = CurvasCatalogoPermissionCode,
+                Permisos = new Permisos
+                {
+                    Acceso = curvasCatalogoAcceso ? 1 : 0,
+                    Escritura = curvasCatalogoAcceso && IsChecked(mncurvascatalogow) ? 1 : 0
+                }
+            });
+            proveeduria.Hijos.Add(curvas);
             opciones.Add(proveeduria);
 
             item.Permisos = JsonConvert.SerializeObject(opciones);
@@ -1487,6 +1528,8 @@ namespace checklist.Controllers.RolesPermisos
                                 Opciones? recepcion = permiso.Hijos.FirstOrDefault(hijo => hijo.Opcion == RecepcionPermissionCode);
                                 Opciones? recepcionNueva = recepcion?.Hijos.FirstOrDefault(hijo => hijo.Opcion == RecepcionNuevaPermissionCode);
                                 Opciones? recepcionReporte = recepcion?.Hijos.FirstOrDefault(hijo => hijo.Opcion == RecepcionReportePermissionCode);
+                                Opciones? curvas = permiso.Hijos.FirstOrDefault(hijo => hijo.Opcion == CurvasPermissionCode);
+                                Opciones? curvasCatalogo = curvas?.Hijos.FirstOrDefault(hijo => hijo.Opcion == CurvasCatalogoPermissionCode);
                                 result.Add(new DataPair2()
                                 {
                                     Nombre = "#swMenuProveeduria",
@@ -1502,7 +1545,9 @@ namespace checklist.Controllers.RolesPermisos
                                             ordenesCompraReporte?.Permisos.Acceso == 1 ||
                                             recepcion?.Permisos.Acceso == 1 ||
                                             recepcionNueva?.Permisos.Acceso == 1 ||
-                                            recepcionReporte?.Permisos.Acceso == 1
+                                            recepcionReporte?.Permisos.Acceso == 1 ||
+                                            curvas?.Permisos.Acceso == 1 ||
+                                            curvasCatalogo?.Permisos.Acceso == 1
                                         ? "true"
                                         : "false"
                                 });
@@ -1519,12 +1564,16 @@ namespace checklist.Controllers.RolesPermisos
                                 AddPermissionSwitch(result, "#sw05001003A", "#sw05001003W", categorias);
                                 AddPermissionSwitch(result, "#sw05001004A", "#sw05001004W", marcas);
                                 AddPermissionSwitch(result, "#sw05001005A", "#sw05001005W", unidades);
+                                AddPermissionSwitch(result, "#sw05001006A", "#sw05001006W", catalogos?.Hijos.FirstOrDefault(hijo => hijo.Opcion == ProductosServiciosColeccionesPermissionCode));
+                                AddPermissionSwitch(result, "#sw05001007A", "#sw05001007W", catalogos?.Hijos.FirstOrDefault(hijo => hijo.Opcion == ProductosServiciosEtiquetasPermissionCode));
                                 AddPermissionSwitch(result, "#sw05003000A", null, ordenesCompra);
                                 AddPermissionSwitch(result, "#sw05003001A", "#sw05003001W", ordenesCompraNueva);
                                 AddPermissionSwitch(result, "#sw05003002A", "#sw05003002W", ordenesCompraReporte);
                                 AddPermissionSwitch(result, "#sw05004000A", null, recepcion);
                                 AddPermissionSwitch(result, "#sw05004001A", "#sw05004001W", recepcionNueva);
                                 AddPermissionSwitch(result, "#sw05004002A", "#sw05004002W", recepcionReporte);
+                                AddPermissionSwitch(result, "#sw05005000A", null, curvas);
+                                AddPermissionSwitch(result, "#sw05005001A", "#sw05005001W", curvasCatalogo);
                                 break;
                         }
 
@@ -1574,6 +1623,16 @@ namespace checklist.Controllers.RolesPermisos
                                     {
                                         Opcion = ProductosServiciosUnidadesPermissionCode,
                                         Permisos = new Permisos { Acceso = 0, Escritura = 0 }
+                                    },
+                                    new Opciones
+                                    {
+                                        Opcion = ProductosServiciosColeccionesPermissionCode,
+                                        Permisos = new Permisos { Acceso = 0, Escritura = 0 }
+                                    },
+                                    new Opciones
+                                    {
+                                        Opcion = ProductosServiciosEtiquetasPermissionCode,
+                                        Permisos = new Permisos { Acceso = 0, Escritura = 0 }
                                     }
                                 }
                             }
@@ -1611,6 +1670,19 @@ namespace checklist.Controllers.RolesPermisos
                             new Opciones
                             {
                                 Opcion = RecepcionReportePermissionCode,
+                                Permisos = new Permisos { Acceso = 0, Escritura = 0 }
+                            }
+                        }
+                    },
+                    new Opciones
+                    {
+                        Opcion = CurvasPermissionCode,
+                        Permisos = new Permisos { Acceso = 0, Escritura = 0 },
+                        Hijos =
+                        {
+                            new Opciones
+                            {
+                                Opcion = CurvasCatalogoPermissionCode,
                                 Permisos = new Permisos { Acceso = 0, Escritura = 0 }
                             }
                         }

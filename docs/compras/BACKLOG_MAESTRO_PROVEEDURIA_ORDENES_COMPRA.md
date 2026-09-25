@@ -19,6 +19,52 @@ Son etapas relacionadas, pero no debemos mezclarlas en una sola transacción o p
 
 ---
 
+# Fase C - Curvas CheckApp
+
+Curvas queda reabierto por decision PO como inteligencia de compra adaptada al
+dominio CheckApp, no como copia de Tarahumara.
+
+## OC-CUR-01 - Contrato funcional Curvas CheckApp
+
+Estado: `CERRADO / PASS PM-PO`.
+
+Documento: `docs/compras/BL03_FASE_C_OC_CUR_01_CONTRATO_FUNCIONAL_CURVAS_CHECKAPP_20260923.md`.
+
+Decisiones incorporadas:
+
+- Multisucursal aprobado: una operacion agrupadora genera OCs independientes por sucursal.
+- Catalogo de Curvas + Siembra aprobado.
+- Curvas son sugerencias; el usuario conserva CantidadFinal.
+- Servicios permanecen en OC mixta, fuera de Curvas V1.
+- Modos aprobados: Manual, Pedido inicial, Rellenar curva, No pedir.
+
+OC-CUR-01 no implementa codigo, DDL, datos, UI, API ni permisos.
+
+## OC-CUR-02 - Schema/versionado Curvas + Siembra
+
+Estado: `CERRADO / PASS TECNICO SQL REAL CHECKAPPERP`.
+
+Documento: `docs/compras/BL03_FASE_C_OC_CUR_02_SCHEMA_VERSIONADO_CURVAS_SIEMBRA_20260923.md`.
+
+Alcance implementado: scope `Curvas` V1, Catalogo, Detalle producto/variante,
+Siembra, operacion agrupadora multisucursal, relacion operacion -> OCs hijas,
+snapshots minimos y `OrdenesCompra` V2 para `PresentacionCompra` cerrada/libre.
+Certificacion final: CheckAppErp real, version/hash, State/History/Attempts,
+segunda corrida idempotente, drift `SchemaOk/0`, Gate `COMPATIBLE`, fixtures
+reversibles, cross-tenant fail closed, OperationKey y cleanup 0.
+Sin UI, sin motor OC-CUR-03, sin permisos navegables definitivos.
+
+## OC-CUR-03 - Motor Huecos/Copetes/sugerencias
+
+Estado: `NO INICIADO`.
+
+Alcance futuro: motor sobre Inventario V1 + OC V1 + Recepcion V1 + Siembra para
+calcular Existencia, Transito, Cobertura, Hueco, Copete y CantidadPropuesta.
+
+No ejecutar desde OC-CUR-01.
+
+---
+
 # OC-S0 — Fortalecimiento de la OC actual
 
 ## Objetivo
@@ -634,6 +680,12 @@ Recepciones/evidencias son documentos relacionados independientes.
 
 # Dependencias
 
+## Actualizacion #MOKA OC-CUR-03 - 2026-09-23
+
+OC-CUR-03 queda cerrado como PASS tecnico SQL real CheckAppErp: motor backend read-only de Huecos/Copetes/Sugerencias implementado y certificado con Curvas V1, Inventario V1, transito OC/Recepcion, modos Manual/Pedido inicial/Rellenar curva/No pedir, producto con/sin variante, rechazo de servicios, PresentacionCompra cerrada/libre, multisucursal aislada, cross-tenant fail closed, preview sin persistir snapshot, fixtures reversibles y cleanup 0.
+
+No se implemento UI final, no se modifico visualmente Nueva OC, no se generaron OCs hijas, no se movio inventario, no se toco Legacy y no se ejecuto ticket posterior. Siguiente ticket recomendado: OC-CUR-04, sin ejecutar.
+
 OC-S0
 Fortalecer OC actual
     │
@@ -674,6 +726,43 @@ OC-S3 y OC-S4 pueden desarrollarse en paralelo después de estabilizar Recepció
 | Operador/Usuario | Quién ejecuta las acciones |
 
 Esta separación es fundamental.
+
+---
+
+# Addendum 2026-09-23 - OC-CUR-04
+
+OC-CUR-04 queda implementado tecnicamente con SQL real CheckAppErp PASS, pero no se declara `LISTO QA PO` porque la ruta local protegida `/Proveeduria/Curvas/Catalogo` redirigio a Login y no hubo sesion autenticada localhost para certificar visualmente desktop/tablet/mobile ni RolesPermisos runtime.
+
+Alcance implementado:
+
+- Catalogo de Curvas bajo `Proveeduria > Curvas > Catalogo de Curvas`.
+- Permisos `05005000` Curvas agrupador y `05005001` Catalogo de Curvas.
+- DynamicGrid oficial, alta, edicion, baja logica, reactivacion.
+- Detalle por ProductoServicio + Variante nullable + CantidadBaseObjetivo.
+- Servicios excluidos/rechazados, Gate `Curvas`, multitenant.
+- SQL real CheckAppErp con fixtures reversibles y cleanup 0.
+
+Siguiente paso: habilitar sesion QA local para cerrar QA visual autenticada de OC-CUR-04. No ejecutar OC-CUR-05 ni tickets posteriores hasta cerrar ese punto o recibir instruccion explicita.
+
+---
+
+# Addendum 2026-09-23 - OC-CUR-04S
+
+OC-CUR-04S refina Catalogo de Curvas por QA PO:
+
+- Codigo oculto en alta/edicion, autogenerado e inmutable.
+- Switch Activa ON por defecto y reflejado en edicion.
+- Producto con variantes carga automaticamente todas las variantes activas.
+- Cantidad para todas + Aplicar a todas, con edicion individual posterior.
+- Inclusion/exclusion de variantes antes de agregar objetivos.
+- Producto sin variantes queda como Base / `VarianteId=NULL`.
+- Resumen vivo de variantes incluidas y unidades objetivo.
+- Multiples productos preservados dentro de la curva.
+- Servicios fuera de Curvas V1.
+
+Runtime autenticado verifico alta, variantes automaticas, aplicar a todas, ajuste individual, excluir variante, guardar, F5 y editar. Baja/reactivacion no queda recertificada en esta corrida por limitacion de automatizacion sobre los enlaces de accion del grid; no se declara `LISTO QA PO` para OC-CUR-04S hasta cerrar ese punto y cleanup completo.
+
+No ejecutar OC-CUR-05.
 
 ---
 

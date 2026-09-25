@@ -24,8 +24,9 @@
             overlayTitleSelector: "",
             overlayStatusSelector: "",
             invalidScopeSelector: "",
-            richTextHeight: 128
+            richTextHeight: 118
         }, options || {});
+        this._descriptionEditorInitToken = 0;
     }
 
     CatalogModalBridge.prototype.syncFieldLimits = function (config) {
@@ -100,6 +101,9 @@
     };
 
     CatalogModalBridge.prototype.reset = function (config, copy) {
+        const effectiveConfig = config || {};
+        this.destroyDescriptionEditor();
+
         const form = document.querySelector(this.options.formSelector);
         if (form) {
             form.reset();
@@ -110,19 +114,19 @@
             $(this.options.hiddenTypeSelector).val("");
         }
         if (this.options.appliesSelector) {
-            $(this.options.appliesSelector).val(config.defaultAplicaAValue || "");
+            $(this.options.appliesSelector).val(effectiveConfig.defaultAplicaAValue || "");
         }
         if (this.options.decimalsSelector) {
             $(this.options.decimalsSelector).prop("checked", false);
         }
 
-        this.applyFieldVisibility(config);
+        this.applyFieldVisibility(effectiveConfig);
         this.syncCodeField(false, "");
         this.setCopy(copy || {});
         this.setStatus("", "");
         this.clearFieldErrors();
         this.setDescriptionValue("");
-        this.initDescriptionEditor(config);
+        this.initDescriptionEditor(effectiveConfig);
     };
 
     CatalogModalBridge.prototype.setCopy = function (copy) {
@@ -134,6 +138,19 @@
         }
         if (this.options.saveButtonTextSelector && Object.prototype.hasOwnProperty.call(copy, "saveButton")) {
             $(this.options.saveButtonTextSelector).text(copy.saveButton || "");
+        }
+    };
+
+    CatalogModalBridge.prototype.setPlaceholders = function (placeholders) {
+        const copy = placeholders || {};
+        if (this.options.nameSelector) {
+            $(this.options.nameSelector).attr("placeholder", copy.name || "Nombre");
+        }
+        if (this.options.descriptionSelector) {
+            $(this.options.descriptionSelector).attr("placeholder", copy.description || "Descripción");
+        }
+        if (this.options.abbreviationSelector) {
+            $(this.options.abbreviationSelector).attr("placeholder", copy.abbreviation || "Abreviatura");
         }
     };
 
@@ -194,6 +211,7 @@
 
     CatalogModalBridge.prototype.initDescriptionEditor = function (config) {
         if (!config || !config.showDescription || !window.tinymce || !resolveEditorId(this.options.descriptionSelector)) {
+            this.destroyDescriptionEditor();
             return;
         }
 
@@ -204,6 +222,7 @@
         }
 
         const bridge = this;
+        const initToken = ++this._descriptionEditorInitToken;
         window.tinymce.init({
             selector: this.options.descriptionSelector,
             menubar: false,
@@ -214,7 +233,8 @@
             placeholder: "Descripción",
             aria_label: "Descripción",
             plugins: "lists link code",
-            toolbar: "blocks | bold italic underline | bullist numlist | alignleft aligncenter alignright | link unlink | code removeformat",
+            toolbar: "bold italic underline | bullist numlist | alignleft aligncenter alignright | link",
+            toolbar_mode: "sliding",
             block_formats: "Párrafo=p; Encabezado 2=h2; Encabezado 3=h3",
             browser_spellcheck: true,
             contextmenu: false,
@@ -223,9 +243,37 @@
                     bridge.clearFieldError(bridge.options.descriptionSelector);
                 });
             }
-        }).then(function () {
+        }).then(function (editors) {
+            if (initToken !== bridge._descriptionEditorInitToken || !isFieldVisible(bridge.options.descriptionFieldSelector)) {
+                (editors || []).forEach(function (editor) {
+                    if (editor && typeof editor.remove === "function") {
+                        editor.remove();
+                    }
+                });
+                return;
+            }
+
             bridge.setDescriptionValue($(bridge.options.descriptionSelector).val() || "");
         });
+    };
+
+    CatalogModalBridge.prototype.destroyDescriptionEditor = function () {
+        this._descriptionEditorInitToken += 1;
+
+        const editor = resolveEditor(this.options.descriptionSelector);
+        if (editor) {
+            if (typeof editor.remove === "function") {
+                editor.remove();
+            } else if (window.tinymce && typeof window.tinymce.remove === "function") {
+                window.tinymce.remove(editor);
+            }
+        }
+
+        const description = document.querySelector(this.options.descriptionSelector);
+        if (description) {
+            description.removeAttribute("aria-hidden");
+            description.style.display = "";
+        }
     };
 
     CatalogModalBridge.prototype.getDescriptionValue = function () {
@@ -281,6 +329,15 @@
         const $field = $(selector);
         $field.prop("hidden", !show);
         $field.toggle(!!show);
+    }
+
+    function isFieldVisible(selector) {
+        if (!selector) {
+            return true;
+        }
+
+        const field = document.querySelector(selector);
+        return !!field && !field.hidden && field.style.display !== "none";
     }
 
     function normalizeGuid(value) {

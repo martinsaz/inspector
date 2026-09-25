@@ -1,0 +1,261 @@
+@{
+    ViewBag.Title = "Catálogo de Curvas";
+    Layout = "~/Views/Shared/_Layout.cshtml";
+}
+
+<partial name="~/Views/ProductosServicios/_ProductosServiciosSessionContext.cshtml" />
+
+<div class="checkapp-scope checkapp-page productos-servicios-page ps-catalog-page" data-curvas-catalogo-page>
+    <div class="container-fluid checkapp-shell">
+        <section class="checkapp-hero">
+            <div>
+                <p class="checkapp-kicker">Proveeduría</p>
+                <h1>Catálogo de Curvas</h1>
+                <p>Administra curvas de reposición por producto, variante y cantidad objetivo.</p>
+            </div>
+            <div class="checkapp-hero-actions">
+                <button id="btNuevaCurva" type="button" class="checkapp-btn checkapp-btn-primary">
+                    <i class="fa fa-plus"></i>
+                    <span>Nueva curva</span>
+                </button>
+            </div>
+        </section>
+
+        <section id="accordionFiltrosCurvas" class="checkapp-panel checkapp-accordion is-open">
+            <button type="button" class="checkapp-accordion-toggle" aria-expanded="true" aria-controls="accordionFiltrosCurvasBody">
+                <div>
+                    <span class="checkapp-panel-eyebrow">Filtros</span>
+                    <h3>Consulta</h3>
+                </div>
+                <span class="checkapp-accordion-summary">Activos</span>
+            </button>
+            <div class="checkapp-accordion-body" id="accordionFiltrosCurvasBody">
+                <div class="checkapp-accordion-inner">
+                    <div class="checkapp-filter-grid ps-catalog-filter-grid">
+                        <label class="checkapp-field ps-catalog-field ps-catalog-field--search">
+                            <span>Búsqueda</span>
+                            <input id="txBusquedaCurvas" type="text" placeholder="Código o nombre" />
+                        </label>
+                        <label class="checkapp-field ps-catalog-field">
+                            <span>Estatus</span>
+                            <select id="cbFiltroEstatusCurvas" class="form-select">
+                                <option value="activos">Activos</option>
+                                <option value="todos">Todos</option>
+                                <option value="inactivos">Inactivos</option>
+                            </select>
+                        </label>
+                    </div>
+                    <div class="ps-catalog-filter-tail">
+                        <div class="checkapp-filter-actions ps-catalog-filter-actions">
+                            <button id="btBuscarCurvas" type="button" class="checkapp-btn checkapp-btn-secondary ps-catalog-search-btn">
+                                <i class="fa fa-search"></i>
+                                <span>Buscar</span>
+                            </button>
+                            <button id="btLimpiarCurvas" type="button" class="checkapp-btn checkapp-btn-ghost">
+                                <i class="fa fa-eraser"></i>
+                                <span>Limpiar</span>
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <section class="checkapp-panel">
+            <div class="checkapp-panel-head">
+                <div>
+                    <span class="checkapp-panel-eyebrow">Catálogo</span>
+                    <h2>Curvas</h2>
+                    <p class="checkapp-panel-copy">Producto, variante y cantidad objetivo en unidad base.</p>
+                </div>
+                <div class="checkapp-grid-actions">
+                    <span id="txCurvasVisibleCount" class="ca-chip ca-chip--secondary">0 visibles</span>
+                    <div class="checkapp-grid-columns">
+                        <button id="btColumnasCurvas" type="button" class="checkapp-btn checkapp-btn-ghost">
+                            <i class="fa fa-columns"></i>
+                            <span>Columnas</span>
+                        </button>
+                        <div id="panelColumnasCurvas" class="checkapp-grid-columns-panel"></div>
+                    </div>
+                    <button id="btExportarCurvas" type="button" class="checkapp-btn checkapp-btn-excel">
+                        <i class="fa fa-file-excel-o"></i>
+                        <span>Exportar Excel</span>
+                    </button>
+                </div>
+            </div>
+
+            <div id="gridCurvasHost">
+                <div class="checkapp-grid-toolbar">
+                    <label class="checkapp-grid-search" for="txBusquedaGridCurvas">
+                        <i class="fa fa-search"></i>
+                        <input id="txBusquedaGridCurvas" type="text" placeholder="Busca dentro del resultado filtrado" />
+                    </label>
+                    <div class="checkapp-grid-actions">
+                        <span id="txGridCurvasCount" class="ca-grid-count">0 registros</span>
+                    </div>
+                </div>
+                <div class="checkapp-grid-scroll">
+                    <table id="grCurvasCatalogo" class="table table-row-bordered align-middle checkapp-grid-table">
+                        <thead>
+                            <tr id="trCurvasHead"></tr>
+                        </thead>
+                        <tbody></tbody>
+                    </table>
+                </div>
+                <div class="checkapp-grid-footer">
+                    <span id="txGridCurvasRange" class="checkapp-grid-footer-range">Sin resultados</span>
+                    <div id="txGridCurvasPageSize" class="checkapp-grid-page-size">
+                        <span class="checkapp-grid-page-size-label">Filas:</span>
+                        <button type="button" class="checkapp-grid-page-chip is-active" data-page-size="25" aria-pressed="true">25</button>
+                        <button type="button" class="checkapp-grid-page-chip" data-page-size="50" aria-pressed="false">50</button>
+                        <button type="button" class="checkapp-grid-page-chip" data-page-size="100" aria-pressed="false">100</button>
+                    </div>
+                    <div class="checkapp-grid-page-nav">
+                        <span id="txGridCurvasPageIndicator" class="checkapp-grid-footer-page">Página 1 de 1</span>
+                        <button id="btGridCurvasPrev" type="button" class="checkapp-grid-nav-btn" aria-label="Página anterior">‹</button>
+                        <button id="btGridCurvasNext" type="button" class="checkapp-grid-nav-btn" aria-label="Página siguiente">›</button>
+                    </div>
+                </div>
+            </div>
+        </section>
+    </div>
+</div>
+
+<div id="modalCurva" class="modal fade" tabindex="-1" aria-hidden="true">
+    <div class="modal-dialog modal-xl modal-dialog-centered modal-dialog-scrollable">
+        <div class="modal-content">
+            <div class="modal-header">
+                <div>
+                    <p id="txCurvaModalKicker" class="checkapp-panel-eyebrow mb-1">Alta</p>
+                    <h5 id="txCurvaModalTitulo" class="modal-title">Nueva curva</h5>
+                </div>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Cerrar"></button>
+            </div>
+            <div class="modal-body">
+                <input id="hdCurvaId" type="hidden" />
+                <div class="row g-3 align-items-end">
+                    <div class="col-12 col-lg-9">
+                        <label class="checkapp-field">
+                            <span>Nombre</span>
+                            <input id="txCurvaNombre" type="text" maxlength="150" />
+                        </label>
+                    </div>
+                    <div class="col-12 col-lg-3">
+                        <label class="ps-catalog-field--checkbox curvas-active-switch">
+                            <input id="ckCurvaActiva" type="checkbox" checked />
+                            <span>Activa</span>
+                        </label>
+                    </div>
+                </div>
+
+                <div class="checkapp-panel mt-4">
+                    <div class="checkapp-panel-head">
+                        <div>
+                            <span class="checkapp-panel-eyebrow">Detalle</span>
+                            <h2>Objetivos de la curva</h2>
+                        </div>
+                    </div>
+                    <div class="row g-3">
+                        <div class="col-12">
+                            <label class="checkapp-field">
+                                <span>Producto</span>
+                                <input id="txBuscarProductoCurva" type="text" placeholder="Busca producto" />
+                            </label>
+                            <div id="lsProductosCurva" class="list-group mt-2"></div>
+                        </div>
+                    </div>
+                    <div id="panelObjetivosCurva" class="curvas-objectives is-empty mt-3">
+                        <div class="curvas-product-empty">
+                            Selecciona un producto para cargar sus objetivos.
+                        </div>
+                        <div class="curvas-product-editor">
+                            <div class="curvas-product-editor-head">
+                                <div>
+                                    <span class="checkapp-panel-eyebrow">Producto seleccionado</span>
+                                    <h3 id="txProductoObjetivoCurva">Producto</h3>
+                                    <p id="txProductoUnidadCurva">Unidad base</p>
+                                </div>
+                                <button id="btLimpiarProductoCurva" type="button" class="checkapp-btn checkapp-btn-ghost">
+                                    <i class="fa fa-times"></i>
+                                    <span>Cambiar</span>
+                                </button>
+                            </div>
+                            <div class="curvas-apply-all">
+                                <label class="checkapp-field">
+                                    <span>Cantidad para todas</span>
+                                    <input id="txCantidadTodasCurva" type="number" min="0" step="0.0001" />
+                                </label>
+                                <button id="btAplicarCantidadTodasCurva" type="button" class="checkapp-btn checkapp-btn-secondary">
+                                    <i class="fa fa-check"></i>
+                                    <span>Aplicar a todas</span>
+                                </button>
+                                <span id="txResumenObjetivosCurva" class="ca-chip ca-chip--secondary">0 variantes incluidas · 0 unidades objetivo</span>
+                            </div>
+                            <div class="checkapp-grid-scroll curvas-variant-scroll">
+                                <table class="table table-row-bordered align-middle checkapp-grid-table">
+                                    <thead>
+                                        <tr>
+                                            <th>Incluir</th>
+                                            <th>Variante</th>
+                                            <th>Unidad base</th>
+                                            <th>Cantidad objetivo</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody id="tbObjetivosCurva"></tbody>
+                                </table>
+                            </div>
+                            <div class="checkapp-filter-actions ps-catalog-filter-actions mt-3">
+                                <button id="btAgregarProductoCurva" type="button" class="checkapp-btn checkapp-btn-secondary">
+                                    <i class="fa fa-plus"></i>
+                                    <span>Agregar producto/objetivos</span>
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="checkapp-grid-scroll mt-3">
+                        <div class="curvas-details-head">
+                            <div>
+                                <span class="checkapp-panel-eyebrow">Detalles capturados</span>
+                                <h3>Productos y variantes</h3>
+                            </div>
+                            <span id="txResumenDetalleCurva" class="ca-chip ca-chip--secondary">0 renglones · 0 unidades objetivo</span>
+                        </div>
+                        <table class="table table-row-bordered align-middle checkapp-grid-table">
+                            <thead>
+                                <tr>
+                                    <th>Producto</th>
+                                    <th>Variante</th>
+                                    <th>Unidad base</th>
+                                    <th>Cantidad objetivo</th>
+                                    <th>Acciones</th>
+                                </tr>
+                            </thead>
+                            <tbody id="tbDetalleCurva"></tbody>
+                        </table>
+                    </div>
+                    <div class="checkapp-filter-actions ps-catalog-filter-actions mt-3">
+                        <button id="btRollbackCurva" type="button" class="checkapp-btn checkapp-btn-ghost">
+                            <i class="fa fa-undo"></i>
+                            <span>Revertir cambios</span>
+                        </button>
+                    </div>
+                </div>
+                <div id="txCurvaInfo" class="mt-3"></div>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="checkapp-btn checkapp-btn-ghost" data-bs-dismiss="modal">Cancelar</button>
+                <button id="btGuardarCurva" type="button" class="checkapp-btn checkapp-btn-primary">
+                    <i class="fa fa-save"></i>
+                    <span>Guardar</span>
+                </button>
+            </div>
+        </div>
+    </div>
+</div>
+
+@section Scripts {
+    <link href="~/css/checkapp-theme.css" rel="stylesheet" />
+    <link href="~/css/ProductosServicios/ProductosServicios.css" rel="stylesheet" asp-append-version="true" />
+    <script src="~/js/checkapp-ui.js"></script>
+    <script src="~/js/Curvas/CurvasCatalogo.js" asp-append-version="true"></script>
+}

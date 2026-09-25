@@ -12,8 +12,10 @@
     var descriptionInputId = ViewData["CatalogDescriptionInputId"]?.ToString() ?? "txDescripcionCatalogo";
     var aplicaFieldId = ViewData["CatalogAplicaFieldId"]?.ToString() ?? "fieldAplicaACatalogo";
     var aplicaSelectId = ViewData["CatalogAplicaSelectId"]?.ToString() ?? "cbAplicaACatalogo";
+    var aplicaHelpId = $"{aplicaSelectId}Help";
     var abbreviationFieldId = ViewData["CatalogAbbreviationFieldId"]?.ToString() ?? "fieldAbreviaturaCatalogo";
     var abbreviationInputId = ViewData["CatalogAbbreviationInputId"]?.ToString() ?? "txAbreviaturaCatalogo";
+    var abbreviationHelpId = $"{abbreviationInputId}Help";
     var decimalsFieldId = ViewData["CatalogDecimalsFieldId"]?.ToString() ?? "fieldPermiteDecimalesCatalogo";
     var decimalsCheckboxId = ViewData["CatalogDecimalsCheckboxId"]?.ToString() ?? "chkPermiteDecimalesCatalogo";
     var infoId = ViewData["CatalogInfoId"]?.ToString() ?? "txInfoCatalogo";
@@ -28,10 +30,23 @@
     var showAplicaA = string.Equals(ViewData["CatalogShowAplicaA"]?.ToString(), "true", StringComparison.OrdinalIgnoreCase);
     var showAbreviatura = string.Equals(ViewData["CatalogShowAbreviatura"]?.ToString(), "true", StringComparison.OrdinalIgnoreCase);
     var showPermiteDecimales = string.Equals(ViewData["CatalogShowPermiteDecimales"]?.ToString(), "true", StringComparison.OrdinalIgnoreCase);
+    var defaultNamePlaceholder = layoutAttributeValue switch
+    {
+        "categoria" => "Ej. Alimentos",
+        "marca" => "Ej. Mobil",
+        "unidad" => "Ej. Pieza",
+        "coleccion" => "Ej. Primavera 2026",
+        "etiqueta" => "Ej. LTH",
+        _ => "Nombre"
+    };
+    var defaultAbbreviationPlaceholder = layoutAttributeValue == "unidad" ? "Ej. pz" : "Abreviatura";
+    var namePlaceholder = ViewData["CatalogNamePlaceholder"]?.ToString() ?? defaultNamePlaceholder;
+    var descriptionPlaceholder = ViewData["CatalogDescriptionPlaceholder"]?.ToString() ?? "Descripción";
+    var abbreviationPlaceholder = ViewData["CatalogAbbreviationPlaceholder"]?.ToString() ?? defaultAbbreviationPlaceholder;
 }
 
-<div class="modal fade checkapp-modal activos-quick-modal ps-catalog-modal" tabindex="-1" id="@modalId">
-    <div class="modal-dialog modal-lg modal-dialog-centered ps-catalog-modal-dialog">
+<div class="modal fade checkapp-modal activos-quick-modal ps-catalog-modal" tabindex="-1" id="@modalId" aria-labelledby="@titleId">
+    <div class="modal-dialog modal-dialog-centered ps-catalog-modal-dialog">
         <div class="modal-content ps-catalog-modal-content">
             <form id="@formId" class="ps-catalog-modal-form" data-quick-catalog-layout="@layoutAttributeValue">
                 <div class="modal-header">
@@ -39,10 +54,6 @@
                         <p class="checkapp-kicker" id="@kickerId">Registro</p>
                         <h3 class="modal-title" id="@titleId">@modalTitle</h3>
                     </div>
-@if (layoutAttributeValue == "unidad")
-{
-                    <button type="button" class="btn btn-icon btn-sm ps-unit-help-trigger" id="btAyudaUnidadPersonalizada" aria-label="Ayuda sobre unidades personalizadas" aria-expanded="false">?</button>
-}
                     <button type="button" class="btn btn-icon btn-sm btn-active-light-primary" data-bs-dismiss="modal" aria-label="Close">
                         <i class="ki-duotone ki-cross fs-1"><span class="path1"></span><span class="path2"></span></i>
                     </button>
@@ -56,25 +67,29 @@
 }
                     <div class="checkapp-filter-grid activos-quick-modal-grid ps-catalog-form-grid">
                         <label class="checkapp-field activos-quick-modal-field-name ps-catalog-field ps-catalog-field--name">
-                            <span>Nombre *</span>
-                            <input id="@nameInputId" type="text" />
-                        </label>
-                        <label class="checkapp-field activos-quick-modal-field-full ps-catalog-field ps-catalog-field--description" id="@descriptionFieldId"@(showDescription ? "" : " hidden")>
-                            <span>Descripción</span>
-                            <textarea id="@descriptionInputId"></textarea>
+                            <span class="ps-catalog-label">Nombre *</span>
+                            <span class="ps-catalog-input-shell ps-catalog-input-shell--name" aria-hidden="true"><i class="fa fa-tag"></i></span>
+                            <input id="@nameInputId" type="text" placeholder="@namePlaceholder" aria-label="Nombre" autocomplete="off" />
                         </label>
                         <label class="checkapp-field ps-catalog-field ps-catalog-field--aplica" id="@aplicaFieldId"@(showAplicaA ? "" : " hidden")>
-                            <span>Aplica a *</span>
-                            <select id="@aplicaSelectId" class="form-select">
+                            <span class="ps-catalog-label">Aplica a *</span>
+                            <select id="@aplicaSelectId" class="form-select" aria-label="Aplica a" aria-describedby="@aplicaHelpId" title="Define si la categoría estará disponible para productos, servicios o ambos.">
                                 <option value="">Selecciona una opción</option>
                                 <option value="0">Todos</option>
                                 <option value="1">Producto</option>
                                 <option value="2">Servicio</option>
                             </select>
+                            <span id="@aplicaHelpId" class="visually-hidden">Define si la categoría estará disponible para productos, servicios o ambos.</span>
+                        </label>
+                        <label class="checkapp-field activos-quick-modal-field-full ps-catalog-field ps-catalog-field--description" id="@descriptionFieldId"@(showDescription ? "" : " hidden")>
+                            <span class="ps-catalog-label">Descripción</span>
+                            <textarea id="@descriptionInputId" placeholder="@descriptionPlaceholder" aria-label="Descripción"></textarea>
                         </label>
                         <label class="checkapp-field ps-catalog-field ps-catalog-field--abbreviation" id="@abbreviationFieldId"@(showAbreviatura ? "" : " hidden")>
-                            <span>Abreviatura *</span>
-                            <input id="@abbreviationInputId" type="text" />
+                            <span class="ps-catalog-label">Abreviatura *</span>
+                            <span class="ps-catalog-input-shell ps-catalog-input-shell--abbreviation" aria-hidden="true"><strong>A</strong></span>
+                            <input id="@abbreviationInputId" type="text" placeholder="@abbreviationPlaceholder" aria-label="Abreviatura" aria-describedby="@abbreviationHelpId" title="Abreviatura con la que se mostrará la unidad. Ej.: pz, kg, L." autocomplete="off" />
+                            <span id="@abbreviationHelpId" class="visually-hidden">Abreviatura con la que se mostrará la unidad. Ej.: pz, kg, L.</span>
                         </label>
                         <label class="checkapp-field ps-catalog-field ps-catalog-field--checkbox ps-catalog-field--decimals" id="@decimalsFieldId"@(showPermiteDecimales ? "" : " hidden")>
                             <span>Permite decimales</span>
@@ -82,13 +97,6 @@
                         </label>
                     </div>
                     <div class="checkapp-status-inline" id="@infoId" style="margin-top:1rem;"></div>
-@if (layoutAttributeValue == "unidad")
-{
-                    <div class="ps-unit-help-popover" id="psAyudaUnidadPersonalizada" hidden>
-                        <strong>Unidades personalizadas</strong>
-                        <p>Las unidades estándar de peso, volumen, longitud, área, por artículo y tiempo ya están incluidas en CheckApp. Agrega aquí únicamente unidades propias de tu operación, como caja, paquete o tarima.</p>
-                    </div>
-}
                 </div>
                 <div class="modal-footer activos-quick-modal-footer ps-catalog-modal-footer">
                     <button type="button" class="checkapp-btn checkapp-btn-ghost" data-bs-dismiss="modal">

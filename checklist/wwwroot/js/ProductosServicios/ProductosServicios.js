@@ -44,7 +44,6 @@
         isOpeningNewProduct: false,
         fichaModal: null,
         quickCatalogModal: null,
-        collectionModal: null,
         packageModal: null,
         attributeModal: null,
         attributeValueModal: null,
@@ -109,6 +108,7 @@
             codeMax: 50,
             nameMax: 150,
             descriptionMax: 20000,
+            placeholders: { name: "Ej. Alimentos", description: "Descripción" },
             showDescription: true,
             showAplicaA: true,
             showAbreviatura: false,
@@ -126,6 +126,7 @@
             codeMax: 50,
             nameMax: 150,
             descriptionMax: 20000,
+            placeholders: { name: "Ej. Mobil", description: "Descripción" },
             showDescription: true,
             showAplicaA: false,
             showAbreviatura: false,
@@ -146,10 +147,46 @@
             nameMax: 100,
             descriptionMax: 0,
             abreviaturaMax: 20,
+            placeholders: { name: "Ej. Pieza", abbreviation: "Ej. pz" },
             showDescription: false,
             showAplicaA: false,
             showAbreviatura: true,
             showPermiteDecimales: true
+        },
+        coleccion: {
+            key: "coleccion",
+            title: "Nueva colección",
+            singular: "colección",
+            validationEntityName: "la colección",
+            saveUrl: "/ProductosServicios/GuardarColeccionProductoServicio",
+            listUrl: "/ProductosServicios/ObtenerColeccionesProductosServicios",
+            selectSelector: "#cbColeccionProductoServicio",
+            comboCollectionKey: "colecciones",
+            codeMax: 50,
+            nameMax: 150,
+            descriptionMax: 20000,
+            placeholders: { name: "Ej. Primavera 2026", description: "Descripción" },
+            showDescription: true,
+            showAplicaA: false,
+            showAbreviatura: false,
+            showPermiteDecimales: false
+        },
+        etiqueta: {
+            key: "etiqueta",
+            title: "Nueva etiqueta",
+            singular: "etiqueta",
+            validationEntityName: "la etiqueta",
+            saveUrl: "/ProductosServicios/GuardarEtiquetaProductoServicio",
+            listUrl: "/ProductosServicios/ObtenerEtiquetasProductosServicios",
+            comboCollectionKey: "tags",
+            codeMax: 0,
+            nameMax: 100,
+            descriptionMax: 0,
+            placeholders: { name: "Ej. LTH" },
+            showDescription: false,
+            showAplicaA: false,
+            showAbreviatura: false,
+            showPermiteDecimales: false
         }
     };
 
@@ -182,7 +219,6 @@
         state.presentationModal = resolveModalApi("#modalPresentacionVentaProductoServicio");
         state.fichaModal = resolveModalApi("#modalFichaTecnicaProductoServicio");
         state.quickCatalogModal = resolveModalApi("#modalQuickCatalogoProductoServicio");
-        state.collectionModal = resolveModalApi("#modalColeccionProductoServicio");
         state.packageModal = resolveModalApi("#modalPaqueteProductoServicio");
         state.attributeModal = resolveModalApi("#modalAtributoProductoServicio");
         state.attributeValueModal = resolveModalApi("#modalAtributoValorProductoServicio");
@@ -195,7 +231,6 @@
         loadCombos()
             .then(function () {
                 initDescriptionEditor();
-                initCollectionDescriptionEditor();
                 syncTypeVisibility();
                 renderAttributesEditor();
                 renderVariantOptionsEditor();
@@ -267,10 +302,9 @@
         $("#btQuickAddCategoriaProductoServicio").on("click", function () { openQuickCatalogModal("categoria"); });
         $("#btQuickAddMarcaProductoServicio").on("click", function () { openQuickCatalogModal("marca"); });
         $("#btQuickAddUnidadProductoServicio").on("click", function () { openQuickCatalogModal("unidad"); });
-        $("#btQuickAddColeccionProductoServicio").on("click", function () { openCollectionModal(); });
+        $("#btQuickAddColeccionProductoServicio").on("click", function () { openQuickCatalogModal("coleccion"); });
         $("#btQuickAddPaqueteProductoServicio").on("click", function () { openPackageModal(); });
         $("#btQuickAddAtributoProductoServicio").on("click", function () { openAttributeModal(); });
-        $("#btGuardarColeccionProductoServicio").on("click", saveCollection);
         $("#btGuardarPaqueteProductoServicio").on("click", savePackage);
         $("#btGuardarAtributoProductoServicio").on("click", saveAttributeCatalog);
         $("#btGuardarAtributoValorProductoServicio").on("click", saveAttributeValueCatalog);
@@ -403,8 +437,7 @@
             }
         });
 
-        $("#modalQuickCatalogoProductoServicio").on("hidden.bs.modal", resetQuickCatalogModal);
-        $("#modalColeccionProductoServicio").on("hidden.bs.modal", resetCollectionModal);
+        $("#modalQuickCatalogoProductoServicio").on("hidden.bs.modal", cleanupQuickCatalogModalLifecycle);
         $("#modalPaqueteProductoServicio").on("hidden.bs.modal", resetPackageModal);
         $("#modalAtributoProductoServicio").on("hidden.bs.modal", resetAttributeModal);
         $("#modalAtributoValorProductoServicio").on("hidden.bs.modal", resetAttributeValueModal);
@@ -712,6 +745,12 @@
         $(document).on("click", "[data-ps-tag-create]", function () {
             createTagFromSearch();
         });
+
+        $(document).on("click", "[data-ps-tag-create-modal]", function (event) {
+            event.preventDefault();
+            event.stopPropagation();
+            openQuickCatalogModal("etiqueta");
+        });
     }
 
     function initGrid() {
@@ -744,6 +783,8 @@
                 appendQuery(query, "idCategoria", $("#cbFiltroCategoriaProductoServicio").val());
                 appendQuery(query, "idMarca", $("#cbFiltroMarcaProductoServicio").val());
                 appendQuery(query, "idUnidadMedida", $("#cbFiltroUnidadProductoServicio").val());
+                appendQuery(query, "idColeccion", $("#cbFiltroColeccionProductoServicio").val());
+                appendQuery(query, "idEtiqueta", $("#cbFiltroEtiquetaProductoServicio").val());
                 appendQuery(query, "causaInventario", $("#cbFiltroCausaInventario").val());
                 appendQuery(query, "estatus", $("#cbFiltroEstatusProductosServicios").val());
 
@@ -1364,6 +1405,7 @@
                     (canCreate
                         ? "<button type='button' class='checkapp-btn checkapp-btn-ghost ps-tags-search-action' data-ps-tag-create='1' " + (state.tagSaving ? "disabled" : "") + "><i class='fa fa-plus-circle'></i><span>Agregar \"" + escapeHtml(normalizedSearch) + "\"</span></button>"
                         : "") +
+                    "    <button type='button' class='checkapp-btn checkapp-btn-ghost ps-tags-search-action' data-ps-tag-create-modal='1'><i class='fa fa-plus-circle'></i><span>Nueva etiqueta</span></button>" +
                     "  </div>" +
                     "  <div class='ps-tags-list'>" + optionsHtml + "</div>" +
                     "</div>"
@@ -1412,6 +1454,18 @@
             valueKey: "id",
             textKey: "displayName"
         });
+        fillSelect("#cbFiltroColeccionProductoServicio", state.combos.colecciones, {
+            includeBlank: true,
+            blankText: "Todas",
+            valueKey: "id",
+            textKey: "displayName"
+        });
+        fillSelect("#cbFiltroEtiquetaProductoServicio", state.combos.tags, {
+            includeBlank: true,
+            blankText: "Todas",
+            valueKey: "id",
+            textKey: "nombre"
+        });
         fillSelect("#cbFiltroEstatusProductosServicios", state.combos.estatus, {
             includeBlank: true,
             blankText: "Todos",
@@ -1423,6 +1477,8 @@
         initSelect2("#cbFiltroCategoriaProductoServicio", "Todas");
         initSelect2("#cbFiltroMarcaProductoServicio", "Todas");
         initSelect2("#cbFiltroUnidadProductoServicio", "Todas");
+        initSelect2("#cbFiltroColeccionProductoServicio", "Todas");
+        initSelect2("#cbFiltroEtiquetaProductoServicio", "Todas");
         initSelect2("#cbFiltroEstatusProductosServicios", "Todos");
     }
 
@@ -2268,6 +2324,8 @@
         pushFilterChip(parts, $("#cbFiltroCategoriaProductoServicio").val(), "Categoría", $("#cbFiltroCategoriaProductoServicio").find("option:selected").text());
         pushFilterChip(parts, $("#cbFiltroMarcaProductoServicio").val(), "Marca", $("#cbFiltroMarcaProductoServicio").find("option:selected").text());
         pushFilterChip(parts, $("#cbFiltroUnidadProductoServicio").val(), "Unidad", $("#cbFiltroUnidadProductoServicio").find("option:selected").text());
+        pushFilterChip(parts, $("#cbFiltroColeccionProductoServicio").val(), "Colección", $("#cbFiltroColeccionProductoServicio").find("option:selected").text());
+        pushFilterChip(parts, $("#cbFiltroEtiquetaProductoServicio").val(), "Etiqueta", $("#cbFiltroEtiquetaProductoServicio").find("option:selected").text());
         pushFilterChip(parts, $("#cbFiltroCausaInventario").val(), "Inventario", $("#cbFiltroCausaInventario").find("option:selected").text());
         pushFilterChip(parts, $("#cbFiltroEstatusProductosServicios").val(), "Estatus", $("#cbFiltroEstatusProductosServicios").find("option:selected").text());
 
@@ -2292,6 +2350,8 @@
         $("#cbFiltroCategoriaProductoServicio").val("").trigger("change");
         $("#cbFiltroMarcaProductoServicio").val("").trigger("change");
         $("#cbFiltroUnidadProductoServicio").val("").trigger("change");
+        $("#cbFiltroColeccionProductoServicio").val("").trigger("change");
+        $("#cbFiltroEtiquetaProductoServicio").val("").trigger("change");
         $("#cbFiltroCausaInventario").val("");
         $("#cbFiltroEstatusProductosServicios").val("").trigger("change");
         syncSummarySelection();
@@ -4027,17 +4087,17 @@
             return;
         }
 
+        closeTagsPopover();
         state.quickCatalogKey = key;
-        resetQuickCatalogModal();
+        state.quickCatalogSaving = false;
         $("#hdQuickCatalogoTipo").val(key);
-        quickCatalogBridge.setCopy({
+        quickCatalogBridge.reset(config, {
             kicker: "Registro",
             title: config.title,
             saveButton: "Guardar"
         });
+        quickCatalogBridge.setPlaceholders(config.placeholders || {});
         $("#frmQuickCatalogoProductoServicio").attr("data-quick-catalog-layout", key);
-        quickCatalogBridge.applyFieldVisibility(config);
-        quickCatalogBridge.initDescriptionEditor(config);
         syncQuickCatalogCodeField(false, "");
         state.quickCatalogModal.show();
     }
@@ -4051,7 +4111,7 @@
         state.quickCatalogKey = "";
 
         const defaultConfig = {
-            showDescription: true,
+            showDescription: false,
             showAplicaA: false,
             showAbreviatura: false,
             showPermiteDecimales: false,
@@ -4062,7 +4122,50 @@
             title: "Nuevo catálogo",
             saveButton: "Guardar"
         });
+        quickCatalogBridge.setPlaceholders({ name: "Nombre", description: "Descripción", abbreviation: "Abreviatura" });
         $(quickCatalogBridge.options.formSelector).removeClass("is-saving").removeAttr("data-quick-catalog-layout");
+    }
+
+    function cleanupQuickCatalogModalLifecycle() {
+        resetQuickCatalogModal();
+        restoreParentModalAfterQuickCatalog();
+    }
+
+    function restoreParentModalAfterQuickCatalog() {
+        const parent = document.querySelector("#modalProductoServicio");
+        if (!parent || !parent.classList.contains("show")) {
+            trimModalBackdrops(0);
+            return;
+        }
+
+        document.body.classList.add("modal-open");
+        parent.removeAttribute("aria-hidden");
+        parent.setAttribute("aria-modal", "true");
+        parent.setAttribute("role", "dialog");
+
+        ensureSingleParentBackdrop();
+        trimModalBackdrops(1);
+    }
+
+    function ensureSingleParentBackdrop() {
+        if (document.querySelector(".modal-backdrop")) {
+            return;
+        }
+
+        const backdrop = document.createElement("div");
+        backdrop.className = "modal-backdrop fade show";
+        document.body.appendChild(backdrop);
+    }
+
+    function trimModalBackdrops(maxAllowed) {
+        const backdrops = Array.prototype.slice.call(document.querySelectorAll(".modal-backdrop"));
+        if (backdrops.length <= maxAllowed) {
+            return;
+        }
+
+        backdrops.slice(maxAllowed).forEach(function (backdrop) {
+            backdrop.remove();
+        });
     }
 
     function saveQuickCatalog() {
@@ -4121,10 +4224,18 @@
     }
 
     function resolveQuickCatalogCreatedItem(config, payload, response) {
+        if (config.key === "etiqueta" && response && response.tag && response.tag.id) {
+            return Promise.resolve(response.tag);
+        }
+
+        if (config.key === "coleccion" && response && response.coleccion && response.coleccion.id) {
+            return Promise.resolve(response.coleccion);
+        }
+
         if (config.key !== "unidad" && response && response.id) {
             return Promise.resolve({
                 id: response.id,
-                codigo: response.codigo || "",
+                codigo: response.codigo || response.numero || "",
                 nombre: response.nombre || payload.nombre || ""
             });
         }
@@ -4179,6 +4290,17 @@
         if (config.key === "categoria") {
             syncCategoryOptions(nextItem.id);
             $("#cbCategoriaProductoServicio").val(nextItem.id).trigger("change");
+        } else if (config.key === "etiqueta") {
+            state.tagSearch = "";
+            state.tagsPopoverOpen = false;
+            if (!state.selectedTags.some(function (tag) { return getTagIdentity(tag) === getTagIdentity(nextItem); })) {
+                addSelectedTag({
+                    id: nextItem.id || "",
+                    nombre: normalizeTagName(nextItem.nombre),
+                    legacy: false
+                });
+            }
+            renderTagsControl();
         } else {
             $(config.selectSelector).val(nextItem.id).trigger("change");
         }
@@ -4206,21 +4328,11 @@
             normalized.esPersonalizada = item.esPersonalizada;
         }
 
-        return normalized;
-    }
-
-    function openCollectionModal() {
-        resetCollectionModal();
-        state.collectionModal.show();
-    }
-
-    function resetCollectionModal() {
-        const form = document.getElementById("frmColeccionProductoServicio");
-        if (form) {
-            form.reset();
+        if (config.key === "coleccion") {
+            normalized.codigo = item.numero || item.codigo || "";
         }
-        setCollectionDescriptionEditorValue("");
-        setStatus("#txInfoColeccionProductoServicio", "", "");
+
+        return normalized;
     }
 
     function findComboItemById(items, id) {
@@ -4248,48 +4360,6 @@
         }
 
         throw new Error(notFoundMessage);
-    }
-
-    function saveCollection() {
-        const payload = {
-            nombre: ($("#txColeccionNombreProductoServicio").val() || "").trim(),
-            descripcion: getCollectionDescriptionEditorValue()
-        };
-
-        if (!payload.nombre) {
-            setStatus("#txInfoColeccionProductoServicio", "danger", "Captura el nombre de la colección.");
-            markFieldError("#txColeccionNombreProductoServicio");
-            return;
-        }
-
-        setStatus("#txInfoColeccionProductoServicio", "info", "Guardando colección...");
-        const modalSelections = captureModalSelections();
-        fetchJson("/ProductosServicios/GuardarColeccionProductoServicio", {
-            method: "POST",
-            headers: { "Content-Type": "application/json; charset=utf-8" },
-            body: JSON.stringify(payload)
-        }).then(function (response) {
-            if (!response || !response.coleccion || !response.coleccion.id) {
-                throw new Error("La colección no devolvió una entidad válida. Intenta nuevamente.");
-            }
-
-            return loadCombos().then(function () {
-                restoreModalSelections(modalSelections);
-                const created = requireCreatedComboItem(response.coleccion, state.combos.colecciones, function (item) {
-                    return normalizeCatalogCompareValue(item.id) === normalizeCatalogCompareValue(response.coleccion.id)
-                        || normalizeCatalogCompareValue(item.nombre) === normalizeCatalogCompareValue(payload.nombre);
-                }, "La colección no apareció en el catálogo después de guardar. Verifica el registro antes de cerrar.");
-
-                $("#cbColeccionProductoServicio").val(created.id).trigger("change");
-                state.collectionModal.hide();
-                setStatus("#txInfoProductoServicio", "success", "La colección fue registrada y quedó seleccionada.");
-            });
-        }).catch(function (error) {
-            applyCatalogErrorFeedback("#txInfoColeccionProductoServicio", resolveErrorMessage(error), [
-                { includes: ["nombre"], selector: "#txColeccionNombreProductoServicio" },
-                { includes: ["descripción"], selector: "#txColeccionDescripcionProductoServicio" }
-            ]);
-        });
     }
 
     function openPackageModal() {
@@ -5567,7 +5637,7 @@
     }
 
     function clearAllFieldErrors() {
-        document.querySelectorAll("#frmProductoServicio .is-invalid, #frmColeccionProductoServicio .is-invalid, #frmPaqueteProductoServicio .is-invalid, #frmAtributoProductoServicio .is-invalid").forEach(function (node) {
+        document.querySelectorAll("#frmProductoServicio .is-invalid, #frmQuickCatalogoProductoServicio .is-invalid, #frmPaqueteProductoServicio .is-invalid, #frmAtributoProductoServicio .is-invalid").forEach(function (node) {
             node.classList.remove("is-invalid");
         });
     }
@@ -5652,76 +5722,6 @@
                 }
                 return;
             }
-        }
-    }
-
-    function initCollectionDescriptionEditor() {
-        if (!window.tinymce || !document.getElementById("txColeccionDescripcionProductoServicio")) {
-            return;
-        }
-
-        if (window.tinymce.get("txColeccionDescripcionProductoServicio")) {
-            setCollectionDescriptionEditorValue($("#txColeccionDescripcionProductoServicio").val() || "");
-            return;
-        }
-
-        window.tinymce.init({
-            selector: "#txColeccionDescripcionProductoServicio",
-            menubar: false,
-            branding: false,
-            promotion: false,
-            height: 128,
-            resize: true,
-            placeholder: "Descripción",
-            aria_label: "Descripción",
-            plugins: "lists link code",
-            toolbar: "blocks | bold italic underline | bullist numlist | alignleft aligncenter alignright | link unlink | code removeformat",
-            block_formats: "Párrafo=p; Encabezado 2=h2; Encabezado 3=h3",
-            browser_spellcheck: true,
-            contextmenu: false,
-            setup: function (editor) {
-                editor.on("input change keyup undo redo", function () {
-                    clearFieldError("#txColeccionDescripcionProductoServicio");
-                });
-            }
-        }).then(function () {
-            setCollectionDescriptionEditorValue($("#txColeccionDescripcionProductoServicio").val() || "");
-        });
-    }
-
-    function getCollectionDescriptionEditorValue() {
-        if (window.tinymce) {
-            const editor = window.tinymce.get("txColeccionDescripcionProductoServicio");
-            if (editor) {
-                return normalizeDescriptionHtml(editor.getContent());
-            }
-        }
-
-        return normalizeDescriptionHtml($("#txColeccionDescripcionProductoServicio").val());
-    }
-
-    function setCollectionDescriptionEditorValue(value) {
-        const normalized = normalizeDescriptionHtml(value);
-        $("#txColeccionDescripcionProductoServicio").val(normalized);
-
-        if (!window.tinymce) {
-            return;
-        }
-
-        const editor = window.tinymce.get("txColeccionDescripcionProductoServicio");
-        if (!editor) {
-            return;
-        }
-
-        editor.setContent(normalized);
-        if (editor.undoManager && typeof editor.undoManager.clear === "function") {
-            editor.undoManager.clear();
-        }
-        if (typeof editor.setDirty === "function") {
-            editor.setDirty(false);
-        }
-        if (typeof editor.save === "function") {
-            editor.save();
         }
     }
 

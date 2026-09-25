@@ -165,6 +165,87 @@
             validate: function () {
                 return validateBasic(30, 100, false, true);
             }
+        },
+        colecciones: {
+            gridId: "productos-servicios-colecciones-grid",
+            title: "colección",
+            titlePlural: "colecciones",
+            exportSheetName: "ColeccionesProductosServicios",
+            filePrefix: "ColeccionesProductosServicios",
+            detailUrl: function (id) { return "/ProductosServicios/ObtenerColeccionProductoServicio?idColeccion=" + encodeURIComponent(id); },
+            listUrl: function (query) { return "/ProductosServicios/ObtenerColeccionesProductosServicios?" + query.toString(); },
+            saveUrl: "/ProductosServicios/GuardarColeccionProductoServicio",
+            bajaUrl: function (id) { return "/ProductosServicios/BajaColeccionProductoServicio?idColeccion=" + encodeURIComponent(id); },
+            activarUrl: function (id) { return "/ProductosServicios/ActivarColeccionProductoServicio?idColeccion=" + encodeURIComponent(id); },
+            codeMax: 50,
+            nameMax: 150,
+            descriptionMax: 20000,
+            columns: function () {
+                return [
+                    actionColumn(),
+                    { key: "numero", title: "Número" },
+                    {
+                        key: "nombre",
+                        title: "Nombre",
+                        render: function (value, row) {
+                            return "<div class='ps-catalog-title'><strong>" + escapeHtml(value || "") + "</strong><small>" + escapeHtml(row.descripcion || "") + "</small></div>";
+                        }
+                    },
+                    { key: "descripcion", title: "Descripción" },
+                    statusColumn(),
+                    updatedColumn()
+                ];
+            },
+            buildPayload: function () {
+                return {
+                    id: normalizeGuid($("#hdCatalogoId").val()),
+                    idEmpresa: resolveEmpresaId(),
+                    numero: ($("#txCodigoCatalogo").val() || "").trim(),
+                    nombre: ($("#txNombreCatalogo").val() || "").trim(),
+                    descripcion: modalBridge.getDescriptionValue()
+                };
+            },
+            fillForm: function (data) {
+                modalBridge.setDescriptionValue(data.descripcion || "");
+                syncCodeField(true, data.numero || data.codigo || "");
+            },
+            validate: function () {
+                return validateBasic(50, 150, true, false);
+            }
+        },
+        etiquetas: {
+            gridId: "productos-servicios-etiquetas-grid",
+            title: "etiqueta",
+            titlePlural: "etiquetas",
+            exportSheetName: "EtiquetasProductosServicios",
+            filePrefix: "EtiquetasProductosServicios",
+            detailUrl: function (id) { return "/ProductosServicios/ObtenerEtiquetaProductoServicio?idEtiqueta=" + encodeURIComponent(id); },
+            listUrl: function (query) { return "/ProductosServicios/ObtenerEtiquetasProductosServicios?" + query.toString(); },
+            saveUrl: "/ProductosServicios/GuardarEtiquetaProductoServicio",
+            bajaUrl: function (id) { return "/ProductosServicios/BajaEtiquetaProductoServicio?idEtiqueta=" + encodeURIComponent(id); },
+            activarUrl: function (id) { return "/ProductosServicios/ActivarEtiquetaProductoServicio?idEtiqueta=" + encodeURIComponent(id); },
+            codeMax: 0,
+            nameMax: 100,
+            descriptionMax: 0,
+            columns: function () {
+                return [
+                    actionColumn(),
+                    { key: "nombre", title: "Nombre" },
+                    statusColumn(),
+                    updatedColumn()
+                ];
+            },
+            buildPayload: function () {
+                return {
+                    id: normalizeGuid($("#hdCatalogoId").val()),
+                    idEmpresa: resolveEmpresaId(),
+                    nombre: ($("#txNombreCatalogo").val() || "").trim()
+                };
+            },
+            fillForm: function () {},
+            validate: function () {
+                return validateBasic(0, 100, false, false);
+            }
         }
     };
 
@@ -172,21 +253,6 @@
     if (!config) {
         return;
     }
-
-    $(document).on("click", "#btAyudaUnidadPersonalizada", function (event) {
-        event.preventDefault();
-        const popover = $("#psAyudaUnidadPersonalizada");
-        const visible = !popover.prop("hidden");
-        popover.prop("hidden", visible);
-        $(this).attr("aria-expanded", String(!visible));
-    });
-
-    $(document).on("keydown", function (event) {
-        if (event.key === "Escape") {
-            $("#psAyudaUnidadPersonalizada").prop("hidden", true);
-            $("#btAyudaUnidadPersonalizada").attr("aria-expanded", "false");
-        }
-    });
 
     const modalBridge = window.ProductosServiciosCatalogModalShared.create({
         formSelector: "#frmCatalogoProductosServicios",
@@ -213,19 +279,31 @@
 
     const state = {
         modal: null,
-        isSaving: false
+        isSaving: false,
+        initialized: false
     };
 
-    document.addEventListener("DOMContentLoaded", function () {
+    function bootCatalogPage() {
+        if (state.initialized) {
+            return;
+        }
+
+        state.initialized = true;
         state.modal = resolveModalApi("#modalCatalogoProductosServicios");
         syncFieldLimits();
-            buildTableHead();
-            initAccordion();
-            initEvents();
-            initGrid();
-            resetModal();
+        buildTableHead();
+        initAccordion();
+        initEvents();
+        initGrid();
+        resetModal(false);
         CheckAppUI.reloadGrid(config.gridId);
-    });
+    }
+
+    if (document.readyState === "loading") {
+        document.addEventListener("DOMContentLoaded", bootCatalogPage, { once: true });
+    } else {
+        bootCatalogPage();
+    }
 
     function initAccordion() {
         CheckAppUI.createFilterAccordion({
@@ -260,9 +338,32 @@
             clearFieldError("#" + this.id);
         });
 
-        $("#modalCatalogoProductosServicios").on("hidden.bs.modal", function () {
-            resetModal();
+        $(document).off("click.psCatalogActions", "#gridCatalogoHost [data-ps-catalog-action]");
+        $(document).on("click.psCatalogActions", "#gridCatalogoHost [data-ps-catalog-action]", function (event) {
+            event.preventDefault();
+            event.stopPropagation();
+            const action = this.getAttribute("data-ps-catalog-action");
+            const id = this.getAttribute("data-id");
+            if (!id) {
+                return;
+            }
+
+            if (action === "edit") {
+                window.psCatalogoEditar(id);
+                return;
+            }
+
+            if (action === "deactivate") {
+                window.psCatalogoCambiarEstatus(id, false);
+                return;
+            }
+
+            if (action === "activate") {
+                window.psCatalogoCambiarEstatus(id, true);
+            }
         });
+
+        $("#modalCatalogoProductosServicios").on("hidden.bs.modal", cleanupCatalogModalLifecycle);
     }
 
     function initGrid() {
@@ -329,13 +430,13 @@
                     return "<span class='ps-catalog-chip'>Protegida</span>";
                 }
                 const actions = [
-                    buildActionLink("Editar", "fa fa-edit", "psCatalogoEditar('" + escapeJs(row.id) + "')")
+                    buildActionLink("Editar", "fa fa-edit", "edit", row.id)
                 ];
 
                 if (row.activo) {
-                    actions.push(buildActionLink("Dar de baja", "fa fa-ban", "psCatalogoCambiarEstatus('" + escapeJs(row.id) + "', false)", "is-danger"));
+                    actions.push(buildActionLink("Dar de baja", "fa fa-ban", "deactivate", row.id, "is-danger"));
                 } else {
-                    actions.push(buildActionLink("Reactivar", "fa fa-check", "psCatalogoCambiarEstatus('" + escapeJs(row.id) + "', true)", "is-success"));
+                    actions.push(buildActionLink("Reactivar", "fa fa-check", "activate", row.id, "is-success"));
                 }
 
                 return "<div class='ps-catalog-actions'>" + actions.join("") + "</div>";
@@ -371,8 +472,8 @@
         };
     }
 
-    function buildActionLink(label, iconClass, onclick, actionClass) {
-        return "<a href='javascript:void(0)' role='button' class='" + escapeHtml(actionClass || "") + "' onclick=\"" + onclick + "\" title='" + escapeHtml(label) + "' aria-label='" + escapeHtml(label) + "'><i class='" + iconClass + "'></i></a>";
+    function buildActionLink(label, iconClass, action, id, actionClass) {
+        return "<button type='button' class='" + escapeHtml(actionClass || "") + "' data-ps-catalog-action='" + escapeHtml(action || "") + "' data-id='" + escapeHtml(id || "") + "' title='" + escapeHtml(label) + "' aria-label='" + escapeHtml(label) + "'><i class='" + iconClass + "'></i></button>";
     }
 
     function openCreateModal() {
@@ -380,7 +481,7 @@
             return;
         }
 
-        resetModal();
+        resetModal(true);
         state.modal.show();
     }
 
@@ -392,7 +493,7 @@
         setStatus("#txInfoCatalogo", "", "");
         fetchJson(config.detailUrl(id))
             .then(function (data) {
-                resetModal();
+                resetModal(true);
                 $("#hdCatalogoId").val(data.id || "");
                 modalBridge.setCopy({
                     kicker: "Edición",
@@ -518,9 +619,10 @@
         CheckAppUI.reloadGrid(config.gridId);
     }
 
-    function resetModal() {
+    function resetModal(initializeRichText) {
+        const showDescription = !!initializeRichText && pageKey !== "unidades" && pageKey !== "etiquetas";
         modalBridge.reset({
-            showDescription: pageKey !== "unidades",
+            showDescription: showDescription,
             showAplicaA: pageKey === "categorias",
             showAbreviatura: pageKey === "unidades",
             showPermiteDecimales: pageKey === "unidades",
@@ -534,6 +636,23 @@
             $("#cbTipoUnidadCatalogo").val("OTHER").prop("disabled", true);
         }
         finishSaveUi();
+    }
+
+    function cleanupCatalogModalLifecycle() {
+        resetModal(false);
+        modalBridge.destroyDescriptionEditor();
+        window.setTimeout(function () {
+            if (document.querySelector(".modal.show")) {
+                return;
+            }
+
+            document.querySelectorAll(".modal-backdrop").forEach(function (backdrop) {
+                backdrop.remove();
+            });
+            document.body.classList.remove("modal-open");
+            document.body.style.removeProperty("overflow");
+            document.body.style.removeProperty("padding-right");
+        }, 0);
     }
 
     function beginSaveUi() {
@@ -581,15 +700,49 @@
     }
 
     function fetchJson(url, options) {
+        const requestOptions = options || {};
+        const method = String(requestOptions.method || "GET").toUpperCase();
+        const canRetryTenantResolution = method === "GET";
+
+        return fetchJsonAttempt(url, requestOptions).catch(function (error) {
+            if (!canRetryTenantResolution || !isRetryableTenantResolutionError(error)) {
+                throw error;
+            }
+
+            return delay(400).then(function () {
+                return fetchJsonAttempt(url, requestOptions);
+            });
+        });
+    }
+
+    function fetchJsonAttempt(url, options) {
         return fetch(url, options).then(function (response) {
             return response.text().then(function (text) {
                 const data = text ? JSON.parse(text) : {};
                 if (!response.ok) {
-                    throw new Error(resolveServerMessage(data) || "No fue posible completar la acción.");
+                    const error = new Error(resolveServerMessage(data) || "No fue posible completar la acción.");
+                    error.status = response.status;
+                    throw error;
                 }
 
                 return data;
             });
+        });
+    }
+
+    function isRetryableTenantResolutionError(error) {
+        if (!error || error.status !== 503) {
+            return false;
+        }
+
+        const message = String(error.message || "");
+        return message.indexOf("No fue posible autorizar la empresa activa") >= 0 ||
+            message.indexOf("No fue posible resolver la empresa activa") >= 0;
+    }
+
+    function delay(milliseconds) {
+        return new Promise(function (resolve) {
+            window.setTimeout(resolve, milliseconds);
         });
     }
 
@@ -619,14 +772,16 @@
             return null;
         }
 
-        if (window.bootstrap && window.bootstrap.Modal) {
-            return window.bootstrap.Modal.getOrCreateInstance(modalNode);
+        if ($ && typeof $(selector).modal === "function") {
+            return {
+                show: function () { $(selector).modal("show"); },
+                hide: function () { $(selector).modal("hide"); }
+            };
         }
 
-        return {
-            show: function () { $(selector).modal("show"); },
-            hide: function () { $(selector).modal("hide"); }
-        };
+        return window.bootstrap && window.bootstrap.Modal
+            ? window.bootstrap.Modal.getOrCreateInstance(modalNode)
+            : null;
     }
 
     function resolveEmpresaId() {
