@@ -51,6 +51,19 @@
         return $.ajax(Object.assign({ dataType: "json" }, options));
     }
 
+    function runAsyncHook(hook) {
+        if (typeof hook !== "function") {
+            return $.Deferred().resolve().promise();
+        }
+
+        try {
+            const args = Array.prototype.slice.call(arguments, 1);
+            return $.when(hook.apply(null, args));
+        } catch (error) {
+            return $.Deferred().reject(error).promise();
+        }
+    }
+
     function showBusy(text) {
         if (!window.swal || !window.swal.fire) {
             return;
@@ -71,20 +84,38 @@
     }
 
     function notify(icon, text) {
+        const isSuccess = icon === "success";
         if (window.swal && window.swal.fire) {
             return window.swal.fire({
-                text: text,
                 icon: icon,
+                title: isSuccess ? "Listo" : "No fue posible completar la acción",
+                text: text,
                 buttonsStyling: false,
-                confirmButtonText: "Ok, entendido",
+                confirmButtonText: "Aceptar",
                 customClass: {
                     confirmButton: "btn font-weight-bold btn-light-primary"
                 }
             });
         }
 
-        window.alert(text);
         return $.Deferred().resolve().promise();
+    }
+
+    function cleanFeedbackText(value, fallback) {
+        const raw = String(value || "").replace(/<[^>]*>/g, " ").replace(/\s+/g, " ").trim();
+        if (!raw || /exception|stack trace| at |\bSystem\.|Microsoft\.|Newtonsoft\.|RestSharp\./i.test(raw)) {
+            return fallback;
+        }
+
+        return raw.length > 220 ? raw.slice(0, 217) + "..." : raw;
+    }
+
+    function responseMessage(xhr, fallback) {
+        if (xhr && xhr.responseJSON && xhr.responseJSON.d) {
+            return cleanFeedbackText(xhr.responseJSON.d, fallback);
+        }
+
+        return cleanFeedbackText(xhr && xhr.responseText, fallback);
     }
 
     function editorId(field) {
@@ -261,7 +292,8 @@
 
                 const keys = filter.keys || [];
                 return keys.some(function (key) {
-                    return String(row[key] || "").toLowerCase().indexOf(value) !== -1;
+                    const candidate = String(row[key] || "").trim().toLowerCase();
+                    return filter.matchMode === "equals" ? candidate === value : candidate.indexOf(value) !== -1;
                 });
             });
         });
@@ -379,7 +411,7 @@
                     type: "GET",
                     data: Object.assign(baseParams(), typeof config.listParams === "function" ? config.listParams() : {})
                 }).then(function (payload) {
-                    const rows = normalizeLegacyRows(parseLegacyRows(payload), config.columns);
+                    const rows = normalizeLegacyRows(parseLegacyRows(payload), config.listColumns || config.columns);
                     config.rows = rows;
                     return filterRows(rows, config);
                 });
@@ -409,11 +441,27 @@
     }
 
     function openCreate(config) {
-        resetFields(config);
-        $(config.modalTitleSelector).text(config.createTitle);
-        $(config.modalKickerSelector).text("Registro");
-        $(config.modalSelector).modal("show");
-        initRichTextFields(config.fields || []);
+        const waitForHook = typeof config.beforeOpenCreate === "function";
+        if (waitForHook) {
+            showBusy("Cargando catálogos, por favor espere...");
+        }
+
+        runAsyncHook(config.beforeOpenCreate, config)
+            .then(function () {
+                resetFields(config);
+                $(config.modalTitleSelector).text(config.createTitle);
+                $(config.modalKickerSelector).text("Registro");
+                $(config.modalSelector).modal("show");
+                initRichTextFields(config.fields || []);
+            })
+            .catch(function () {
+                notify("error", "No fue posible cargar los catálogos requeridos.");
+            })
+            .always(function () {
+                if (waitForHook) {
+                    closeBusy();
+                }
+            });
     }
 
     function openEdit(config, id) {
@@ -424,15 +472,17 @@
             data: Object.assign(baseParams(), config.detailParams(id))
         }).then(function (data) {
             const detail = data && data.d ? data.d : {};
-            $("#valorId").val(id);
-            setFieldValues(config.fields, detail);
-            if (typeof config.afterLoadDetail === "function") {
-                config.afterLoadDetail(detail);
-            }
-            $(config.modalTitleSelector).text(config.editTitle);
-            $(config.modalKickerSelector).text("Edición");
-            $(config.modalSelector).modal("show");
-            initRichTextFields(config.fields || []);
+            return runAsyncHook(config.beforeSetFieldValues, detail, config).then(function () {
+                $("#valorId").val(id);
+                setFieldValues(config.fields, detail);
+                if (typeof config.afterLoadDetail === "function") {
+                    config.afterLoadDetail(detail);
+                }
+                $(config.modalTitleSelector).text(config.editTitle);
+                $(config.modalKickerSelector).text("Edición");
+                $(config.modalSelector).modal("show");
+                initRichTextFields(config.fields || []);
+            });
         }).catch(function (xhr) {
             notify("error", "No fue posible cargar el registro. " + (xhr && xhr.responseText ? xhr.responseText : ""));
         }).always(closeBusy);
@@ -451,6 +501,7 @@
 
         showBusy("Procesando la petición, por favor espere...");
         const id = $("#valorId").val();
+        const isEdit = !!id;
         const request = Object.assign(baseParams(), config.saveParams(id, values));
 
         ajaxJson({
@@ -461,16 +512,21 @@
         }).then(function (data) {
             const result = data && data.d != null ? data.d : "";
             if (result === "Ok" || /guardad|insertad|actualizad/i.test(String(result))) {
+                closeBusy();
                 $(config.modalSelector).modal("hide");
                 window.CheckAppUI.reloadGrid(config.gridId);
-                notify("success", "Los datos se han guardado.");
+                notify("success", isEdit
+                    ? (config.editSuccessText || "El registro fue actualizado correctamente.")
+                    : (config.createSuccessText || "El registro fue guardado correctamente."));
                 return;
             }
 
-            notify("error", result || "Ocurrió un error inesperado. Por favor, intenta de nuevo.");
+            closeBusy();
+            notify("error", cleanFeedbackText(result, "Ocurrió un error inesperado. Por favor, intenta de nuevo."));
         }).catch(function (xhr) {
-            notify("error", "No fue posible guardar. " + (xhr && xhr.responseText ? xhr.responseText : ""));
-        }).always(closeBusy);
+            closeBusy();
+            notify("error", responseMessage(xhr, "No fue posible guardar. Verifica la información e intenta de nuevo."));
+        });
     }
 
     function changeStatus(config, id, activate) {
@@ -487,15 +543,18 @@
             }).then(function (data) {
                 const result = data && data.d != null ? data.d : "Ok";
                 if (result === "Ok" || /reactivad|baja|actualizad/i.test(String(result))) {
+                    closeBusy();
                     window.CheckAppUI.reloadGrid(config.gridId);
                     notify("success", successText);
                     return;
                 }
 
-                notify("error", result || "No fue posible actualizar el estatus.");
+                closeBusy();
+                notify("error", cleanFeedbackText(result, "No fue posible actualizar el estatus."));
             }).catch(function (xhr) {
-                notify("error", "No fue posible actualizar el estatus. " + (xhr && xhr.responseText ? xhr.responseText : ""));
-            }).always(closeBusy);
+                closeBusy();
+                notify("error", responseMessage(xhr, "No fue posible actualizar el estatus. Intenta de nuevo."));
+            });
         };
 
         if (window.swal && window.swal.fire) {

@@ -842,9 +842,17 @@
                     key: "unidadMedida",
                     title: "Unidad",
                     exportValue: function (_value, row) {
+                        if (Number(row.tipo || 0) !== 1) {
+                            return "";
+                        }
+
                         return [row.unidadMedida || "", row.unidadAbreviatura || ""].filter(Boolean).join(" ");
                     },
                     render: function (_value, row) {
+                        if (Number(row.tipo || 0) !== 1) {
+                            return "—";
+                        }
+
                         const parts = [row.unidadMedida || "", row.unidadAbreviatura ? "(" + row.unidadAbreviatura + ")" : ""].filter(Boolean);
                         return escapeHtml(parts.join(" "));
                     }
@@ -2637,7 +2645,7 @@
         }
 
         const commercialItems = [
-            buildFichaMetric("Unidad Base", buildUnitLabel(detail.unidadMedida, detail.unidadAbreviatura)),
+            Number(detail.tipo || 0) === 1 ? buildFichaMetric("Unidad Base", buildUnitLabel(detail.unidadMedida, detail.unidadAbreviatura)) : "",
             detail.costo != null ? buildFichaMetric("Costo", formatCurrency(detail.costo)) : "",
             buildFichaMetric("Precio público", formatCurrency(detail.precioPublico)),
             detail.precioComparacion != null && Number(detail.precioComparacion) > 0 ? buildFichaMetric("Precio de comparación", formatCurrency(detail.precioComparacion)) : "",
@@ -3373,7 +3381,7 @@
         if (!$("#cbCategoriaProductoServicio").val()) {
             return { selector: "#cbCategoriaProductoServicio", message: "Selecciona una categoría." };
         }
-        if (!$("#cbUnidadProductoServicio").val()) {
+        if (Number(getSelectedTipoProductoServicio() || 0) === 1 && !$("#cbUnidadProductoServicio").val()) {
             return { selector: "#cbUnidadProductoServicio", message: "Selecciona una unidad." };
         }
         if (($("#txPrecioPublicoProductoServicio").val() || "").trim() === "") {
@@ -3419,7 +3427,7 @@
             descripcion: getDescriptionEditorValue(),
             idCategoria: $("#cbCategoriaProductoServicio").val() || "",
             idMarca: tipo === 2 ? null : normalizeGuid($("#cbMarcaProductoServicio").val()),
-            idUnidadMedida: $("#cbUnidadProductoServicio").val() || "",
+            idUnidadMedida: tipo === 2 ? "00000000-0000-0000-0000-000000000000" : ($("#cbUnidadProductoServicio").val() || ""),
             idColeccion: normalizeGuid($("#cbColeccionProductoServicio").val()),
             idPaquete: esProductoFisico ? normalizeGuid($("#cbPaqueteProductoServicio").val()) : null,
             costo: toNullableNumber($("#txCostoProductoServicio").val()),
@@ -3800,6 +3808,7 @@
         const modalNode = document.querySelector("#modalProductoServicio");
 
         toggleField("#fieldMarcaProductoServicio", !isService);
+        toggleField(".ps-form-field--unit", !isService);
         toggleField("[data-ps-section='control']", !isService);
         toggleField("[data-ps-section='atributos']", !isService);
         toggleField("[data-ps-section='variantes']", !isService);
@@ -3820,25 +3829,11 @@
             $("#txExistenciaMinimaProductoServicio").val("");
         }
 
-        if (!isService && isPhysical && !$("#hdProductoServicioId").val()) {
-            applyDefaultPackageSelection();
+        if (isService) {
+            $("#cbUnidadProductoServicio").val("").trigger("change.select2");
         }
 
         renderLogisticsSummary();
-    }
-
-    function applyDefaultPackageSelection() {
-        if ($("#cbPaqueteProductoServicio").val()) {
-            return;
-        }
-
-        const predeterminado = (state.combos.paquetes || []).find(function (item) {
-            return !!item.esPredeterminado;
-        });
-
-        if (predeterminado && predeterminado.id) {
-            $("#cbPaqueteProductoServicio").val(predeterminado.id).trigger("change");
-        }
     }
 
     function toggleField(selector, show) {
@@ -4562,14 +4557,14 @@
 
         host.innerHTML = "" +
             "<div class='ps-attribute-form-row'>" +
-            "  <label class='checkapp-field ps-attribute-form-field'>" +
+            "  <label class='checkapp-field ps-attribute-form-field ps-hint-field'>" +
             "    <span>Atributo</span>" +
             "    <select id='cbAtributoProductoServicioRelacion' class='form-select'>" + buildAttributeSelectOptions(draftAttributeId) + "</select>" +
             "  </label>" +
             "  <div class='ps-attribute-inline-button'>" +
             "    <button id='btQuickAddAtributoFilaProductoServicio' type='button' class='checkapp-btn checkapp-btn-ghost' aria-label='Nuevo atributo'><i class='fa fa-plus'></i></button>" +
             "  </div>" +
-            "  <label class='checkapp-field ps-attribute-form-field'>" +
+            "  <label class='checkapp-field ps-attribute-form-field ps-hint-field'>" +
             "    <span>Elemento</span>" +
             "    <select id='cbElementoAtributoProductoServicioRelacion' class='form-select'" + (draftAttributeId ? "" : " disabled") + ">" + buildAttributeSingleValueOptions(draftAttributeId, draftValueId) + "</select>" +
             "  </label>" +
@@ -4954,7 +4949,7 @@
                     "    </div>" +
                     "  </div>" +
                     "  <div class='ps-variant-option-grid'>" +
-                    "    <label class='checkapp-field'>" +
+                    "    <label class='checkapp-field ps-variant-option-name-field ps-hint-field'>" +
                     "      <span>Nombre de opción</span>" +
                     "      <input class='form-control' data-ps-variant-option-name='" + escapeHtml(item.rowKey) + "' value='" + escapeHtml(item.nombre || "") + "' placeholder='Ejemplo: Talla' />" +
                     "    </label>" +
@@ -4972,7 +4967,7 @@
                     "  </div>" +
                     "</article>";
             }).join("") +
-            "<div class='ps-inline-actions' style='margin-top:1rem;'><button type='button' class='checkapp-btn checkapp-btn-secondary' data-ps-variant-add-option='1'><i class='fa fa-plus'></i><span>Agregar opción</span></button></div>" +
+            "<div class='ps-inline-actions ps-variant-add-option-row'><button type='button' class='checkapp-btn checkapp-btn-secondary' data-ps-variant-add-option='1'><i class='fa fa-plus'></i><span>Agregar opción</span></button></div>" +
             "</div>";
 
         applyVariantOptionFocus(focusConfig);
@@ -5034,14 +5029,14 @@
         }
 
         if (!state.variantOptionRows.length) {
-            summary.textContent = "Sin opciones de variante configuradas.";
-            host.innerHTML = "<div class='ps-empty-state'>Agrega una opción como talla o color para comenzar.</div>";
+            summary.textContent = "Sin opciones de variante configuradas. Agrega una opción como talla o color para comenzar.";
+            host.innerHTML = "";
             return;
         }
 
         if (!state.variants.length) {
-            summary.textContent = "Completa al menos una opción con valores para construir variantes.";
-            host.innerHTML = "<div class='ps-empty-state'>Todavía no hay combinaciones vendibles.</div>";
+            summary.textContent = "Completa al menos una opción con valores para construir variantes. Todavía no hay combinaciones vendibles.";
+            host.innerHTML = "";
             return;
         }
 

@@ -1159,10 +1159,12 @@ function normalizeProveedorStandaloneRuntime() {
         return;
     }
 
-    modal.addClass("checkapp-modal activos-standalone-catalog-modal");
-    modal.find(".modal-dialog").addClass("modal-lg modal-dialog-centered");
+    modal.addClass("checkapp-modal activos-standalone-catalog-modal ca-catalog-modal");
+    modal.find(".modal-dialog").addClass("modal-lg modal-dialog-centered ca-catalog-modal-dialog ca-catalog-modal-dialog--expanded activos-proveedor-modal-dialog");
+    modal.find(".modal-content").addClass("ca-catalog-modal-content");
+    $("#frmProveedorActivo").addClass("ca-catalog-modal-form").attr("data-quick-catalog-layout", "proveedor");
     formGrid
-        .addClass("activos-quick-modal-grid--catalog activos-proveedor-modal-grid")
+        .addClass("activos-quick-modal-grid--catalog ca-catalog-form-grid activos-proveedor-modal-grid")
         .css("margin-top", 0);
 
     const codeInput = $("#txCodigoProveedorActivo");
@@ -1179,6 +1181,7 @@ function normalizeProveedorStandaloneRuntime() {
         .addClass("checkapp-field activos-proveedor-field-name");
     $("#txDescripcionProveedorActivo").closest("label, .checkapp-field, .form-group, div").first()
         .addClass("checkapp-field activos-proveedor-field-description");
+    normalizeProveedorHintsRuntime();
     normalizeProveedorAccountingRuntime();
 
     modal.find("label").addClass("checkapp-field");
@@ -1189,6 +1192,38 @@ function normalizeProveedorStandaloneRuntime() {
     }).remove();
 
     initProveedorDescriptionEditor(config);
+}
+
+function normalizeProveedorHintsRuntime() {
+    const hints = [
+        ["#txNombreProveedorActivo", "Nombre del proveedor", "Nombre del proveedor"],
+        ["#txDescripcionProveedorActivo", "Descripción", "Descripción"],
+        ["#txRazonSocialProveedorActivo", "Razón social", "Razón social"],
+        ["#txRfcProveedorActivo", "XAXX010101000", "R.F.C."],
+        ["#txTelefonoProveedorActivo", "Teléfono", "Teléfono"],
+        ["#txTelefono1ProveedorActivo", "Teléfono 1", "Teléfono 1"],
+        ["#txEmailProveedorActivo", "correo@empresa.com", "Email"],
+        ["#txLimiteProveedorActivo", "Límite", "Límite"],
+        ["#cbClasificacionContableProveedorActivo", null, "Clasificación contable"],
+        ["#txCuentaContableProveedorActivo", "Cuenta contable", "Cuenta contable"],
+        ["#txContactoProveedorActivo", "Contacto", "Contacto"],
+        ["#txCuentaBancariaProveedorActivo", "Cuenta bancaria", "Cuenta bancaria"]
+    ];
+
+    hints.forEach(function (entry) {
+        const field = $(entry[0]);
+        if (!field.length) {
+            return;
+        }
+
+        if (entry[1]) {
+            field.attr("placeholder", entry[1]);
+        }
+        field.attr("aria-label", entry[2]);
+        field.closest("label, .checkapp-field, .form-group, div").first()
+            .children("span").first()
+            .addClass("visually-hidden");
+    });
 }
 
 function normalizeProveedorAccountingRuntime() {

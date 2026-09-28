@@ -51,31 +51,31 @@
                             <span>Búsqueda general</span>
                             <input id="txBusquedaProductosServicios" type="text" placeholder="Código, etiqueta, nombre o descripción" />
                         </label>
-                        <label class="checkapp-field ps-filter-field">
+                        <label class="checkapp-field ps-filter-field ps-filter-field--type">
                             <span>Tipo</span>
                             <select id="cbFiltroTipoProductoServicio" class="form-select"></select>
                         </label>
-                        <label class="checkapp-field ps-filter-field">
+                        <label class="checkapp-field ps-filter-field ps-filter-field--category">
                             <span>Categoría</span>
                             <select id="cbFiltroCategoriaProductoServicio" class="form-select"></select>
                         </label>
-                        <label class="checkapp-field ps-filter-field">
+                        <label class="checkapp-field ps-filter-field ps-filter-field--brand">
                             <span>Marca</span>
                             <select id="cbFiltroMarcaProductoServicio" class="form-select"></select>
                         </label>
-                        <label class="checkapp-field ps-filter-field">
+                        <label class="checkapp-field ps-filter-field ps-filter-field--unit">
                             <span>Unidad</span>
                             <select id="cbFiltroUnidadProductoServicio" class="form-select"></select>
                         </label>
-                        <label class="checkapp-field ps-filter-field">
+                        <label class="checkapp-field ps-filter-field ps-filter-field--collection">
                             <span>Colección</span>
                             <select id="cbFiltroColeccionProductoServicio" class="form-select"></select>
                         </label>
-                        <label class="checkapp-field ps-filter-field">
+                        <label class="checkapp-field ps-filter-field ps-filter-field--tag">
                             <span>Etiqueta</span>
                             <select id="cbFiltroEtiquetaProductoServicio" class="form-select"></select>
                         </label>
-                        <label class="checkapp-field ps-filter-field">
+                        <label class="checkapp-field ps-filter-field ps-filter-field--inventory">
                             <span>Causa inventario</span>
                             <select id="cbFiltroCausaInventario" class="form-select">
                                 <option value="">Todos</option>
@@ -83,7 +83,7 @@
                                 <option value="false">Sin inventario</option>
                             </select>
                         </label>
-                        <label class="checkapp-field ps-filter-field">
+                        <label class="checkapp-field ps-filter-field ps-filter-field--status">
                             <span>Estatus</span>
                             <select id="cbFiltroEstatusProductosServicios" class="form-select"></select>
                         </label>
@@ -211,12 +211,12 @@
                                 <div class="ps-modal-top-grid">
                                     <div class="ps-modal-top-fields">
                                         <div class="checkapp-filter-grid ps-form-grid ps-form-grid--hero">
-                                            <label class="checkapp-field ps-form-field ps-form-field--name ps-floating-field">
-                                                <input id="txNombreProductoServicio" maxlength="150" type="text" placeholder=" " />
+                                            <label class="checkapp-field ps-form-field ps-form-field--name ps-floating-field ps-hint-field">
+                                                <input id="txNombreProductoServicio" maxlength="150" type="text" placeholder="Nombre *" />
                                                 <span>Nombre *</span>
                                             </label>
-                                            <label class="checkapp-field ps-form-field ps-form-field--code ps-floating-field">
-                                                <input id="txCodigoProductoServicio" maxlength="50" type="text" placeholder=" " />
+                                            <label class="checkapp-field ps-form-field ps-form-field--code ps-floating-field ps-hint-field">
+                                                <input id="txCodigoProductoServicio" maxlength="50" type="text" placeholder="Código *" />
                                                 <span>Código *</span>
                                             </label>
                                             <label class="checkapp-field ps-form-field ps-form-field--description">
@@ -253,7 +253,7 @@
                                         </div>
 
                                         <div class="checkapp-filter-grid ps-form-grid ps-form-grid--catalogs">
-                                            <label class="checkapp-field ps-form-field ps-form-field--category ps-floating-select-field">
+                                            <label class="checkapp-field ps-form-field ps-form-field--category ps-floating-select-field ps-hint-field">
                                                 <span>Categoría *</span>
                                                 <span class="activos-select-with-action ps-select-with-action">
                                                     <select id="cbCategoriaProductoServicio" class="form-select"></select>
@@ -262,7 +262,7 @@
                                                     </button>
                                                 </span>
                                             </label>
-                                            <label class="checkapp-field ps-form-field ps-form-field--brand ps-floating-select-field" id="fieldMarcaProductoServicio">
+                                            <label class="checkapp-field ps-form-field ps-form-field--brand ps-floating-select-field ps-hint-field" id="fieldMarcaProductoServicio">
                                                 <span>Marca</span>
                                                 <span class="activos-select-with-action ps-select-with-action">
                                                     <select id="cbMarcaProductoServicio" class="form-select"></select>
@@ -271,7 +271,7 @@
                                                     </button>
                                                 </span>
                                             </label>
-                                            <label class="checkapp-field ps-form-field ps-form-field--collection ps-floating-select-field">
+                                            <label class="checkapp-field ps-form-field ps-form-field--collection ps-floating-select-field ps-hint-field">
                                                 <span>Colección</span>
                                                 <span class="activos-select-with-action ps-select-with-action">
                                                     <select id="cbColeccionProductoServicio" class="form-select"></select>
@@ -307,7 +307,7 @@
                                                 <div id="txInfoImagenProductoServicio" class="checkapp-status-inline"></div>
                                             </div>
                                         </section>
-                                        <div class="checkapp-field ps-form-field ps-form-field--tag ps-floating-tag-field">
+                                        <div class="checkapp-field ps-form-field ps-form-field--tag ps-floating-tag-field ps-hint-field">
                                             <span>Etiquetas</span>
                                             <input id="txTagProductoServicioLegacy" type="hidden" />
                                             <div id="psTagsControlProductoServicio" class="ps-tags-control"></div>
@@ -332,7 +332,7 @@
                                     </div>
                                     <div class="cot-panel-body">
                                         <div class="checkapp-filter-grid ps-form-grid ps-form-grid--pricing">
-                                        <label for="cbUnidadProductoServicio" class="checkapp-field ps-form-field ps-form-field--unit">
+                                        <label for="cbUnidadProductoServicio" class="checkapp-field ps-form-field ps-form-field--unit ps-hint-field">
                                             <span class="ps-label-with-help"><span>Unidad base *</span><button id="btAyudaUnidadBase" type="button" class="ps-help-button" data-bs-toggle="tooltip" data-bs-trigger="click" data-bs-title="Unidad en la que se controla el inventario, por ejemplo Pieza, Centímetro o Kilogramo." aria-label="Ayuda sobre unidad base"><i class="fa fa-question" aria-hidden="true"></i></button></span>
                                             <span class="activos-select-with-action ps-select-with-action">
                                                 <select id="cbUnidadProductoServicio" class="form-select"></select>
@@ -341,22 +341,22 @@
                                                 </button>
                                             </span>
                                         </label>
-                                        <label class="checkapp-field ps-form-field ps-form-field--cost">
+                                        <label class="checkapp-field ps-form-field ps-form-field--cost ps-hint-field">
                                             <span>Costo</span>
-                                            <input id="txCostoProductoServicio" type="number" min="0" step="0.0001" inputmode="decimal" placeholder="$0.00" />
+                                            <input id="txCostoProductoServicio" type="number" min="0" step="0.0001" inputmode="decimal" placeholder="Costo $0.00" />
                                         </label>
-                                        <label for="txPrecioPublicoProductoServicio" class="checkapp-field ps-form-field ps-form-field--price">
+                                        <label for="txPrecioPublicoProductoServicio" class="checkapp-field ps-form-field ps-form-field--price ps-hint-field">
                                             <span class="ps-label-with-help"><span>Precio público *</span><button id="btAyudaPrecioPublico" type="button" class="ps-help-button" data-bs-toggle="tooltip" data-bs-trigger="click" data-bs-title="Configura el precio de venta de una unidad base del producto." aria-label="Ayuda sobre precio público"><i class="fa fa-question" aria-hidden="true"></i></button></span>
-                                            <input id="txPrecioPublicoProductoServicio" type="number" min="0" step="0.0001" inputmode="decimal" placeholder="$0.00" />
+                                            <input id="txPrecioPublicoProductoServicio" type="number" min="0" step="0.0001" inputmode="decimal" placeholder="Precio público * $0.00" />
                                         </label>
-                                        <label for="txPrecioComparacionProductoServicio" class="checkapp-field ps-form-field ps-form-field--compare">
+                                        <label for="txPrecioComparacionProductoServicio" class="checkapp-field ps-form-field ps-form-field--compare ps-hint-field">
                                             <span class="ps-label-with-help">
                                                 <span>Precio de comparación</span>
                                                 <button id="btAyudaPrecioComparacionProductoServicio" type="button" class="ps-help-button" data-bs-toggle="tooltip" data-bs-placement="top" data-bs-html="true" data-bs-title='Para mostrar una rebaja, ingresa un valor mayor que el precio público. Normalmente se muestra como un precio tachado (por ejemplo, <span class="ps-tooltip-strike">$25.00</span>).' aria-label="Ayuda sobre precio de comparación">
                                                     <i class="fa fa-question" aria-hidden="true"></i>
                                                 </button>
                                             </span>
-                                            <input id="txPrecioComparacionProductoServicio" type="number" min="0" step="0.0001" inputmode="decimal" placeholder="$0.00" />
+                                            <input id="txPrecioComparacionProductoServicio" type="number" min="0" step="0.0001" inputmode="decimal" placeholder="Precio comparación $0.00" />
                                         </label>
                                         <div class="ps-price-metrics-group" aria-label="Ganancia y margen">
                                             <div class="checkapp-field ps-form-field ps-price-metric">
@@ -409,15 +409,15 @@
                                             <input id="chkAplicaIvaProductoServicio" type="checkbox" />
                                             <span>Aplicar IVA</span>
                                         </label>
-                                        <label id="fieldPorcentajeIvaProductoServicio" class="checkapp-field ps-form-field ps-tax-percent-field" hidden>
+                                        <label id="fieldPorcentajeIvaProductoServicio" class="checkapp-field ps-form-field ps-tax-percent-field ps-hint-field" hidden>
                                             <span>IVA %</span>
-                                            <input id="txPorcentajeIvaProductoServicio" type="number" min="0" max="100" step="0.01" inputmode="decimal" placeholder="16.00" />
+                                            <input id="txPorcentajeIvaProductoServicio" type="number" min="0" max="100" step="0.01" inputmode="decimal" placeholder="IVA % 16.00" />
                                         </label>
-                                        <label class="checkapp-field ps-form-field ps-sat-product-field">
+                                        <label class="checkapp-field ps-form-field ps-sat-product-field ps-hint-field">
                                             <span>Clave de producto SAT</span>
                                             <select id="cbClaveProductoSatProductoServicio" class="form-select"></select>
                                         </label>
-                                        <label class="checkapp-field ps-form-field ps-sat-unit-field">
+                                        <label class="checkapp-field ps-form-field ps-sat-unit-field ps-hint-field">
                                             <span>Clave de unidad SAT</span>
                                             <select id="cbClaveUnidadSatProductoServicio" class="form-select"></select>
                                         </label>
@@ -465,7 +465,7 @@
                                     </div>
                                     <div class="cot-panel-body">
                                         <div class="checkapp-filter-grid ps-form-grid ps-form-grid--physical">
-                                        <label class="checkapp-field ps-form-field ps-form-field--package">
+                                        <label class="checkapp-field ps-form-field ps-form-field--package ps-hint-field">
                                             <span>Paquete</span>
                                             <span class="activos-select-with-action ps-select-with-action">
                                                 <select id="cbPaqueteProductoServicio" class="form-select"></select>
@@ -474,9 +474,9 @@
                                                 </button>
                                             </span>
                                         </label>
-                                        <label class="checkapp-field ps-form-field">
+                                        <label class="checkapp-field ps-form-field ps-hint-field">
                                             <span>Peso del producto (kg)</span>
-                                            <input id="txPesoKgProductoServicio" type="number" min="0" step="0.00001" inputmode="decimal" />
+                                            <input id="txPesoKgProductoServicio" type="number" min="0" step="0.00001" inputmode="decimal" placeholder="Peso del producto (kg)" />
                                         </label>
                                         <div class="ps-logistics-note ps-field-full">
                                             El paquete define largo, ancho, alto y peso vacío. Aquí solo capturamos el peso real del producto.
@@ -533,13 +533,13 @@
                                                     <span>Permite venta sin existencia</span>
                                                 </span>
                                             </label>
-                                            <label class="checkapp-field ps-form-field" id="fieldExistenciaInicial">
+                                            <label class="checkapp-field ps-form-field ps-hint-field" id="fieldExistenciaInicial">
                                                 <span>Existencia inicial</span>
-                                                <input id="txExistenciaInicialProductoServicio" type="number" min="0" step="0.0001" inputmode="decimal" />
+                                                <input id="txExistenciaInicialProductoServicio" type="number" min="0" step="0.0001" inputmode="decimal" placeholder="Existencia inicial" />
                                             </label>
-                                            <label class="checkapp-field ps-form-field" id="fieldExistenciaMinima">
+                                            <label class="checkapp-field ps-form-field ps-hint-field" id="fieldExistenciaMinima">
                                                 <span>Existencia mínima</span>
-                                                <input id="txExistenciaMinimaProductoServicio" type="number" min="0" step="0.0001" inputmode="decimal" />
+                                                <input id="txExistenciaMinimaProductoServicio" type="number" min="0" step="0.0001" inputmode="decimal" placeholder="Existencia mínima" />
                                             </label>
                                         </div>
                                     </div>

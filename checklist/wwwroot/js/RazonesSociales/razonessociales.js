@@ -1,10 +1,131 @@
 (function (window, document, $) {
     "use strict";
 
+    let regimenesPromise = null;
+    const regimenesMap = {};
+
+    function escapeHtml(value) {
+        return window.CheckAppAdminCatalog.escapeHtml(value == null ? "" : String(value));
+    }
+
+    function normalizeCatalogItems(payload) {
+        const rows = Array.isArray(payload)
+            ? payload
+            : Array.isArray(payload && payload.data)
+                ? payload.data
+                : Array.isArray(payload && payload.d)
+                    ? payload.d
+                    : [];
+
+        return rows.map(function (item) {
+            const source = item && typeof item === "object" ? item : {};
+            const clave = source.clave || source.Clave || source.value || source.Value || "";
+            const nombre = source.nombre || source.Nombre || source.text || source.Text || clave;
+            return {
+                value: String(clave || ""),
+                text: String(nombre || clave || "")
+            };
+        }).filter(function (item, index, collection) {
+            return index === collection.findIndex(function (candidate) {
+                return candidate.value === item.value;
+            });
+        });
+    }
+
+    function renderRegimenes(items) {
+        const node = document.querySelector("#cbRegimenFiscal");
+        if (!node) {
+            return;
+        }
+
+        Object.keys(regimenesMap).forEach(function (key) {
+            delete regimenesMap[key];
+        });
+
+        node.innerHTML = items.map(function (item) {
+            regimenesMap[item.value] = item.text;
+            return "<option value='" + escapeHtml(item.value) + "'>" + escapeHtml(item.text) + "</option>";
+        }).join("");
+    }
+
+    function ensureRegimenValue(value, text) {
+        const normalized = String(value || "");
+        const exists = $("#cbRegimenFiscal option").filter(function () {
+            return $(this).val() === normalized;
+        }).length > 0;
+        if (!normalized || exists) {
+            return;
+        }
+
+        const label = text || normalized;
+        regimenesMap[normalized] = label;
+        $("#cbRegimenFiscal").append("<option value='" + escapeHtml(normalized) + "'>" + escapeHtml(label) + "</option>");
+    }
+
+    function loadRegimenes() {
+        if (regimenesPromise) {
+            return regimenesPromise;
+        }
+
+        regimenesPromise = window.CheckAppAdminCatalog.ajaxJson({
+            url: "/Clientes/ObtenerRegimenesFiscalesCliente",
+            type: "GET",
+            data: window.CheckAppAdminCatalog.baseParams()
+        }).then(function (payload) {
+            renderRegimenes(normalizeCatalogItems(payload));
+        });
+
+        return regimenesPromise;
+    }
+
+    function ensureRegimenesReady() {
+        return loadRegimenes();
+    }
+
+    function ensureRegimenSelectExists() {
+        if ($("#cbRegimenFiscal").length) {
+            return;
+        }
+
+        const input = $("#txRegimenFiscal");
+        if (!input.length) {
+            return;
+        }
+
+        input.replaceWith("<select id='cbRegimenFiscal' name='cbRegimenFiscal' class='form-select' aria-label='Régimen fiscal'></select>");
+    }
+
+    function applyCatalogPresentation() {
+        ensureRegimenSelectExists();
+        $("#grData thead th").filter(function () {
+            return $(this).text().trim() === "Notas";
+        }).text("Descripción");
+        [
+            ["#txRazon", "Razón social *"],
+            ["#txRepresentante", "Representante *"],
+            ["#txRfc", "RFC *"],
+            ["#txDireccion", "Dirección *"],
+            ["#txColonia", "Colonia *"],
+            ["#txCP", "C.P. *"],
+            ["#txCiudad", "Ciudad *"],
+            ["#txEstado", "Estado *"],
+            ["#txPais", "País *"],
+            ["#txTelefono", "Teléfono *"],
+            ["#cbRegimenFiscal", "Régimen fiscal *"],
+            ["#txNotas", "Descripción"]
+        ].forEach(function (item) {
+            const label = $(item[0]).closest("label").children("span").first();
+            label.text(item[1]).addClass("visually-hidden");
+        });
+        $("#txNotas").attr("placeholder", "Descripción");
+    }
+
     document.addEventListener("DOMContentLoaded", function () {
         if (!window.CheckAppAdminCatalog) {
             return;
         }
+
+        applyCatalogPresentation();
 
         window.CheckAppAdminCatalog.init({
             gridId: "razones-sociales-grid",
@@ -41,6 +162,8 @@
             exportFilePrefix: "RazonesSociales",
             createTitle: "Nueva razón social",
             editTitle: "Editar razón social",
+            createSuccessText: "Razón social guardada correctamente.",
+            editSuccessText: "Razón social actualizada correctamente.",
             emptyText: "No hay razones sociales para los filtros aplicados.",
             idKey: "id",
             order: [[1, "asc"]],
@@ -56,8 +179,17 @@
                 { key: "estado", title: "Estado" },
                 { key: "pais", title: "País" },
                 { key: "telefono", title: "Teléfono" },
-                { key: "regimenFiscal", title: "Régimen Fiscal" },
-                { key: "notas", title: "Notas", type: "htmlText" },
+                {
+                    key: "regimenFiscal",
+                    title: "Régimen Fiscal",
+                    render: function (value) {
+                        return escapeHtml(regimenesMap[String(value || "")] || value || "");
+                    },
+                    exportValue: function (value) {
+                        return regimenesMap[String(value || "")] || value || "";
+                    }
+                },
+                { key: "notas", title: "Descripción", type: "htmlText" },
                 { key: "activo", title: "Estatus", type: "status" }
             ],
             filters: [
@@ -95,8 +227,8 @@
                 { key: "estado", source: "estado", selector: "#txEstado", required: true },
                 { key: "pais", source: "pais", selector: "#txPais", required: true },
                 { key: "telefono", source: "telefono", selector: "#txTelefono", required: true },
-                { key: "regimenFiscal", source: "regimen1", selector: "#txRegimenFiscal", required: true },
-                { key: "notas", source: "notas", selector: "#txNotas", richText: true, placeholder: "Notas internas" }
+                { key: "regimenFiscal", source: "regimen1", selector: "#cbRegimenFiscal", required: true },
+                { key: "notas", source: "notas", selector: "#txNotas", richText: true, placeholder: "Descripción" }
             ],
             detailParams: function (id) {
                 return { lla: id };
@@ -125,6 +257,19 @@
                     nota: values.notas,
                     regi: values.regimenFiscal
                 };
+            },
+            afterInit: function () {
+                ensureRegimenesReady().then(function () {
+                    window.CheckAppUI.reloadGrid("razones-sociales-grid");
+                });
+            },
+            beforeOpenCreate: function () {
+                return ensureRegimenesReady();
+            },
+            beforeSetFieldValues: function (detail) {
+                return ensureRegimenesReady().then(function () {
+                    ensureRegimenValue(detail && detail.regimen1, detail && detail.nombreRegimen1);
+                });
             }
         });
     });

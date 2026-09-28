@@ -544,6 +544,7 @@
 .activos-proveedor-modal-grid {
     grid-template-columns: repeat(3, minmax(0, 1fr));
     align-items: start;
+    gap: 0.65rem;
 }
 
 .activos-proveedor-field-name {
@@ -561,7 +562,7 @@
 .activos-proveedor-accounting-subgrid {
     display: grid;
     grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
-    gap: 0.75rem;
+    gap: 0.65rem;
 }
 
 .activos-proveedor-subfield {
@@ -592,6 +593,35 @@
     border: 1px solid rgba(15, 23, 42, 0.18);
     border-radius: 0.9rem;
     overflow: hidden;
+    min-height: 128px;
+}
+
+#modalProveedoresActivos .modal-body {
+    padding-top: 0.85rem;
+    padding-bottom: 0.85rem;
+}
+
+#modalProveedoresActivos .visually-hidden {
+    position: absolute !important;
+    width: 1px !important;
+    height: 1px !important;
+    padding: 0 !important;
+    margin: -1px !important;
+    overflow: hidden !important;
+    clip: rect(0, 0, 0, 0) !important;
+    white-space: nowrap !important;
+    border: 0 !important;
+}
+
+#modalProveedoresActivos .checkapp-field input,
+#modalProveedoresActivos .checkapp-field select,
+#modalProveedoresActivos .checkapp-field .form-select {
+    min-height: 42px;
+}
+
+#modalProveedoresActivos .checkapp-field input::placeholder,
+#modalProveedoresActivos .checkapp-field textarea::placeholder {
+    color: var(--checkapp-color-muted, #64748b);
 }
 
 #modalProveedoresActivos .tox .tox-toolbar__primary,
@@ -631,6 +661,28 @@
 
 #modalProveedoresActivos .checkapp-btn-ghost {
     background: #fff;
+}
+
+@media (max-width: 991px) {
+    .activos-proveedor-modal-grid {
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+    }
+
+    .activos-proveedor-field-name,
+    .activos-proveedor-field-description {
+        grid-column: 1 / -1;
+    }
+}
+
+@media (max-width: 640px) {
+    .activos-proveedor-modal-grid,
+    .activos-proveedor-accounting-subgrid {
+        grid-template-columns: 1fr;
+    }
+
+    #modalProveedoresActivos .modal-footer .checkapp-btn {
+        width: 100%;
+    }
 }
 
 .activos-quick-modal-field-code {

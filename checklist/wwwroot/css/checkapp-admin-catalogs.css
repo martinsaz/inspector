@@ -13,9 +13,21 @@
     padding-top: 0;
 }
 
+.ca-catalog-page .ca-filter-grid {
+    align-items: end;
+    gap: 0.75rem;
+}
+
+.ca-catalog-page .ps-filter-field--search {
+    grid-column: auto;
+}
+
 .ca-catalog-page .ca-filter-tail {
     align-items: center;
     gap: 0.55rem;
+    margin-top: 0;
+    margin-left: 0;
+    width: auto;
 }
 
 .ca-catalog-page .ca-filter-tail .checkapp-btn {
@@ -48,6 +60,32 @@
 
 .ca-filter-grid--compact {
     grid-template-columns: repeat(4, minmax(0, 1fr));
+}
+
+@media (min-width: 1200px) {
+    .ca-catalog-page .checkapp-accordion-inner {
+        display: grid;
+        grid-template-columns: minmax(0, 1fr) auto;
+        align-items: end;
+        gap: 0.75rem;
+    }
+
+    .ca-catalog-page .ca-filter-tail {
+        align-self: end;
+        padding-bottom: 0;
+    }
+
+    .regiones-page .ca-filter-grid {
+        grid-template-columns: minmax(360px, 2fr) minmax(150px, 0.8fr);
+    }
+
+    .sucursales-page .ca-filter-grid {
+        grid-template-columns: minmax(320px, 2.2fr) repeat(3, minmax(135px, 1fr));
+    }
+
+    .razones-sociales-page .ca-filter-grid {
+        grid-template-columns: minmax(320px, 2.2fr) repeat(3, minmax(135px, 1fr));
+    }
 }
 
 .ca-catalog-page .checkapp-grid-toolbar {
@@ -89,8 +127,13 @@
     color: currentColor;
 }
 
+.ca-catalog-modal-dialog {
+    max-width: min(360px, calc(100vw - 2rem));
+}
+
+.ca-catalog-modal-dialog--expanded,
 .ca-catalog-modal-dialog--wide {
-    max-width: min(1080px, calc(100vw - 2rem));
+    max-width: min(880px, calc(100vw - 2rem));
 }
 
 .ca-catalog-modal-content {
@@ -102,9 +145,12 @@
 }
 
 .ca-catalog-form-grid--sucursal,
-.ca-catalog-form-grid--razon,
-.ca-catalog-form-grid--region {
+.ca-catalog-form-grid--razon {
     grid-template-columns: repeat(12, minmax(0, 1fr));
+}
+
+.ca-catalog-form-grid--region {
+    grid-template-columns: minmax(0, 1fr);
 }
 
 .ca-span-2 {
@@ -215,6 +261,14 @@
 }
 
 @media (max-width: 640px) {
+    .ca-catalog-modal-dialog,
+    .ca-catalog-modal-dialog--expanded,
+    .ca-catalog-modal-dialog--wide {
+        max-width: calc(100vw - 1rem);
+        margin-left: 0.5rem;
+        margin-right: 0.5rem;
+    }
+
     .ca-catalog-form-grid--sucursal,
     .ca-catalog-form-grid--razon,
     .ca-catalog-form-grid--region,

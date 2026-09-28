@@ -198,7 +198,9 @@ namespace checklist.Controllers.Sucursales
                 sb.Append("\"" + HttpUtility.JavaScriptStringEncode(resp.Telefono) + "\",");
                 sb.Append("\"" + HttpUtility.JavaScriptStringEncode(resp.Correo) + "\",");
                 sb.Append("\"" + HttpUtility.JavaScriptStringEncode(resp.Pais) + "\",");
+                sb.Append("\"" + HttpUtility.JavaScriptStringEncode(resp.IdRazonSocial) + "\",");
                 sb.Append("\"" + HttpUtility.JavaScriptStringEncode(resp.NombreRzonSocial) + "\",");
+                sb.Append("\"" + HttpUtility.JavaScriptStringEncode(resp.IdZona) + "\",");
                 sb.Append("\"" + HttpUtility.JavaScriptStringEncode(resp.NombreZona) + "\",");
                 sb.Append("\"" + (!resp.borrado).ToString().ToLowerInvariant() + "\"");
                 sb.Append("]");
@@ -313,7 +315,7 @@ namespace checklist.Controllers.Sucursales
             sucursal.IdRazonSocial = razo.Trim();
             sucursal.IdZona = zona.Trim();
             sucursal.IdSucursalTipo = "3FA85F64-5717-4562-B3FC-2C963F66AFA6";
-            sucursal.Notas = "asdfg";
+            sucursal.Notas = nota?.Trim() ?? "";
             sucursal.borrado = false;
             sucursal.Fecha = Utilerias.FechaActual();
             sucursal.LinkImagen = "N/A";
@@ -331,7 +333,8 @@ namespace checklist.Controllers.Sucursales
                     request.RequestFormat = DataFormat.Json;
                     request.AddJsonBody(json);
                     var response = clientS.Execute(request);
-                    if (Utilerias.LimpiaCadena(response.Content) != "Sucursal creada correctamente") regresa = response.Content;
+                    string content = Utilerias.LimpiaCadena(response.Content);
+                    if (!string.IsNullOrWhiteSpace(content) && content != "Sucursal creada correctamente") regresa = content;
                 }
                 catch (Exception ex)
                 {
@@ -356,7 +359,8 @@ namespace checklist.Controllers.Sucursales
                 request.RequestFormat = DataFormat.Json;
                 request.AddJsonBody(json);
                 var response = clientS.Execute(request);
-                if (Utilerias.LimpiaCadena(response.Content) != "Sucursal actualizada correctamente") regresa = response.Content;
+                string content = Utilerias.LimpiaCadena(response.Content);
+                if (!string.IsNullOrWhiteSpace(content) && content != "Sucursal actualizada correctamente") regresa = content;
 
             }
             return Json(new { d = regresa });

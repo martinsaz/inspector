@@ -1,10 +1,23 @@
 (function (window, document, $) {
     "use strict";
 
+    function applyCatalogPresentation() {
+        $("#accordionFiltrosRegiones h3").text("Encuentra regiones por nombre o descripción.");
+        $("#txFiltroRegionesBusqueda").attr("placeholder", "Región o descripción");
+        $("#grData thead th").filter(function () {
+            return $(this).text().trim() === "Notas";
+        }).text("Descripción");
+        $("#txNombre").closest("label").children("span").first().text("Región *").addClass("visually-hidden");
+        $("#txNotas").closest("label").children("span").first().text("Descripción").addClass("visually-hidden");
+        $("#txNotas").attr("placeholder", "Descripción");
+    }
+
     document.addEventListener("DOMContentLoaded", function () {
         if (!window.CheckAppAdminCatalog) {
             return;
         }
+
+        applyCatalogPresentation();
 
         window.CheckAppAdminCatalog.init({
             gridId: "regiones-grid",
@@ -41,13 +54,15 @@
             exportFilePrefix: "Regiones",
             createTitle: "Nueva región",
             editTitle: "Editar región",
+            createSuccessText: "Región guardada correctamente.",
+            editSuccessText: "Región actualizada correctamente.",
             emptyText: "No hay regiones para los filtros aplicados.",
             idKey: "id",
             order: [[1, "asc"]],
             columns: [
                 { key: "acciones", title: "Acciones" },
                 { key: "nombre", title: "Región" },
-                { key: "notas", title: "Notas", type: "htmlText" },
+                { key: "notas", title: "Descripción", type: "htmlText" },
                 { key: "activo", title: "Estatus", type: "status" }
             ],
             filters: [
@@ -66,7 +81,7 @@
             ],
             fields: [
                 { key: "nombre", source: "nombre", selector: "#txNombre", required: true },
-                { key: "notas", source: "notas", selector: "#txNotas", richText: true, placeholder: "Notas internas" }
+                { key: "notas", source: "notas", selector: "#txNotas", richText: true, placeholder: "Descripción" }
             ],
             detailParams: function (id) {
                 return { lla: id, cua: id };

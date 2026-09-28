@@ -23,7 +23,7 @@
             <button type="button" class="checkapp-accordion-toggle" aria-expanded="true" aria-controls="accordionFiltrosRegionesBody">
                 <div>
                     <span class="checkapp-panel-eyebrow">Filtros</span>
-                    <h3>Encuentra regiones por nombre o notas.</h3>
+                    <h3>Encuentra regiones por nombre o descripción.</h3>
                 </div>
                 <span class="checkapp-accordion-summary">Sin filtros activos</span>
             </button>
@@ -32,7 +32,7 @@
                     <div class="checkapp-filter-grid ps-filter-grid ca-filter-grid ca-filter-grid--compact">
                         <label class="checkapp-field ps-filter-field ps-filter-field--search">
                             <span>Búsqueda general</span>
-                            <input id="txFiltroRegionesBusqueda" type="text" placeholder="Región o notas" />
+                            <input id="txFiltroRegionesBusqueda" type="text" placeholder="Región o descripción" />
                         </label>
                         <label class="checkapp-field ps-filter-field">
                             <span>Estatus</span>
@@ -94,7 +94,7 @@
                             <tr>
                                 <th>Acciones</th>
                                 <th>Región</th>
-                                <th>Notas</th>
+                                <th>Descripción</th>
                                 <th>Estatus</th>
                             </tr>
                         </thead>
@@ -136,12 +136,12 @@
                 <div class="modal-body ps-catalog-modal-body">
                     <div class="checkapp-filter-grid activos-quick-modal-grid ps-catalog-form-grid ca-catalog-form-grid ca-catalog-form-grid--region">
                         <label class="checkapp-field ps-catalog-field ca-span-12">
-                            <span>Región *</span>
+                            <span class="visually-hidden">Región *</span>
                             <input id="txNombre" name="txNombre" maxlength="200" type="text" placeholder="Nombre de la región" />
                         </label>
                         <label class="checkapp-field ps-catalog-field ps-catalog-field--description ca-span-12 ca-field-notes">
-                            <span>Notas</span>
-                            <textarea id="txNotas" class="checkapp-richtext-input" data-checkapp-rich-text="true" placeholder="Notas internas"></textarea>
+                            <span class="visually-hidden">Descripción</span>
+                            <textarea id="txNotas" class="checkapp-richtext-input" data-checkapp-rich-text="true" placeholder="Descripción"></textarea>
                         </label>
                     </div>
                 </div>

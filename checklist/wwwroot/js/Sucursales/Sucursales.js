@@ -1,9 +1,38 @@
 (function (window, document, $) {
     "use strict";
 
-    function loadSelect(url, selector) {
+    const selectLoadState = {
+        razones: null,
+        regiones: null
+    };
+
+    function placeholderOption(label) {
+        return "<option value=''>" + window.CheckAppAdminCatalog.escapeHtml(label) + "</option>";
+    }
+
+    function normalizeOptions(data, placeholder) {
+        if (typeof data === "string") {
+            return placeholderOption(placeholder) + data;
+        }
+
+        if (data && typeof data.d === "string") {
+            return placeholderOption(placeholder) + data.d;
+        }
+
+        const rows = Array.isArray(data) ? data : Array.isArray(data && data.data) ? data.data : [];
+        return placeholderOption(placeholder) + rows.map(function (item) {
+            const source = item && typeof item === "object" ? item : {};
+            const value = source.id || source.Id || source.value || source.Value || "";
+            const text = source.nombre || source.Nombre || source.name || source.Name || source.text || source.Text || value;
+            return "<option value='" + window.CheckAppAdminCatalog.escapeHtml(value) + "'>" +
+                window.CheckAppAdminCatalog.escapeHtml(text) +
+                "</option>";
+        }).join("");
+    }
+
+    function loadSelect(url, targets) {
         if (!window.CheckAppAdminCatalog) {
-            return;
+            return $.Deferred().resolve().promise();
         }
 
         return window.CheckAppAdminCatalog.ajaxJson({
@@ -11,24 +40,57 @@
             type: "GET",
             data: window.CheckAppAdminCatalog.baseParams()
         }).then(function (data) {
-            $(selector).html(data && data.d ? data.d : "");
-            $(selector).val(null).trigger("change");
+            targets.forEach(function (target) {
+                $(target.selector).html(normalizeOptions(data, target.placeholder));
+                if (!$(target.selector).val()) {
+                    $(target.selector).val("").trigger("change");
+                }
+            });
         });
     }
 
-    function initSelect2() {
-        if ($.fn.select2) {
-            $("#cbRazon, #cbZonas").select2({
-                width: "100%",
-                dropdownParent: $("#modalNuevo")
-            });
+    function ensureCatalogsLoaded() {
+        if (!selectLoadState.razones) {
+            selectLoadState.razones = loadSelect("/Sucursales/GetRazonesSociales", [
+                { selector: "#cbRazon", placeholder: "Razón social" },
+                { selector: "#cbFiltroSucursalesRazon", placeholder: "Todas" }
+            ]);
         }
+
+        if (!selectLoadState.regiones) {
+            selectLoadState.regiones = loadSelect("/Sucursales/GetZonas", [
+                { selector: "#cbZonas", placeholder: "Región" },
+                { selector: "#cbFiltroSucursalesRegion", placeholder: "Todas" }
+            ]);
+        }
+
+        return $.when(selectLoadState.razones, selectLoadState.regiones);
+    }
+
+    function applyCatalogPresentation() {
+        [
+            ["#txNombre", "Nombre *"],
+            ["#txCalle", "Dirección *"],
+            ["#txCiudad", "Ciudad *"],
+            ["#txTelefono", "Teléfono *"],
+            ["#txCorreo", "Correo *"],
+            ["#txPais", "País *"],
+            ["#cbRazon", "Razón social *"],
+            ["#cbZonas", "Región *"],
+            ["#txNotas", "Descripción"]
+        ].forEach(function (item) {
+            const label = $(item[0]).closest("label").children("span").first();
+            label.text(item[1]).addClass("visually-hidden");
+        });
+        $("#txNotas").attr("placeholder", "Descripción");
     }
 
     document.addEventListener("DOMContentLoaded", function () {
         if (!window.CheckAppAdminCatalog) {
             return;
         }
+
+        applyCatalogPresentation();
 
         window.CheckAppAdminCatalog.init({
             gridId: "sucursales-grid",
@@ -68,6 +130,8 @@
             exportFilePrefix: "Sucursales",
             createTitle: "Nueva sucursal",
             editTitle: "Editar sucursal",
+            createSuccessText: "Sucursal guardada correctamente.",
+            editSuccessText: "Sucursal actualizada correctamente.",
             emptyText: "No hay sucursales para los filtros aplicados.",
             idKey: "id",
             order: [[1, "asc"]],
@@ -83,6 +147,20 @@
                 { key: "region", title: "Región" },
                 { key: "activo", title: "Estatus", type: "status" }
             ],
+            listColumns: [
+                { key: "acciones" },
+                { key: "nombre" },
+                { key: "direccion" },
+                { key: "ciudad" },
+                { key: "telefono" },
+                { key: "correo" },
+                { key: "pais" },
+                { key: "idRazonSocial" },
+                { key: "razonSocial" },
+                { key: "idZona" },
+                { key: "region" },
+                { key: "activo" }
+            ],
             filters: [
                 {
                     selector: "#txFiltroSucursalesBusqueda",
@@ -90,14 +168,16 @@
                     keys: ["nombre", "direccion", "ciudad", "telefono", "correo", "pais"]
                 },
                 {
-                    selector: "#txFiltroSucursalesRazon",
+                    selector: "#cbFiltroSucursalesRazon",
                     label: "Razón Social",
-                    keys: ["razonSocial"]
+                    keys: ["idRazonSocial"],
+                    matchMode: "equals"
                 },
                 {
-                    selector: "#txFiltroSucursalesRegion",
+                    selector: "#cbFiltroSucursalesRegion",
                     label: "Región",
-                    keys: ["region"]
+                    keys: ["idZona"],
+                    matchMode: "equals"
                 },
                 {
                     selector: "#cbFiltroSucursalesEstatus",
@@ -116,7 +196,7 @@
                 { key: "pais", source: "pais", selector: "#txPais", required: true },
                 { key: "idRazonSocial", source: "idRazonSocial", selector: "#cbRazon", required: true },
                 { key: "idZona", source: "idZona", selector: "#cbZonas", required: true },
-                { key: "notas", source: "notas", selector: "#txNotas", richText: true, placeholder: "Notas internas" }
+                { key: "notas", source: "notas", selector: "#txNotas", richText: true, placeholder: "Descripción" }
             ],
             detailParams: function (id) {
                 return { lla: id, cua: id };
@@ -142,9 +222,13 @@
                 };
             },
             afterInit: function () {
-                initSelect2();
-                loadSelect("/Sucursales/GetRazonesSociales", "#cbRazon");
-                loadSelect("/Sucursales/GetZonas", "#cbZonas");
+                ensureCatalogsLoaded();
+            },
+            beforeOpenCreate: function () {
+                return ensureCatalogsLoaded();
+            },
+            beforeSetFieldValues: function () {
+                return ensureCatalogsLoaded();
             }
         });
     });

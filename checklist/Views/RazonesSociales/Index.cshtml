@@ -112,7 +112,7 @@
                                 <th>País</th>
                                 <th>Teléfono</th>
                                 <th>Régimen Fiscal</th>
-                                <th>Notas</th>
+                                <th>Descripción</th>
                                 <th>Estatus</th>
                             </tr>
                         </thead>
@@ -139,7 +139,7 @@
 </div>
 
 <div class="modal fade checkapp-modal activos-quick-modal ps-catalog-modal ca-catalog-modal" tabindex="-1" id="modalNuevo">
-    <div class="modal-dialog modal-lg modal-dialog-centered ps-catalog-modal-dialog ca-catalog-modal-dialog ca-catalog-modal-dialog--wide">
+    <div class="modal-dialog modal-lg modal-dialog-centered ps-catalog-modal-dialog ca-catalog-modal-dialog ca-catalog-modal-dialog--expanded">
         <div class="modal-content ps-catalog-modal-content ca-catalog-modal-content">
             <form id="frmRazon" class="ps-catalog-modal-form ca-catalog-modal-form" data-quick-catalog-layout="razon" novalidate="novalidate">
                 <div class="modal-header">
@@ -154,52 +154,52 @@
                 <div class="modal-body ps-catalog-modal-body">
                     <div class="checkapp-filter-grid activos-quick-modal-grid ps-catalog-form-grid ca-catalog-form-grid ca-catalog-form-grid--razon">
                         <label class="checkapp-field ps-catalog-field ca-span-5">
-                            <span>Razón Social *</span>
+                            <span class="visually-hidden">Razón social *</span>
                             <input id="txRazon" name="txRazon" maxlength="200" type="text" placeholder="Razón social" />
                         </label>
                         <label class="checkapp-field ps-catalog-field ca-span-4">
-                            <span>Representante *</span>
+                            <span class="visually-hidden">Representante *</span>
                             <input id="txRepresentante" name="txRepresentante" maxlength="255" type="text" placeholder="Representante" />
                         </label>
                         <label class="checkapp-field ps-catalog-field ca-span-3">
-                            <span>RFC *</span>
+                            <span class="visually-hidden">RFC *</span>
                             <input id="txRfc" name="txRfc" maxlength="15" type="text" placeholder="XAXX010101000" />
                         </label>
                         <label class="checkapp-field ps-catalog-field ca-span-12">
-                            <span>Dirección *</span>
+                            <span class="visually-hidden">Dirección *</span>
                             <input id="txDireccion" name="txDireccion" maxlength="255" type="text" placeholder="Dirección fiscal" />
                         </label>
                         <label class="checkapp-field ps-catalog-field ca-span-4">
-                            <span>Colonia *</span>
+                            <span class="visually-hidden">Colonia *</span>
                             <input id="txColonia" name="txColonia" maxlength="255" type="text" placeholder="Colonia" />
                         </label>
                         <label class="checkapp-field ps-catalog-field ca-span-2">
-                            <span>C.P. *</span>
+                            <span class="visually-hidden">C.P. *</span>
                             <input id="txCP" name="txCP" maxlength="5" type="text" placeholder="C.P." />
                         </label>
                         <label class="checkapp-field ps-catalog-field ca-span-3">
-                            <span>Ciudad *</span>
+                            <span class="visually-hidden">Ciudad *</span>
                             <input id="txCiudad" name="txCiudad" maxlength="255" type="text" placeholder="Ciudad" />
                         </label>
                         <label class="checkapp-field ps-catalog-field ca-span-3">
-                            <span>Estado *</span>
+                            <span class="visually-hidden">Estado *</span>
                             <input id="txEstado" name="txEstado" maxlength="255" type="text" placeholder="Estado" />
                         </label>
                         <label class="checkapp-field ps-catalog-field ca-span-2">
-                            <span>País *</span>
+                            <span class="visually-hidden">País *</span>
                             <input id="txPais" name="txPais" maxlength="255" type="text" placeholder="País" />
                         </label>
                         <label class="checkapp-field ps-catalog-field ca-span-3">
-                            <span>Teléfono *</span>
+                            <span class="visually-hidden">Teléfono *</span>
                             <input id="txTelefono" name="txTelefono" maxlength="13" type="text" placeholder="Teléfono" />
                         </label>
                         <label class="checkapp-field ps-catalog-field ca-span-7">
-                            <span>Régimen Fiscal *</span>
-                            <input id="txRegimenFiscal" name="txRegimenFiscal" maxlength="200" type="text" placeholder="Régimen fiscal" />
+                            <span class="visually-hidden">Régimen fiscal *</span>
+                            <select id="cbRegimenFiscal" name="cbRegimenFiscal" class="form-select" aria-label="Régimen fiscal"></select>
                         </label>
                         <label class="checkapp-field ps-catalog-field ps-catalog-field--description ca-span-12 ca-field-notes">
-                            <span>Notas</span>
-                            <textarea id="txNotas" class="checkapp-richtext-input" data-checkapp-rich-text="true" placeholder="Notas internas"></textarea>
+                            <span class="visually-hidden">Descripción</span>
+                            <textarea id="txNotas" class="checkapp-richtext-input" data-checkapp-rich-text="true" placeholder="Descripción"></textarea>
                         </label>
                     </div>
                 </div>
