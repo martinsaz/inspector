@@ -57,6 +57,8 @@
             productos: [],
             sucursales: [],
             partidas: [],
+            listaPrecioNivel: 1,
+            listaCambioConfirmado: false,
             searchClienteTimer: 0,
             searchProductoTimer: 0,
             quoteDataTouched: false,
@@ -86,6 +88,10 @@
         const $button = $(button);
         addProducto({
             id: String($button.attr("data-cot-add-product") || ""),
+            idProductoServicio: String($button.attr("data-cot-product-id") || ""),
+            tipoIdentidad: Number($button.attr("data-cot-identity-type") || 1),
+            idVariante: normalizeGuid($button.attr("data-cot-variant-id")) || null,
+            idPresentacionVenta: normalizeGuid($button.attr("data-cot-presentation-id")) || null,
             codigo: String($button.attr("data-cot-product-code") || ""),
             imagenUrl: String($button.attr("data-cot-product-image-url") || ""),
             imagenNombre: String($button.attr("data-cot-product-image-name") || ""),
@@ -96,7 +102,11 @@
             unidadPermiteDecimales: String($button.attr("data-cot-product-unit-decimals") || "").toLowerCase() === "true",
             permiteVentaSinExistencia: String($button.attr("data-cot-product-sell-without-stock") || "").toLowerCase() === "true",
             existenciaActual: toNullableNumber($button.attr("data-cot-product-stock")),
-            precioPublico: Number($button.attr("data-cot-product-price") || 0)
+            precioPublico: Number($button.attr("data-cot-product-price") || 0),
+            precioFinal: Number($button.attr("data-cot-product-price") || 0),
+            precioLista: toNullableNumber($button.attr("data-cot-list-price")),
+            descuentoListaPct: toNullableNumber($button.attr("data-cot-list-discount")),
+            origenPrecio: String($button.attr("data-cot-price-origin") || "")
         });
     };
 
@@ -588,10 +598,10 @@
             }
         });
 
-        $("#tbCotPartidas").on("input", "[data-cot-qty], [data-cot-price], [data-cot-discount]", function () {
+        $("#tbCotPartidas").on("input change", "[data-cot-qty], [data-cot-price], [data-cot-discount], [data-cot-override], [data-cot-override-reason]", function () {
             const index = Number($(this).attr("data-cot-index"));
             const field = String($(this).attr("data-cot-field") || "");
-            updatePartida(index, field, $(this).val());
+            updatePartida(index, field, field === "precioOverride" ? $(this).prop("checked") : $(this).val());
         });
 
         $("#cardsCotPartidas").on("input", "[data-cot-qty], [data-cot-price], [data-cot-discount]", function () {
@@ -609,6 +619,7 @@
         });
 
         $("#btCotGuardar").on("click", saveCotizacion);
+        $("#cbCotListaPrecio").on("change", previewListaChange);
         $("#btCotExportarPdf").on("click", function () {
             if (!state.editor.cotizacionId) {
                 setStatus("#txCotFormStatus", "danger", "Guarda la cotización antes de exportar el PDF.");
@@ -682,7 +693,7 @@
         const isBorrador = Number(detail.estado || 0) === estadoBorrador;
 
         state.editor.cotizacionId = isClone ? "" : (detail.id || "");
-        state.editor.readOnly = state.editor.mode === "detail" && !isBorrador;
+        state.editor.readOnly = state.editor.mode === "detail" && (!isBorrador || !!detail.esPreLp08);
         state.editor.cliente = {
             id: detail.idCliente || "",
             nombre: detail.cliente || "",
@@ -695,11 +706,17 @@
         $("#txCotVigenciaDias").val(detail.vigenciaDias == null ? "" : detail.vigenciaDias);
         $("#txCotCaja").val(detail.caja || "");
         $("#txCotObservaciones").val(detail.observaciones || "");
+        state.editor.listaPrecioNivel = Number(detail.listaPrecioNivel || 1);
+        $("#cbCotListaPrecio").val(String(state.editor.listaPrecioNivel)).prop("disabled", state.editor.readOnly || !!detail.esPreLp08);
         state.editor.quoteDataTouched = !!(detail.idSucursal || detail.vigenciaDias != null || String(detail.observaciones || "").trim());
 
         state.editor.partidas = (Array.isArray(detail.partidas) ? detail.partidas : []).map(function (partida) {
             return {
+                id: isClone ? "" : (partida.id || ""),
+                tipoIdentidad: partida.tipoIdentidad || (Number(partida.tipoProductoServicio || 1) === 2 ? 2 : 1),
                 idProductoServicio: partida.idProductoServicio,
+                idVariante: partida.idVariante || null,
+                idPresentacionVenta: partida.idPresentacionVenta || null,
                 codigo: partida.codigo || "",
                 imagenUrl: partida.imagenUrl || partida.ImagenUrl || "",
                 imagenNombre: partida.imagenNombre || partida.ImagenNombre || "",
@@ -712,7 +729,14 @@
                 existenciaActual: partida.existenciaActual,
                 cantidad: Number(partida.cantidad || 0),
                 precioUnitario: Number(partida.precioUnitario || 0),
-                descuentoBasePct: Number(partida.descuentoPct || 0),
+                precioFinal: Number(partida.precioFinal == null ? partida.precioUnitario || 0 : partida.precioFinal),
+                precioLista: partida.precioLista == null ? null : Number(partida.precioLista),
+                descuentoListaPct: partida.descuentoListaPct == null ? null : Number(partida.descuentoListaPct),
+                origenPrecio: partida.origenPrecio || "",
+                reglaVersion: partida.reglaVersion || "",
+                precioOverride: !!partida.precioOverride,
+                motivoPrecioOverride: partida.motivoPrecioOverride || "",
+                descuentoBasePct: Number(partida.descuentoListaPct || 0),
                 descuentoPct: Number(partida.descuentoPct || 0),
                 descuentoManual: false
             };
@@ -811,12 +835,12 @@
             setSectionCollapsed("datos", true);
         }
 
-        const query = new URLSearchParams({ busqueda: term, estatus: "activos", take: "20" });
-        fetchJson("/ProductosServicios/ObtenerProductosServicios?" + query.toString())
+        const query = new URLSearchParams({ busqueda: term, nivel: String(state.editor.listaPrecioNivel || 1) });
+        fetchJson("/Cotizaciones/BuscarIdentidades?" + query.toString())
             .then(function (data) {
                 const items = Array.isArray(data) ? data : Array.isArray(data.items) ? data.items : [];
-                state.editor.productos = items;
-                renderProductos(items);
+                state.editor.productos = items.map(normalizeListaIdentity);
+                renderProductos(state.editor.productos);
                 setStatus("#txCotProductosBusquedaStatus", "", "");
             })
             .catch(function (error) {
@@ -828,7 +852,7 @@
         const html = (items || []).map(function (cliente) {
             return [
                 "<tr>",
-                "<td data-label='Seleccionar'><button type='button' class='checkapp-btn checkapp-btn-secondary cot-action-btn cot-action-btn--select' data-cot-select-client='", escapeHtml(cliente.id || ""),
+                "<td data-label='Seleccionar'><button type='button' class='checkapp-btn checkapp-btn-secondary cot-action-btn cot-action-btn--select' onclick='event.stopPropagation();CotizacionesPage.selectCliente(this)' data-cot-select-client='", escapeHtml(cliente.id || ""),
                 "' data-cot-client-name='", escapeHtml(cliente.nombre || ""),
                 "' data-cot-client-phone='", escapeHtml(cliente.telefono || ""),
                 "' data-cot-client-email='", escapeHtml(cliente.correo || ""),
@@ -859,7 +883,11 @@
                 "<td data-label='Unidad'>", escapeHtml(unidad), "</td>",
                 "<td data-label='Existencia'>", escapeHtml(producto.existenciaActual == null ? "—" : formatNumber(producto.existenciaActual)), "</td>",
                 "<td data-label='Precio público'>", escapeHtml(formatCurrency(producto.precioPublico || 0)), "</td>",
-                "<td data-label='Agregar'><button type='button' class='checkapp-btn checkapp-btn-secondary cot-action-btn cot-action-btn--add' data-cot-add-product='", escapeHtml(producto.id || ""),
+                "<td data-label='Agregar'><button type='button' class='checkapp-btn checkapp-btn-secondary cot-action-btn cot-action-btn--add' onclick='event.stopPropagation();CotizacionesPage.addProducto(this)' data-cot-add-product='", escapeHtml(producto.id || ""),
+                "' data-cot-product-id='", escapeHtml(producto.idProductoServicio || ""),
+                "' data-cot-identity-type='", escapeHtml(producto.tipoIdentidad || 1),
+                "' data-cot-variant-id='", escapeHtml(producto.idVariante || ""),
+                "' data-cot-presentation-id='", escapeHtml(producto.idPresentacionVenta || ""),
                 "' data-cot-product-code='", escapeHtml(producto.codigo || ""),
                 "' data-cot-product-image-url='", escapeHtml(resolveProductImageUrl(producto)),
                 "' data-cot-product-image-name='", escapeHtml(resolveProductImageName(producto)),
@@ -871,6 +899,9 @@
                 "' data-cot-product-sell-without-stock='", escapeHtml(!!producto.permiteVentaSinExistencia),
                 "' data-cot-product-stock='", escapeHtml(producto.existenciaActual == null ? "" : producto.existenciaActual),
                 "' data-cot-product-price='", escapeHtml(producto.precioPublico || 0),
+                "' data-cot-list-price='", escapeHtml(producto.precioLista == null ? "" : producto.precioLista),
+                "' data-cot-list-discount='", escapeHtml(producto.descuentoListaPct == null ? "" : producto.descuentoListaPct),
+                "' data-cot-price-origin='", escapeHtml(producto.origenPrecio || ""),
                 "' title='Agregar partida' aria-label='Agregar partida'",
                 "'><i class='fa fa-plus'></i><span>Agregar</span></button></td>",
                 "</tr>"
@@ -895,7 +926,6 @@
             state.editor.cliente.correo || "Sin correo"
         ].join(" · "));
         $("#txCotClienteSeleccionadoDescuento").text("Descuento " + formatNumber(state.editor.cliente.descuento || 0) + "%");
-        applyClientDiscountToPartidas();
         setSectionCollapsed("cliente", true);
         setSectionCollapsed("datos", false);
 
@@ -904,13 +934,44 @@
         }
     }
 
+    function normalizeListaIdentity(item) {
+        return {
+            id: [item.tipoIdentidad || 1, item.idProductoServicio || "", item.idVariante || "", item.idPresentacionVenta || ""].join(":"),
+            idProductoServicio: item.idProductoServicio || "",
+            tipoIdentidad: Number(item.tipoIdentidad || 1),
+            idVariante: item.idVariante || null,
+            idPresentacionVenta: item.idPresentacionVenta || null,
+            codigo: item.codigo || "",
+            nombre: item.identidadVendible || item.nombre || "",
+            descripcion: item.productoPadre || item.tipoIdentidadNombre || "",
+            unidadMedida: item.tipoIdentidadNombre || "",
+            unidadAbreviatura: "",
+            unidadPermiteDecimales: true,
+            permiteVentaSinExistencia: true,
+            existenciaActual: item.existencia,
+            precioPublico: Number(item.precioFinal == null ? item.precioEfectivo || 0 : item.precioFinal),
+            precioFinal: Number(item.precioFinal == null ? item.precioEfectivo || 0 : item.precioFinal),
+            precioLista: item.precioLista,
+            descuentoListaPct: item.descuentoPct,
+            origenPrecio: item.origenPrecio || "",
+            reglaVersion: item.reglaVersion || "LP-08-V2",
+            correlationId: item.correlationId || "",
+            imagenUrl: item.imagenUrl || "",
+            imagenNombre: item.imagenNombre || ""
+        };
+    }
+
     function addProducto(producto) {
         if (state.editor.readOnly) {
             return;
         }
 
         state.editor.partidas.push({
-            idProductoServicio: producto.id,
+            id: "",
+            idProductoServicio: producto.idProductoServicio || producto.id,
+            tipoIdentidad: Number(producto.tipoIdentidad || 1),
+            idVariante: producto.idVariante || null,
+            idPresentacionVenta: producto.idPresentacionVenta || null,
             codigo: producto.codigo || "",
             imagenUrl: producto.imagenUrl || "",
             imagenNombre: producto.imagenNombre || "",
@@ -923,8 +984,15 @@
             existenciaActual: producto.existenciaActual,
             cantidad: 1,
             precioUnitario: Number(producto.precioPublico || 0),
-            descuentoBasePct: Number(producto.descuentoPct || 0),
-            descuentoPct: calculateClientDiscount(Number(producto.descuentoPct || 0)),
+            precioFinal: Number(producto.precioFinal == null ? producto.precioPublico || 0 : producto.precioFinal),
+            precioLista: producto.precioLista == null ? null : Number(producto.precioLista),
+            descuentoListaPct: producto.descuentoListaPct == null ? null : Number(producto.descuentoListaPct),
+            origenPrecio: producto.origenPrecio || "",
+            reglaVersion: producto.reglaVersion || "LP-08-V2",
+            precioOverride: false,
+            motivoPrecioOverride: "",
+            descuentoBasePct: 0,
+            descuentoPct: 0,
             descuentoManual: false
         });
 
@@ -948,12 +1016,28 @@
         }
 
         if (field === "precioUnitario") {
-            partida.precioUnitario = numeric;
+            if (partida.precioOverride) {
+                partida.precioUnitario = numeric;
+            }
         }
 
         if (field === "descuentoPct") {
-            partida.descuentoPct = Math.max(0, Math.min(100, numeric));
+            partida.descuentoPct = numeric;
             partida.descuentoManual = true;
+        }
+
+        if (field === "precioOverride") {
+            partida.precioOverride = rawValue === true;
+            if (!partida.precioOverride) {
+                partida.precioUnitario = Number(partida.precioFinal == null ? partida.precioUnitario : partida.precioFinal);
+                partida.motivoPrecioOverride = "";
+            }
+            renderPartidas();
+            return;
+        }
+
+        if (field === "motivoPrecioOverride") {
+            partida.motivoPrecioOverride = String(rawValue || "").trim();
         }
 
         refreshPartidaComputedUi(index);
@@ -975,6 +1059,7 @@
             const total = computePartidaTotal(partida);
             const unidad = partida.unidadAbreviatura ? (partida.unidadMedida + " (" + partida.unidadAbreviatura + ")") : (partida.unidadMedida || "—");
             const disabled = state.editor.readOnly ? " disabled" : "";
+            const priceDisabled = state.editor.readOnly || !partida.precioOverride ? " disabled" : "";
             const thumb = renderProductThumb(partida, partida.nombre || "Partida");
 
             return [
@@ -982,10 +1067,10 @@
                 "<td data-label='#'>", escapeHtml(index + 1), "</td>",
                 "<td data-label='Código'>", escapeHtml(partida.codigo || "—"), "</td>",
                 "<td data-label='Imagen' class='cot-grid-thumb-cell'>", thumb, "</td>",
-                "<td data-label='Producto o servicio'><strong>", escapeHtml(partida.nombre || "—"), "</strong><div class='cot-row-muted'>", escapeHtml(partida.descripcion || ""), "</div></td>",
+                "<td data-label='Producto o servicio'><strong>", escapeHtml(partida.nombre || "—"), "</strong><div class='cot-row-muted'>", escapeHtml(partida.descripcion || ""), "</div><div class='cot-row-muted'>", escapeHtml(partida.origenPrecio || "LP-08"), " · Desc. lista ", escapeHtml(formatNumber(partida.descuentoListaPct || 0)), "%</div></td>",
                 "<td data-label='Unidad'>", escapeHtml(unidad), "</td>",
                 "<td data-label='Cantidad'><input class='form-control cot-partida-input' data-cot-index='", index, "' data-cot-field='cantidad' data-cot-qty='1' type='number' min='0' step='0.01' value='", escapeHtml(partida.cantidad), "'", disabled, " /></td>",
-                "<td data-label='Precio'><input class='form-control cot-partida-input' data-cot-index='", index, "' data-cot-field='precioUnitario' data-cot-price='1' type='number' min='0' step='0.01' value='", escapeHtml(partida.precioUnitario), "'", disabled, " /></td>",
+                "<td data-label='Precio aplicado'><div class='cot-row-muted'>Lista ", escapeHtml(formatCurrency(partida.precioLista == null ? partida.precioUnitario : partida.precioLista)), "</div><input class='form-control cot-partida-input' data-cot-index='", index, "' data-cot-field='precioUnitario' data-cot-price='1' type='number' min='0' step='0.01' value='", escapeHtml(partida.precioUnitario), "'", priceDisabled, " /><label class='cot-row-muted'><input data-cot-index='", index, "' data-cot-field='precioOverride' data-cot-override='1' type='checkbox'", partida.precioOverride ? " checked" : "", disabled, " /> Override</label>", partida.precioOverride ? "<input class='form-control cot-partida-input' data-cot-index='" + index + "' data-cot-field='motivoPrecioOverride' data-cot-override-reason='1' maxlength='500' placeholder='Motivo obligatorio' value='" + escapeHtml(partida.motivoPrecioOverride || "") + "'" + disabled + " />" : "", "</td>",
                 "<td data-label='Desc. %'><input class='form-control cot-partida-input' data-cot-index='", index, "' data-cot-field='descuentoPct' data-cot-discount='1' type='number' min='0' max='100' step='0.01' value='", escapeHtml(partida.descuentoPct), "'", disabled, " /></td>",
                 "<td data-label='Total'>", escapeHtml(formatCurrency(total.total)), "</td>",
                 "<td data-label='Acción'>", state.editor.readOnly ? "—" : "<button type='button' class='checkapp-btn checkapp-btn-ghost cot-action-btn cot-action-btn--remove' data-cot-remove='" + index + "' title='Quitar partida' aria-label='Quitar partida'><i class='fa fa-trash'></i><span>Quitar</span></button>", "</td>",
@@ -1104,17 +1189,27 @@
 
         const payload = {
             id: state.editor.cotizacionId || null,
+            idCotizacionOrigen: state.editor.mode === "clone" ? state.editor.sourceId : null,
             idCliente: state.editor.cliente.id,
             idSucursal: normalizeGuid($("#cbCotSucursal").val()) || null,
             vigenciaDias: toNullableNumber($("#txCotVigenciaDias").val()),
             caja: String($("#txCotCaja").val() || "").trim(),
             observaciones: String($("#txCotObservaciones").val() || "").trim(),
+            listaPrecioNivel: Number($("#cbCotListaPrecio").val() || 1),
+            confirmarCambioLista: !!state.editor.listaCambioConfirmado,
+            confirmarReemplazoOverride: !!state.editor.listaCambioConfirmado,
             partidas: state.editor.partidas.map(function (partida) {
                 return {
+                    id: partida.id || null,
+                    tipoIdentidad: Number(partida.tipoIdentidad || 1),
                     idProductoServicio: partida.idProductoServicio,
+                    idVariante: partida.idVariante || null,
+                    idPresentacionVenta: partida.idPresentacionVenta || null,
                     cantidad: Number(partida.cantidad || 0),
-                    precioUnitario: Number(partida.precioUnitario || 0),
-                    descuentoPct: Number(partida.descuentoPct || 0)
+                    descuentoPct: Number(partida.descuentoPct || 0),
+                    precioOverride: !!partida.precioOverride,
+                    precioAplicado: partida.precioOverride ? Number(partida.precioUnitario || 0) : null,
+                    motivoPrecioOverride: partida.precioOverride ? String(partida.motivoPrecioOverride || "").trim() : ""
                 };
             })
         };
@@ -1153,6 +1248,71 @@
                 state.editor.isSaving = false;
                 $saveButton.html(saveButtonHtml);
                 syncEditorState();
+            });
+    }
+
+    function previewListaChange() {
+        const nextLevel = Number($("#cbCotListaPrecio").val() || 1);
+        const previousLevel = Number(state.editor.listaPrecioNivel || 1);
+        if (nextLevel === previousLevel) {
+            return;
+        }
+
+        if (!state.editor.partidas.length) {
+            state.editor.listaPrecioNivel = nextLevel;
+            state.editor.listaCambioConfirmado = true;
+            return;
+        }
+
+        const payload = {
+            listaPrecioNivel: nextLevel,
+            partidas: state.editor.partidas.map(function (partida) {
+                return {
+                    id: partida.id || null,
+                    tipoIdentidad: Number(partida.tipoIdentidad || 1),
+                    idProductoServicio: partida.idProductoServicio,
+                    idVariante: partida.idVariante || null,
+                    idPresentacionVenta: partida.idPresentacionVenta || null
+                };
+            })
+        };
+        setStatus("#txCotFormStatus", "", "Consultando LP-08...");
+        postJson("/Cotizaciones/PreviewPrecios", payload)
+            .then(function (response) {
+                const rows = Array.isArray(response.partidas) ? response.partidas : [];
+                const unresolved = rows.find(function (row) { return !row.resuelto; });
+                if (unresolved) {
+                    throw new Error(unresolved.codigoResolucion || "No fue posible resolver una partida.");
+                }
+                const comparison = rows.map(function (row, index) {
+                    return (state.editor.partidas[index].nombre || "Partida") + ": " +
+                        formatCurrency(state.editor.partidas[index].precioUnitario || 0) + " → " +
+                        formatCurrency(row.precioFinal || 0);
+                }).join("\n");
+                const hasOverride = state.editor.partidas.some(function (partida) { return partida.precioOverride; });
+                const prompt = "Cambiar a Lista " + nextLevel + " re-resolverá las partidas con LP-08.\n\n" + comparison +
+                    (hasOverride ? "\n\nHay precios override; confirma también su reemplazo explícito." : "") + "\n\n¿Continuar?";
+                if (!window.confirm(prompt)) {
+                    $("#cbCotListaPrecio").val(String(previousLevel));
+                    return;
+                }
+                rows.forEach(function (row, index) {
+                    const partida = state.editor.partidas[index];
+                    partida.precioLista = row.precioLista;
+                    partida.descuentoListaPct = row.descuentoPct;
+                    partida.origenPrecio = row.origenPrecio || "";
+                    partida.reglaVersion = row.reglaVersion || "LP-08-V2";
+                    partida.precioFinal = Number(row.precioFinal || 0);
+                    if (!partida.precioOverride) partida.precioUnitario = partida.precioFinal;
+                });
+                state.editor.listaPrecioNivel = nextLevel;
+                state.editor.listaCambioConfirmado = true;
+                renderPartidas();
+                setStatus("#txCotFormStatus", "success", "Lista " + nextLevel + " previsualizada. Guarda para aplicar el cambio.");
+            })
+            .catch(function (error) {
+                $("#cbCotListaPrecio").val(String(previousLevel));
+                setStatus("#txCotFormStatus", "danger", resolveErrorMessage(error));
             });
     }
 
@@ -1821,11 +1981,13 @@
         }
 
         const invalid = state.editor.partidas.find(function (partida) {
-            return Number(partida.cantidad || 0) <= 0 || Number(partida.precioUnitario || 0) <= 0;
+            const discount = Number(partida.descuentoPct || 0);
+            return Number(partida.cantidad || 0) <= 0 || Number(partida.precioUnitario || 0) < 0 || discount < 0 || discount > 100 ||
+                (partida.precioOverride && !String(partida.motivoPrecioOverride || "").trim());
         });
 
         if (invalid) {
-            return "Todas las partidas deben tener cantidad y precio mayores a cero.";
+            return "Revisa cantidad, precio, descuento adicional y motivo de override. El precio 0 es válido.";
         }
 
         return "";
@@ -1845,7 +2007,7 @@
                 "<div class='cot-mobile-card__row'><span>Correo</span><strong>", escapeHtml(cliente.correo || "—"), "</strong></div>",
                 "</div>",
                 "<div class='cot-mobile-card__actions'>",
-                "<button type='button' class='checkapp-btn checkapp-btn-secondary' data-cot-select-client='", escapeHtml(cliente.id || ""),
+                "<button type='button' class='checkapp-btn checkapp-btn-secondary' onclick='event.stopPropagation();CotizacionesPage.selectCliente(this)' data-cot-select-client='", escapeHtml(cliente.id || ""),
                 "' data-cot-client-name='", escapeHtml(cliente.nombre || ""),
                 "' data-cot-client-phone='", escapeHtml(cliente.telefono || ""),
                 "' data-cot-client-email='", escapeHtml(cliente.correo || ""),
@@ -1881,7 +2043,11 @@
                 "<div class='cot-mobile-card__row'><span>Precio</span><strong>", escapeHtml(formatCurrency(producto.precioPublico || 0)), "</strong></div>",
                 "</div>",
                 "<div class='cot-mobile-card__actions'>",
-                "<button type='button' class='checkapp-btn checkapp-btn-secondary' data-cot-add-product='", escapeHtml(producto.id || ""),
+                "<button type='button' class='checkapp-btn checkapp-btn-secondary' onclick='event.stopPropagation();CotizacionesPage.addProducto(this)' data-cot-add-product='", escapeHtml(producto.id || ""),
+                "' data-cot-product-id='", escapeHtml(producto.idProductoServicio || ""),
+                "' data-cot-identity-type='", escapeHtml(producto.tipoIdentidad || 1),
+                "' data-cot-variant-id='", escapeHtml(producto.idVariante || ""),
+                "' data-cot-presentation-id='", escapeHtml(producto.idPresentacionVenta || ""),
                 "' data-cot-product-code='", escapeHtml(producto.codigo || ""),
                 "' data-cot-product-image-url='", escapeHtml(resolveProductImageUrl(producto)),
                 "' data-cot-product-image-name='", escapeHtml(resolveProductImageName(producto)),
@@ -1893,6 +2059,9 @@
                 "' data-cot-product-sell-without-stock='", escapeHtml(!!producto.permiteVentaSinExistencia),
                 "' data-cot-product-stock='", escapeHtml(producto.existenciaActual == null ? "" : producto.existenciaActual),
                 "' data-cot-product-price='", escapeHtml(producto.precioPublico || 0),
+                "' data-cot-list-price='", escapeHtml(producto.precioLista == null ? "" : producto.precioLista),
+                "' data-cot-list-discount='", escapeHtml(producto.descuentoListaPct == null ? "" : producto.descuentoListaPct),
+                "' data-cot-price-origin='", escapeHtml(producto.origenPrecio || ""),
                 "' title='Agregar partida' aria-label='Agregar partida'><i class='fa fa-plus'></i><span>Agregar</span></button>",
                 "</div>",
                 "</article>"
@@ -1927,7 +2096,7 @@
                 "</div>",
                 "<div class='cot-mobile-card__field'>",
                 "<label for='txCotPartidaPrecioMobile", index, "'>Precio</label>",
-                "<input id='txCotPartidaPrecioMobile", index, "' class='form-control cot-partida-input' data-cot-index='", index, "' data-cot-field='precioUnitario' data-cot-price='1' type='number' min='0' step='0.01' value='", escapeHtml(partida.precioUnitario), "'", disabled, " />",
+                "<input id='txCotPartidaPrecioMobile", index, "' class='form-control cot-partida-input' data-cot-index='", index, "' data-cot-field='precioUnitario' data-cot-price='1' type='number' min='0' step='0.01' value='", escapeHtml(partida.precioUnitario), "' disabled />",
                 "</div>",
                 "<div class='cot-mobile-card__field'>",
                 "<label for='txCotPartidaDescuentoMobile", index, "'>Descuento %</label>",

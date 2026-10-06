@@ -1,0 +1,1686 @@
+.lista-precios-page .checkapp-hero {
+    margin-bottom: 16px;
+}
+
+/* LP-QA01: paridad operativa Legacy para filtros, matriz y editor. */
+.lista-precios-page .lp-branch-filter {
+    min-width: 16rem;
+    border: 0;
+    margin: 0;
+    padding: 0;
+}
+
+.lista-precios-page .lp-branch-filter legend {
+    float: none;
+    width: auto;
+    margin: 0 0 .35rem;
+    font-size: .78rem;
+    font-weight: 700;
+}
+
+.lista-precios-page .lp-check-option,
+.lista-precios-page .lp-photo-toggle {
+    display: inline-flex;
+    align-items: center;
+    gap: .45rem;
+}
+
+.lista-precios-page .lp-branch-filter select[multiple] {
+    min-height: 5.5rem;
+    margin-top: .4rem;
+}
+
+.lista-precios-page .ps-filter-tail {
+    justify-content: space-between;
+}
+
+.lista-precios-page .lp-photo-toggle small {
+    color: var(--ca-muted, #667085);
+}
+
+.lista-precios-page:not(.lp-photos-enabled) .lp-grid-photo {
+    display: none;
+}
+
+.lista-precios-page .lp-matrix-price,
+.lista-precios-page .lp-matrix-discount,
+.lista-precios-page .lp-stock-link {
+    border: 0;
+    background: transparent;
+    padding: .2rem .25rem;
+    white-space: nowrap;
+    font-weight: 700;
+}
+
+.lista-precios-page .lp-matrix-price,
+.lista-precios-page .lp-matrix-discount {
+    color: var(--ca-text-strong, #0f172a);
+    text-decoration: underline;
+    text-decoration-color: transparent;
+}
+
+.lista-precios-page .lp-matrix-price.has-discount,
+.lista-precios-page .lp-matrix-discount.has-discount,
+.lista-precios-page .lp-stock-link {
+    color: #c92323;
+}
+
+.lp-matrix-price.has-discount {
+    display: grid;
+    justify-items: end;
+    gap: 1px;
+}
+
+.lp-matrix-price-original {
+    color: #667085;
+    font-size: .78rem;
+    text-decoration: line-through;
+}
+
+.lp-matrix-price-final {
+    color: #c92323;
+}
+
+.lista-precios-page .lp-matrix-price:hover,
+.lista-precios-page .lp-matrix-discount:hover,
+.lista-precios-page .lp-stock-link:hover,
+.lista-precios-page .lp-matrix-price:focus-visible,
+.lista-precios-page .lp-matrix-discount:focus-visible,
+.lista-precios-page .lp-stock-link:focus-visible {
+    text-decoration-color: currentColor;
+}
+
+.lista-precios-page .lp-matrix-editor-wrap {
+    max-height: 31rem;
+    border: 1px solid #ece7e3;
+    border-radius: .75rem;
+}
+
+.lista-precios-page .lp-matrix-editor {
+    min-width: 44rem;
+}
+
+.lista-precios-page .lp-matrix-editor input,
+.lista-precios-page .lp-matrix-editor select {
+    min-width: 7.5rem;
+}
+
+.lista-precios-page .lp-matrix-editor tr.is-focused {
+    background: #fff1ef;
+    outline: 2px solid #ef4444;
+    outline-offset: -2px;
+}
+
+.lista-precios-page .lp-inventory-pending {
+    display: grid;
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+    gap: .75rem;
+    margin-top: 1rem;
+}
+
+.lista-precios-page .lp-inventory-pending article {
+    display: grid;
+    gap: .2rem;
+    padding: .85rem;
+    border: 1px dashed #d0d5dd;
+    border-radius: .7rem;
+    color: #667085;
+}
+
+@media (max-width: 767px) {
+    .lista-precios-page .lp-inventory-pending {
+        grid-template-columns: 1fr;
+    }
+}
+
+.lista-precios-page .checkapp-shell > * {
+    min-width: 0;
+    max-width: 100%;
+}
+
+.lista-precios-page .checkapp-btn-secondary {
+    color: var(--ca-text-strong, #0f172a) !important;
+}
+
+.lista-precios-page .checkapp-btn-secondary i,
+.lista-precios-page .checkapp-btn-secondary span {
+    color: inherit !important;
+}
+
+.lp-audit-filters {
+    display: grid;
+    grid-template-columns: repeat(4, minmax(0, 1fr));
+    gap: 0.75rem;
+}
+
+.lp-audit-search { grid-column: span 2; }
+.lp-audit-actions { margin: 0.9rem 0; }
+.lp-audit-table-wrap { max-height: 48vh; }
+.lp-audit-table td { vertical-align: top; }
+.lp-audit-table td small { display: block; margin-top: 0.2rem; color: var(--ca-text-muted, #64748b); }
+
+.lp-correlation-link {
+    max-width: 12rem;
+    padding: 0;
+    border: 0;
+    background: transparent;
+    color: var(--ca-primary, #2563eb);
+    font: inherit;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+}
+
+.lp-audit-footer { display: flex; align-items: center; gap: 1rem; }
+.lp-audit-size { display: flex; align-items: center; gap: 0.4rem; margin-left: auto; }
+.lp-audit-size .form-select { width: 5rem; }
+
+.lp-audit-detail {
+    margin-top: 1rem;
+    padding: 1rem;
+    border: 1px solid var(--ca-border, #dbe3ed);
+    border-radius: 8px;
+}
+
+.lp-audit-detail dl { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 0.75rem 1rem; margin: 0; }
+.lp-audit-detail dt { color: var(--ca-text-muted, #64748b); font-size: 0.78rem; }
+.lp-audit-detail dd { margin: 0.15rem 0 0; overflow-wrap: anywhere; }
+.lp-audit-empty { padding: 2rem !important; text-align: center; color: var(--ca-text-muted, #64748b); }
+
+.lp-summary-strip {
+    display: grid;
+    grid-template-columns: repeat(4, minmax(0, 1fr));
+    gap: 1rem;
+}
+
+#accordionFiltrosListaPrecios .checkapp-accordion-toggle {
+    padding: 0.9rem 1rem 0.2rem;
+}
+
+#accordionFiltrosListaPrecios .checkapp-accordion-inner {
+    padding-top: 0;
+    padding-bottom: 0.55rem;
+    display: grid;
+    grid-template-columns: repeat(12, minmax(0, 1fr));
+    gap: 0.55rem 0.85rem;
+    align-items: end;
+}
+
+#accordionFiltrosListaPrecios .lp-filter-grid {
+    --ps-filter-gap: 0.85rem;
+    display: contents;
+}
+
+#accordionFiltrosListaPrecios .checkapp-field {
+    gap: 0.22rem;
+    min-width: 0;
+}
+
+#accordionFiltrosListaPrecios .checkapp-field.is-disabled {
+    opacity: 0.62;
+}
+
+#accordionFiltrosListaPrecios .checkapp-field span {
+    font-size: 0.82rem;
+    font-weight: 600;
+}
+
+#accordionFiltrosListaPrecios input,
+#accordionFiltrosListaPrecios .select2-selection,
+#accordionFiltrosListaPrecios .form-select {
+    min-height: 2.4rem;
+    border-radius: 0.85rem;
+    font-size: 0.95rem;
+}
+
+#accordionFiltrosListaPrecios .select2-container,
+#accordionFiltrosListaPrecios .select2 {
+    width: 100% !important;
+    min-width: 0;
+}
+
+#accordionFiltrosListaPrecios .select2-selection__rendered {
+    display: block;
+    max-width: 100%;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+    padding-right: 1.9rem !important;
+}
+
+#accordionFiltrosListaPrecios h3 {
+    margin: 0;
+    font-size: 0.95rem;
+    font-weight: 700;
+    line-height: 1.2;
+}
+
+#accordionFiltrosListaPrecios .ps-filter-actions--tail .checkapp-btn {
+    flex: 1 1 0;
+    min-width: 0;
+    min-height: 40px;
+    height: 40px;
+    padding: 0.65rem 0.8rem;
+    line-height: 1.2;
+    box-sizing: border-box;
+    align-items: center;
+    justify-content: center;
+}
+
+#accordionFiltrosListaPrecios .ps-filter-search-btn {
+    background: #ff4336;
+    border-color: #ff4336;
+    color: #fff !important;
+    font-weight: 800;
+    box-shadow: 0 6px 16px rgba(15, 23, 42, 0.14);
+}
+
+#accordionFiltrosListaPrecios .ps-filter-search-btn:hover,
+#accordionFiltrosListaPrecios .ps-filter-search-btn:focus-visible {
+    background: #e63629;
+    border-color: #e63629;
+}
+
+#accordionFiltrosListaPrecios .ps-filter-field {
+    grid-column: span 2;
+}
+
+#accordionFiltrosListaPrecios .lp-filter-field--search {
+    grid-column: span 4;
+}
+
+#accordionFiltrosListaPrecios .lp-filter-field--category,
+#accordionFiltrosListaPrecios .lp-filter-field--brand,
+#accordionFiltrosListaPrecios .lp-filter-field--collection,
+#accordionFiltrosListaPrecios .lp-filter-field--presentation {
+    grid-column: span 3;
+}
+
+#accordionFiltrosListaPrecios .lp-filter-field--tag,
+#accordionFiltrosListaPrecios .lp-filter-field--attribute,
+#accordionFiltrosListaPrecios .lp-filter-field--variant,
+#accordionFiltrosListaPrecios .lp-filter-field--price-min,
+#accordionFiltrosListaPrecios .lp-filter-field--price-max,
+#accordionFiltrosListaPrecios .lp-filter-field--discount {
+    grid-column: span 2;
+}
+
+#accordionFiltrosListaPrecios .lp-filter-feedback {
+    grid-column: span 10;
+    min-height: 40px;
+    border-radius: 8px;
+    padding: 0.65rem 0.8rem;
+    background: #fee2e2;
+    color: #991b1b;
+    font-weight: 700;
+    line-height: 1.25;
+}
+
+#accordionFiltrosListaPrecios .lp-filter-feedback[hidden] {
+    display: none;
+}
+
+#accordionFiltrosListaPrecios .ps-filter-tail {
+    grid-column: span 2;
+    width: auto;
+}
+
+/* LP-QA02: composición visual local del bloque de filtros. */
+#accordionFiltrosListaPrecios .checkapp-accordion-inner {
+    display: block;
+    padding: 0.25rem 1rem 1rem;
+}
+
+#accordionFiltrosListaPrecios .lp-filter-layout {
+    display: grid;
+    gap: 0.75rem;
+    min-width: 0;
+}
+
+#accordionFiltrosListaPrecios .lp-filter-row,
+#accordionFiltrosListaPrecios .lp-inventory-filter-controls {
+    display: grid;
+    gap: 0.7rem;
+    align-items: end;
+    min-width: 0;
+}
+
+#accordionFiltrosListaPrecios .lp-filter-row--primary {
+    grid-template-columns: minmax(18rem, 2.2fr) repeat(3, minmax(8rem, 1fr));
+}
+
+#accordionFiltrosListaPrecios .lp-filter-row--classification,
+#accordionFiltrosListaPrecios .lp-filter-row--commercial {
+    grid-template-columns: repeat(5, minmax(0, 1fr));
+}
+
+#accordionFiltrosListaPrecios .lp-filter-row--classification {
+    grid-template-columns: repeat(6, minmax(0, 1fr));
+}
+
+#accordionFiltrosListaPrecios .lp-filter-row .ps-filter-field,
+#accordionFiltrosListaPrecios .lp-inventory-filter-controls .ps-filter-field {
+    grid-column: auto;
+}
+
+#accordionFiltrosListaPrecios .lp-inventory-filter-group {
+    min-width: 0;
+    margin: 0;
+    padding: 0.65rem 0.75rem 0.75rem;
+    border: 1px solid rgba(255, 67, 54, 0.18);
+    border-radius: 0.9rem;
+    background: rgba(255, 248, 246, 0.72);
+}
+
+#accordionFiltrosListaPrecios .lp-inventory-filter-group legend {
+    float: none;
+    width: auto;
+    margin: 0 0 0.45rem;
+    padding: 0 0.25rem;
+    color: var(--ca-text-strong, #24313d);
+    font-size: 0.78rem;
+    font-weight: 800;
+    letter-spacing: 0.02em;
+}
+
+#accordionFiltrosListaPrecios .lp-inventory-filter-controls {
+    grid-template-columns: minmax(10.5rem, 1.15fr) minmax(16rem, 2fr) repeat(2, minmax(8rem, 1fr));
+}
+
+#accordionFiltrosListaPrecios .lp-branch-all {
+    display: inline-flex;
+    align-items: center;
+    gap: .55rem;
+    padding: .45rem .7rem;
+    min-height: 40px;
+    align-self: end;
+    border-color: rgba(15, 23, 42, 0.12);
+    border-radius: 0.85rem;
+}
+
+#accordionFiltrosListaPrecios .lp-branch-all input {
+    width: 1.05rem;
+    height: 1.05rem;
+    margin: 0;
+    accent-color: #ff4336;
+}
+
+.lp-check-dropdown {
+    position: relative;
+    min-width: 0;
+}
+
+.lp-check-dropdown-trigger {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: .5rem;
+    width: 100%;
+    min-height: 40px;
+    padding: .45rem .7rem;
+    border: 1px solid #d6dbe3;
+    border-radius: .7rem;
+    background: #fff;
+    color: #24313d;
+    text-align: left;
+}
+
+.lp-check-dropdown-trigger > span {
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+}
+
+.lp-check-dropdown-panel {
+    position: absolute;
+    z-index: 30;
+    top: calc(100% + .25rem);
+    left: 0;
+    right: 0;
+    max-height: 14rem;
+    overflow: auto;
+    padding: .35rem;
+    border: 1px solid #d6dbe3;
+    border-radius: .7rem;
+    background: #fff;
+    box-shadow: 0 10px 24px rgba(15, 23, 42, .16);
+}
+
+.lp-check-dropdown-panel .lp-check-option {
+    display: flex;
+    width: 100%;
+    padding: .45rem .5rem;
+    border-radius: .45rem;
+}
+
+.lp-check-dropdown-panel .lp-check-option:hover {
+    background: #fff1ef;
+}
+
+.lp-check-dropdown-panel input {
+    width: 1rem;
+    height: 1rem;
+    accent-color: #ff4336;
+}
+
+.lp-check-dropdown.is-disabled .lp-check-dropdown-trigger {
+    cursor: not-allowed;
+    color: #7b8493;
+    border-color: #d6dbe3;
+    background-color: #eef1f5;
+    opacity: 0.78;
+}
+
+#accordionFiltrosListaPrecios .lp-filter-feedback {
+    width: 100%;
+    min-height: auto;
+}
+
+#accordionFiltrosListaPrecios .lp-filter-footer {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 1rem;
+    min-width: 0;
+    padding-top: 0.05rem;
+}
+
+#accordionFiltrosListaPrecios .lp-photo-switch {
+    display: inline-flex;
+    align-items: center;
+    gap: .55rem;
+    flex: 0 1 auto;
+    min-width: 12.5rem;
+    min-height: 40px;
+    padding: 0.45rem 0.7rem;
+    border-radius: 0.85rem;
+    cursor: pointer;
+}
+
+#accordionFiltrosListaPrecios .lp-photo-switch > input {
+    position: absolute;
+    opacity: 0;
+    pointer-events: none;
+}
+
+#accordionFiltrosListaPrecios .lp-photo-switch-track {
+    position: relative;
+    width: 2.25rem;
+    height: 1.25rem;
+    flex: 0 0 auto;
+    border-radius: 999px;
+    background: #b7bdc7;
+    transition: background .18s ease;
+}
+
+#accordionFiltrosListaPrecios .lp-photo-switch-track span {
+    position: absolute;
+    top: .15rem;
+    left: .15rem;
+    width: .95rem;
+    height: .95rem;
+    border-radius: 50%;
+    background: #fff;
+    box-shadow: 0 1px 3px rgba(15, 23, 42, .25);
+    transition: transform .18s ease;
+}
+
+#accordionFiltrosListaPrecios .lp-photo-switch > input:checked + .lp-photo-switch-track {
+    background: #ef3f35;
+}
+
+#accordionFiltrosListaPrecios .lp-photo-switch > input:checked + .lp-photo-switch-track span {
+    transform: translateX(1rem);
+}
+
+#accordionFiltrosListaPrecios .lp-photo-switch > input:focus-visible + .lp-photo-switch-track {
+    outline: 3px solid rgba(239, 63, 53, .25);
+}
+
+#accordionFiltrosListaPrecios .lp-photo-switch-copy {
+    display: grid;
+    gap: 0.05rem;
+}
+
+#accordionFiltrosListaPrecios .lp-photo-switch strong {
+    font-size: 0.82rem;
+    line-height: 1.1;
+}
+
+#accordionFiltrosListaPrecios .lp-photo-switch small {
+    color: var(--ca-muted, #667085);
+    font-size: 0.72rem;
+    font-weight: 500;
+    line-height: 1.1;
+}
+
+#accordionFiltrosListaPrecios .lp-filter-footer .ps-filter-actions {
+    flex-wrap: nowrap;
+    justify-content: flex-end;
+    margin-left: auto;
+}
+
+#accordionFiltrosListaPrecios .lp-filter-footer .checkapp-btn {
+    flex: 0 0 auto;
+    min-width: 7rem;
+}
+
+.lista-precios-page .lp-results-head {
+    justify-content: flex-end;
+    padding-bottom: 0.75rem;
+}
+
+.lista-precios-page .lp-results-head > .checkapp-grid-actions {
+    margin-left: auto;
+}
+
+.lp-grid-title small {
+    display: block;
+    margin-top: 3px;
+    color: var(--ca-muted, #64748b);
+    font-size: .78rem;
+    line-height: 1.25;
+}
+
+.lp-grid-photo,
+.lp-editor-photo-frame {
+    margin: 0;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    overflow: hidden;
+    background: rgba(148, 163, 184, 0.14);
+    color: #64748b;
+}
+
+.lp-grid-photo {
+    width: 52px;
+    height: 52px;
+    border-radius: 0.9rem;
+    box-shadow: 0 10px 18px rgba(15, 23, 42, 0.12);
+}
+
+.lp-grid-photo img,
+.lp-editor-photo-frame img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    display: block;
+}
+
+.lp-editor-photo-frame img {
+    height: 120px;
+    flex: 0 0 auto;
+}
+
+.lp-grid-photo.is-empty span,
+.lp-editor-photo-frame.is-empty span {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    width: 100%;
+    height: 100%;
+}
+
+.lp-editor-photo {
+    border: 1px solid rgba(15, 23, 42, 0.08);
+    border-radius: 8px;
+    padding: 0.65rem;
+    background: #fff;
+    grid-row: span 2;
+}
+
+.lp-editor-photo-frame {
+    width: 100%;
+    min-height: 126px;
+    border-radius: 8px;
+    flex-direction: column;
+    gap: 0.5rem;
+}
+
+.lp-editor-photo-frame figcaption {
+    width: 100%;
+    padding: 0 0.65rem 0.65rem;
+    color: #0f172a;
+    font-size: 0.82rem;
+    font-weight: 700;
+    line-height: 1.2;
+    overflow-wrap: anywhere;
+}
+
+.lp-editor-photo-frame figcaption small {
+    display: block;
+    color: var(--ca-muted, #64748b);
+    font-size: 0.72rem;
+    margin-top: 2px;
+}
+
+.lp-money {
+    color: #0f172a;
+    font-weight: 700;
+    white-space: nowrap;
+}
+
+.lp-money--configured {
+    color: #166534;
+}
+
+.lp-muted {
+    color: var(--ca-muted, #64748b);
+    font-size: .82rem;
+}
+
+.lp-origin-chip {
+    min-width: 112px;
+    justify-content: center;
+    white-space: nowrap;
+}
+
+.lista-precios-page .checkapp-grid-scroll {
+    width: 100%;
+    max-width: 100%;
+    overflow-x: auto;
+}
+
+.lista-precios-page #gridListaPreciosHost,
+.lista-precios-page .checkapp-grid-scroll,
+.lista-precios-page .dt-container,
+.lista-precios-page .dt-layout-row,
+.lista-precios-page .dt-layout-cell {
+    min-width: 0;
+    max-width: 100%;
+}
+
+.lista-precios-page .dt-container {
+    overflow-x: auto;
+}
+
+.lista-precios-page #grListaPrecios {
+    min-width: 1300px;
+}
+
+.lp-edit-btn {
+    width: 34px;
+    height: 34px;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    border: 1px solid rgba(15, 23, 42, 0.12);
+    border-radius: 8px;
+    background: #fff;
+    color: #0f172a;
+}
+
+.lp-edit-btn:hover,
+.lp-edit-btn:focus-visible {
+    border-color: #ff4336;
+    color: #ff4336;
+}
+
+.lp-editor-modal .modal-content {
+    border: 0;
+    border-radius: 8px;
+    overflow: hidden;
+}
+
+.lp-editor-header {
+    align-items: flex-start;
+    gap: 1rem;
+    border-bottom: 1px solid rgba(15, 23, 42, 0.08);
+}
+
+.lp-editor-header h2 {
+    margin: 0;
+    font-size: 1.25rem;
+    line-height: 1.2;
+}
+
+.lp-editor-header p {
+    margin: 0.25rem 0 0;
+    color: var(--ca-muted, #64748b);
+}
+
+.lp-editor-layout {
+    display: grid;
+    grid-template-columns: minmax(0, 1.15fr) minmax(320px, 0.85fr);
+    gap: 1rem;
+}
+
+.lp-editor-legacy-layout {
+    display: grid;
+    gap: 1rem;
+}
+
+.lp-editor-section-title {
+    margin: .25rem 0 .65rem;
+    padding-bottom: .45rem;
+    border-bottom: 1px solid #ece7e3;
+    color: #d71920;
+    font-size: 1rem;
+    text-transform: uppercase;
+    letter-spacing: .04em;
+}
+
+.lp-rounding-options {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: .65rem 1rem;
+    margin: 0 0 .65rem;
+    padding: 0;
+    border: 0;
+}
+
+.lp-rounding-options legend {
+    float: left;
+    width: auto;
+    margin: 0;
+    color: #667085;
+    font-size: .9rem;
+    font-weight: 700;
+}
+
+.lp-rounding-options label { display: inline-flex; align-items: center; gap: .35rem; }
+.lp-rounding-options input { accent-color: #ef3f35; }
+.lp-editor-help { color: #667085; font-size: .82rem; font-style: italic; }
+.lp-editor-secondary { margin-top: .8rem; border: 1px solid #ece7e3; border-radius: .65rem; padding: .65rem; }
+.lp-editor-secondary summary { cursor: pointer; font-weight: 700; color: #667085; }
+.lp-editor-vigencia { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: .75rem; margin-top: .7rem; }
+
+.lp-editor-form,
+.lp-editor-side {
+    min-width: 0;
+}
+
+.lp-editor-context {
+    display: grid;
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+    gap: 0.6rem;
+    margin-bottom: 1rem;
+}
+
+.lp-editor-context span,
+.lp-snapshot-list div,
+.lp-history-item {
+    border: 1px solid rgba(15, 23, 42, 0.08);
+    border-radius: 8px;
+    padding: 0.65rem 0.75rem;
+    background: #fff;
+}
+
+.lp-editor-context small,
+.lp-snapshot-list dt,
+.lp-history-item small {
+    display: block;
+    color: var(--ca-muted, #64748b);
+    font-size: 0.74rem;
+    line-height: 1.25;
+}
+
+.lp-editor-context strong,
+.lp-snapshot-list dd,
+.lp-history-item strong,
+.lp-history-item span {
+    display: block;
+    margin: 0.12rem 0 0;
+    color: #0f172a;
+    font-size: 0.92rem;
+    line-height: 1.25;
+    overflow-wrap: anywhere;
+}
+
+.lp-editor-fields {
+    display: grid;
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+    gap: 0.8rem;
+}
+
+.lp-bulk-dialog { max-width: min(calc(100vw - 2rem), 520px); }
+.lp-copy-dialog,
+.lp-brand-dialog { max-width: min(calc(100vw - 2rem), 400px); }
+.lp-columns-dialog { max-width: 760px; }
+
+.lp-bulk-dialog .lp-editor-fields,
+.lp-copy-fields,
+.lp-brand-discount-fields { grid-template-columns: minmax(0, 1fr); }
+
+.lp-action-modal-footer {
+    justify-content: flex-end;
+    gap: 0.5rem;
+    border-top: 0;
+    padding: 0.4rem 1rem 0.85rem;
+}
+
+.lp-action-modal-footer .checkapp-btn {
+    min-height: 2.4rem;
+    padding: 0.55rem 0.95rem;
+    border-radius: 0.45rem;
+}
+
+.lp-visible-columns {
+    display: grid;
+    grid-template-columns: repeat(4, minmax(0, 1fr));
+    gap: .85rem 1rem;
+}
+
+.lp-visible-columns label {
+    display: flex;
+    align-items: center;
+    gap: .5rem;
+    min-width: 0;
+}
+
+.lp-visible-columns input { width: 18px; height: 18px; accent-color: #e11d1d; }
+.lp-column-unavailable { grid-column: 1 / -1; color: #667085; font-size: .82rem; }
+
+.lp-editor-fields .checkapp-field,
+.lp-editor-motivo {
+    gap: 0.25rem;
+}
+
+.lp-editor-fields input,
+.lp-editor-fields select,
+.lp-editor-motivo input {
+    min-height: 40px;
+    border-radius: 8px;
+}
+
+.lp-editor-motivo {
+    margin-top: 0.8rem;
+}
+
+.lp-editor-actions {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.65rem;
+    margin-top: 1rem;
+}
+
+.lp-editor-actions .checkapp-btn {
+    min-height: 40px;
+}
+
+.lp-btn-danger {
+    color: #b91c1c !important;
+}
+
+.lp-preview-panel,
+.lp-history-panel {
+    border: 1px solid rgba(15, 23, 42, 0.08);
+    border-radius: 8px;
+    padding: 0.85rem;
+    background: #f8fafc;
+}
+
+.lp-history-panel {
+    margin-top: 0.85rem;
+}
+
+.lp-side-title {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 0.75rem;
+    margin-bottom: 0.7rem;
+}
+
+.lp-side-title strong {
+    font-size: 0.9rem;
+}
+
+.lp-snapshot-list {
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 0.55rem;
+    margin: 0;
+}
+
+.lp-snapshot-list dt,
+.lp-snapshot-list dd {
+    margin: 0;
+}
+
+.lp-history-list {
+    display: grid;
+    gap: 0.5rem;
+    max-height: 260px;
+    overflow: auto;
+}
+
+.lp-history-item span {
+    font-size: 0.84rem;
+}
+
+.lp-editor-alert {
+    margin-bottom: 0.85rem;
+    border-radius: 8px;
+    padding: 0.7rem 0.85rem;
+    font-weight: 600;
+}
+
+.lp-editor-alert.is-success {
+    color: #166534;
+    background: #dcfce7;
+}
+
+.lp-editor-alert.is-error {
+    color: #991b1b;
+    background: #fee2e2;
+}
+
+.lp-editor-alert.is-info {
+    color: #1e3a8a;
+    background: #dbeafe;
+}
+
+.lp-row-select {
+    width: 18px;
+    height: 18px;
+    accent-color: #166534;
+    cursor: pointer;
+}
+
+.lp-bulk-config,
+.lp-bulk-preview {
+    padding: 16px 0;
+}
+
+.lp-technical-field {
+    display: none !important;
+}
+
+.lp-action-scope {
+    margin: 0 0 18px;
+    padding: 12px 16px;
+    border: 1px solid #e6e0da;
+    border-radius: 8px;
+    background: #faf7f4;
+    color: #667085;
+}
+
+.lp-action-check {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    min-height: 44px;
+    font-size: 16px;
+}
+
+.lp-action-check input {
+    width: 20px;
+    height: 20px;
+}
+
+.lp-suggestions-note {
+    display: flex;
+    gap: 10px;
+    align-items: center;
+    margin: -4px -16px 12px;
+    padding: 10px 16px;
+    border-block: 1px solid #9dccff;
+    background: #e8f4ff;
+    color: #245da8;
+}
+
+.lp-suggestion-tabs {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 8px;
+    margin-bottom: 10px;
+}
+
+.lp-suggestion-tabs button {
+    border: 1px solid #f04a42;
+    border-radius: 8px;
+    background: #fff;
+    color: #c62d27;
+    padding: 7px 14px;
+    font-weight: 700;
+}
+
+.lp-suggestion-tabs button.is-active {
+    background: #fff0ee;
+}
+
+.lp-suggestion-badge {
+    display: inline-flex;
+    border: 1px solid currentColor;
+    border-radius: 999px;
+    padding: 3px 9px;
+    font-weight: 700;
+}
+
+.lp-suggestion-badge.is-offer { color: #d92d20; background: #fff1f0; }
+.lp-suggestion-badge.is-restock { color: #1f7a3f; background: #effcf4; }
+.lp-suggestion-badge.is-watch { color: #9a6700; background: #fff8db; }
+
+.lp-suggestions-table-wrap {
+    max-height: min(54vh, 560px);
+}
+
+@media (max-width: 820px) {
+    .lp-action-modal .lp-editor-fields,
+    .lp-copy-fields,
+    .lp-brand-discount-fields { grid-template-columns: 1fr; }
+    .lp-suggestions-modal .modal-dialog { margin: 10px; }
+    .lp-visible-columns { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+}
+
+@media (max-width: 480px) {
+    .lp-visible-columns { grid-template-columns: 1fr; }
+    .lp-editor-modal .modal-dialog { margin: 8px; }
+}
+
+.lp-bulk-preview {
+    border-top: 1px solid #d8dee4;
+    margin-top: 16px;
+}
+
+.lp-bulk-table-wrap {
+    margin-top: 12px;
+    max-height: 360px;
+}
+
+.lp-bulk-table {
+    min-width: 960px;
+}
+
+.lp-bulk-confirm {
+    display: flex;
+    align-items: flex-start;
+    gap: 10px;
+    margin: 16px 0;
+    color: #24313d;
+    font-weight: 600;
+}
+
+.lp-bulk-confirm input {
+    width: 18px;
+    height: 18px;
+    margin-top: 2px;
+    accent-color: #166534;
+}
+
+@media (max-width: 1199.98px) {
+    .lp-audit-filters { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+    .lp-audit-detail dl { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+
+    #accordionFiltrosListaPrecios .checkapp-accordion-inner {
+        grid-template-columns: repeat(6, minmax(0, 1fr));
+    }
+
+    #accordionFiltrosListaPrecios .ps-filter-field,
+    #accordionFiltrosListaPrecios .lp-filter-field--category,
+    #accordionFiltrosListaPrecios .lp-filter-field--brand,
+    #accordionFiltrosListaPrecios .lp-filter-field--collection,
+    #accordionFiltrosListaPrecios .lp-filter-field--presentation,
+    #accordionFiltrosListaPrecios .lp-filter-field--tag,
+    #accordionFiltrosListaPrecios .lp-filter-field--attribute,
+    #accordionFiltrosListaPrecios .lp-filter-field--variant,
+    #accordionFiltrosListaPrecios .lp-filter-field--price-min,
+    #accordionFiltrosListaPrecios .lp-filter-field--price-max,
+    #accordionFiltrosListaPrecios .lp-filter-field--discount {
+        grid-column: span 2;
+    }
+
+    #accordionFiltrosListaPrecios .lp-filter-field--search {
+        grid-column: span 4;
+    }
+
+    #accordionFiltrosListaPrecios .ps-filter-tail {
+        grid-column: span 2;
+        width: auto;
+    }
+
+    #accordionFiltrosListaPrecios .lp-filter-feedback {
+        grid-column: span 4;
+    }
+
+    #accordionFiltrosListaPrecios .lp-filter-row--primary {
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+    }
+
+    #accordionFiltrosListaPrecios .lp-filter-row--primary .lp-filter-field--search {
+        grid-column: 1 / -1;
+    }
+
+    #accordionFiltrosListaPrecios .lp-filter-row--classification,
+    #accordionFiltrosListaPrecios .lp-filter-row--commercial {
+        grid-template-columns: repeat(3, minmax(0, 1fr));
+    }
+
+    #accordionFiltrosListaPrecios .lp-inventory-filter-controls {
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+    }
+}
+
+@media (max-width: 767.98px) {
+    .lp-audit-filters,
+    .lp-audit-detail dl { grid-template-columns: minmax(0, 1fr); }
+
+    .lp-audit-search { grid-column: auto; }
+    .lp-audit-footer { align-items: stretch; flex-direction: column; }
+    .lp-audit-size { margin-left: 0; }
+
+    .lp-summary-strip {
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+    }
+
+    #accordionFiltrosListaPrecios .checkapp-accordion-inner {
+        grid-template-columns: minmax(0, 1fr);
+    }
+
+    #accordionFiltrosListaPrecios .ps-filter-field,
+    #accordionFiltrosListaPrecios .lp-filter-field--search,
+    #accordionFiltrosListaPrecios .lp-filter-field--category,
+    #accordionFiltrosListaPrecios .lp-filter-field--brand,
+    #accordionFiltrosListaPrecios .lp-filter-field--collection,
+    #accordionFiltrosListaPrecios .lp-filter-field--presentation,
+    #accordionFiltrosListaPrecios .lp-filter-field--tag,
+    #accordionFiltrosListaPrecios .lp-filter-field--attribute,
+    #accordionFiltrosListaPrecios .lp-filter-field--variant,
+    #accordionFiltrosListaPrecios .lp-filter-field--price-min,
+    #accordionFiltrosListaPrecios .lp-filter-field--price-max,
+    #accordionFiltrosListaPrecios .lp-filter-field--discount,
+    #accordionFiltrosListaPrecios .lp-filter-feedback,
+    #accordionFiltrosListaPrecios .ps-filter-tail {
+        grid-column: 1 / -1;
+    }
+
+    #accordionFiltrosListaPrecios .checkapp-accordion-inner {
+        padding: 0.25rem 0.75rem 0.85rem;
+    }
+
+    #accordionFiltrosListaPrecios .lp-filter-row--primary,
+    #accordionFiltrosListaPrecios .lp-filter-row--classification,
+    #accordionFiltrosListaPrecios .lp-filter-row--commercial,
+    #accordionFiltrosListaPrecios .lp-inventory-filter-controls {
+        grid-template-columns: minmax(0, 1fr);
+    }
+
+    #accordionFiltrosListaPrecios .lp-filter-row--primary .lp-filter-field--search,
+    #accordionFiltrosListaPrecios .lp-filter-row .ps-filter-field,
+    #accordionFiltrosListaPrecios .lp-inventory-filter-controls .ps-filter-field {
+        grid-column: 1 / -1;
+    }
+
+    #accordionFiltrosListaPrecios .lp-filter-footer {
+        align-items: stretch;
+        flex-direction: column;
+    }
+
+    #accordionFiltrosListaPrecios .lp-photo-switch {
+        width: 100%;
+    }
+
+    #accordionFiltrosListaPrecios .lp-filter-footer .ps-filter-actions {
+        display: grid;
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+        width: 100%;
+        margin-left: 0;
+    }
+
+    #accordionFiltrosListaPrecios .lp-filter-footer .checkapp-btn {
+        width: 100%;
+        min-width: 0;
+    }
+
+    .lista-precios-page .checkapp-panel-head {
+        gap: 12px;
+    }
+
+    .lista-precios-page .checkapp-grid-actions {
+        width: 100%;
+        justify-content: flex-start;
+    }
+
+    #btAjusteMasivoListaPrecios,
+    #btCopiarListaPrecios,
+    #btDescuentoMarcaListaPrecios,
+    #btHistorialListaPrecios {
+        flex: 1 1 auto;
+    }
+
+    .lista-precios-page #gridListaPreciosHost,
+    .lista-precios-page .ca-grid-cards {
+        grid-template-columns: minmax(0, 1fr);
+    }
+
+    .lista-precios-page #gridListaPreciosHost > *,
+    .lista-precios-page .ca-grid-card,
+    .lista-precios-page .ca-grid-card-head,
+    .lista-precios-page .ca-grid-card-head > div,
+    .lista-precios-page .ca-grid-card-row {
+        min-width: 0;
+        max-width: 100%;
+    }
+
+    .lista-precios-page .ca-grid-card-title {
+        min-width: 0;
+        max-width: 100%;
+        overflow-wrap: anywhere;
+        word-break: break-word;
+    }
+
+    .lp-editor-layout {
+        grid-template-columns: minmax(0, 1fr);
+    }
+
+    .lp-editor-context,
+    .lp-editor-fields,
+    .lp-copy-fields,
+    .lp-brand-discount-fields,
+    .lp-snapshot-list {
+        grid-template-columns: minmax(0, 1fr);
+    }
+
+    .lp-bulk-table-wrap {
+        max-height: 48vh;
+    }
+}
+
+@media (max-width: 420px) {
+    .lista-precios-page .checkapp-shell {
+        padding-inline: 10px;
+    }
+
+    .lp-summary-strip {
+        grid-template-columns: 1fr;
+    }
+
+    .lista-precios-page .checkapp-btn {
+        min-height: 38px;
+    }
+}
+
+/* LP-QA04R: los overlays de estos filtros deben salir del acordeón sin tocar el tema global. */
+.lista-precios-page #accordionFiltrosListaPrecios.is-open,
+.lista-precios-page #accordionFiltrosListaPrecios.is-open .checkapp-accordion-body,
+.lista-precios-page #accordionFiltrosListaPrecios.is-open .checkapp-accordion-inner {
+    overflow: visible;
+}
+
+.lista-precios-page #accordionFiltrosListaPrecios.is-open {
+    position: relative;
+    z-index: 20;
+}
+
+.lista-precios-page #accordionFiltrosListaPrecios .lp-inventory-filter-group {
+    position: relative;
+    z-index: 3;
+}
+
+.lista-precios-page #accordionFiltrosListaPrecios .lp-check-dropdown-panel {
+    z-index: 40;
+    overscroll-behavior: contain;
+}
+
+/* LP-QA04R: editor compacto, con la composición visual del modal Legacy. */
+.lista-precios-page .lp-editor-dialog {
+    width: min(calc(100% - 1rem), 760px);
+    max-width: 760px;
+    margin-inline: auto;
+}
+
+.lista-precios-page .lp-editor-modal .modal-body {
+    padding: .9rem 1.1rem;
+}
+
+.lista-precios-page .lp-editor-header {
+    padding: .8rem 1.1rem .7rem;
+}
+
+.lista-precios-page .lp-editor-header h2 {
+    font-size: 1rem;
+}
+
+.lista-precios-page .lp-editor-header p {
+    margin-top: .15rem;
+    font-size: .78rem;
+}
+
+.lista-precios-page .lp-editor-legacy-layout {
+    gap: .75rem;
+}
+
+.lista-precios-page .lp-editor-context {
+    display: flex;
+    align-items: flex-start;
+    gap: .75rem;
+    margin-bottom: .75rem;
+}
+
+.lista-precios-page .lp-editor-photo {
+    flex: 0 0 88px;
+    width: 88px;
+    height: 88px;
+    padding: 4px;
+    border-radius: 8px;
+    background: #f8fafc;
+}
+
+.lista-precios-page .lp-editor-photo-frame {
+    width: 78px;
+    height: 78px;
+    min-height: 78px;
+    border-radius: 6px;
+    background: #f1f5f9;
+}
+
+.lista-precios-page .lp-editor-photo-frame img {
+    width: 100%;
+    height: 100%;
+    object-fit: contain;
+}
+
+.lista-precios-page .lp-editor-photo-frame.is-empty span {
+    color: #98a2b3;
+    font-size: 1.35rem;
+}
+
+.lista-precios-page .lp-editor-chips {
+    display: flex;
+    flex: 1 1 auto;
+    flex-wrap: wrap;
+    align-content: flex-start;
+    gap: .35rem;
+    min-width: 0;
+}
+
+.lista-precios-page .lp-editor-chip {
+    display: inline-flex;
+    align-items: center;
+    max-width: 100%;
+    padding: .22rem .55rem;
+    border: 1px solid #e6e1dd;
+    border-radius: 999px;
+    background: #f8f6f4;
+    color: #667085;
+    font-size: .74rem;
+    line-height: 1.2;
+    overflow-wrap: anywhere;
+}
+
+.lista-precios-page .lp-editor-section-title {
+    margin: 0 0 .55rem;
+    padding-bottom: .35rem;
+    font-size: .76rem;
+}
+
+.lista-precios-page .lp-rounding-options {
+    gap: .45rem .75rem;
+    margin-bottom: .45rem;
+}
+
+.lista-precios-page .lp-rounding-options legend,
+.lista-precios-page .lp-rounding-options label {
+    font-size: .78rem;
+}
+
+.lista-precios-page .lp-rounding-options .checkapp-btn {
+    min-height: 30px;
+    padding: .3rem .65rem;
+    font-size: .74rem;
+}
+
+.lista-precios-page .lp-round49-btn-apply {
+    min-height: 30px;
+    padding: .3rem .65rem;
+    border: 1px solid var(--ca-primary, #ec0000);
+    border-radius: 5px;
+    background: transparent;
+    color: var(--ca-primary-dark, #cc0000);
+    font-size: .74rem;
+    font-weight: 600;
+    line-height: 1.2;
+    white-space: nowrap;
+}
+
+.lista-precios-page .lp-round49-btn-apply:hover:not(:disabled),
+.lista-precios-page .lp-round49-btn-apply:focus-visible:not(:disabled) {
+    background: var(--ca-primary, #ec0000);
+    color: #fff;
+}
+
+.lista-precios-page .lp-round49-btn-apply:disabled {
+    opacity: .4;
+    cursor: default;
+}
+
+.lista-precios-page .lp-editor-help {
+    margin: 0 0 .55rem;
+    font-size: .72rem;
+}
+
+.lista-precios-page .lp-matrix-editor-wrap {
+    max-height: none;
+    border-radius: .45rem;
+}
+
+.lista-precios-page .lp-matrix-editor {
+    min-width: 34rem;
+    margin-bottom: 0;
+    font-size: .78rem;
+}
+
+.lista-precios-page .lp-matrix-editor thead th,
+.lista-precios-page .lp-matrix-editor tbody td {
+    padding: .32rem .45rem;
+}
+
+.lista-precios-page .lp-matrix-editor input {
+    min-width: 6rem;
+    min-height: 30px;
+    height: 30px;
+    padding: .2rem .45rem;
+    border-radius: 5px;
+    font-size: .78rem;
+    font-variant-numeric: tabular-nums;
+}
+
+.lista-precios-page .lp-editor-vigencia {
+    gap: .55rem;
+}
+
+.lista-precios-page .lp-editor-secondary {
+    margin-top: .55rem;
+    padding: .5rem .65rem;
+    border-radius: .5rem;
+    font-size: .78rem;
+}
+
+.lista-precios-page .lp-editor-motivo {
+    margin-top: .55rem;
+}
+
+.lista-precios-page .lp-editor-motivo input {
+    min-height: 34px;
+}
+
+.lista-precios-page .lp-editor-preview-action {
+    display: flex;
+    margin-top: .55rem;
+}
+
+.lista-precios-page .lp-editor-preview-action .checkapp-btn {
+    min-height: 34px;
+    padding: .35rem .7rem;
+    font-size: .75rem;
+}
+
+.lista-precios-page .lp-editor-additional {
+    margin-top: .1rem;
+}
+
+.lista-precios-page .lp-editor-additional,
+.lista-precios-page .lp-editor-promotions {
+    padding-top: .15rem;
+}
+
+.lista-precios-page .lp-editor-schema-note {
+    margin: -.25rem 0 .55rem;
+    color: #667085;
+    font-size: .7rem;
+    font-style: italic;
+}
+
+.lista-precios-page .lp-editor-additional-grid {
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: .5rem .65rem;
+}
+
+.lista-precios-page .lp-editor-additional-grid .checkapp-field {
+    gap: .2rem;
+    color: #667085;
+    font-size: .74rem;
+}
+
+.lista-precios-page .lp-editor-additional-grid input,
+.lista-precios-page .lp-editor-additional-grid textarea {
+    min-height: 32px;
+    padding: .35rem .5rem;
+    border: 1px solid #e6e1dd;
+    border-radius: 6px;
+    background: #faf8f6;
+    color: #344054;
+    font-size: .78rem;
+}
+
+.lista-precios-page .lp-editor-field-full {
+    grid-column: 1 / -1;
+}
+
+.lista-precios-page .lp-editor-promotion-row {
+    display: flex;
+    flex-wrap: wrap;
+    gap: .45rem 1rem;
+}
+
+.lista-precios-page .lp-editor-promotion-row label {
+    display: inline-flex;
+    align-items: center;
+    gap: .35rem;
+    color: #667085;
+    font-size: .78rem;
+}
+
+.lista-precios-page .lp-editor-readonly-field > span {
+    display: block;
+    margin-bottom: .25rem;
+    color: #667085;
+    font-size: .74rem;
+    font-weight: 700;
+}
+
+.lista-precios-page .lp-editor-readonly-field p {
+    min-height: 34px;
+    margin: 0;
+    padding: .45rem .6rem;
+    border: 1px solid #e6e1dd;
+    border-radius: 6px;
+    background: #faf8f6;
+    color: #344054;
+    font-size: .8rem;
+    line-height: 1.35;
+    white-space: pre-wrap;
+}
+
+.lista-precios-page .lp-editor-history summary {
+    display: flex;
+    justify-content: space-between;
+    gap: .75rem;
+}
+
+.lista-precios-page .lp-editor-history summary span {
+    color: #98a2b3;
+    font-weight: 600;
+}
+
+.lista-precios-page .lp-history-panel {
+    margin-top: .55rem;
+    padding: .55rem;
+}
+
+.lista-precios-page .lp-editor-footer {
+    justify-content: flex-end;
+    gap: .55rem;
+    padding: .65rem 1.1rem;
+}
+
+.lista-precios-page .lp-editor-footer .checkapp-btn {
+    min-height: 34px;
+    padding: .4rem .9rem;
+}
+
+@media (max-width: 575.98px) {
+    .lista-precios-page .lp-editor-dialog {
+        width: calc(100% - .5rem);
+        margin: .25rem auto;
+    }
+
+    .lista-precios-page .lp-editor-modal .modal-body,
+    .lista-precios-page .lp-editor-header,
+    .lista-precios-page .lp-editor-footer {
+        padding-inline: .75rem;
+    }
+
+    .lista-precios-page .lp-editor-photo {
+        flex-basis: 64px;
+        width: 64px;
+        height: 64px;
+    }
+
+    .lista-precios-page .lp-editor-photo-frame {
+        width: 54px;
+        height: 54px;
+        min-height: 54px;
+    }
+
+    .lista-precios-page .lp-rounding-options {
+        align-items: flex-start;
+    }
+
+    .lista-precios-page .lp-rounding-options legend {
+        width: 100%;
+    }
+
+    .lista-precios-page .lp-editor-modal .lp-matrix-editor-wrap {
+        display: block !important;
+        max-width: 100%;
+        overflow-x: auto;
+    }
+
+    .lista-precios-page .lp-editor-modal .lp-matrix-editor {
+        display: table !important;
+    }
+
+    .lista-precios-page .lp-editor-modal .lp-matrix-editor thead {
+        display: table-header-group !important;
+    }
+
+    .lista-precios-page .lp-editor-modal .lp-matrix-editor tbody {
+        display: table-row-group !important;
+    }
+
+    .lista-precios-page .lp-editor-modal .lp-matrix-editor tr {
+        display: table-row !important;
+    }
+
+    .lista-precios-page .lp-editor-modal .lp-matrix-editor th,
+    .lista-precios-page .lp-editor-modal .lp-matrix-editor td {
+        display: table-cell !important;
+    }
+
+    .lista-precios-page .lp-editor-additional-grid {
+        grid-template-columns: minmax(0, 1fr);
+    }
+
+    .lista-precios-page .lp-editor-field-full {
+        grid-column: auto;
+    }
+
+    .lista-precios-page #accordionFiltrosListaPrecios .lp-check-dropdown-panel {
+        max-height: min(14rem, 42vh);
+    }
+}

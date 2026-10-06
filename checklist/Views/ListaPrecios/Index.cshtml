@@ -1,0 +1,593 @@
+@{
+    ViewBag.Title = "Lista de Precios";
+    Layout = "~/Views/Shared/_Layout.cshtml";
+}
+
+<div class="checkapp-scope checkapp-page productos-servicios-page lista-precios-page" data-lista-precios-page="index" data-can-write="@(((bool?)ViewBag.PuedeAdministrarListaPrecios == true).ToString().ToLowerInvariant())">
+    <div class="container-fluid checkapp-shell">
+        <section class="checkapp-hero">
+            <div>
+                <p class="checkapp-kicker">CheckApp Pro</p>
+                <h1>Lista de Precios</h1>
+                <p>Consulta y edición por producto o servicio</p>
+            </div>
+        </section>
+
+        <section class="checkapp-summary-strip ps-summary-strip lp-summary-strip" id="lp-summary" aria-label="Resumen de lista de precios">
+            <button type="button" class="checkapp-summary-card ps-summary-card is-selected" data-lp-summary-type="" aria-pressed="true">
+                <small>Total</small>
+                <strong id="txResumenLpTotal">0</strong>
+            </button>
+            <button type="button" class="checkapp-summary-card ps-summary-card" data-lp-summary-type="1" aria-pressed="false">
+                <small>Productos</small>
+                <strong id="txResumenLpProductos">0</strong>
+            </button>
+            <button type="button" class="checkapp-summary-card ps-summary-card" data-lp-summary-type="2" aria-pressed="false">
+                <small>Servicios</small>
+                <strong id="txResumenLpServicios">0</strong>
+            </button>
+            <button type="button" class="checkapp-summary-card ps-summary-card" data-lp-summary-type="configurados" aria-pressed="false">
+                <small>Configurados</small>
+                <strong id="txResumenLpConfigurados">0</strong>
+            </button>
+        </section>
+
+        <section id="accordionFiltrosListaPrecios" class="checkapp-panel checkapp-accordion is-open">
+            <button type="button" class="checkapp-accordion-toggle" aria-expanded="true" aria-controls="accordionFiltrosListaPreciosBody">
+                <div>
+                    <span class="checkapp-panel-eyebrow">Filtros</span>
+                </div>
+                <span class="checkapp-accordion-summary">Sin filtros activos</span>
+            </button>
+            <div class="checkapp-accordion-body" id="accordionFiltrosListaPreciosBody">
+                <div class="checkapp-accordion-inner">
+                    <div class="lp-filter-layout">
+                        <div class="lp-filter-row lp-filter-row--primary">
+                            <label class="checkapp-field ps-filter-field lp-filter-field--search">
+                                <span>Búsqueda general</span>
+                                <input id="txBusquedaListaPrecios" type="text" placeholder="Código, nombre, categoría, marca, variante o presentación" />
+                            </label>
+                            <label class="checkapp-field ps-filter-field lp-filter-field--type">
+                                <span>Tipo</span>
+                                <select id="cbFiltroTipoListaPrecios" class="form-select"></select>
+                            </label>
+                            <label class="checkapp-field ps-filter-field lp-filter-field--category">
+                                <span>Categoría</span>
+                                <select id="cbFiltroCategoriaListaPrecios" class="form-select"></select>
+                            </label>
+                            <label class="checkapp-field ps-filter-field lp-filter-field--brand">
+                                <span>Marca</span>
+                                <select id="cbFiltroMarcaListaPrecios" class="form-select"></select>
+                            </label>
+                        </div>
+
+                        <div class="lp-filter-row lp-filter-row--classification">
+                            <label class="checkapp-field ps-filter-field lp-filter-field--collection">
+                                <span>Colección</span>
+                                <select id="cbFiltroColeccionListaPrecios" class="form-select"></select>
+                            </label>
+                            <label class="checkapp-field ps-filter-field lp-filter-field--tag">
+                                <span>Etiqueta</span>
+                                <select id="cbFiltroEtiquetaListaPrecios" class="form-select"></select>
+                            </label>
+                            <label class="checkapp-field ps-filter-field lp-filter-field--attribute">
+                                <span>Atributo</span>
+                                <select id="cbFiltroAtributoListaPrecios" class="form-select"></select>
+                            </label>
+                            <div class="checkapp-field ps-filter-field lp-filter-field--attribute-values">
+                                <span>Valor(es)</span>
+                                <div class="lp-check-dropdown is-disabled" id="lpAtributoValoresDropdown">
+                                    <button id="btFiltroValoresAtributoListaPrecios" type="button" class="lp-check-dropdown-trigger" aria-expanded="false" disabled>
+                                        <span>Selecciona un atributo</span><i class="fa fa-chevron-down" aria-hidden="true"></i>
+                                    </button>
+                                    <div id="panelFiltroValoresAtributoListaPrecios" class="lp-check-dropdown-panel" hidden></div>
+                                </div>
+                            </div>
+                            <label class="checkapp-field ps-filter-field lp-filter-field--variant">
+                                <span>Variante</span>
+                                <select id="cbFiltroVarianteListaPrecios" class="form-select"></select>
+                            </label>
+                            <label class="checkapp-field ps-filter-field lp-filter-field--presentation">
+                                <span>Presentación venta</span>
+                                <select id="cbFiltroPresentacionListaPrecios" class="form-select"></select>
+                            </label>
+                        </div>
+
+                        <div class="lp-filter-row lp-filter-row--commercial">
+                            <label class="checkapp-field ps-filter-field lp-filter-field--list">
+                                <span>Lista de precio</span>
+                                <select id="cbFiltroListaPrecio" class="form-select"></select>
+                            </label>
+                            <label class="checkapp-field ps-filter-field lp-filter-field--price-min">
+                                <span>Precio mínimo</span>
+                                <input id="txFiltroPrecioMinimoListaPrecios" type="number" min="0" step="0.01" inputmode="decimal" placeholder="0.00" />
+                            </label>
+                            <label class="checkapp-field ps-filter-field lp-filter-field--price-max">
+                                <span>Precio máximo</span>
+                                <input id="txFiltroPrecioMaximoListaPrecios" type="number" min="0" step="0.01" inputmode="decimal" placeholder="0.00" />
+                            </label>
+                            <label class="checkapp-field ps-filter-field lp-filter-field--discount">
+                                <span>Descuento</span>
+                                <select id="txFiltroDescuentoListaPrecios" class="form-select">
+                                    <option value="">Todos</option>
+                                    <option value="con">Con descuento</option>
+                                    <option value="sin">Sin descuento</option>
+                                </select>
+                            </label>
+                            <label class="checkapp-field ps-filter-field lp-filter-field--status">
+                                <span>Estatus</span>
+                                <select id="cbFiltroEstatusListaPrecios" class="form-select"></select>
+                            </label>
+                        </div>
+
+                        <fieldset class="lp-inventory-filter-group">
+                            <legend>Inventario por sucursal</legend>
+                            <div class="lp-inventory-filter-controls">
+                                <label class="lp-branch-all">
+                                    <input id="ckTodasSucursalesListaPrecios" type="checkbox" checked />
+                                    <span>Todas las sucursales</span>
+                                </label>
+                                <div class="checkapp-field ps-filter-field lp-branch-select">
+                                    <span>Sucursales</span>
+                                    <div class="lp-check-dropdown is-disabled" id="lpSucursalesDropdown">
+                                        <button id="btFiltroSucursalListaPrecios" type="button" class="lp-check-dropdown-trigger" aria-expanded="false" disabled>
+                                            <span>Seleccionar sucursales</span><i class="fa fa-chevron-down" aria-hidden="true"></i>
+                                        </button>
+                                        <div id="panelFiltroSucursalListaPrecios" class="lp-check-dropdown-panel" hidden></div>
+                                    </div>
+                                </div>
+                                <label class="checkapp-field ps-filter-field">
+                                    <span>Existencia</span>
+                                    <select id="cbFiltroExistenciaListaPrecios" class="form-select">
+                                        <option value="">Todas</option>
+                                        <option value="con">Con existencia</option>
+                                        <option value="sin">Sin existencia</option>
+                                    </select>
+                                </label>
+                                <label class="checkapp-field ps-filter-field">
+                                    <span>Cantidad menor a</span>
+                                    <input id="txFiltroCantidadListaPrecios" type="number" min="0" step="0.000001" inputmode="decimal" placeholder="0" />
+                                </label>
+                            </div>
+                        </fieldset>
+
+                        <div id="lpFilterFeedback" class="lp-filter-feedback" role="alert" aria-live="polite" hidden></div>
+                        <div class="lp-filter-footer">
+                            <label class="lp-photo-switch" for="ckMostrarFotografiasListaPrecios">
+                                <input id="ckMostrarFotografiasListaPrecios" type="checkbox" role="switch" />
+                                <span class="lp-photo-switch-track" aria-hidden="true"><span></span></span>
+                                <span class="lp-photo-switch-copy"><strong>Fotografías</strong><small>Puede tardar más.</small></span>
+                            </label>
+                            <div class="checkapp-filter-actions ps-filter-actions ps-filter-actions--tail">
+                                <button id="btBuscarListaPrecios" type="button" class="checkapp-btn checkapp-btn-secondary ps-filter-search-btn">
+                                    <i class="fa fa-search"></i>
+                                    <span>Buscar</span>
+                                </button>
+                                <button id="btLimpiarListaPrecios" type="button" class="checkapp-btn checkapp-btn-ghost">
+                                    <i class="fa fa-eraser"></i>
+                                    <span>Limpiar</span>
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <section class="checkapp-panel">
+            <div class="checkapp-panel-head lp-results-head" aria-label="Acciones de resultados">
+                <div class="checkapp-grid-actions">
+                    <span id="txGridLpVisibleCount" class="ca-chip ca-chip--secondary">0 visibles</span>
+                    @if ((bool?)ViewBag.PuedeAdministrarListaPrecios == true)
+                    {
+                        <button id="btAjusteMasivoListaPrecios" type="button" class="checkapp-btn checkapp-btn-primary" disabled>
+                            <i class="fa fa-sliders"></i>
+                            <span>Ajuste masivo</span>
+                        </button>
+                        <button id="btCopiarListaPrecios" type="button" class="checkapp-btn checkapp-btn-secondary">
+                            <i class="fa fa-copy"></i>
+                            <span>Copiar lista</span>
+                        </button>
+                        <button id="btDescuentoMarcaListaPrecios" type="button" class="checkapp-btn checkapp-btn-secondary">
+                            <i class="fa fa-percent"></i>
+                            <span>Desc. Marca</span>
+                        </button>
+                    }
+                    <button id="btSugerirAccionesListaPrecios" type="button" class="checkapp-btn checkapp-btn-secondary">
+                        <i class="fa fa-lightbulb-o"></i>
+                        <span>Sugerir acciones</span>
+                    </button>
+                    <button id="btColumnasListaPrecios" type="button" class="checkapp-btn checkapp-btn-ghost">
+                        <i class="fa fa-columns"></i>
+                        <span>Columnas</span>
+                    </button>
+                    <button id="btExportarListaPrecios" type="button" class="checkapp-btn checkapp-btn-excel">
+                        <i class="fa fa-file-excel-o"></i>
+                        <span>Exportar Excel</span>
+                    </button>
+                </div>
+            </div>
+
+            <div id="gridListaPreciosHost">
+                <div class="checkapp-grid-toolbar">
+                    <label class="checkapp-grid-search" for="txBusquedaGridListaPrecios">
+                        <i class="fa fa-search"></i>
+                        <input id="txBusquedaGridListaPrecios" type="text" placeholder="Busca dentro del resultado filtrado" />
+                    </label>
+                    <div class="checkapp-grid-actions">
+                        <span id="txLpSelectedCount" class="ca-chip ca-chip--secondary">0 seleccionados</span>
+                        <button id="btLpClearSelection" type="button" class="checkapp-icon-btn" title="Limpiar selección" aria-label="Limpiar selección" disabled>
+                            <i class="fa fa-times"></i>
+                        </button>
+                        <span id="txGridListaPreciosCount" class="ca-grid-count">0 registros</span>
+                    </div>
+                </div>
+                <div class="checkapp-grid-scroll">
+                    <table id="grListaPrecios" class="table table-row-bordered align-middle checkapp-grid-table">
+                        <thead>
+                            <tr>
+                                <th>Seleccionar</th>
+                                <th>Foto</th>
+                                <th>Identidad</th>
+                                <th>Código</th>
+                                <th>Tipo</th>
+                                <th>Categoría</th>
+                                <th>Marca</th>
+                                <th>Presentación / variante</th>
+                                <th>Existencia</th>
+                                @for (int nivel = 1; nivel <= 10; nivel++)
+                                {
+                                    <th>P@(nivel)</th>
+                                    <th>D@(nivel)%</th>
+                                }
+                                <th>Lista seleccionada</th>
+                                <th>Precio Base</th>
+                                <th>Precio Lista</th>
+                                <th>Descuento</th>
+                                <th>Precio final</th>
+                                <th>Origen</th>
+                                <th>Estatus</th>
+                            </tr>
+                        </thead>
+                        <tbody></tbody>
+                    </table>
+                </div>
+                <div id="gridListaPreciosFooter" class="checkapp-grid-footer">
+                    <span id="txGridListaPreciosRange" class="checkapp-grid-footer-range">Sin resultados</span>
+                    <div id="txGridListaPreciosPageSize" class="checkapp-grid-page-size">
+                        <span class="checkapp-grid-page-size-label">Filas:</span>
+                        <button type="button" class="checkapp-grid-page-chip is-active" data-page-size="25" aria-pressed="true">25</button>
+                        <button type="button" class="checkapp-grid-page-chip" data-page-size="50" aria-pressed="false">50</button>
+                        <button type="button" class="checkapp-grid-page-chip" data-page-size="100" aria-pressed="false">100</button>
+                    </div>
+                    <div class="checkapp-grid-page-nav">
+                        <span id="txGridListaPreciosPageIndicator" class="checkapp-grid-footer-page">Página 1 de 1</span>
+                        <button id="btGridListaPreciosPrev" type="button" class="checkapp-grid-nav-btn" aria-label="Página anterior">‹</button>
+                        <button id="btGridListaPreciosNext" type="button" class="checkapp-grid-nav-btn" aria-label="Página siguiente">›</button>
+                    </div>
+                </div>
+            </div>
+        </section>
+    </div>
+
+    <div id="modalListaPreciosEditor" class="modal fade lp-editor-modal" tabindex="-1" aria-labelledby="modalListaPreciosEditorTitle" aria-hidden="true">
+        <div class="modal-dialog modal-xl modal-dialog-scrollable lp-editor-dialog">
+            <div class="modal-content">
+                <div class="modal-header lp-editor-header">
+                    <div>
+                        <span class="checkapp-panel-eyebrow">Edición individual</span>
+                        <h2 id="modalListaPreciosEditorTitle">Precio comercial</h2>
+                        <p id="lpEditorSubtitle">Selecciona un producto o servicio para editar.</p>
+                    </div>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Cerrar"></button>
+                </div>
+                <div class="modal-body">
+                    <div id="lpEditorAlert" class="lp-editor-alert" role="alert" aria-live="polite" hidden></div>
+                    <div class="lp-editor-legacy-layout">
+                        <section class="lp-editor-form" aria-label="Precios y descuentos">
+                            <div class="lp-editor-context" id="lpEditorContext"></div>
+                            <h3 class="lp-editor-section-title">Precios y descuentos</h3>
+                            <fieldset class="lp-rounding-options">
+                                <legend>Redondeo del precio final:</legend>
+                                <label><input type="radio" name="lpEditorRedondeo" value="0" checked /> Sin redondeo</label>
+                                <label><input type="radio" name="lpEditorRedondeo" value="1" /> A 4/9</label>
+                                <label><input type="radio" name="lpEditorRedondeo" value="2" /> Sólo a 9</label>
+                            </fieldset>
+                            <fieldset class="lp-rounding-options lp-rounding-scope">
+                                <legend>Alcance del redondeo:</legend>
+                                <label><input type="radio" name="lpEditorRedondeoAlcance" value="focused" checked /> Sólo la lista editada</label>
+                                <label><input type="radio" name="lpEditorRedondeoAlcance" value="all" /> Todas las listas</label>
+                                <button id="btLpAplicarRedondeo" type="button" class="lp-round49-btn-apply">Aplicar redondeo a todas</button>
+                            </fieldset>
+                            <p class="lp-editor-help">El redondeo ajusta el precio final y recalcula el descuento correspondiente. No modifica el precio base.</p>
+                            <div class="checkapp-grid-scroll lp-matrix-editor-wrap">
+                                <table class="table table-row-bordered align-middle checkapp-grid-table lp-matrix-editor">
+                                    <thead><tr><th>Lista</th><th>Precio</th><th>Descuento %</th><th>Precio final</th></tr></thead>
+                                    <tbody id="lpEditorMatrizRows"></tbody>
+                                </table>
+                            </div>
+                        </section>
+                        <section id="lpEditorAdditional" class="lp-editor-additional" aria-labelledby="lpEditorAdditionalTitle">
+                            <h3 id="lpEditorAdditionalTitle" class="lp-editor-section-title">Datos adicionales</h3>
+                            <div class="lp-editor-additional-grid">
+                                <label class="checkapp-field"><span>Descripción</span><input id="lpEditorDescription" data-lp-commercial type="text" /></label>
+                                <label class="checkapp-field"><span>Web</span><input id="lpEditorWeb" data-lp-commercial type="text" /></label>
+                                <label class="checkapp-field"><span>Liverpool</span><input id="lpEditorLiverpool" data-lp-commercial type="text" /></label>
+                                <label class="checkapp-field"><span>Mercado Libre</span><input id="lpEditorMercadoLibre" data-lp-commercial type="text" /></label>
+                                <label class="checkapp-field lp-editor-field-full"><span>Observaciones</span><textarea id="lpEditorObservaciones" data-lp-commercial rows="2"></textarea></label>
+                            </div>
+                        </section>
+                        <section class="lp-editor-promotions" aria-labelledby="lpEditorPromotionsTitle">
+                            <h3 id="lpEditorPromotionsTitle" class="lp-editor-section-title">Promociones</h3>
+                            <div class="lp-editor-promotion-row">
+                                <label><input id="lpEditorDosPorUno" data-lp-commercial type="checkbox" /> 2 x 1</label>
+                                <label><input id="lpEditorTresPorDos" data-lp-commercial type="checkbox" /> 3 x 2</label>
+                                <label><input id="lpEditorDescuentoSegundo" data-lp-commercial type="checkbox" /> Descuento en 2º</label>
+                                <label><input id="lpEditorMonedero" data-lp-commercial type="checkbox" /> Monedero</label>
+                            </div>
+                        </section>
+                    </div>
+                </div>
+                <div class="modal-footer lp-editor-footer">
+                    <button type="button" class="checkapp-btn checkapp-btn-secondary" data-bs-dismiss="modal">Cancelar</button>
+                    <button id="btLpGuardar" type="button" class="checkapp-btn checkapp-btn-primary" aria-label="Guardar cambios" disabled>
+                        <i class="fa fa-save"></i>
+                        <span>Guardar</span>
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div id="modalListaPreciosMasivo" class="modal fade lp-editor-modal" tabindex="-1" aria-labelledby="modalListaPreciosMasivoTitle" aria-hidden="true">
+        <div class="modal-dialog modal-dialog-centered lp-bulk-dialog">
+            <div class="modal-content">
+                <div class="modal-header lp-editor-header">
+                    <div>
+                        <h2 id="modalListaPreciosMasivoTitle">Ajuste masivo de precios</h2>
+                    </div>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Cerrar"></button>
+                </div>
+                <div class="modal-body">
+                    <div id="lpBulkAlert" class="lp-editor-alert" role="alert" aria-live="polite" hidden></div>
+                    <p class="lp-action-scope">Se aplicará a los productos con los filtros actuales.</p>
+                    <section class="lp-bulk-config" aria-label="Configuración del ajuste masivo">
+                        <div class="lp-editor-fields">
+                            <label class="checkapp-field"><span>Campo a modificar</span><select id="lpBulkTarget" class="form-select"></select></label>
+                            <label class="checkapp-field lp-technical-field"><span>Lista destino</span><select id="lpBulkNivel" class="form-select"></select></label>
+                            <label class="checkapp-field lp-technical-field"><span>Campo</span><select id="lpBulkCampo" class="form-select"><option value="PRECIO">Precio</option><option value="DESCUENTO">Descuento</option></select></label>
+                            <label class="checkapp-field"><span>Tipo de ajuste</span><select id="lpBulkTipo" class="form-select"><option value="MONTO">Monto fijo ($)</option><option value="PORCENTAJE">Porcentaje (%)</option><option value="VALOR">Valor exacto</option></select></label>
+                            <label class="checkapp-field"><span>Operación</span><select id="lpBulkOperacion" class="form-select"><option value="ASIGNAR">Asignar</option></select></label>
+                            <label class="checkapp-field"><span>Valor</span><input id="lpBulkValor" type="number" min="0" step="0.01" inputmode="decimal" /></label>
+                            <input id="lpBulkMotivo" type="hidden" value="Ajuste masivo" />
+                        </div>
+                    </section>
+                    <section id="lpBulkPreviewPanel" class="lp-bulk-preview" hidden>
+                        <div class="lp-side-title"><span class="checkapp-panel-eyebrow">Preview sin persistencia</span><strong id="lpBulkSummary">0 aceptados</strong></div>
+                        <div class="checkapp-grid-scroll lp-bulk-table-wrap">
+                            <table class="table table-row-bordered align-middle checkapp-grid-table lp-bulk-table">
+                                <thead><tr><th>Identidad</th><th>Actual</th><th>Propuesto</th><th>Diferencia</th><th>Descuento</th><th>Redondeo</th><th>Final</th><th>Resultado</th></tr></thead>
+                                <tbody id="lpBulkPreviewRows"></tbody>
+                            </table>
+                        </div>
+                        <label class="lp-bulk-confirm"><input id="lpBulkConfirm" type="checkbox" /> <span>Confirmo aplicar este ajuste a la selección indicada.</span></label>
+                        <div class="lp-editor-actions"><button id="btLpBulkExecute" type="button" class="checkapp-btn checkapp-btn-primary" disabled><i class="fa fa-check"></i><span>Aplicar ajuste</span></button></div>
+                    </section>
+                </div>
+                <div class="modal-footer lp-action-modal-footer">
+                    <button type="button" class="checkapp-btn checkapp-btn-secondary" data-bs-dismiss="modal">Cancelar</button>
+                    <button id="btLpBulkPreview" type="button" class="checkapp-btn checkapp-btn-primary"><span>Aplicar</span></button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div id="modalListaPreciosCopia" class="modal fade lp-editor-modal" tabindex="-1" aria-labelledby="modalListaPreciosCopiaTitle" aria-hidden="true">
+        <div class="modal-dialog modal-dialog-centered lp-copy-dialog">
+            <div class="modal-content">
+                <div class="modal-header lp-editor-header">
+                    <div>
+                        <h2 id="modalListaPreciosCopiaTitle">Copiar lista de precios</h2>
+                    </div>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Cerrar"></button>
+                </div>
+                <div class="modal-body">
+                    <div id="lpCopyAlert" class="lp-editor-alert" role="alert" aria-live="polite" hidden></div>
+                    <section class="lp-bulk-config" aria-label="Configuración de copia de lista">
+                        <div class="lp-editor-fields lp-copy-fields">
+                            <label class="checkapp-field"><span>Lista origen</span><select id="lpCopyOrigen" class="form-select"></select></label>
+                            <label class="checkapp-field"><span>Lista destino</span><select id="lpCopyDestino" class="form-select"></select></label>
+                            <select id="lpCopyModo" class="form-select lp-technical-field"><option value="SOBRESCRIBIR">Sobrescribir</option></select>
+                            <input id="lpCopyMotivo" type="hidden" value="Copia de lista" />
+                            <label class="lp-action-check"><input id="lpCopyDiscount" type="checkbox" /> <span>Copiar también descuentos</span></label>
+                        </div>
+                    </section>
+                </div>
+                <div class="modal-footer lp-action-modal-footer">
+                    <button type="button" class="checkapp-btn checkapp-btn-secondary" data-bs-dismiss="modal">Cancelar</button>
+                    <button id="btLpCopyPreview" type="button" class="checkapp-btn checkapp-btn-primary"><span>Copiar</span></button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div id="modalListaPreciosDescuentoMarca" class="modal fade lp-editor-modal" tabindex="-1" aria-labelledby="modalListaPreciosDescuentoMarcaTitle" aria-hidden="true">
+        <div class="modal-dialog modal-dialog-centered lp-brand-dialog">
+            <div class="modal-content">
+                <div class="modal-header lp-editor-header">
+                    <div>
+                        <h2 id="modalListaPreciosDescuentoMarcaTitle">Descuento por marca</h2>
+                    </div>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Cerrar"></button>
+                </div>
+                <div class="modal-body">
+                    <div id="lpBrandDiscountAlert" class="lp-editor-alert" role="alert" aria-live="polite" hidden></div>
+                    <section class="lp-bulk-config" aria-label="Configuración del descuento por marca">
+                        <div class="lp-editor-fields lp-brand-discount-fields">
+                            <label class="checkapp-field"><span>Marca</span><select id="lpBrandDiscountMarca" class="form-select"></select></label>
+                            <label class="checkapp-field"><span>Lista de precios</span><select id="lpBrandDiscountNivel" class="form-select"></select></label>
+                            <label class="checkapp-field"><span>Descuento % (0–100)</span><input id="lpBrandDiscountPct" type="number" min="0" max="100" step="0.01" inputmode="decimal" value="0" /></label>
+                            <input id="lpBrandDiscountMotivo" type="hidden" value="Descuento por marca" />
+                        </div>
+                    </section>
+                </div>
+                <div class="modal-footer lp-action-modal-footer">
+                    <button type="button" class="checkapp-btn checkapp-btn-secondary" data-bs-dismiss="modal">Cancelar</button>
+                    <button id="btLpBrandDiscountPreview" type="button" class="checkapp-btn checkapp-btn-primary"><span>Aplicar</span></button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div id="modalListaPreciosSugerencias" class="modal fade lp-editor-modal lp-suggestions-modal" tabindex="-1" aria-labelledby="modalListaPreciosSugerenciasTitle" aria-hidden="true">
+        <div class="modal-dialog modal-xl modal-dialog-centered modal-dialog-scrollable">
+            <div class="modal-content">
+                <div class="modal-header lp-editor-header">
+                    <div><h2 id="modalListaPreciosSugerenciasTitle">Sugerencias comerciales</h2><p id="lpSuggestionsContext">Análisis preliminar · datos en pantalla</p></div>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Cerrar"></button>
+                </div>
+                <div class="modal-body">
+                    <div class="lp-suggestions-note"><i class="fa fa-info-circle"></i><span>Ventas, costo y margen se muestran como N/A cuando la fuente no está disponible para la identidad.</span></div>
+                    <div id="lpSuggestionTabs" class="lp-suggestion-tabs">
+                        <button type="button" class="is-active" data-lp-suggestion-tab="all">Todos <span>0</span></button>
+                        <button type="button" data-lp-suggestion-tab="offer">Ofertar <span>0</span></button>
+                        <button type="button" data-lp-suggestion-tab="restock">Resurtir <span>0</span></button>
+                        <button type="button" data-lp-suggestion-tab="watch">Vigilar <span>0</span></button>
+                    </div>
+                    <div class="checkapp-grid-scroll lp-suggestions-table-wrap"><table class="table table-row-bordered align-middle checkapp-grid-table"><thead><tr><th>Acción</th><th>Score</th><th>Identidad</th><th>Exist.</th><th>Ventas</th><th>Desc.%</th><th>Precio</th><th>Costo</th><th>Margen%</th><th>Motivo</th><th></th></tr></thead><tbody id="lpSuggestionsRows"></tbody></table></div>
+                    <p id="lpSuggestionsSummary" class="lp-muted"></p>
+                </div>
+                <div class="modal-footer lp-editor-footer"><button type="button" class="checkapp-btn checkapp-btn-secondary" data-bs-dismiss="modal">Cerrar</button></div>
+            </div>
+        </div>
+    </div>
+
+    <div id="modalListaPreciosColumnas" class="modal fade lp-editor-modal" tabindex="-1" aria-labelledby="modalListaPreciosColumnasTitle" aria-hidden="true">
+        <div class="modal-dialog modal-dialog-centered lp-columns-dialog">
+            <div class="modal-content">
+                <div class="modal-header lp-editor-header">
+                    <h2 id="modalListaPreciosColumnasTitle">Columnas visibles</h2>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Cerrar"></button>
+                </div>
+                <div class="modal-body">
+                    <div id="lpVisibleColumns" class="lp-visible-columns">
+                        <label><input type="checkbox" data-lp-column-index="1" /> Foto</label>
+                        <label><input type="checkbox" data-lp-column-index="3" /> Barcode / código</label>
+                        <label><input type="checkbox" data-lp-column-index="2" /> Descripción</label>
+                        <label><input type="checkbox" data-lp-column-index="5" /> Línea</label>
+                        <label><input type="checkbox" data-lp-column-index="6" /> Marca</label>
+                        <label><input type="checkbox" data-lp-column-index="7" /> Presentación / variante</label>
+                        <label><input type="checkbox" data-lp-column-index="8" /> Existencia</label>
+                        @for (var level = 1; level <= 10; level++)
+                        {
+                            var priceIndex = 9 + ((level - 1) * 2);
+                            var discountIndex = priceIndex + 1;
+                            <label><input type="checkbox" data-lp-column-index="@priceIndex" /> P@(level)</label>
+                            <label><input type="checkbox" data-lp-column-index="@discountIndex" /> D@(level)%</label>
+                        }
+                        <span class="lp-column-unavailable">Estilo, Color, Acabado y Ventas: sin fuente canónica en Lista de Precios.</span>
+                    </div>
+                </div>
+                <div class="modal-footer lp-editor-footer">
+                    <button type="button" class="checkapp-btn checkapp-btn-secondary" data-bs-dismiss="modal">Cancelar</button>
+                    <button id="btLpColumnsApply" type="button" class="checkapp-btn checkapp-btn-primary">Aplicar</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div id="modalListaPreciosHistorial" class="modal fade lp-editor-modal lp-audit-modal" tabindex="-1" aria-labelledby="modalListaPreciosHistorialTitle" aria-hidden="true">
+        <div class="modal-dialog modal-xl modal-dialog-scrollable">
+            <div class="modal-content">
+                <div class="modal-header lp-editor-header">
+                    <div>
+                        <span class="checkapp-panel-eyebrow">Auditoría comercial</span>
+                        <h2 id="modalListaPreciosHistorialTitle">Histórico de Lista de Precios</h2>
+                        <p>Consulta eventos append-only de la empresa actual.</p>
+                    </div>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Cerrar"></button>
+                </div>
+                <div class="modal-body">
+                    <div id="lpAuditAlert" class="lp-editor-alert" role="alert" aria-live="polite" hidden></div>
+                    <section class="lp-audit-filters" aria-label="Filtros del histórico">
+                        <label class="checkapp-field"><span>Desde</span><input id="lpAuditDesde" type="date" /></label>
+                        <label class="checkapp-field"><span>Hasta</span><input id="lpAuditHasta" type="date" /></label>
+                        <label class="checkapp-field"><span>Lista</span><select id="lpAuditNivel" class="form-select"></select></label>
+                        <label class="checkapp-field"><span>Identidad</span><select id="lpAuditTipo" class="form-select"><option value="">Todas</option><option value="1">Producto base</option><option value="2">Servicio</option><option value="3">Variante</option><option value="4">Presentación venta</option></select></label>
+                        <label class="checkapp-field lp-audit-search"><span>Código o nombre</span><input id="lpAuditBusqueda" type="search" placeholder="Buscar identidad" /></label>
+                        <label class="checkapp-field"><span>Origen</span><select id="lpAuditOrigen" class="form-select"><option value="">Todos</option><option>INDIVIDUAL</option><option>MASIVO</option><option>COPIA_LISTA</option><option>DESCUENTO_MARCA</option></select></label>
+                        <label class="checkapp-field"><span>Operación</span><select id="lpAuditOperacion" class="form-select"><option value="">Todas</option><option>INSERT</option><option>UPDATE</option><option>NUEVO</option><option>SOBRESCRITURA</option><option>REACTIVACION</option><option>BAJA</option></select></label>
+                        <label class="checkapp-field"><span>CorrelationId</span><input id="lpAuditCorrelation" type="text" placeholder="UUID" /></label>
+                        <label class="checkapp-field"><span>Actor</span><input id="lpAuditUsuario" type="search" placeholder="Usuario registrado" /></label>
+                    </section>
+                    <div class="lp-editor-actions lp-audit-actions">
+                        <button id="btLpAuditBuscar" type="button" class="checkapp-btn checkapp-btn-primary"><i class="fa fa-search"></i><span>Consultar</span></button>
+                        <button id="btLpAuditLimpiar" type="button" class="checkapp-btn checkapp-btn-ghost"><i class="fa fa-eraser"></i><span>Limpiar</span></button>
+                    </div>
+                    <div class="checkapp-grid-scroll lp-audit-table-wrap">
+                        <table class="table table-row-bordered align-middle checkapp-grid-table lp-audit-table">
+                            <thead><tr><th>Fecha</th><th>Identidad</th><th>Lista</th><th>Origen</th><th>Operación</th><th>Campo</th><th>Actor</th><th>CorrelationId</th><th>Detalle</th></tr></thead>
+                            <tbody id="lpAuditRows"></tbody>
+                        </table>
+                    </div>
+                    <div class="checkapp-grid-footer lp-audit-footer">
+                        <span id="lpAuditRange" class="checkapp-grid-footer-range">Sin resultados</span>
+                        <label class="lp-audit-size"><span>Filas</span><select id="lpAuditPageSize" class="form-select"><option>25</option><option>50</option><option>100</option></select></label>
+                        <div class="checkapp-grid-page-nav"><span id="lpAuditPageIndicator">Página 1 de 1</span><button id="btLpAuditPrev" type="button" class="checkapp-grid-nav-btn" aria-label="Página anterior">‹</button><button id="btLpAuditNext" type="button" class="checkapp-grid-nav-btn" aria-label="Página siguiente">›</button></div>
+                    </div>
+                    <aside id="lpAuditDetail" class="lp-audit-detail" aria-live="polite" hidden></aside>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div id="modalListaPreciosInventario" class="modal fade lp-editor-modal" tabindex="-1" aria-labelledby="modalListaPreciosInventarioTitle" aria-hidden="true">
+        <div class="modal-dialog modal-xl modal-dialog-scrollable">
+            <div class="modal-content">
+                <div class="modal-header lp-editor-header">
+                    <div>
+                        <span class="checkapp-panel-eyebrow">Inventario V1</span>
+                        <h2 id="modalListaPreciosInventarioTitle">Existencias y movimientos</h2>
+                        <p id="lpInventarioSubtitle">Detalle de la identidad seleccionada.</p>
+                    </div>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Cerrar"></button>
+                </div>
+                <div class="modal-body">
+                    <div id="lpInventarioAlert" class="lp-editor-alert" role="status" aria-live="polite">Cargando inventario...</div>
+                    <div class="lp-editor-layout">
+                        <section class="lp-preview-panel" aria-label="Existencia por sucursal">
+                            <div class="lp-side-title">
+                                <span class="checkapp-panel-eyebrow">Existencia</span>
+                                <strong id="lpInventarioTotal">-</strong>
+                            </div>
+                            <div id="lpInventarioSaldos" class="lp-history-list"></div>
+                        </section>
+                        <section class="lp-history-panel" aria-label="Movimientos de inventario">
+                            <div class="lp-side-title">
+                                <span class="checkapp-panel-eyebrow">Movimientos recientes</span>
+                                <strong id="lpInventarioMovimientosCount">0 movimientos</strong>
+                            </div>
+                            <div class="lp-inventory-flow"><span>Entradas: <strong id="lpInventarioEntradas">0</strong></span><span>Salidas: <strong id="lpInventarioSalidas">0</strong></span></div>
+                            <div id="lpInventarioMovimientos" class="lp-history-list"></div>
+                        </section>
+                    </div>
+                    <section class="lp-inventory-pending" aria-label="Indicadores sin integración disponible">
+                        <article><strong>Curva</strong><span>Integración pendiente</span></article>
+                        <article><strong>Tránsito</strong><span>Integración pendiente</span></article>
+                        <article><strong>Pedidos</strong><span>Integración pendiente</span></article>
+                    </section>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+@section Scripts {
+    <link href="~/css/checkapp-theme.css" rel="stylesheet" />
+    <link rel="stylesheet" href="~/css/ProductosServicios/ProductosServicios.css" asp-append-version="true" />
+    <link rel="stylesheet" href="~/css/ListaPrecios/ListaPrecios.css" asp-append-version="true" />
+    <script>var XLSX = window.XLSX || {}; window.XLSX = XLSX;</script>
+    <script src="~/js/vendor/xlsx.full.min.js"></script>
+    <script src="~/js/checkapp-ui.js" asp-append-version="true"></script>
+    <script src="~/js/ListaPrecios/ListaPrecios.js" asp-append-version="true"></script>
+}

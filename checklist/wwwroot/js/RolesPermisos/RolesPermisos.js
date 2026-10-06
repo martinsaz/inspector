@@ -209,6 +209,8 @@ jQuery(document).ready(function () {
             $('#sw05001005A').prop('checked', false).trigger('change');
             $('#sw05001006A').prop('checked', false).trigger('change');
             $('#sw05001007A').prop('checked', false).trigger('change');
+            $('#sw05001008A').prop('checked', false).trigger('change');
+            $('#sw05001009A').prop('checked', false).trigger('change');
             $('#sw05003000A').prop('checked', false).trigger('change');
             $('#sw05004000A').prop('checked', false).trigger('change');
             $('#sw05005000A').prop('checked', false).trigger('change');
@@ -408,6 +410,20 @@ jQuery(document).ready(function () {
     $('#sw05001007A').change(function () {
         $('#sw05001007W').prop('disabled', !this.checked);
     });
+    $('#sw05001008A').change(function () {
+        if (this.checked) {
+            $('#swMenuProveeduria').prop('checked', true);
+            $('#sw05001000A').prop('checked', true);
+        }
+    });
+    $('#sw05001009A').change(function () {
+        if (this.checked) {
+            $('#swMenuProveeduria').prop('checked', true);
+            $('#sw05001000A').prop('checked', true);
+            $('#sw05001008A').prop('checked', true);
+        }
+        $('#sw05001009W').prop('disabled', !this.checked);
+    });
     $('#sw05003000A').change(function () {
         $('#areaOrdenesCompra').show();
     });
@@ -451,6 +467,13 @@ jQuery(document).ready(function () {
             $('#sw05005000A').prop('checked', true);
         }
         $('#sw05005001W').prop('disabled', !this.checked);
+    });
+    $('#sw05005002A').change(function () {
+        if (this.checked) {
+            $('#swMenuProveeduria').prop('checked', true);
+            $('#sw05005000A').prop('checked', true);
+        }
+        $('#sw05005002W').prop('disabled', !this.checked);
     });
     // End Proveeduria
 
@@ -573,6 +596,9 @@ jQuery(document).ready(function () {
                         mnproductosservicioscoleccionesw: $('#sw05001006W').is(':checked'),
                         mnproductosserviciosetiquetas: $('#sw05001007A').is(':checked'),
                         mnproductosserviciosetiquetasw: $('#sw05001007W').is(':checked'),
+                        mnlistaprecios: $('#sw05001008A').is(':checked'),
+                        mnlistapreciosadmin: $('#sw05001009A').is(':checked'),
+                        mnlistapreciosadminw: $('#sw05001009W').is(':checked'),
                         mnordenescompra: $('#sw05003000A').is(':checked'),
                         mnordenescompranueva: $('#sw05003001A').is(':checked'),
                         mnordenescompranuevaw: $('#sw05003001W').is(':checked'),
@@ -586,6 +612,8 @@ jQuery(document).ready(function () {
                         mncurvas: $('#sw05005000A').is(':checked'),
                         mncurvascatalogo: $('#sw05005001A').is(':checked'),
                         mncurvascatalogow: $('#sw05005001W').is(':checked'),
+                        mncurvassiembra: $('#sw05005002A').is(':checked'),
+                        mncurvassiembraw: $('#sw05005002W').is(':checked'),
 
                     },
                     dataType: 'json',
@@ -721,6 +749,9 @@ function deshabilita() {
     $('#sw05001006W').prop('checked', false);
     $('#sw05001007A').prop('checked', false);
     $('#sw05001007W').prop('checked', false);
+    $('#sw05001008A').prop('checked', false);
+    $('#sw05001009A').prop('checked', false);
+    $('#sw05001009W').prop('checked', false);
     $('#sw05003000A').prop('checked', false);
     $('#sw05003001A').prop('checked', false);
     $('#sw05003001W').prop('checked', false);
@@ -734,6 +765,8 @@ function deshabilita() {
     $('#sw05005000A').prop('checked', false);
     $('#sw05005001A').prop('checked', false);
     $('#sw05005001W').prop('checked', false);
+    $('#sw05005002A').prop('checked', false);
+    $('#sw05005002W').prop('checked', false);
     refrescaAreasAjustes();
     aplicaProteccionRol();
 
@@ -756,11 +789,13 @@ function refrescaAreasAjustes() {
     $('#sw05001005W').prop('disabled', !$('#sw05001005A').is(':checked'));
     $('#sw05001006W').prop('disabled', !$('#sw05001006A').is(':checked'));
     $('#sw05001007W').prop('disabled', !$('#sw05001007A').is(':checked'));
+    $('#sw05001009W').prop('disabled', !$('#sw05001009A').is(':checked'));
     $('#sw05003001W').prop('disabled', !$('#sw05003001A').is(':checked'));
     $('#sw05003002W').prop('disabled', !$('#sw05003002A').is(':checked'));
     $('#sw05004001W').prop('disabled', !$('#sw05004001A').is(':checked'));
     $('#sw05004002W').prop('disabled', !$('#sw05004002A').is(':checked'));
     $('#sw05005001W').prop('disabled', !$('#sw05005001A').is(':checked'));
+    $('#sw05005002W').prop('disabled', !$('#sw05005002A').is(':checked'));
 }
 
 function aplicaProteccionRol() {

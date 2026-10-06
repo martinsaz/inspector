@@ -130,6 +130,15 @@
                                 <select id="cbCotSucursal" class="form-select"></select>
                             </label>
                             <label class="checkapp-field cot-field">
+                                <span>Lista de precios</span>
+                                <select id="cbCotListaPrecio" class="form-select">
+                                    @for (var nivel = 1; nivel <= 10; nivel++)
+                                    {
+                                        <option value="@nivel">Lista @nivel</option>
+                                    }
+                                </select>
+                            </label>
+                            <label class="checkapp-field cot-field">
                                 <span>Vigencia (días)</span>
                                 <input id="txCotVigenciaDias" type="number" min="0" max="365" placeholder="0" />
                             </label>
@@ -170,7 +179,7 @@
                                         <th>Producto o servicio</th>
                                         <th>Unidad</th>
                                         <th>Existencia</th>
-                                        <th>Precio público</th>
+                                        <th>Precio lista</th>
                                         <th>Agregar</th>
                                     </tr>
                                 </thead>
@@ -200,8 +209,8 @@
                                     <th>Producto o servicio</th>
                                     <th>Unidad</th>
                                     <th>Cantidad</th>
-                                    <th>Precio</th>
-                                    <th>Desc. %</th>
+                                    <th>Precio aplicado</th>
+                                    <th>Desc. adicional</th>
                                     <th>Total</th>
                                     <th>Acción</th>
                                 </tr>

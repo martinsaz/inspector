@@ -81,6 +81,12 @@ namespace checklist.Controllers.Cotizaciones
         [HttpGet("ObtenerCotizacion")]
         public Task<IActionResult> ObtenerCotizacion() => ProxyGetAsync("ObtenerCotizacion");
 
+        [HttpGet("BuscarIdentidades")]
+        public Task<IActionResult> BuscarIdentidades() => ProxyGetAsync("BuscarIdentidades");
+
+        [HttpPost("PreviewPrecios")]
+        public Task<IActionResult> PreviewPrecios() => ProxyJsonAsync(HttpMethod.Post, "PreviewPrecios");
+
         [HttpPost("GuardarCotizacion")]
         public Task<IActionResult> GuardarCotizacion() => ProxyJsonAsync(HttpMethod.Post, "GuardarCotizacion");
 
@@ -296,8 +302,8 @@ namespace checklist.Controllers.Cotizaciones
         private string? ResolveUsuarioId()
         {
             string? claimValue = User.FindFirstValue(ClaimTypes.NameIdentifier);
-            return Guid.TryParse(claimValue, out Guid usuarioId) && usuarioId != Guid.Empty
-                ? usuarioId.ToString()
+            return !string.IsNullOrWhiteSpace(claimValue) && claimValue.Length <= 256 && !claimValue.Any(char.IsControl)
+                ? claimValue.Trim()
                 : null;
         }
 

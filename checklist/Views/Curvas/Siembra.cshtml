@@ -1,0 +1,100 @@
+@{
+    ViewBag.Title = "Siembra de Curvas";
+    Layout = "~/Views/Shared/_Layout.cshtml";
+}
+
+<partial name="~/Views/ProductosServicios/_ProductosServiciosSessionContext.cshtml" />
+
+<div class="checkapp-scope checkapp-page productos-servicios-page ps-catalog-page" data-curvas-siembra-page data-can-write="@(ViewBag.CanWriteCurvasSiembra == true ? "true" : "false")">
+    <div class="container-fluid checkapp-shell">
+        <section class="checkapp-hero">
+            <div>
+                <p class="checkapp-kicker">Proveeduría · Curvas</p>
+                <h1>Siembra de Curvas</h1>
+                <p>Asigna los objetivos de una curva activa a una sucursal.</p>
+            </div>
+        </section>
+
+        <section class="checkapp-panel">
+            <div class="checkapp-panel-head">
+                <div>
+                    <span class="checkapp-panel-eyebrow">Nueva siembra</span>
+                    <h2>Selecciona sucursal y curva</h2>
+                    <p class="checkapp-panel-copy">La nueva asignación reemplaza la siembra vigente de cada producto o variante incluido.</p>
+                </div>
+            </div>
+            <div class="row g-3 align-items-end">
+                <div class="col-12 col-lg-6">
+                    <label class="checkapp-field">
+                        <span>Sucursal</span>
+                        <select id="cbSiembraSucursal" class="form-select"><option value="">Selecciona una sucursal</option></select>
+                    </label>
+                </div>
+                <div class="col-12 col-lg-6">
+                    <label class="checkapp-field">
+                        <span>Curva</span>
+                        <select id="cbSiembraCurva" class="form-select"><option value="">Selecciona una curva</option></select>
+                    </label>
+                </div>
+            </div>
+
+            <div class="checkapp-panel mt-4">
+                <div class="checkapp-panel-head">
+                    <div>
+                        <span class="checkapp-panel-eyebrow">Objetivos</span>
+                        <h2 id="txSiembraCurvaNombre">Selecciona una curva</h2>
+                    </div>
+                    <span id="txSiembraResumen" class="ca-chip ca-chip--secondary">0 objetivos</span>
+                </div>
+                <div class="checkapp-grid-scroll">
+                    <table class="table table-row-bordered align-middle checkapp-grid-table">
+                        <thead><tr><th>Producto</th><th>Variante</th><th>Unidad base</th><th>Objetivo</th></tr></thead>
+                        <tbody id="tbSiembraObjetivos"><tr><td colspan="4">Selecciona una curva para consultar sus objetivos.</td></tr></tbody>
+                    </table>
+                </div>
+                <div class="checkapp-filter-actions ps-catalog-filter-actions mt-3">
+                    <button id="btSembrarCurva" type="button" class="checkapp-btn checkapp-btn-primary" disabled>
+                        <i class="fa fa-check-circle"></i><span>Sembrar curva</span>
+                    </button>
+                </div>
+                <div id="txSiembraInfo" class="mt-3"></div>
+            </div>
+        </section>
+
+        <section class="checkapp-panel">
+            <div class="checkapp-panel-head">
+                <div>
+                    <span class="checkapp-panel-eyebrow">Estado actual</span>
+                    <h2>Siembras vigentes</h2>
+                    <p class="checkapp-panel-copy">Consulta la curva vigente por sucursal, producto y variante.</p>
+                </div>
+                <div class="checkapp-grid-actions">
+                    <button id="btExportarSiembras" type="button" class="checkapp-btn checkapp-btn-excel"><i class="fa fa-file-excel-o"></i><span>Exportar Excel</span></button>
+                </div>
+            </div>
+            <div id="gridSiembrasHost">
+                <div class="checkapp-grid-toolbar">
+                    <label class="checkapp-grid-search" for="txBusquedaSiembras"><i class="fa fa-search"></i><input id="txBusquedaSiembras" type="text" placeholder="Busca sucursal, curva o producto" /></label>
+                    <span id="txSiembrasCount" class="ca-grid-count">0 registros</span>
+                </div>
+                <div class="checkapp-grid-scroll">
+                    <table id="grSiembras" class="table table-row-bordered align-middle checkapp-grid-table">
+                        <thead><tr id="trSiembrasHead"></tr></thead><tbody></tbody>
+                    </table>
+                </div>
+                <div class="checkapp-grid-footer">
+                    <span id="txSiembrasRange" class="checkapp-grid-footer-range">Sin resultados</span>
+                    <div id="txSiembrasPageSize" class="checkapp-grid-page-size"><span class="checkapp-grid-page-size-label">Filas:</span><button type="button" class="checkapp-grid-page-chip is-active" data-page-size="25">25</button><button type="button" class="checkapp-grid-page-chip" data-page-size="50">50</button></div>
+                    <div class="checkapp-grid-page-nav"><span id="txSiembrasPage" class="checkapp-grid-footer-page">Página 1 de 1</span><button id="btSiembrasPrev" type="button" class="checkapp-grid-nav-btn">‹</button><button id="btSiembrasNext" type="button" class="checkapp-grid-nav-btn">›</button></div>
+                </div>
+            </div>
+        </section>
+    </div>
+</div>
+
+@section Scripts {
+    <link href="~/css/checkapp-theme.css" rel="stylesheet" />
+    <link href="~/css/ProductosServicios/ProductosServicios.css" rel="stylesheet" asp-append-version="true" />
+    <script src="~/js/checkapp-ui.js"></script>
+    <script src="~/js/Curvas/CurvasSiembra.js" asp-append-version="true"></script>
+}

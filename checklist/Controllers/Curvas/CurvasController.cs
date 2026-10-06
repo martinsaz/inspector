@@ -20,6 +20,7 @@ namespace checklist.Controllers.Curvas
         private const string ProxyTimestampHeader = "X-ProductosServicios-Proxy-Timestamp";
         private const string ProxySignatureHeader = "X-ProductosServicios-Proxy-Signature";
         private const string CurvasCatalogoPermissionCode = "05005001";
+        private const string CurvasSiembraPermissionCode = "05005002";
         private static readonly JsonSerializerOptions ProxyJsonOptions = new(JsonSerializerDefaults.Web);
 
         private readonly IHttpClientFactory _clientFactory;
@@ -34,13 +35,43 @@ namespace checklist.Controllers.Curvas
         [HttpGet("Catalogo")]
         public async Task<IActionResult> Catalogo()
         {
-            if (!await HasCurvasAccessAsync())
+            if (!await HasCurvasAccessAsync(CurvasCatalogoPermissionCode))
             {
                 return Forbid();
             }
 
             return View("~/Views/Curvas/Catalogo.cshtml");
         }
+
+        [HttpGet("Siembra")]
+        public async Task<IActionResult> Siembra()
+        {
+            if (!await HasCurvasAccessAsync(CurvasSiembraPermissionCode, requireWrite: false))
+            {
+                return Forbid();
+            }
+
+            ViewBag.CanWriteCurvasSiembra = await HasCurvasAccessAsync(CurvasSiembraPermissionCode, requireWrite: true);
+            return View("~/Views/Curvas/Siembra.cshtml");
+        }
+
+        [HttpGet("Siembra/Sucursales")]
+        public Task<IActionResult> SucursalesSiembra() => ProxyGetAsync("Sucursales", "CurvasSiembra");
+
+        [HttpGet("Siembra/CurvasActivas")]
+        public Task<IActionResult> CurvasActivasSiembra() => ProxyGetAsync("CurvasActivas", "CurvasSiembra");
+
+        [HttpGet("Siembra/DetalleCurva")]
+        public Task<IActionResult> DetalleCurvaSiembra() => ProxyGetAsync("DetalleCurva", "CurvasSiembra");
+
+        [HttpGet("Siembra/Vigentes")]
+        public Task<IActionResult> SiembrasVigentes() => ProxyGetAsync("Vigentes", "CurvasSiembra");
+
+        [HttpPost("Siembra/Sembrar")]
+        public Task<IActionResult> SembrarCurva() => ProxyJsonAsync(HttpMethod.Post, "Sembrar", "CurvasSiembra");
+
+        [HttpPost("Siembra/Cerrar")]
+        public Task<IActionResult> CerrarSiembra() => ProxyJsonAsync(HttpMethod.Post, "Cerrar", "CurvasSiembra");
 
         [HttpGet("Listar")]
         public Task<IActionResult> Listar() => ProxyGetAsync("Listar");
@@ -63,9 +94,9 @@ namespace checklist.Controllers.Curvas
         [HttpPost("Reactivar")]
         public Task<IActionResult> Reactivar() => ProxyPostQueryAsync("Reactivar");
 
-        private async Task<IActionResult> ProxyGetAsync(string actionName)
+        private async Task<IActionResult> ProxyGetAsync(string actionName, string apiController = "CurvasCatalogo")
         {
-            using HttpRequestMessage request = CreateApiRequest(HttpMethod.Get, actionName);
+            using HttpRequestMessage request = CreateApiRequest(HttpMethod.Get, actionName, apiController);
             return await SendAsync(request);
         }
 
@@ -75,23 +106,23 @@ namespace checklist.Controllers.Curvas
             return await SendAsync(request);
         }
 
-        private async Task<IActionResult> ProxyJsonAsync(HttpMethod method, string actionName)
+        private async Task<IActionResult> ProxyJsonAsync(HttpMethod method, string actionName, string apiController = "CurvasCatalogo")
         {
-            using HttpRequestMessage request = CreateApiRequest(method, actionName);
+            using HttpRequestMessage request = CreateApiRequest(method, actionName, apiController);
             string body = await ReadBodyAsync();
             JsonObject payload = string.IsNullOrWhiteSpace(body) ? new JsonObject() : JsonNode.Parse(body) as JsonObject ?? new JsonObject();
             request.Content = new StringContent(payload.ToJsonString(ProxyJsonOptions), Encoding.UTF8, "application/json");
             return await SendAsync(request);
         }
 
-        private HttpRequestMessage CreateApiRequest(HttpMethod method, string actionName)
+        private HttpRequestMessage CreateApiRequest(HttpMethod method, string actionName, string apiController = "CurvasCatalogo")
         {
-            HttpRequestMessage request = new(method, BuildApiUrl(actionName));
+            HttpRequestMessage request = new(method, BuildApiUrl(actionName, apiController));
             AddProxyHeaders(request);
             return request;
         }
 
-        private string BuildApiUrl(string actionName)
+        private string BuildApiUrl(string actionName, string apiController = "CurvasCatalogo")
         {
             List<KeyValuePair<string, string?>> query = new();
             foreach (var item in Request.Query)
@@ -110,7 +141,7 @@ namespace checklist.Controllers.Curvas
             query.Add(new KeyValuePair<string, string?>("idEmpresa", ResolveIdEmpresa()));
             query.Add(new KeyValuePair<string, string?>("empresaKey", ResolveEmpresa()));
             string queryString = QueryString.Create(query).ToUriComponent();
-            return $"{Utilerias.UrlBase}api/CurvasCatalogo/{actionName}{queryString}";
+            return $"{Utilerias.UrlBase}api/{apiController}/{actionName}{queryString}";
         }
 
         private void AddProxyHeaders(HttpRequestMessage request)
@@ -151,7 +182,7 @@ namespace checklist.Controllers.Curvas
             return await reader.ReadToEndAsync();
         }
 
-        private async Task<bool> HasCurvasAccessAsync()
+        private async Task<bool> HasCurvasAccessAsync(string permissionCode, bool requireWrite = false)
         {
             string idEmpresa = ResolveIdEmpresa();
             string empresa = ResolveEmpresa();
@@ -182,9 +213,12 @@ namespace checklist.Controllers.Curvas
             }
 
             string permisos = role?["permisos"]?.GetValue<string>() ?? role?["Permisos"]?.GetValue<string>() ?? string.Empty;
-            JsonNode? permission = FindPermission(JsonNode.Parse(permisos), CurvasCatalogoPermissionCode);
-            return permission?["Permisos"]?["Acceso"]?.GetValue<int>() == 1 ||
-                   permission?["permisos"]?["acceso"]?.GetValue<int>() == 1;
+            JsonNode? permission = FindPermission(JsonNode.Parse(permisos), permissionCode);
+            bool hasAccess = permission?["Permisos"]?["Acceso"]?.GetValue<int>() == 1 ||
+                             permission?["permisos"]?["acceso"]?.GetValue<int>() == 1;
+            if (!hasAccess || !requireWrite) return hasAccess;
+            return permission?["Permisos"]?["Escritura"]?.GetValue<int>() == 1 ||
+                   permission?["permisos"]?["escritura"]?.GetValue<int>() == 1;
         }
 
         private async Task<string?> ResolveCurrentRoleIdAsync(string idEmpresa, string empresa, string cadena)

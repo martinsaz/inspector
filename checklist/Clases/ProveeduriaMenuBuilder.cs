@@ -13,6 +13,8 @@ namespace checklist.Clases
         private const string ProductosServiciosUnidadesPermissionCode = "05001005";
         private const string ProductosServiciosColeccionesPermissionCode = "05001006";
         private const string ProductosServiciosEtiquetasPermissionCode = "05001007";
+        private const string ListaPreciosPermissionCode = "05001008";
+        private const string ListaPreciosAdministrarPermissionCode = "05001009";
         private const string OrdenesCompraPermissionCode = "05003000";
         private const string OrdenesCompraNuevaPermissionCode = "05003001";
         private const string OrdenesCompraReportePermissionCode = "05003002";
@@ -21,6 +23,7 @@ namespace checklist.Clases
         private const string RecepcionReportePermissionCode = "05004002";
         private const string CurvasPermissionCode = "05005000";
         private const string CurvasCatalogoPermissionCode = "05005001";
+        private const string CurvasSiembraPermissionCode = "05005002";
         private const bool RecepcionUiDisponible = false;
 
         public static string BuildForSuperAdmin()
@@ -68,6 +71,15 @@ namespace checklist.Clases
                                         new Opciones { Opcion = ProductosServiciosColeccionesPermissionCode, Permisos = AccessWrite() },
                                         new Opciones { Opcion = ProductosServiciosEtiquetasPermissionCode, Permisos = AccessWrite() }
                                     }
+                                },
+                                new Opciones
+                                {
+                                    Opcion = ListaPreciosPermissionCode,
+                                    Permisos = AccessOnly(),
+                                    Hijos =
+                                    {
+                                        new Opciones { Opcion = ListaPreciosAdministrarPermissionCode, Permisos = AccessWrite() }
+                                    }
                                 }
                             }
                         },
@@ -97,7 +109,8 @@ namespace checklist.Clases
                             Permisos = AccessOnly(),
                             Hijos =
                             {
-                                new Opciones { Opcion = CurvasCatalogoPermissionCode, Permisos = AccessWrite() }
+                                new Opciones { Opcion = CurvasCatalogoPermissionCode, Permisos = AccessWrite() },
+                                new Opciones { Opcion = CurvasSiembraPermissionCode, Permisos = AccessWrite() }
                             }
                         }
                     }
@@ -137,6 +150,7 @@ namespace checklist.Clases
             bool unidades = HasAccess(opciones, ProductosServiciosUnidadesPermissionCode);
             bool colecciones = HasAccess(opciones, ProductosServiciosColeccionesPermissionCode);
             bool etiquetas = HasAccess(opciones, ProductosServiciosEtiquetasPermissionCode);
+            bool listaPrecios = HasAccess(opciones, ListaPreciosPermissionCode);
             bool ordenesCompraNueva = HasAccess(opciones, OrdenesCompraNuevaPermissionCode);
             bool ordenesCompraReporte = HasAccess(opciones, OrdenesCompraReportePermissionCode);
             bool ordenesCompra = HasAccess(opciones, OrdenesCompraPermissionCode) || ordenesCompraNueva || ordenesCompraReporte;
@@ -145,7 +159,8 @@ namespace checklist.Clases
             bool recepcion = HasAccess(opciones, RecepcionPermissionCode) || recepcionNueva || recepcionReporte;
             bool recepcionMenuDisponible = RecepcionUiDisponible && recepcion;
             bool curvasCatalogo = HasAccess(opciones, CurvasCatalogoPermissionCode);
-            bool curvas = HasAccess(opciones, CurvasPermissionCode) || curvasCatalogo;
+            bool curvasSiembra = HasAccess(opciones, CurvasSiembraPermissionCode);
+            bool curvas = HasAccess(opciones, CurvasPermissionCode) || curvasCatalogo || curvasSiembra;
 
             return new ProveeduriaMenuAccess
             {
@@ -156,11 +171,13 @@ namespace checklist.Clases
                 ShowProductosServiciosUnidades = productosServicios && catalogos && unidades,
                 ShowProductosServiciosColecciones = productosServicios && catalogos && colecciones,
                 ShowProductosServiciosEtiquetas = productosServicios && catalogos && etiquetas,
+                ShowListaPrecios = productosServicios && listaPrecios,
                 ShowOrdenesCompraNueva = ordenesCompra && ordenesCompraNueva,
                 ShowOrdenesCompraReporte = ordenesCompra && ordenesCompraReporte,
                 ShowRecepcionNueva = recepcionMenuDisponible && recepcionNueva,
                 ShowRecepcionReporte = recepcionMenuDisponible && recepcionReporte,
-                ShowCurvasCatalogo = curvas && curvasCatalogo
+                ShowCurvasCatalogo = curvas && curvasCatalogo,
+                ShowCurvasSiembra = curvas && curvasSiembra
             };
         }
 
@@ -207,6 +224,10 @@ namespace checklist.Clases
                 sb.Append(@"</div>");
                 sb.Append(@"</div>");
             }
+            if (access.ShowListaPrecios)
+            {
+                sb.Append(@"<div id=""menu-productos-servicios-lista-precios"" class=""menu-item""> <a class=""menu-link"" href=""/ListaPrecios/Index""> <span class=""menu-bullet""> <span class=""bullet bullet-dot""></span> </span> <span class=""menu-title"">Lista de Precios</span> </a> </div>");
+            }
             sb.Append(@"</div>");
             sb.Append(@"</div>");
         }
@@ -224,6 +245,10 @@ namespace checklist.Clases
             if (access.ShowCurvasCatalogo)
             {
                 sb.Append(@"<div id=""menu-proveeduria-curvas-catalogo"" class=""menu-item""> <a class=""menu-link"" href=""/Proveeduria/Curvas/Catalogo""> <span class=""menu-bullet""> <span class=""bullet bullet-dot""></span> </span> <span class=""menu-title"">Catálogo de Curvas</span> </a> </div>");
+            }
+            if (access.ShowCurvasSiembra)
+            {
+                sb.Append(@"<div id=""menu-proveeduria-curvas-siembra"" class=""menu-item""> <a class=""menu-link"" href=""/Proveeduria/Curvas/Siembra""> <span class=""menu-bullet""> <span class=""bullet bullet-dot""></span> </span> <span class=""menu-title"">Siembra de Curvas</span> </a> </div>");
             }
             sb.Append(@"</div>");
             sb.Append(@"</div>");
@@ -378,15 +403,17 @@ namespace checklist.Clases
         public bool ShowProductosServiciosUnidades { get; init; }
         public bool ShowProductosServiciosColecciones { get; init; }
         public bool ShowProductosServiciosEtiquetas { get; init; }
+        public bool ShowListaPrecios { get; init; }
         public bool ShowOrdenesCompraNueva { get; init; }
         public bool ShowOrdenesCompraReporte { get; init; }
         public bool ShowRecepcionNueva { get; init; }
         public bool ShowRecepcionReporte { get; init; }
         public bool ShowCurvasCatalogo { get; init; }
-        public bool ShowProductosServicios => ShowProductosServiciosAbc || ShowProductosServiciosCatalogos;
+        public bool ShowCurvasSiembra { get; init; }
+        public bool ShowProductosServicios => ShowProductosServiciosAbc || ShowProductosServiciosCatalogos || ShowListaPrecios;
         public bool ShowOrdenesCompra => ShowOrdenesCompraNueva || ShowOrdenesCompraReporte;
         public bool ShowRecepcion => ShowRecepcionNueva || ShowRecepcionReporte;
-        public bool ShowCurvas => ShowCurvasCatalogo;
+        public bool ShowCurvas => ShowCurvasCatalogo || ShowCurvasSiembra;
         public bool ShowModule => ShowProductosServicios || ShowOrdenesCompra || ShowRecepcion || ShowCurvas;
     }
 }
