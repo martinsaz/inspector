@@ -15,29 +15,6 @@
             </div>
         </section>
 
-        <section class="checkapp-summary-strip oc-summary-strip" id="ocKpiStrip" aria-label="Resumen de órdenes de compra">
-            <button type="button" class="checkapp-summary-card oc-summary-card is-selected" data-oc-kpi="">
-                <small>Órdenes</small>
-                <strong id="txOcKpiTotal">0</strong>
-            </button>
-            <button type="button" class="checkapp-summary-card oc-summary-card" data-oc-kpi="1">
-                <small>En captura</small>
-                <strong id="txOcKpiBorradores">0</strong>
-            </button>
-            <button type="button" class="checkapp-summary-card oc-summary-card" data-oc-kpi="2">
-                <small>Confirmadas</small>
-                <strong id="txOcKpiGeneradas">0</strong>
-            </button>
-            <button type="button" class="checkapp-summary-card oc-summary-card" data-oc-kpi="3">
-                <small>Detenidas</small>
-                <strong id="txOcKpiCanceladas">0</strong>
-            </button>
-            <article class="checkapp-summary-card oc-summary-card oc-summary-card--amount" aria-live="polite">
-                <small>Importe total</small>
-                <strong id="txOcKpiImporte">$0.00</strong>
-            </article>
-        </section>
-
         <section id="accordionFiltrosOrdenesCompra" class="checkapp-panel checkapp-accordion is-open">
             <button type="button" class="checkapp-accordion-toggle" aria-expanded="true" aria-controls="accordionFiltrosOrdenesCompraBody">
                 <div>
@@ -144,6 +121,9 @@
                                 <th>Razón social</th>
                                 <th>Sucursal</th>
                                 <th>Estado</th>
+                                <th>Ordenado</th>
+                                <th>Recibido</th>
+                                <th>Pendiente</th>
                                 <th>Fecha de orden</th>
                                 <th>Fecha de llegada</th>
                                 <th>Total</th>
@@ -236,6 +216,14 @@
                                     <small>Fecha de llegada</small>
                                     <strong id="txOcDetalleFechaLlegada">—</strong>
                                 </article>
+                                <article class="oc-detail-summary-card">
+                                    <small>Fecha mínima</small>
+                                    <strong id="txOcDetalleFechaMinima">—</strong>
+                                </article>
+                                <article class="oc-detail-summary-card">
+                                    <small>Fecha máxima</small>
+                                    <strong id="txOcDetalleFechaMaxima">—</strong>
+                                </article>
                                 <article class="oc-detail-summary-card oc-detail-summary-card--full">
                                     <small>Observaciones</small>
                                     <strong id="txOcDetalleObservaciones">—</strong>
@@ -259,8 +247,15 @@
                                             <th>Tipo</th>
                                             <th>Código</th>
                                             <th>Producto o servicio</th>
+                                            <th>Categoría</th>
+                                            <th>Marca</th>
+                                            <th>Variante</th>
+                                            <th>Presentación compra</th>
                                             <th>Unidad</th>
-                                            <th>Cantidad</th>
+                                            <th>Ordenado</th>
+                                            <th>Recibido</th>
+                                            <th>Pendiente</th>
+                                            <th>Estado</th>
                                             <th>Costo</th>
                                             <th>Subtotal</th>
                                         </tr>
@@ -283,6 +278,10 @@
                     </div>
                 </div>
                 <div class="modal-footer oc-modal-footer oc-detail-modal-footer">
+                    <a id="btOcDetalleEditar" class="checkapp-btn checkapp-btn-secondary" href="#" hidden>
+                        <i class="fa fa-pencil"></i>
+                        <span>Editar</span>
+                    </a>
                     <button id="btOcDetallePdf" type="button" class="checkapp-btn checkapp-btn-secondary" disabled>
                         <i class="fa fa-file-pdf-o"></i>
                         <span>Exportar PDF</span>

@@ -10,14 +10,9 @@
     const estadoBorrador = 1;
     const estadoGenerada = 2;
     const estadoCancelada = 3;
+    const estadoParcialmenteRecibida = 4;
+    const estadoRecibida = 5;
     const reportGridId = "ordenesCompraReporteGrid";
-
-    const stepLabels = {
-        1: "Configuración",
-        2: "Productos y servicios",
-        3: "Partidas",
-        4: "Revisar y guardar"
-    };
 
     const state = {
         pageType: pageType,
@@ -37,18 +32,10 @@
         report: {
             loading: false,
             hasSearched: false,
-            selectedEstado: "",
             accordion: null,
             grid: null,
             rows: [],
             lastQuery: "",
-            summary: {
-                total: 0,
-                borradores: 0,
-                generadas: 0,
-                canceladas: 0,
-                importe: 0
-            },
             detail: {
                 modal: null,
                 loading: false,
@@ -68,8 +55,10 @@
             searching: false,
             addingProductId: null,
             detail: null,
+            selectedSucursalIds: [],
             partidas: [],
             searchResults: [],
+            selectedProduct: null,
             partidasFilter: "",
             readOnly: false,
             maxUnlockedStep: 1,
@@ -80,16 +69,23 @@
             lastSearchKey: "",
             lastAddedProductId: null,
             lastAddedProductTimerId: 0,
-            searchSelections: {}
+            searchSelections: {},
+            preparationCollapsed: false,
+            captureRows: [],
+            captureStoreSettings: {},
+            curvasAplicables: [],
+            capturePreviewSequence: 0
         },
         ui: {
-            cancelModal: null
+            cancelModal: null,
+            captureModal: null
         }
     };
 
     document.addEventListener("DOMContentLoaded", function () {
         if (state.pageType === "editor") {
             state.ui.cancelModal = resolveModalApi("#modalOcCancelar");
+            state.ui.captureModal = resolveModalApi("#modalOcCaptura");
             initEditorPage();
             return;
         }
@@ -103,14 +99,13 @@
     function initEditorPage() {
         bindEvents();
         setTodayIfEmpty("#txOcFechaOrden");
-        setInitialDateValidationWindow();
+        setInitialLegacyDates();
         showEditorOverlay(false);
         setStatus("#txOcFormStatus", "", "");
         setStatus("#txOcBusquedaEstado", "", "");
         setStatus("#txOcCancelarStatus", "", "");
         renderSearchResults([]);
         renderPartidas();
-        renderReview();
         renderWizard();
 
         Promise.resolve()
@@ -146,15 +141,24 @@
         $("#btOcPaso3Anterior").on("click", function () {
             goToStep(2, false);
         });
-        $("#btOcPaso3Buscar").on("click", function () {
-            goToStep(2, false);
-        });
-        $("#btOcPaso3Siguiente").on("click", function () {
-            goToStep(4, true);
-        });
         $("#btOcPaso4Anterior").on("click", function () {
             goToStep(3, false);
         });
+        $("#btOcPaso5Anterior").on("click", function () {
+            goToStep(4, false);
+        });
+        $("#btOcPaso5Buscar").on("click", function () {
+            state.editor.selectedProduct = null;
+            renderCapture();
+            goToStep(3, false);
+        });
+        $("#btOcEditarPreparacion").on("click", function () {
+            state.editor.preparationCollapsed = false;
+            renderPreparation();
+            scrollToStep(1);
+        });
+        $("#btOcAbrirCaptura").on("click", openCaptureModal);
+        $("#btOcAgregarPartida").on("click", addPartidaFromCapture);
 
         $("#btOcLimpiarBusquedaProductoServicio").on("click", clearSearchProductosServicios);
         $("#btOcGuardar").on("click", saveDraft);
@@ -178,18 +182,40 @@
             renderPartidas();
         });
 
-        $("#cbOcRazonSocial").on("change", function () {
-            syncSucursalesByRazonSocial();
+        $("#cbOcSucursal").on("change", function () {
+            const selected = String($(this).val() || "");
+            if (selected === "all") {
+                state.editor.selectedSucursalIds = state.combos.sucursales.map(function (item) { return normalizeGuid(item.id); }).filter(Boolean);
+            } else {
+                const id = normalizeGuid(selected);
+                if (id && state.editor.selectedSucursalIds.indexOf(id) < 0) state.editor.selectedSucursalIds.push(id);
+            }
+            renderSucursalSelector();
+            syncRazonSocialFromSucursales();
+            renderCaptureDestinationOptions();
+            state.editor.selectedProduct = null;
+            state.editor.selectedVariantId = null;
+            state.editor.captureRows = [];
+            renderCapture();
             clearFieldError(this);
             refreshWizardState();
         });
 
-        $("#cbOcSucursal, #cbOcProveedor, #cbOcBuscarTipo").on("change", function () {
+        $("#cbOcProveedor, #cbOcBuscarTipo, #ckOcSoloProveedor").on("change", function () {
             clearFieldError(this);
+            state.editor.selectedProduct = null;
+            state.editor.selectedVariantId = null;
+            state.editor.captureRows = [];
+            state.editor.searchSelections = {};
+            state.editor.lastSearchKey = "";
+            renderCapture();
             refreshWizardState();
+            if (String($("#txOcBuscarProductoServicio").val() || "").trim()) {
+                runImmediateSearch();
+            }
         });
 
-        $("#txOcFechaOrden, #txOcFechaLlegada, #txOcFechaMinima, #txOcFechaMaxima, #txOcObservaciones").on("input change", function () {
+        $("#txOcFechaOrden, #txOcFechaLlegada, #txOcFechaMinima, #txOcFechaMaxima, #txOcFolioReferencia, #txOcObservaciones").on("input change", function () {
             clearFieldError(this);
             syncDateValidationWindow(this.id);
             refreshWizardState();
@@ -200,23 +226,53 @@
             setStatus("#txOcCancelarStatus", "", "");
         });
 
-        $("#grOcResultadosBusqueda").on("click", "[data-oc-add-item]", function () {
-            const id = $(this).data("ocAddItem");
+        $("#grOcResultadosBusqueda").on("click", "[data-oc-card-item]", function () {
+            const productId = $(this).data("ocCardItem");
             const item = state.editor.searchResults.find(function (entry) {
-                return String(entry.id) === String(id);
+                return String(entry.id) === String(productId);
             });
 
             if (!item || state.editor.readOnly || state.editor.addingProductId) {
                 return;
             }
 
-            addPartidaFromSearch(item);
+            addPartidaFromSearch(item, null);
+        }).on("keydown", "[data-oc-card-item]", function (event) {
+            if (event.key !== "Enter" && event.key !== " ") return;
+            event.preventDefault();
+            $(this).trigger("click");
         });
 
-        $("#grOcResultadosBusqueda").on("change", "[data-oc-variant-for], [data-oc-presentation-for]", function () {
-            rememberSearchSelection($(this).data("ocVariantFor") || $(this).data("ocPresentationFor"));
-            renderSearchResults(state.editor.searchResults);
+        $("#panelOcCaptureRows").on("change input", "[data-capture-qty], [data-capture-presentation]", function () {
+            const key = String($(this).data("captureQty") || $(this).data("capturePresentation") || "");
+            scheduleCapturePreview(key);
+        }).on("change", "[data-capture-select]", function () {
+            const row = findCaptureRow($(this).data("captureSelect"));
+            if (row) row.selected = $(this).prop("checked");
+        }).on("click", "[data-capture-store-mode]", function () {
+            applyCaptureModeToStore($(this).data("captureStore"), Number($(this).data("captureStoreMode")));
+        }).on("input change", "[data-capture-base]", function () {
+            const idSucursal = normalizeGuid($(this).data("captureBase"));
+            const settings = getCaptureStoreSettings(idSucursal);
+            settings.baseQuantity = Math.max(0, roundQuantity(toNumber($(this).val())));
+        }).on("change", "[data-capture-curve]", function () {
+            getCaptureStoreSettings($(this).data("captureCurve")).selectedCurveId = normalizeGuid($(this).val());
+        }).on("click", "[data-capture-store-action]", function () {
+            applyCaptureStoreAction($(this).data("captureStoreAction"), $(this).data("captureStore"));
+        }).on("click", "[data-capture-equal]", function () {
+            applyEqualQuantityToStore($(this).data("captureEqual"));
+        }).on("click", "[data-capture-step]", function () {
+            stepCaptureQuantity($(this).data("captureKey"), Number($(this).data("captureStep")));
         });
+
+        $("#panelOcCaptureGlobal").on("click", "[data-capture-global-mode]", function () {
+            confirmAndApplyCaptureMode(Number($(this).data("captureGlobalMode")));
+        });
+
+        $("#cbOcCapturaVariante").on("change", renderCapturePresentationOptions);
+        $("#cbOcCapturaSucursal").on("change", function () { clearFieldError(this); });
+        $("#cbOcCapturaPresentacion").on("change", syncCaptureValues);
+        $("#txOcCapturaCantidad, #txOcCapturaCosto").on("input", function () { clearFieldError(this); });
 
         $("#grOcPartidas").on("input", "[data-oc-qty]", function () {
             updatePartidaField($(this).data("ocQty"), "cantidadCompra", $(this).val());
@@ -228,6 +284,30 @@
 
         $("#grOcPartidas").on("click", "[data-oc-remove-item]", function () {
             removePartida($(this).data("ocRemoveItem"));
+        });
+
+        $("#grOcPartidas").on("click", "[data-oc-edit-item]", function () {
+            const uid = String($(this).data("ocEditItem") || "");
+            const input = document.querySelector("[data-oc-qty='" + cssEscape(uid) + "']");
+            if (input) { input.focus(); input.select(); }
+        });
+
+        $("#panelOcSucursalChips").on("click", "[data-oc-remove-branch]", function () {
+            if (state.editor.readOnly) return;
+            const id = normalizeGuid($(this).data("ocRemoveBranch"));
+            if (state.editor.partidas.some(function (partida) { return normalizeGuid(partida.idSucursal) === id; })) {
+                showError("Quita primero las partidas de esta sucursal.");
+                return;
+            }
+            state.editor.selectedSucursalIds = state.editor.selectedSucursalIds.filter(function (value) { return value !== id; });
+            renderSucursalSelector();
+            syncRazonSocialFromSucursales();
+            renderCaptureDestinationOptions();
+            state.editor.selectedProduct = null;
+            state.editor.selectedVariantId = null;
+            state.editor.captureRows = [];
+            renderCapture();
+            refreshWizardState();
         });
 
         $("#modalOcCancelar").on("hidden.bs.modal", function () {
@@ -270,7 +350,7 @@
         populateSelect("#cbOcProveedor", state.combos.proveedores, {
             emptyText: "Selecciona un proveedor"
         });
-        syncSucursalesByRazonSocial();
+        renderSucursalSelector();
     }
 
     function syncSucursalesByRazonSocial() {
@@ -289,6 +369,70 @@
         if (currentValue && filtered.some(function (item) { return String(item.id) === String(currentValue); })) {
             $("#cbOcSucursal").val(currentValue);
         }
+    }
+
+    function syncRazonSocialFromSucursales() {
+        const idSucursal = getSelectedSucursalIds()[0] || "";
+        const sucursal = state.combos.sucursales.find(function (item) {
+            return String(item.id) === String(idSucursal);
+        });
+        const idRazonSocial = normalizeGuid(sucursal && (sucursal.idRazonSocial || sucursal.idPadre));
+        $("#cbOcRazonSocial").val(idRazonSocial || "");
+    }
+
+    function getSelectedSucursalIds() {
+        return state.editor.selectedSucursalIds.slice();
+    }
+
+    function getSucursalById(id) {
+        return state.combos.sucursales.find(function (item) { return String(item.id) === String(id); }) || null;
+    }
+
+    function getSelectedSucursalNames() {
+        return getSelectedSucursalIds().map(function (id) {
+            const item = getSucursalById(id);
+            return item ? ([item.codigo, item.nombre].filter(Boolean).join(" · ") || "Sucursal") : "Sucursal";
+        });
+    }
+
+    function renderSucursalSelector() {
+        const select = document.querySelector("#cbOcSucursal");
+        if (!select) return;
+        const selected = new Set(state.editor.selectedSucursalIds);
+        const available = state.combos.sucursales.filter(function (item) { return !selected.has(normalizeGuid(item.id)); });
+        select.innerHTML = "";
+        appendOption(select, "", available.length ? "Agrega una sucursal" : "Todas las sucursales seleccionadas");
+        if (available.length > 1) appendOption(select, "all", "Seleccionar todas");
+        available.forEach(function (item) {
+            appendOption(select, item.id, [item.codigo, item.nombre].filter(Boolean).join(" · "));
+        });
+        select.value = "";
+        select.disabled = state.editor.readOnly || available.length === 0;
+
+        const chips = document.querySelector("#panelOcSucursalChips");
+        if (!chips) return;
+        chips.innerHTML = state.editor.selectedSucursalIds.map(function (id) {
+            const item = getSucursalById(id);
+            const label = item ? ([item.codigo, item.nombre].filter(Boolean).join(" · ")) : "Sucursal";
+            return "<span class='oc-destination-chip'>" + escapeHtml(label) +
+                "<button type='button' data-oc-remove-branch='" + escapeHtml(id) + "' aria-label='Quitar " + escapeHtml(label) + "'" +
+                (state.editor.readOnly ? " disabled" : "") + "><i class='fa fa-times'></i></button></span>";
+        }).join("");
+    }
+
+    function renderCaptureDestinationOptions() {
+        const select = document.querySelector("#cbOcCapturaSucursal");
+        if (!select) { return; }
+        const previous = String(select.value || "");
+        const ids = getSelectedSucursalIds();
+        select.innerHTML = "";
+        if (ids.length > 1) appendOption(select, "all", "Todas las tiendas");
+        ids.forEach(function (id) {
+            const item = getSucursalById(id);
+            appendOption(select, id, item ? ([item.codigo, item.nombre].filter(Boolean).join(" · ")) : "Sucursal");
+        });
+        if (Array.from(select.options).some(function (o) { return o.value === previous; })) select.value = previous;
+        select.disabled = state.editor.readOnly || ids.length === 0;
     }
 
     function searchProductosServicios() {
@@ -370,47 +514,40 @@
     }
 
     function renderSearchResults(items) {
-        const tbody = document.querySelector("#grOcResultadosBusqueda tbody");
-        if (!tbody) {
+        const container = document.querySelector("#grOcResultadosBusqueda");
+        if (!container) {
             return;
         }
 
-        tbody.innerHTML = "";
+        container.innerHTML = "";
         $("#txOcBusquedaResultadosCount").text((Array.isArray(items) ? items.length : 0) + " resultados");
 
         if (!Array.isArray(items) || !items.length) {
-            const row = document.createElement("tr");
-            row.innerHTML = "<td colspan='8'><div class='oc-empty-state'>No hay resultados para mostrar.</div></td>";
-            tbody.appendChild(row);
+            container.innerHTML = "<div class='oc-empty-state'>No hay resultados para mostrar.</div>";
             return;
         }
 
         items.forEach(function (item) {
-            const isAdding = String(state.editor.addingProductId || "") === String(item.id || "");
-            const selection = resolveSearchSelection(item);
-            const presentation = findSelectedPresentation(item, selection.idPresentacionCompra);
-            const variant = findSelectedVariant(item, selection.idVariante);
-            const selectedKey = buildPartidaKey(item.id, variant ? variant.id : "", presentation ? presentation.id : "");
-            const wasAdded = String(state.editor.lastAddedProductId || "") === String(selectedKey);
-            const factor = presentation ? Number(presentation.factorConversionBase || 1) : 1;
-            const unidadCompra = presentation
-                ? resolveUnidadDisplay(presentation.unidadCompra, presentation.unidadCompraAbreviatura)
-                : resolveUnidadDisplay(item.unidad, item.abreviatura);
-            const costo = variant && variant.costoActual !== null && variant.costoActual !== undefined
-                ? variant.costoActual
-                : item.costoActual;
-            const tr = document.createElement("tr");
-            tr.innerHTML = [
-                "<td><button type='button' class='checkapp-btn " + (wasAdded ? "checkapp-btn-primary" : "checkapp-btn-secondary") + " checkapp-btn-sm' data-oc-add-item='" + escapeHtml(item.id) + "'" + (state.editor.readOnly || state.editor.addingProductId ? " disabled" : "") + "><i class='fa " + (wasAdded ? "fa-check" : "fa-plus") + "'></i><span>" + (isAdding ? "Agregando..." : (wasAdded ? "✔ Producto agregado" : "Agregar")) + "</span></button></td>",
-                "<td>" + escapeHtml(item.tipoNombre || "") + "</td>",
-                "<td>" + escapeHtml(item.codigo || "") + "</td>",
-                "<td><div class='oc-line-title'><strong>" + escapeHtml(item.nombre || "") + "</strong><small title='" + escapeHtml(toPlainText(item.descripcion || "")) + "'>" + escapeHtml(toPlainText(item.descripcion || "")) + "</small></div></td>",
-                "<td>" + buildVariantSelectHtml(item, selection.idVariante) + "</td>",
-                "<td>" + buildPresentationSelectHtml(item, selection.idVariante, selection.idPresentacionCompra, unidadCompra) + "</td>",
-                "<td><span class='oc-factor-pill'>" + escapeHtml(formatFactor(factor)) + "</span></td>",
-                "<td>" + formatCurrency(costo || 0) + "</td>"
+            const card = document.createElement("article");
+            card.className = "oc-product-card";
+            card.tabIndex = state.editor.readOnly ? -1 : 0;
+            card.setAttribute("role", "button");
+            card.setAttribute("data-oc-card-item", item.id);
+            card.setAttribute("aria-label", "Seleccionar " + (item.nombre || item.codigo || "concepto"));
+            const variants = Array.isArray(item.variantes) ? item.variantes : [];
+            const presentations = Array.isArray(item.presentacionesCompra) ? item.presentacionesCompra : [];
+            const isProduct = Number(item.tipo || 0) === 1;
+            const variantNames = variants.map(function (variant) { return variant.nombre || variant.sku || variant.claveCombinacion || "Variante"; });
+            const presentationNames = presentations.map(function (presentation) { return presentation.nombre || "Presentación"; });
+            card.innerHTML = [
+                "<div class='oc-product-card-head'><div><strong>" + escapeHtml(item.nombre || "Sin nombre") + "</strong><span class='oc-type-badge'>" + escapeHtml(item.tipoNombre || "Concepto") + "</span></div><code>" + escapeHtml(item.codigo || "Sin código") + "</code></div>",
+                item.descripcion ? "<p>" + escapeHtml(toPlainText(item.descripcion)) + "</p>" : "",
+                "<div class='oc-product-facts'>" + (item.categoria ? "<span><b>Categoría:</b> " + escapeHtml(item.categoria) + "</span>" : "") + (item.marca ? "<span><b>Marca:</b> " + escapeHtml(item.marca) + "</span>" : "") + (isProduct ? "<span><b>Unidad:</b> " + escapeHtml(resolveUnidadDisplay(item.unidad, item.abreviatura)) + "</span>" : "") + "</div>",
+                isProduct && variantNames.length ? "<div class='oc-product-variants'><b>Variantes:</b><span>" + escapeHtml(variantNames.join(", ")) + "</span></div>" : "",
+                isProduct && presentationNames.length ? "<div class='oc-product-variants'><b>Presentaciones de compra:</b><span>" + escapeHtml(presentationNames.join(", ")) + "</span></div>" : "",
+                isProduct ? "<strong class='oc-product-card-instruction'>SELECCIONA EL PRODUCTO PARA CARGAR VARIANTES Y PRESENTACIONES</strong>" : "<strong class='oc-product-card-instruction'>SELECCIONA EL SERVICIO PARA CAPTURARLO</strong>"
             ].join("");
-            tbody.appendChild(tr);
+            container.appendChild(card);
         });
     }
 
@@ -502,82 +639,473 @@
         const selectedVariantId = normalizeGuid(idVariante);
         return (Array.isArray(item.presentacionesCompra) ? item.presentacionesCompra : []).filter(function (presentation) {
             const presentationVariantId = normalizeGuid(presentation.idVariante);
-            return !presentationVariantId || !selectedVariantId || presentationVariantId === selectedVariantId;
+            return selectedVariantId
+                ? presentationVariantId === selectedVariantId
+                : !presentationVariantId;
         });
     }
 
-    function buildPartidaKey(idProductoServicio, idVariante, idPresentacionCompra) {
+    function resolveManualCaptureBaseQuantity(item, row) {
+        const presentation = findSelectedPresentation(item, row.idPresentacionCompra);
+        const factor = presentation ? Math.max(toNumber(presentation.factorConversionBase), 1) : 1;
+        return roundQuantity(toNumber(row.cantidad) * factor);
+    }
+
+    function buildPartidaKey(idSucursal, idProductoServicio, idVariante, idPresentacionCompra) {
         return [
+            normalizeGuid(idSucursal),
             normalizeGuid(idProductoServicio),
             normalizeGuid(idVariante) || "base",
             normalizeGuid(idPresentacionCompra) || "base"
         ].join(":");
     }
 
-    function addPartidaFromSearch(item) {
-        const selection = resolveSearchSelection(item);
-        const variant = findSelectedVariant(item, selection.idVariante);
-        const presentation = findSelectedPresentation(item, selection.idPresentacionCompra);
+    function addPartidaFromSearch(item, variantId) {
+        state.editor.selectedProduct = item;
+        state.editor.selectedVariantId = normalizeGuid(variantId);
+        renderCapture();
+        setStatus("#txOcBusquedaEstado", "success", "Concepto seleccionado. Completa sucursales, cantidades y costo.");
+        state.editor.maxUnlockedStep = Math.max(state.editor.maxUnlockedStep || 1, 4);
+        goToStep(4, false);
+        openCaptureModal();
+    }
 
-        if (Number(item.tipo || 0) === 1 && Array.isArray(item.variantes) && item.variantes.length && !variant) {
-            setStatus("#txOcBusquedaEstado", "danger", "Selecciona una variante para agregar este producto.");
+    function renderCapture() {
+        const item = state.editor.selectedProduct;
+        $("#txOcCapturaTipo").text(item ? (item.tipoNombre || "Producto / servicio") : "Producto / servicio");
+        $("#txOcCapturaNombre").text(item ? (item.nombre || "Sin nombre") : "Selecciona un concepto en el paso anterior.");
+        $("#txOcCapturaCodigo").text(item ? (item.codigo || "Sin código") : "—");
+
+        renderCaptureDestinationOptions();
+        $("#btOcAbrirCaptura").prop("disabled", !item || state.editor.readOnly);
+    }
+
+    function appendOption(select, value, text) {
+        const option = document.createElement("option");
+        option.value = value || "";
+        option.textContent = text || "";
+        select.appendChild(option);
+    }
+
+    function renderCapturePresentationOptions() {
+        const item = state.editor.selectedProduct;
+        const presentationSelect = document.querySelector("#cbOcCapturaPresentacion");
+        if (!presentationSelect) { return; }
+        presentationSelect.innerHTML = "";
+        if (!item || Number(item.tipo || 0) !== 1) {
+            appendOption(presentationSelect, "", item ? "No aplica" : "Selecciona un concepto");
+            presentationSelect.disabled = true;
+            syncCaptureValues();
             return;
         }
 
-        state.editor.addingProductId = item.id;
-        renderSearchResults(state.editor.searchResults);
+        const idVariante = normalizeGuid($("#cbOcCapturaVariante").val());
+        const presentations = getPresentationsForVariant(item, idVariante);
+        appendOption(presentationSelect, "", "Base directa");
+        presentations.forEach(function (presentation) {
+            appendOption(presentationSelect, presentation.id, presentation.nombre + " · " + formatFactor(presentation.factorConversionBase || 1));
+        });
+        presentationSelect.disabled = state.editor.readOnly || !presentations.length;
 
-        window.setTimeout(function () {
-            const factor = presentation ? Number(presentation.factorConversionBase || 1) : 1;
-            const uid = buildPartidaKey(item.id, variant ? variant.id : "", presentation ? presentation.id : "");
-            const existing = state.editor.partidas.find(function (partida) {
-                return String(partida.uid) === String(uid);
+        const variant = findSelectedVariant(item, idVariante);
+        if (variant && variant.costoActual !== null && variant.costoActual !== undefined) {
+            $("#txOcCapturaCosto").val(formatDecimalInput(variant.costoActual));
+        } else {
+            $("#txOcCapturaCosto").val(formatDecimalInput(item.costoActual || 0));
+        }
+        syncCaptureValues();
+    }
+
+    function syncCaptureValues() {
+        const item = state.editor.selectedProduct;
+        const presentation = item ? findSelectedPresentation(item, $("#cbOcCapturaPresentacion").val()) : null;
+        const factor = presentation ? Number(presentation.factorConversionBase || 1) : 1;
+        const unit = presentation
+            ? resolveUnidadDisplay(presentation.unidadCompra, presentation.unidadCompraAbreviatura)
+            : (item ? resolveUnidadDisplay(item.unidad, item.abreviatura) : "—");
+        $("#txOcCapturaUnidad").val(unit);
+        $("#txOcCapturaFactor").val(formatFactor(factor));
+    }
+
+    function openCaptureModal() {
+        const item = state.editor.selectedProduct;
+        if (!item || state.editor.readOnly || !getSelectedSucursalIds().length) { return; }
+        const isProduct = Number(item.tipo || 0) === 1;
+        const variants = isProduct && Array.isArray(item.variantes) && item.variantes.length
+            ? item.variantes.filter(function (variant) { return !state.editor.selectedVariantId || normalizeGuid(variant.id) === state.editor.selectedVariantId; })
+            : [null];
+        state.editor.captureRows = [];
+        state.editor.captureStoreSettings = {};
+        state.editor.curvasAplicables = [];
+        setStatus("#txOcCaptureStatus", "", "");
+        getSelectedSucursalIds().forEach(function (idSucursal) {
+            variants.forEach(function (variant) {
+                const key = [idSucursal, variant ? variant.id : "base"].join(":");
+                state.editor.captureRows.push({
+                    key: key,
+                    idSucursal: idSucursal,
+                    idVariante: variant ? variant.id : null,
+                    selected: true,
+                    modo: 1,
+                    cantidad: isProduct ? 0 : 1,
+                    costo: Number(variant && variant.costoActual != null ? variant.costoActual : item.costoActual || 0),
+                    idPresentacionCompra: null,
+                    idCurvaTemporal: null,
+                    preview: null,
+                    inicializando: isProduct
+                });
             });
+        });
+        state.editor.capturePreviewSequence += 1;
+        renderCaptureRows();
+        if (state.ui.captureModal) state.ui.captureModal.show();
+        if (isProduct) {
+            loadCurvasAplicables(item.id).finally(refreshCapturePreviews);
+        }
+    }
 
-            if (existing) {
-                existing.cantidadCompra = roundQuantity(existing.cantidadCompra + 1);
-                recalcPartida(existing);
-                state.editor.addingProductId = null;
-                markRecentlyAddedProduct(uid);
-                renderSearchResults(state.editor.searchResults);
-                renderPartidas(existing.uid);
-                setStatus("#txOcFormStatus", "success", "✔ Producto agregado");
+    function loadCurvasAplicables(idProductoServicio) {
+        return fetchJson("/Activos/OrdenesCompra/ObtenerCurvasAplicablesOrdenCompra?idProductoServicio=" + encodeURIComponent(idProductoServicio))
+            .then(function (items) {
+                state.editor.curvasAplicables = Array.isArray(items) ? items : [];
+                renderCaptureRows();
+            })
+            .catch(function (error) {
+                state.editor.curvasAplicables = [];
+                setStatus("#txOcCaptureStatus", "warning", "No fue posible cargar las curvas lógicas: " + resolveErrorMessage(error));
+            });
+    }
+
+    function renderCaptureRows() {
+        const item = state.editor.selectedProduct;
+        const container = document.querySelector("#panelOcCaptureRows");
+        if (!item || !container) return;
+        $("#panelOcCaptureConcept").html("<strong>" + escapeHtml(item.nombre || "") + "</strong><span>" + escapeHtml(item.codigo || "") + " · " + escapeHtml(item.tipoNombre || "") + "</span>");
+        const isProduct = Number(item.tipo || 0) === 1;
+        $("#panelOcCaptureLegend, #panelOcCaptureGlobal").prop("hidden", !isProduct);
+        const stores = getSelectedSucursalIds().map(function (idSucursal) {
+            return { idSucursal: idSucursal, rows: state.editor.captureRows.filter(function (row) { return normalizeGuid(row.idSucursal) === normalizeGuid(idSucursal); }) };
+        });
+        container.innerHTML = stores.map(function (store) {
+            return isProduct ? renderProductCaptureStore(item, store.idSucursal, store.rows) : renderServiceCaptureStore(item, store.idSucursal, store.rows[0]);
+        }).join("");
+    }
+
+    function renderProductCaptureStore(item, idSucursal, rows) {
+        const branch = getSucursalById(idSucursal);
+        const settings = getCaptureStoreSettings(idSucursal);
+        const metrics = sumCaptureMetrics(rows);
+        const previewsReady = rows.length > 0 && rows.every(function (row) { return !!row.preview; });
+        const curves = rows.filter(function (row) { return row.preview && normalizeGuid(row.preview.idCurva); }).length;
+        const curveNames = Array.from(new Set(rows.map(function (row) { return row.preview && row.preview.curvaNombre; }).filter(Boolean)));
+        const curveLabel = !previewsReady ? "Calculando…" : curves === rows.length ? "Curva configurada" : curves > 0 ? "Curva parcial" : "Sin curva configurada";
+        const hasConfiguredCurve = previewsReady && curves === rows.length;
+        const curveClass = hasConfiguredCurve ? "is-curve" : "is-pending";
+        const activeModes = Array.from(new Set(rows.map(function (row) { return Number(row.modo || 1); })));
+        const mode = activeModes.length === 1 ? activeModes[0] : 0;
+        const finalPieces = rows.reduce(function (sum, row) {
+            if (row.modo === 4) return sum;
+            return sum + Number(row.preview ? row.preview.cantidadFinalBase : row.cantidad || 0);
+        }, 0);
+        return [
+            "<article class='oc-capture-store " + curveClass + "' data-capture-store='" + escapeHtml(idSucursal) + "'>",
+            "<header class='oc-capture-store-head'><div><strong>" + escapeHtml(branch ? branch.nombre : "Sucursal") + "</strong><span>" + escapeHtml(hasConfiguredCurve ? "Curva configurada" : "Captura manual pendiente") + "</span></div><div class='oc-capture-badges'><span class='" + (hasConfiguredCurve ? "is-curve" : "is-pending") + "'>" + escapeHtml(curveLabel) + "</span><span class='is-manual'>" + escapeHtml(captureModeName(mode)) + "</span><b>" + escapeHtml(formatDecimalInput(finalPieces)) + " pzas finales</b></div></header>",
+            "<div class='oc-capture-store-summary'><span><b>Curva:</b> " + escapeHtml(curveNames.join(", ") || "—") + "</span><span><b>Variantes activas:</b> " + rows.filter(function (row) { return row.selected && row.modo !== 4; }).length + "</span><span><b>Piezas propuestas:</b> " + escapeHtml(formatDecimalInput(metrics.propuesta)) + "</span></div>",
+            curves === rows.length
+                ? "<div class='oc-capture-guidance'><span>La curva automática ya quedó resuelta para esta sucursal. Puedes ajustar cantidades sin afectar otras sucursales.</span><button type='button' data-capture-store-action='no-order' data-capture-store='" + escapeHtml(idSucursal) + "'><i class='fa fa-minus-circle'></i>No pedir</button></div>"
+                : renderCaptureCurveConfiguration(idSucursal, settings),
+            "<div class='oc-capture-store-modes' role='group' aria-label='Modo de captura para " + escapeHtml(branch ? branch.nombre : "sucursal") + "'>",
+            renderCaptureModeButton(idSucursal, 1, mode), renderCaptureModeButton(idSucursal, 2, mode), renderCaptureModeButton(idSucursal, 3, mode), renderCaptureModeButton(idSucursal, 4, mode),
+            "<label class='oc-capture-base'><span>Cantidad base</span><input type='number' min='0' step='1' data-capture-base='" + escapeHtml(idSucursal) + "' value='" + escapeHtml(formatDecimalInput(settings.baseQuantity)) + "'></label>",
+            "</div>",
+            "<div class='oc-capture-quick-actions'><button type='button' data-capture-equal='" + escapeHtml(idSucursal) + "'><i class='fa fa-columns'></i>IGUALES EN ESTA SUCURSAL</button><button type='button' data-capture-store-action='reset' data-capture-store='" + escapeHtml(idSucursal) + "'><i class='fa fa-undo'></i>RESTABLECER SUGERENCIA</button></div>",
+            renderCaptureMetrics(metrics),
+            "<div class='oc-capture-table-wrap'><table class='oc-capture-table'><thead><tr><th>Variante / presentación</th><th>Curva</th><th>Existencia</th><th>Tránsito</th><th>Hueco</th><th>Copete</th><th>Pedido</th><th>Estado</th></tr></thead><tbody>",
+            rows.map(function (row) { return renderProductCaptureRow(item, row); }).join(""),
+            "</tbody></table></div></article>"
+        ].join("");
+    }
+
+    function renderCaptureCurveConfiguration(idSucursal, settings) {
+        const options = ["<option value=''>Selecciona una curva</option>"].concat(state.editor.curvasAplicables.map(function (curve) {
+            const label = [curve.codigo, curve.nombre].filter(Boolean).join(" · ");
+            return "<option value='" + escapeHtml(curve.id) + "'" + (normalizeGuid(settings.selectedCurveId) === normalizeGuid(curve.id) ? " selected" : "") + ">" + escapeHtml(label || "Curva") + "</option>";
+        }));
+        return [
+            "<div class='oc-capture-curve-config'>",
+            "<label><span>Curva lógica</span><select data-capture-curve='" + escapeHtml(idSucursal) + "'>" + options.join("") + "</select></label>",
+            "<div class='oc-capture-curve-actions'>",
+            "<button type='button' class='is-primary' data-capture-store-action='apply-curve' data-capture-store='" + escapeHtml(idSucursal) + "'><i class='fa fa-magic'></i>APLICAR CURVA</button>",
+            "<button type='button' data-capture-store-action='manual' data-capture-store='" + escapeHtml(idSucursal) + "'><i class='fa fa-pencil'></i>CAPTURA MANUAL</button>",
+            "<button type='button' data-capture-store-action='manual-clear' data-capture-store='" + escapeHtml(idSucursal) + "'><i class='fa fa-times-rectangle'></i>CAPTURA MANUAL Y LIMPIAR</button>",
+            "<button type='button' data-capture-store-action='no-order' data-capture-store='" + escapeHtml(idSucursal) + "'><i class='fa fa-minus-circle'></i>NO PEDIR</button>",
+            "</div></div>"
+        ].join("");
+    }
+
+    function renderServiceCaptureStore(item, idSucursal, row) {
+        if (!row) return "";
+        const branch = getSucursalById(idSucursal);
+        return [
+            "<article class='oc-capture-service' data-capture-store='" + escapeHtml(idSucursal) + "'>",
+            "<header><label class='oc-capture-select'><input type='checkbox' data-capture-select='" + escapeHtml(row.key) + "'" + (row.selected ? " checked" : "") + "><span>" + escapeHtml(branch ? branch.nombre : "Sucursal") + "</span></label><strong>Servicio</strong></header>",
+            "<div class='oc-capture-service-fields'>",
+            captureNumberField("Cantidad", "data-capture-qty", row.key, row.cantidad, "0.0001", false),
+            "<div class='oc-capture-cost-info'><span>Costo asociado</span><strong>" + escapeHtml(formatCurrency(row.costo)) + "</strong></div>",
+            "</div></article>"
+        ].join("");
+    }
+
+    function renderProductCaptureRow(item, row) {
+        const variant = findSelectedVariant(item, row.idVariante);
+        const presentations = getPresentationsForVariant(item, row.idVariante);
+        const preview = row.preview || {};
+        const disabled = row.modo === 4;
+        const options = presentations.map(function (presentation) {
+            return "<option value='" + escapeHtml(presentation.id) + "'" + (normalizeGuid(row.idPresentacionCompra) === normalizeGuid(presentation.id) ? " selected" : "") + ">" + escapeHtml(presentation.nombre) + " · x" + escapeHtml(formatFactor(presentation.factorConversionBase || 1)) + "</option>";
+        }).join("");
+        const presentationControl = presentations.length
+            ? "<select aria-label='Presentación de compra' data-capture-presentation='" + escapeHtml(row.key) + "'" + (disabled ? " disabled" : "") + "><option value=''>Selecciona presentación</option>" + options + "</select>"
+            : "<span class='oc-capture-direct'>Base directa</span>";
+        const stateLabel = capturePreviewState(row);
+        return [
+            "<tr class='" + (disabled ? "is-no-order" : "") + "' data-capture-row='" + escapeHtml(row.key) + "'>",
+            "<td><div class='oc-capture-variant'><label class='oc-capture-select'><input type='checkbox' data-capture-select='" + escapeHtml(row.key) + "'" + (row.selected ? " checked" : "") + (disabled ? " disabled" : "") + "><span>" + escapeHtml(variant ? (variant.nombre || variant.sku || "Variante") : "Producto base") + "</span></label><small>Costo asociado: " + escapeHtml(formatCurrency(row.costo)) + "</small>" + presentationControl + "</div></td>",
+            metricCell(preview.curvaObjetivoBase), metricCell(preview.existenciaBase), metricCell(preview.transitoBase), metricCell(preview.huecoBase), metricCell(preview.copeteBase),
+            "<td>" + captureNumberField("Pedido", "data-capture-qty", row.key, row.cantidad, "0.0001", disabled) + "</td>",
+            "<td><span class='oc-capture-state " + escapeHtml(stateLabel.className) + "'>" + escapeHtml(stateLabel.text) + "</span></td></tr>"
+        ].join("");
+    }
+
+    function renderCaptureModeButton(idSucursal, mode, activeMode) {
+        return "<button type='button' class='oc-capture-mode" + (mode === activeMode ? " is-active" : "") + "' data-capture-store='" + escapeHtml(idSucursal) + "' data-capture-store-mode='" + mode + "'><span class='oc-radio'></span>" + escapeHtml(captureModeName(mode)) + "</button>";
+    }
+
+    function renderCaptureMetrics(metrics) {
+        return "<div class='oc-capture-metrics'><span>Curva objetivo <b>" + formatDecimalInput(metrics.curva) + "</b></span><span>Existencia <b>" + formatDecimalInput(metrics.existencia) + "</b></span><span>Tránsito <b>" + formatDecimalInput(metrics.transito) + "</b></span><span>Hueco <b>" + formatDecimalInput(metrics.hueco) + "</b></span><span>Copete <b>" + formatDecimalInput(metrics.copete) + "</b></span><span>Piezas propuestas <b>" + formatDecimalInput(metrics.propuesta) + "</b></span><span>Piezas finales <b>" + formatDecimalInput(metrics.final) + "</b></span></div>";
+    }
+
+    function sumCaptureMetrics(rows) {
+        return rows.reduce(function (result, row) {
+            const preview = row.preview || {};
+            result.curva += Number(preview.curvaObjetivoBase || 0);
+            result.existencia += Number(preview.existenciaBase || 0);
+            result.transito += Number(preview.transitoBase || 0);
+            result.hueco += Number(preview.huecoBase || 0);
+            result.copete += Number(preview.copeteBase || 0);
+            result.propuesta += Number(preview.cantidadPropuestaBase || 0);
+            result.final += Number(preview.cantidadFinalBase || 0);
+            return result;
+        }, { curva: 0, existencia: 0, transito: 0, hueco: 0, copete: 0, propuesta: 0, final: 0 });
+    }
+
+    function captureNumberField(label, attribute, key, value, step, disabled) {
+        return "<label class='oc-capture-number'><span>" + escapeHtml(label) + "</span><span class='oc-capture-stepper'><button type='button' data-capture-step='-1' data-capture-key='" + escapeHtml(key) + "'" + (disabled ? " disabled" : "") + ">−</button><input type='number' min='0' step='" + escapeHtml(step) + "' " + attribute + "='" + escapeHtml(key) + "' value='" + escapeHtml(formatDecimalInput(value)) + "'" + (disabled ? " disabled" : "") + "><button type='button' data-capture-step='1' data-capture-key='" + escapeHtml(key) + "'" + (disabled ? " disabled" : "") + ">+</button></span></label>";
+    }
+
+    function metricCell(value) {
+        return "<td>" + escapeHtml(value === null || value === undefined ? "—" : formatDecimalInput(value)) + "</td>";
+    }
+
+    function captureModeName(mode) {
+        return ({ 1: "Manual", 2: "Pedido inicial", 3: "Rellenar curva", 4: "No pedir" })[Number(mode || 0)] || "Mixto";
+    }
+
+    function capturePreviewState(row) {
+        if (row.modo === 4) return { text: "No pedir", className: "is-none" };
+        if (!row.preview) return { text: "Calculando", className: "is-pending" };
+        if (!normalizeGuid(row.preview.idCurva)) return { text: "Sin curva", className: "is-pending" };
+        if (Number(row.preview.huecoBase || 0) > 0) return { text: "Hueco", className: "is-gap" };
+        if (Number(row.preview.copeteBase || 0) > 0) return { text: "Copete", className: "is-over" };
+        return { text: "Curva configurada", className: "is-ok" };
+    }
+
+    function findCaptureRow(key) {
+        const normalizedKey = String(key || "");
+        return state.editor.captureRows.find(function (row) { return row.key === normalizedKey; });
+    }
+
+    function getCaptureStoreSettings(idSucursal) {
+        const id = normalizeGuid(idSucursal);
+        if (!state.editor.captureStoreSettings[id]) {
+            state.editor.captureStoreSettings[id] = { baseQuantity: 1, selectedCurveId: "" };
+        }
+        return state.editor.captureStoreSettings[id];
+    }
+
+    function applyCaptureStoreAction(action, idSucursal) {
+        const branchId = normalizeGuid(idSucursal);
+        const rows = state.editor.captureRows.filter(function (row) { return normalizeGuid(row.idSucursal) === branchId; });
+        if (!rows.length) return;
+        if (action === "apply-curve") {
+            const curveId = normalizeGuid(getCaptureStoreSettings(branchId).selectedCurveId);
+            if (!curveId) {
+                setStatus("#txOcCaptureStatus", "warning", "Selecciona una curva lógica antes de aplicarla.");
                 return;
             }
+            rows.forEach(function (row) { row.idCurvaTemporal = curveId; row.modo = 3; row.inicializando = false; });
+        } else if (action === "manual" || action === "manual-clear") {
+            rows.forEach(function (row) {
+                row.modo = 1;
+                row.idCurvaTemporal = null;
+                row.inicializando = false;
+                if (action === "manual-clear") row.cantidad = 0;
+            });
+        } else if (action === "no-order") {
+            rows.forEach(function (row) { row.modo = 4; row.cantidad = 0; row.inicializando = false; });
+        } else if (action === "reset") {
+            rows.forEach(function (row) { row.modo = normalizeGuid(row.preview && row.preview.idCurva) ? 3 : 1; row.inicializando = false; });
+        }
+        renderCaptureRows();
+        refreshCapturePreviews();
+    }
 
-            const partida = {
-                uid: uid,
-                idProductoServicio: item.id,
-                tipoProductoServicio: Number(item.tipo || 0),
-                tipoProductoServicioNombre: item.tipoNombre || "",
-                idVariante: variant ? variant.id : null,
-                varianteSnapshot: variant ? variant.nombre : "",
-                idPresentacionCompra: presentation ? presentation.id : null,
-                presentacionCompraSnapshot: presentation ? presentation.nombre : "",
-                codigo: item.codigo || "",
-                nombre: item.nombre || "",
-                descripcion: item.descripcion || "",
-                unidadMedida: item.unidad || "",
-                unidadAbreviatura: item.abreviatura || "",
-                unidadCompraSnapshot: presentation ? presentation.unidadCompra : (item.unidad || ""),
-                unidadCompraAbreviaturaSnapshot: presentation ? presentation.unidadCompraAbreviatura : (item.abreviatura || ""),
-                cantidadCompra: 1,
-                factorConversionSnapshot: factor,
-                cantidadBaseOrdenada: 0,
-                cantidad: 0,
-                costoUnitario: Number(variant && variant.costoActual !== null && variant.costoActual !== undefined ? variant.costoActual : (item.costoActual || 0)),
-                subtotal: 0,
-                total: 0
-            };
+    function applyEqualQuantityToStore(idSucursal) {
+        const settings = getCaptureStoreSettings(idSucursal);
+        state.editor.captureRows.forEach(function (row) {
+            if (normalizeGuid(row.idSucursal) !== normalizeGuid(idSucursal) || row.modo === 4) return;
+            row.modo = 1;
+            row.cantidad = settings.baseQuantity;
+            row.inicializando = false;
+        });
+        renderCaptureRows();
+        refreshCapturePreviews();
+    }
 
+    function stepCaptureQuantity(key, direction) {
+        const row = findCaptureRow(key);
+        if (!row || row.modo === 4) return;
+        row.modo = 1;
+        row.cantidad = Math.max(0, roundQuantity(toNumber(row.cantidad) + (direction < 0 ? -1 : 1)));
+        row.inicializando = false;
+        renderCaptureRows();
+        refreshCapturePreviews();
+    }
+
+    function applyCaptureModeToStore(idSucursal, mode) {
+        const normalizedBranchId = normalizeGuid(idSucursal);
+        state.editor.captureRows.forEach(function (row) {
+            if (normalizeGuid(row.idSucursal) !== normalizedBranchId) return;
+            row.modo = mode;
+            row.inicializando = false;
+            if (mode === 4) row.cantidad = 0;
+        });
+        renderCaptureRows();
+        refreshCapturePreviews();
+    }
+
+    function confirmAndApplyCaptureMode(mode) {
+        const modeName = captureModeName(mode);
+        Swal.fire({
+            icon: "question",
+            title: "Aplicar modo a todas las sucursales",
+            text: "Se aplicará «" + modeName + "» a todas las sucursales preparadas para esta captura.",
+            showCancelButton: true,
+            confirmButtonText: "Aplicar",
+            cancelButtonText: "Cancelar"
+        }).then(function (result) {
+            if (!result.isConfirmed) return;
+            state.editor.captureRows.forEach(function (row) {
+                row.modo = mode;
+                row.inicializando = false;
+                if (mode === 4) row.cantidad = 0;
+            });
+            renderCaptureRows();
+            refreshCapturePreviews();
+        });
+    }
+
+    function scheduleCapturePreview(key) {
+        const row = findCaptureRow(key);
+        if (!row) return;
+        row.cantidad = roundQuantity(toNumber($("[data-capture-qty='" + cssEscape(key) + "']").val()));
+        row.idPresentacionCompra = normalizeGuid($("[data-capture-presentation='" + cssEscape(key) + "']").val());
+        row.inicializando = false;
+        refreshCapturePreviews();
+    }
+
+    function refreshCapturePreviews() {
+        const item = state.editor.selectedProduct;
+        if (!item || Number(item.tipo || 0) !== 1 || !state.editor.captureRows.length) return;
+        const requestSequence = ++state.editor.capturePreviewSequence;
+        const payload = {
+            idEmpresa: state.empresaId,
+            items: state.editor.captureRows.map(function (row) {
+                return { idSucursal: row.idSucursal, idProductoServicio: item.id, idVariante: row.idVariante, idPresentacionCompra: row.idPresentacionCompra, idCurvaTemporal: row.idCurvaTemporal, modo: row.modo, cantidadManualBase: row.modo === 1 ? resolveManualCaptureBaseQuantity(item, row) : null };
+            })
+        };
+        setStatus("#txOcCaptureStatus", "info", "Calculando curva, existencia y tránsito…");
+        fetchJson("/Activos/OrdenesCompra/PreviewCurvasOrdenCompra", { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify(payload) })
+            .then(function (response) {
+                if (requestSequence !== state.editor.capturePreviewSequence) return;
+                let needsInitialSuggestionRefresh = false;
+                (response.items || []).forEach(function (preview, index) {
+                    const row = state.editor.captureRows[index];
+                    if (!row) return;
+                    row.preview = preview;
+                    if (row.inicializando) {
+                        row.inicializando = false;
+                        if (normalizeGuid(preview.idCurva)) {
+                            row.cantidad = roundQuantity(preview.curvaObjetivoBase || 0);
+                            needsInitialSuggestionRefresh = true;
+                        }
+                    } else if (row.modo !== 1) {
+                        row.cantidad = roundQuantity(preview.cantidadCompraSugerida || preview.cantidadFinalBase || 0);
+                    }
+                });
+                if (needsInitialSuggestionRefresh) {
+                    renderCaptureRows();
+                    refreshCapturePreviews();
+                    return;
+                }
+                setStatus("#txOcCaptureStatus", "success", "Datos operativos calculados sin modificar inventario.");
+                renderCaptureRows();
+            })
+            .catch(function (error) {
+                if (requestSequence !== state.editor.capturePreviewSequence) return;
+                setStatus("#txOcCaptureStatus", "warning", resolveErrorMessage(error));
+            });
+    }
+
+    function addPartidaFromCapture() {
+        const item = state.editor.selectedProduct;
+        if (!item || state.editor.readOnly) return;
+        const rows = state.editor.captureRows.filter(function (row) {
+            row.selected = $("[data-capture-select='" + cssEscape(row.key) + "']").prop("checked");
+            row.cantidad = roundQuantity(toNumber($("[data-capture-qty='" + cssEscape(row.key) + "']").val()));
+            const presentationNode = document.querySelector("[data-capture-presentation='" + cssEscape(row.key) + "']");
+            row.idPresentacionCompra = presentationNode ? normalizeGuid(presentationNode.value) : null;
+            return row.selected && row.modo !== 4 && row.cantidad > 0;
+        });
+        if (!rows.length) { setStatus("#txOcCaptureStatus", "warning", "Selecciona al menos un renglón con cantidad mayor a cero."); return; }
+        let lastUid = "";
+        rows.forEach(function (row) {
+            const variant = findSelectedVariant(item, row.idVariante);
+            const presentation = findSelectedPresentation(item, row.idPresentacionCompra);
+            const branch = getSucursalById(row.idSucursal);
+            const factor = presentation ? Number(presentation.factorConversionBase || 1) : 1;
+            const uid = buildPartidaKey(row.idSucursal, item.id, row.idVariante, row.idPresentacionCompra);
+            lastUid = uid;
+            const partida = state.editor.partidas.find(function (entry) { return entry.uid === uid; }) || { uid: uid };
+            Object.assign(partida, {
+                idSucursal: row.idSucursal, sucursal: branch ? [branch.codigo, branch.nombre].filter(Boolean).join(" · ") : "Sucursal",
+                idProductoServicio: item.id, tipoProductoServicio: Number(item.tipo || 0), tipoProductoServicioNombre: item.tipoNombre || "",
+                idVariante: variant ? variant.id : null, varianteSnapshot: variant ? (variant.nombre || variant.sku) : "",
+                idPresentacionCompra: presentation ? presentation.id : null, presentacionCompraSnapshot: presentation ? presentation.nombre : "",
+                codigo: item.codigo || "", nombre: item.nombre || "", descripcion: item.descripcion || "",
+                unidadMedida: item.unidad || "", unidadAbreviatura: item.abreviatura || "",
+                unidadCompraSnapshot: presentation ? presentation.unidadCompra : item.unidad || "", unidadCompraAbreviaturaSnapshot: presentation ? presentation.unidadCompraAbreviatura : item.abreviatura || "",
+                cantidadCompra: row.cantidad, factorConversionSnapshot: factor, costoUnitario: row.costo,
+                cantidadBaseOrdenada: 0, cantidad: 0, subtotal: 0, total: 0
+            });
             recalcPartida(partida);
-            state.editor.partidas.push(partida);
-            state.editor.addingProductId = null;
-            markRecentlyAddedProduct(uid);
-            renderSearchResults(state.editor.searchResults);
-            renderPartidas(partida.uid);
-            setStatus("#txOcFormStatus", "success", "✔ Producto agregado");
-        }, 120);
+            if (!state.editor.partidas.some(function (entry) { return entry.uid === uid; })) state.editor.partidas.push(partida);
+        });
+        if (state.ui.captureModal) state.ui.captureModal.hide();
+        renderPartidas(lastUid);
+        setStatus("#txOcFormStatus", "success", rows.length + " partida(s) agregada(s).");
+        state.editor.maxUnlockedStep = 5;
+        goToStep(5, false);
     }
 
     function markRecentlyAddedProduct(productId) {
@@ -650,16 +1178,14 @@
             const isInvalidCostForGenerate = !(Number(partida.costoUnitario) > 0);
 
             tr.innerHTML = [
+                "<td><strong>" + escapeHtml(partida.sucursal || "—") + "</strong></td>",
                 "<td><div class='oc-line-title oc-line-title--partida'><span class='oc-row-number'>#" + (index + 1) + " · " + escapeHtml(partida.tipoProductoServicioNombre || "") + " · " + escapeHtml(partida.codigo || "") + "</span><strong>" + escapeHtml(partida.nombre || "") + "</strong><small title='" + escapeHtml(toPlainText(partida.descripcion || "")) + "'>" + escapeHtml(toPlainText(partida.descripcion || "")) + "</small></div></td>",
                 "<td>" + escapeHtml(partida.varianteSnapshot || "Base") + "</td>",
                 "<td>" + escapeHtml(partida.presentacionCompraSnapshot || "Base directa") + "</td>",
                 "<td><input class='form-control oc-inline-input" + (isInvalidQuantity ? " is-invalid" : "") + "' type='number' min='0' step='0.0001' data-oc-qty='" + escapeHtml(partida.uid) + "' value='" + escapeHtml(formatDecimalInput(partida.cantidadCompra)) + "'" + (state.editor.readOnly ? " disabled" : "") + " /></td>",
-                "<td>" + escapeHtml(resolveUnidadDisplay(partida.unidadCompraSnapshot || partida.unidadMedida, partida.unidadCompraAbreviaturaSnapshot || partida.unidadAbreviatura)) + "</td>",
-                "<td>" + escapeHtml(formatFactor(partida.factorConversionSnapshot || 1)) + "</td>",
-                "<td>" + escapeHtml(formatDecimalInput(partida.cantidadBaseOrdenada || 0)) + "</td>",
                 "<td><input class='form-control oc-inline-input" + (isInvalidCostForGenerate ? " is-invalid" : "") + "' type='number' min='0' step='0.01' data-oc-cost='" + escapeHtml(partida.uid) + "' value='" + escapeHtml(formatDecimalInput(partida.costoUnitario)) + "'" + (state.editor.readOnly ? " disabled" : "") + " /></td>",
                 "<td>" + formatCurrency(partida.subtotal) + "</td>",
-                "<td><button type='button' class='checkapp-btn checkapp-btn-ghost checkapp-btn-sm' data-oc-remove-item='" + escapeHtml(partida.uid) + "'" + (state.editor.readOnly ? " disabled" : "") + "><i class='fa fa-trash'></i><span>Quitar</span></button></td>"
+                "<td><button type='button' class='checkapp-btn checkapp-btn-ghost checkapp-btn-sm' data-oc-edit-item='" + escapeHtml(partida.uid) + "'" + (state.editor.readOnly ? " disabled" : "") + "><i class='fa fa-pencil'></i><span>Editar</span></button><button type='button' class='checkapp-btn checkapp-btn-ghost checkapp-btn-sm' data-oc-remove-item='" + escapeHtml(partida.uid) + "'" + (state.editor.readOnly ? " disabled" : "") + "><i class='fa fa-trash'></i><span>Eliminar</span></button></td>"
             ].join("");
             tbody.appendChild(tr);
         });
@@ -671,17 +1197,14 @@
         $("#txOcPartidasCount").text(partidasFiltradas.length === state.editor.partidas.length
             ? state.editor.partidas.length + " partidas"
             : partidasFiltradas.length + " de " + state.editor.partidas.length + " partidas");
-        $("#txOcSidebarPartidasCount").text(state.editor.partidas.length);
-        $("#txOcReviewPartidasCount").text(state.editor.partidas.length + " partidas");
         $("#txOcPartidasEstadoVacio").prop("hidden", state.editor.partidas.length > 0);
 
         if (state.editor.partidas.length > 0 && partidasFiltradas.length === 0) {
             const row = document.createElement("tr");
-            row.innerHTML = "<td colspan='10'><div class='oc-empty-state'>No hay partidas que coincidan con la búsqueda actual.</div></td>";
+            row.innerHTML = "<td colspan='8'><div class='oc-empty-state'>No hay partidas que coincidan con la búsqueda actual.</div></td>";
             tbody.appendChild(row);
         }
 
-        renderReview();
         refreshWizardState();
     }
 
@@ -701,6 +1224,7 @@
                 partida.unidadAbreviatura,
                 partida.varianteSnapshot,
                 partida.presentacionCompraSnapshot,
+                partida.sucursal,
                 partida.unidadCompraSnapshot,
                 partida.unidadCompraAbreviaturaSnapshot
             ].join(" ");
@@ -712,7 +1236,11 @@
     function updateSummaryTotals(total) {
         $("#txOcSubtotal").text(formatCurrency(total));
         $("#txOcTotal").text(formatCurrency(total));
-        $("#txOcResumenSidebarTotal").text(formatCurrency(total));
+        const pieces = roundQuantity(state.editor.partidas.reduce(function (accumulator, partida) {
+            return accumulator + Number(partida.cantidadBaseOrdenada || 0);
+        }, 0));
+        $("#txOcPiezas").text(formatDecimalInput(pieces));
+        $("#txOcRenglones").text(state.editor.partidas.length);
     }
 
     function buildSavePayload() {
@@ -720,13 +1248,17 @@
             id: state.detailId,
             idEmpresa: state.empresaId,
             idRazonSocial: normalizeGuid($("#cbOcRazonSocial").val()),
-            idSucursal: normalizeGuid($("#cbOcSucursal").val()),
+            idSucursales: getSelectedSucursalIds(),
             idProveedor: normalizeGuid($("#cbOcProveedor").val()),
+            folioReferencia: String($("#txOcFolioReferencia").val() || "").trim(),
             fechaOrden: $("#txOcFechaOrden").val() || "",
             fechaLlegada: $("#txOcFechaLlegada").val() || null,
+            fechaMinima: $("#txOcFechaMinima").val() || null,
+            fechaMaxima: $("#txOcFechaMaxima").val() || null,
             observaciones: String($("#txOcObservaciones").val() || "").trim(),
             partidas: state.editor.partidas.map(function (partida) {
                 return {
+                    idSucursal: normalizeGuid(partida.idSucursal),
                     idProductoServicio: partida.idProductoServicio,
                     idVariante: normalizeGuid(partida.idVariante),
                     idPresentacionCompra: normalizeGuid(partida.idPresentacionCompra),
@@ -740,18 +1272,24 @@
     }
 
     function validateConfiguration(markFields) {
+        return validateConfigurationStep1(markFields).concat(validateDestination(markFields));
+    }
+
+    function validateDestination(markFields) {
         const errors = [];
         const shouldMark = markFields === true;
 
-        if (!normalizeGuid($("#cbOcRazonSocial").val())) {
-            if (shouldMark) { markFieldError("#cbOcRazonSocial"); }
-            errors.push("Selecciona una razón social.");
+        if (!getSelectedSucursalIds().length) {
+            if (shouldMark) { markFieldError("#cbOcSucursal"); }
+            errors.push("Selecciona al menos una sucursal destino.");
         }
 
-        if (!normalizeGuid($("#cbOcSucursal").val())) {
-            if (shouldMark) { markFieldError("#cbOcSucursal"); }
-            errors.push("Selecciona una sucursal.");
-        }
+        return errors;
+    }
+
+    function validateConfigurationStep1(markFields) {
+        const errors = [];
+        const shouldMark = markFields === true;
 
         if (!normalizeGuid($("#cbOcProveedor").val())) {
             if (shouldMark) { markFieldError("#cbOcProveedor"); }
@@ -819,6 +1357,9 @@
         }
 
         state.editor.partidas.forEach(function (partida, index) {
+            if (!normalizeGuid(partida.idSucursal) || getSelectedSucursalIds().indexOf(normalizeGuid(partida.idSucursal)) < 0) {
+                errors.push("La sucursal de la partida " + (index + 1) + " no es válida.");
+            }
             if (!(Number(partida.cantidadCompra) > 0)) {
                 errors.push("La cantidad de la partida " + (index + 1) + " debe ser mayor a cero.");
             }
@@ -988,16 +1529,14 @@
         const total = roundMoney(state.editor.partidas.reduce(function (accumulator, partida) {
             return accumulator + Number(partida.subtotal || 0);
         }, 0));
-        const razonSocial = String($("#cbOcRazonSocial option:selected").text() || "").trim() || "Sin asignar";
-        const sucursal = String($("#cbOcSucursal option:selected").text() || "").trim() || "Sin asignar";
+        const sucursal = getSelectedSucursalNames().join(", ") || "Sin asignar";
         const proveedor = String($("#cbOcProveedor option:selected").text() || "").trim() || "Sin asignar";
         const hasPendientes = pendientes && pendientes.tienePendientes;
         const html = [
             "<div class='oc-confirm-dialog'>",
             "<div class='oc-confirm-summary'>",
             "<p><strong>Proveedor</strong><br>" + escapeHtml(proveedor) + "</p>",
-            "<p><strong>Razón social</strong><br>" + escapeHtml(razonSocial) + "</p>",
-            "<p><strong>Sucursal</strong><br>" + escapeHtml(sucursal) + "</p>",
+            "<p><strong>Sucursales</strong><br>" + escapeHtml(sucursal) + "</p>",
             "<p><strong>Partidas</strong><br>" + escapeHtml(String(totalPartidas)) + "</p>",
             "<p><strong>Total</strong><br>" + escapeHtml(formatCurrency(total)) + "</p>",
             "</div>",
@@ -1140,23 +1679,29 @@
                 : "Consulta la orden con el mismo flujo de captura, respetando el estado certificado.");
 
         $("#cbOcRazonSocial").val(detail.idRazonSocial || "");
-        syncSucursalesByRazonSocial();
-        $("#cbOcSucursal").val(detail.idSucursal || "");
+        const detailSucursalIds = (Array.isArray(detail.sucursales) ? detail.sucursales : [])
+            .map(function (item) { return normalizeGuid(item.id); }).filter(Boolean);
+        state.editor.selectedSucursalIds = detailSucursalIds.length ? detailSucursalIds : (detail.idSucursal ? [normalizeGuid(detail.idSucursal)] : []);
+        renderSucursalSelector();
+        syncRazonSocialFromSucursales();
+        renderCaptureDestinationOptions();
         $("#cbOcProveedor").val(detail.idProveedor || "");
+        $("#txOcFolioReferencia").val(detail.folioReferencia || "");
         $("#txOcFechaOrden").val(formatInputDate(detail.fechaOrden));
         $("#txOcFechaLlegada").val(formatInputDate(detail.fechaLlegada));
-        $("#txOcFechaMinima").val(formatInputDate(detail.fechaOrden));
-        $("#txOcFechaMaxima").val(detail.fechaLlegada ? formatInputDate(detail.fechaLlegada) : "");
+        $("#txOcFechaMinima").val(formatInputDate(detail.fechaMinima));
+        $("#txOcFechaMaxima").val(formatInputDate(detail.fechaMaxima));
         $("#txOcObservaciones").val(detail.observaciones || "");
-
-            updateHeaderSummary(detail.folio || "Pendiente", resolveUserFacingOrderState(detail.estado, detail.estadoNombre));
 
             state.editor.partidas = (Array.isArray(detail.partidas) ? detail.partidas : []).map(function (partida) {
                 const idVariante = normalizeGuid(partida.idVariante);
                 const idPresentacionCompra = normalizeGuid(partida.idPresentacionCompra);
-                const uid = buildPartidaKey(partida.idProductoServicio, idVariante, idPresentacionCompra);
+                const idSucursal = normalizeGuid(partida.idSucursal);
+                const uid = buildPartidaKey(idSucursal, partida.idProductoServicio, idVariante, idPresentacionCompra);
                 return {
                     uid: uid,
+                    idSucursal: idSucursal,
+                    sucursal: partida.sucursal || ((getSucursalById(idSucursal) || {}).nombre) || "Sucursal",
                     idProductoServicio: partida.idProductoServicio,
                     tipoProductoServicio: Number(partida.tipoProductoServicio || 0),
                     tipoProductoServicioNombre: partida.tipoProductoServicioNombre || "",
@@ -1186,30 +1731,36 @@
             $("#txOcFechaCancelacion").val(formatDisplayDate(detail.fechaCancelacion));
             $("#txOcMotivoCancelacion").val(detail.motivoCancelacion || "");
 
-            const detailStep = state.editor.partidas.length > 0 ? 4 : 2;
+            state.editor.selectedProduct = null;
+            const detailStep = state.editor.partidas.length > 0 ? 5 : 3;
             state.editor.maxUnlockedStep = detailStep;
             state.currentStep = detailStep;
+            state.editor.preparationCollapsed = false;
         } else {
             $("#txOcHeroTitle").text("Orden de compra");
             $("#txOcHeroDescription").text("Captura la orden paso a paso, valida sus partidas y decide si quieres guardarla o generarla.");
-            updateHeaderSummary("Pendiente", "En captura");
             $("#panelOcCancelacion").prop("hidden", true);
             state.editor.readOnly = false;
+            state.editor.selectedProduct = null;
+            state.editor.selectedSucursalIds = [];
+            renderSucursalSelector();
             state.editor.maxUnlockedStep = 1;
             state.currentStep = 1;
+            state.editor.preparationCollapsed = false;
         }
 
         syncDateValidationWindow();
         renderPartidas();
+        renderCapture();
         toggleEditorReadOnly(state.editor.readOnly);
         renderWizard();
         syncActionButtons();
     }
 
     function toggleEditorReadOnly(isReadOnly) {
-        $("#cbOcRazonSocial, #cbOcSucursal, #cbOcProveedor, #txOcFechaOrden, #txOcFechaLlegada, #txOcFechaMinima, #txOcFechaMaxima, #txOcObservaciones, #txOcBuscarProductoServicio, #cbOcBuscarTipo")
+        $("#cbOcRazonSocial, #cbOcSucursal, #cbOcProveedor, #txOcFechaOrden, #txOcFechaLlegada, #txOcFechaMinima, #txOcFechaMaxima, #txOcFolioReferencia, #txOcObservaciones, #ckOcSoloProveedor, #txOcBuscarProductoServicio, #cbOcBuscarTipo, #cbOcCapturaSucursal, #cbOcCapturaVariante, #cbOcCapturaPresentacion, #txOcCapturaCantidad, #txOcCapturaCosto")
             .prop("disabled", !!isReadOnly);
-        $("#btOcLimpiarBusquedaProductoServicio, #btOcPaso1Siguiente, #btOcPaso2Siguiente, #btOcPaso3Siguiente")
+        $("#btOcLimpiarBusquedaProductoServicio, #btOcPaso1Siguiente, #btOcPaso2Siguiente, #btOcAgregarPartida")
             .prop("disabled", !!isReadOnly);
         renderSearchResults(state.editor.searchResults);
         renderPartidas();
@@ -1217,7 +1768,7 @@
 
     function goToStep(step, validateCurrent) {
         const nextStep = Number(step || 0);
-        if (nextStep < 1 || nextStep > 4) {
+        if (nextStep < 1 || nextStep > 5) {
             return;
         }
 
@@ -1236,17 +1787,26 @@
 
         state.currentStep = nextStep;
         state.editor.maxUnlockedStep = Math.max(state.editor.maxUnlockedStep || 1, nextStep);
+        if (nextStep >= 3 && validateConfiguration(false).length === 0) {
+            state.editor.preparationCollapsed = true;
+        } else if (!normalizeGuid($("#cbOcProveedor").val()) || !getSelectedSucursalIds().length) {
+            state.editor.preparationCollapsed = false;
+        }
         renderWizard();
+        scrollToStep(nextStep);
     }
 
     function validateStepTransition(nextStep) {
         if (nextStep === 2) {
-            return validateConfiguration(true);
+            return validateConfigurationStep1(true);
         }
         if (nextStep === 3) {
-            return validateConfiguration(true).concat(state.editor.partidas.length ? [] : ["Agrega al menos una partida para continuar a Partidas."]);
+            return validateConfigurationStep1(true).concat(validateDestination(true));
         }
         if (nextStep === 4) {
+            return state.editor.selectedProduct ? [] : ["Selecciona un producto o servicio para continuar."];
+        }
+        if (nextStep === 5) {
             return validateConfiguration(true).concat(validatePartidas());
         }
         return [];
@@ -1257,12 +1817,15 @@
             return true;
         }
         if (step === 2) {
-            return validateConfiguration(false).length === 0;
+            return validateConfigurationStep1(false).length === 0;
         }
         if (step === 3) {
-            return validateConfiguration(false).length === 0 && state.editor.partidas.length > 0;
+            return validateConfiguration(false).length === 0;
         }
         if (step === 4) {
+            return validateConfiguration(false).length === 0 && !!state.editor.selectedProduct;
+        }
+        if (step === 5) {
             return validateConfiguration(false).length === 0 && validatePartidas().length === 0;
         }
         return false;
@@ -1280,15 +1843,21 @@
 
     function renderWizard() {
         document.querySelectorAll("[data-step-panel]").forEach(function (panel) {
-            const step = Number(panel.getAttribute("data-step-panel") || 0);
-            panel.hidden = step !== state.currentStep;
+            panel.hidden = false;
         });
 
         document.querySelectorAll("[data-step-target]").forEach(function (button) {
             const step = Number(button.getAttribute("data-step-target") || 0);
             const accessible = isStepUnlocked(step);
             const isActive = state.currentStep === step;
-            const isCompleted = step < state.currentStep && accessible;
+            const completionByStep = {
+                1: !!normalizeGuid($("#cbOcProveedor").val()),
+                2: getSelectedSucursalIds().length > 0,
+                3: !!state.editor.selectedProduct || state.editor.partidas.length > 0,
+                4: state.editor.partidas.length > 0,
+                5: !!state.detailId
+            };
+            const isCompleted = !!completionByStep[step];
 
             button.disabled = !accessible && !isActive;
             button.classList.toggle("is-active", isActive);
@@ -1297,14 +1866,64 @@
             button.classList.toggle("is-pending", accessible && !isActive && !isCompleted);
         });
 
-        updateStepStateCopy(1, canAccessStep(2), state.currentStep === 1);
-        updateStepStateCopy(2, canAccessStep(3), state.currentStep === 2);
-        updateStepStateCopy(3, canAccessStep(4), state.currentStep === 3);
-        updateStepStateCopy(4, false, state.currentStep === 4);
-
-        renderProgress();
-        renderReview();
+        updateStepStateCopy(1, !!normalizeGuid($("#cbOcProveedor").val()), state.currentStep === 1);
+        updateStepStateCopy(2, getSelectedSucursalIds().length > 0, state.currentStep === 2);
+        updateStepStateCopy(3, !!state.editor.selectedProduct || state.editor.partidas.length > 0, state.currentStep === 3);
+        updateStepStateCopy(4, state.editor.partidas.length > 0, state.currentStep === 4);
+        updateStepStateCopy(5, false, state.currentStep === 5);
+        renderPreparation();
+        renderContinuousGates();
         syncActionButtons();
+    }
+
+    function scrollToStep(step) {
+        const target = document.querySelector(step <= 2 ? "#panelOcPreparacion" : "#panelOcPaso" + step);
+        if (target) {
+            target.scrollIntoView({ behavior: "smooth", block: "start" });
+        }
+    }
+
+    function renderPreparation() {
+        const hasProvider = !!normalizeGuid($("#cbOcProveedor").val());
+        const hasSucursal = getSelectedSucursalIds().length > 0;
+        const canCollapse = hasProvider && hasSucursal;
+        const isCollapsed = canCollapse && state.editor.preparationCollapsed;
+        const provider = state.combos.proveedores.find(function (item) { return normalizeGuid(item.id) === normalizeGuid($("#cbOcProveedor").val()); });
+        const branchNames = getSelectedSucursalNames();
+        $("#panelOcPreparationEditor").prop("hidden", isCollapsed);
+        $("#panelOcPreparationSummary, #btOcEditarPreparacion").prop("hidden", !isCollapsed);
+        $("#txOcSummaryProveedor").text(provider ? provider.nombre : "—");
+        $("#txOcSummarySucursales").text(branchNames.length === 1 ? branchNames[0] : branchNames.length + " sucursales");
+        $("#txOcSummaryFechaLlegada").text(formatDateOnly($("#txOcFechaLlegada").val()));
+        $("#txOcSummaryFechaMinima").text(formatDateOnly($("#txOcFechaMinima").val()));
+        $("#txOcSummaryFechaMaxima").text(formatDateOnly($("#txOcFechaMaxima").val()));
+        const folio = String($("#txOcFolioReferencia").val() || "").trim();
+        $("#panelOcSummaryFolio").prop("hidden", !folio);
+        $("#txOcSummaryFolio").text(folio || "—");
+        $("#panelOcSummarySucursalChips").html(branchNames.map(function (name) { return "<span>" + escapeHtml(name) + "</span>"; }).join(""));
+        $("#txOcBlockState1").text(hasProvider ? "Completo" : "Pendiente").toggleClass("is-complete", hasProvider);
+        $("#txOcBlockState2").text(hasSucursal ? "Completo" : (hasProvider ? "Pendiente" : "Bloqueado")).toggleClass("is-complete", hasSucursal);
+        $("#panelOcDestinationHelp").prop("hidden", hasSucursal);
+        $("#panelOcDestinationSelected").prop("hidden", !hasSucursal);
+        $("#txOcDestinationSelected").text(getSelectedSucursalNames().join(", ") || "—");
+    }
+
+    function renderContinuousGates() {
+        const prepComplete = validateConfiguration(false).length === 0;
+        const hasSelection = !!state.editor.selectedProduct;
+        const captureDisabled = state.editor.readOnly || !hasSelection;
+        $("#panelOcPaso3").toggleClass("is-blocked", !prepComplete);
+        $("#txOcProductGate").prop("hidden", prepComplete);
+        $("#txOcBuscarProductoServicio, #cbOcBuscarTipo").prop("disabled", state.editor.readOnly || !prepComplete);
+        $("#panelOcPaso4").toggleClass("is-blocked", !hasSelection);
+        $("#txOcCaptureGate").prop("hidden", hasSelection);
+        $("#cbOcCapturaSucursal, #cbOcCapturaVariante, #cbOcCapturaPresentacion, #txOcCapturaCantidad, #txOcCapturaCosto")
+            .prop("disabled", captureDisabled);
+        $("#btOcAbrirCaptura").prop("hidden", !hasSelection).prop("disabled", captureDisabled);
+        $("#txOcBuscarPartidas").prop("disabled", state.editor.readOnly || state.editor.partidas.length === 0);
+        const saveErrors = validateConfiguration(false).concat(validatePartidas());
+        $("#txOcSaveGate").prop("hidden", saveErrors.length === 0 || state.editor.readOnly);
+        $("#txOcSaveGate span").text(saveErrors[0] || "");
     }
 
     function updateStepStateCopy(step, completed, active) {
@@ -1314,66 +1933,14 @@
         }
 
         let text = "Pendiente";
-        if (active) {
+        if (completed) {
+            text = "Completo";
+        } else if (active) {
             text = "Activo";
-        } else if (completed) {
-            text = "Completado";
         } else if (step > 1 && !isStepUnlocked(step)) {
             text = "Bloqueado";
         }
         node.textContent = text;
-    }
-
-    function renderReview() {
-        $("#txOcReviewRazonSocial").text(getSelectedText("#cbOcRazonSocial") || "—");
-        $("#txOcReviewSucursal").text(getSelectedText("#cbOcSucursal") || "—");
-        $("#txOcReviewProveedor").text(getSelectedText("#cbOcProveedor") || "—");
-        $("#txOcReviewFechaOrden").text(formatDateOnly($("#txOcFechaOrden").val()) || "—");
-        $("#txOcReviewFechaLlegada").text(formatDateOnly($("#txOcFechaLlegada").val()) || "—");
-
-        const observaciones = String($("#txOcObservaciones").val() || "").trim();
-        $("#txOcReviewObservaciones").text(observaciones || "Sin observaciones.");
-
-        const tbody = document.querySelector("#grOcRevisionPartidas tbody");
-        if (!tbody) {
-            return;
-        }
-
-        tbody.innerHTML = "";
-
-        if (!state.editor.partidas.length) {
-            const row = document.createElement("tr");
-            row.innerHTML = "<td colspan='10'><div class='oc-empty-state'>Todavía no hay partidas para revisar.</div></td>";
-            tbody.appendChild(row);
-            return;
-        }
-
-        state.editor.partidas.forEach(function (partida) {
-            const tr = document.createElement("tr");
-            tr.innerHTML = [
-                "<td>" + escapeHtml(partida.tipoProductoServicioNombre || "") + "</td>",
-                "<td>" + escapeHtml(partida.codigo || "") + "</td>",
-                "<td><div class='oc-line-title'><strong>" + escapeHtml(partida.nombre || "") + "</strong><small title='" + escapeHtml(toPlainText(partida.descripcion || "")) + "'>" + escapeHtml(toPlainText(partida.descripcion || "")) + "</small></div></td>",
-                "<td>" + escapeHtml(partida.varianteSnapshot || "Base") + "</td>",
-                "<td>" + escapeHtml(partida.presentacionCompraSnapshot || "Base directa") + "</td>",
-                "<td>" + escapeHtml(formatDecimalInput(partida.cantidadCompra)) + " " + escapeHtml(resolveUnidadDisplay(partida.unidadCompraSnapshot || partida.unidadMedida, partida.unidadCompraAbreviaturaSnapshot || partida.unidadAbreviatura)) + "</td>",
-                "<td>" + escapeHtml(formatFactor(partida.factorConversionSnapshot || 1)) + "</td>",
-                "<td>" + escapeHtml(formatDecimalInput(partida.cantidadBaseOrdenada || 0)) + " " + escapeHtml(resolveUnidadDisplay(partida.unidadMedida, partida.unidadAbreviatura)) + "</td>",
-                "<td>" + formatCurrency(partida.costoUnitario) + "</td>",
-                "<td>" + formatCurrency(partida.subtotal) + "</td>"
-            ].join("");
-            tbody.appendChild(tr);
-        });
-    }
-
-    function renderProgress() {
-        const progress = Math.max(25, Math.min(100, state.currentStep * 25));
-        $("#txOcProgressMeta").text("Paso " + state.currentStep + " de 4");
-        $("#txOcSidebarProgress").text(progress + "%");
-        const bar = document.querySelector("#txOcProgressBar");
-        if (bar) {
-            bar.style.width = progress + "%";
-        }
     }
 
     function syncActionButtons() {
@@ -1388,26 +1955,25 @@
         const canGenerate = hasPersistedOrder && estado === estadoBorrador && !state.editor.readOnly && !state.editor.saving && !state.editor.generating && !state.editor.cancelling;
         const canCancel = hasPersistedOrder && (estado === estadoBorrador || estado === estadoGenerada) && !state.editor.saving && !state.editor.generating && !state.editor.cancelling;
         const canExport = canExportCurrentOrder();
-        const canMoveToStep2 = validateConfiguration(false).length === 0 && !state.editor.readOnly;
+        const canMoveToStep2 = validateConfigurationStep1(false).length === 0 && !state.editor.readOnly;
         const canMoveToStep3 = canAccessStep(3) && !state.editor.readOnly;
-        const canMoveToStep4 = canAccessStep(4);
 
-        $("#btOcPaso1Siguiente").prop("disabled", !canMoveToStep2).find("span").text("Continuar a productos y servicios");
-        $("#btOcPaso2Siguiente").prop("disabled", !canMoveToStep3).find("span").text("Continuar a partidas");
-        $("#btOcPaso3Siguiente").prop("disabled", !canMoveToStep4).find("span").text("Continuar a revisión");
-        $("#btOcPaso3Buscar").prop("disabled", state.editor.readOnly);
+        $("#btOcPaso1Siguiente").prop("disabled", !canMoveToStep2);
+        $("#btOcPaso2Siguiente").prop("disabled", !canMoveToStep3);
+        $("#btOcAgregarPartida").prop("disabled", state.editor.readOnly || !state.editor.selectedProduct);
+        $("#btOcPaso5Buscar").prop("disabled", state.editor.readOnly || !canAccessStep(3));
 
-        $("#btOcLimpiarBusquedaProductoServicio").prop("disabled", state.editor.readOnly || state.editor.searching);
+        $("#btOcLimpiarBusquedaProductoServicio").prop("disabled", state.editor.readOnly || state.editor.searching || !canAccessStep(3));
         $("#txOcBusquedaSpinner").prop("hidden", !state.editor.searching);
 
         $("#btOcGuardar").prop("hidden", !isDraft)
-            .prop("disabled", !canSave || state.currentStep !== 4)
+            .prop("disabled", !canSave || validateConfiguration(false).length > 0 || validatePartidas().length > 0)
             .find("span").text(state.editor.saving ? "Guardando..." : "Guardar borrador");
         $("#btOcGenerar").prop("hidden", !(hasPersistedOrder && estado === estadoBorrador))
-            .prop("disabled", !canGenerate || state.currentStep !== 4)
+            .prop("disabled", !canGenerate || validatePartidasForGenerate().length > 0)
             .find("span").text(state.editor.generating ? "Generando..." : "Generar orden");
         $("#btOcCancelar").prop("hidden", !(hasPersistedOrder && (estado === estadoBorrador || estado === estadoGenerada)))
-            .prop("disabled", !canCancel || state.currentStep !== 4)
+            .prop("disabled", !canCancel)
             .find("span").text(state.editor.cancelling ? "Cancelando..." : "Cancelar orden");
         $("#panelOcExportaciones").prop("hidden", !canExport);
         $("#btOcExportarPdf").prop("disabled", state.editor.exportingPdf || state.editor.exportingExcel)
@@ -1415,7 +1981,7 @@
         $("#btOcExportarExcel").prop("disabled", state.editor.exportingPdf || state.editor.exportingExcel)
             .find("span").text(state.editor.exportingExcel ? "Exportando..." : "Exportar Excel");
 
-        if (hasPersistedOrder && estado === estadoBorrador && state.currentStep === 4 && total <= 0 && !state.editor.generating && !state.editor.saving && !state.editor.cancelling) {
+        if (hasPersistedOrder && estado === estadoBorrador && state.currentStep === 5 && total <= 0 && !state.editor.generating && !state.editor.saving && !state.editor.cancelling) {
             setStatus("#txOcFormStatus", "warning", "Ajusta cantidades o costos antes de generar la orden.");
         }
     }
@@ -1427,7 +1993,10 @@
 
     function resolveMaxUnlockedStep() {
         if (state.editor.readOnly) {
-            return state.editor.partidas.length > 0 ? 4 : 2;
+            return state.editor.partidas.length > 0 ? 5 : 3;
+        }
+        if (canAccessStep(5)) {
+            return 5;
         }
         if (canAccessStep(4)) {
             return 4;
@@ -1442,12 +2011,10 @@
     }
 
     function isStepUnlocked(step) {
+        if (Number(step || 0) === 4 && !state.editor.selectedProduct) {
+            return state.currentStep === 4;
+        }
         return Number(step || 0) <= Number(state.editor.maxUnlockedStep || 1);
-    }
-
-    function updateHeaderSummary(folio, estadoNombre) {
-        $("#txOcResumenSidebarFolio").text(folio);
-        $("#txOcResumenSidebarEstado").text(estadoNombre);
     }
 
     function resolveUserFacingOrderState(estado, estadoNombre) {
@@ -1455,22 +2022,30 @@
         const numeric = Number(estado || 0);
 
         if (numeric === estadoBorrador || normalized === "borrador") {
-            return "En captura";
+            return "Borrador";
         }
 
         if (numeric === estadoGenerada || normalized === "generada") {
-            return "Confirmada";
+            return "Generada";
         }
 
         if (numeric === estadoCancelada || normalized === "cancelada") {
-            return "Detenida";
+            return "Cancelada";
+        }
+
+        if (numeric === estadoParcialmenteRecibida || normalized === "parcialmente recibida") {
+            return "Parcialmente recibida";
+        }
+
+        if (numeric === estadoRecibida || normalized === "recibida") {
+            return "Recibida";
         }
 
         if (!normalized || normalized === "nueva") {
-            return "En captura";
+            return "Borrador";
         }
 
-        return "Lista";
+        return estadoNombre || "Desconocido";
     }
 
     function initReportPage() {
@@ -1484,7 +2059,6 @@
         bindReportEvents();
         applyDefaultReportDateRange();
         setStatus("#txOcListadoStatus", "", "");
-        updateReportKpis(state.report.summary);
         updateReportFilterSummary();
         renderReportDetailState();
 
@@ -1524,24 +2098,11 @@
         });
 
         $("#cbOcFiltroEstado, #cbOcFiltroProveedor, #cbOcFiltroRazonSocial, #cbOcFiltroSucursal").on("change", function () {
-            if (this.id === "cbOcFiltroEstado") {
-                syncKpiSelectionWithEstado(this.value);
-            }
-
             if (this.id === "cbOcFiltroRazonSocial") {
                 syncReportSucursales();
             }
 
             updateReportFilterSummary();
-        });
-
-        $("#ocKpiStrip").on("click", "[data-oc-kpi]", function () {
-            const nextEstado = String($(this).attr("data-oc-kpi") || "").trim();
-            state.report.selectedEstado = nextEstado;
-            $("#cbOcFiltroEstado").val(nextEstado);
-            syncKpiSelectionWithEstado(nextEstado);
-            updateReportFilterSummary();
-            runReportSearch();
         });
 
         $("#gridOrdenesCompraHost").on("click", "[data-oc-open-detail]", function () {
@@ -1586,11 +2147,7 @@
                     emptyText: "Todas las razones sociales"
                 });
 
-                populateSelect("#cbOcFiltroEstado", [
-                    { id: estadoBorrador, nombre: "En captura" },
-                    { id: estadoGenerada, nombre: "Confirmada" },
-                    { id: estadoCancelada, nombre: "Detenida" }
-                ], {
+                populateSelect("#cbOcFiltroEstado", Array.isArray(data.estados) ? data.estados : [], {
                     emptyText: "Todos los estados"
                 });
 
@@ -1635,24 +2192,26 @@
                     "<div class='oc-mobile-card-row'><span>Proveedor</span><strong>" + escapeHtml(row.proveedor || "—") + "</strong></div>",
                     "<div class='oc-mobile-card-row'><span>Razón social</span><strong>" + escapeHtml(row.razonSocial || "—") + "</strong></div>",
                     "<div class='oc-mobile-card-row'><span>Sucursal</span><strong>" + escapeHtml(row.sucursal || "—") + "</strong></div>",
+                    "<div class='oc-mobile-card-row'><span>Ordenado</span><strong>" + escapeHtml(String(roundQuantity(row.cantidadOrdenada || 0))) + "</strong></div>",
+                    "<div class='oc-mobile-card-row'><span>Recibido</span><strong>" + escapeHtml(String(roundQuantity(row.cantidadRecibida || 0))) + "</strong></div>",
+                    "<div class='oc-mobile-card-row'><span>Pendiente</span><strong>" + escapeHtml(String(roundQuantity(row.cantidadPendiente || 0))) + "</strong></div>",
                     "<div class='oc-mobile-card-row'><span>Fecha de orden</span><strong>" + escapeHtml(formatDateOnly(row.fechaOrden)) + "</strong></div>",
                     "<div class='oc-mobile-card-row'><span>Fecha de llegada</span><strong>" + escapeHtml(formatDateOnly(row.fechaLlegada)) + "</strong></div>",
                     "<div class='oc-mobile-card-row'><span>Total</span><strong>" + escapeHtml(formatCurrency(row.total)) + "</strong></div>",
                     "</div>",
                     "<div class='oc-mobile-card-actions'>",
                     "<button type='button' class='checkapp-btn checkapp-btn-secondary' data-oc-open-detail='" + escapeHtml(row.id || "") + "'>Ver detalle</button>",
+                    row.puedeEditar ? "<a class='checkapp-btn checkapp-btn-ghost' href='/Activos/OrdenesCompra/Editar/" + encodeURIComponent(row.id || "") + "'>Editar</a>" : "",
                     "</div>"
                 ].join("");
             },
             pageLength: 25,
             lengthMenu: [[25, 50, 100], [25, 50, 100]],
-            order: [[6, "desc"], [9, "desc"]],
+            order: [[9, "desc"], [12, "desc"]],
             emptyText: "Usa los filtros para consultar órdenes de compra.",
             loadData: function () {
                 if (!state.report.hasSearched) {
                     state.report.rows = [];
-                    state.report.summary = buildReportSummary([]);
-                    updateReportKpis(state.report.summary);
                     return Promise.resolve([]);
                 }
 
@@ -1661,8 +2220,6 @@
                 return fetchJson("/Activos/OrdenesCompra/ObtenerOrdenesCompra?" + query.toString())
                     .then(function (rows) {
                         state.report.rows = Array.isArray(rows) ? rows : [];
-                        state.report.summary = buildReportSummary(state.report.rows);
-                        updateReportKpis(state.report.summary);
                         return state.report.rows;
                     });
             },
@@ -1675,7 +2232,10 @@
                     exportable: false,
                     className: "oc-grid-col-actions-cell",
                     render: function (_value, row) {
-                        return "<div class='oc-grid-actions-cell'><button type='button' class='checkapp-btn checkapp-btn-secondary checkapp-btn-inline oc-grid-detail-btn' data-oc-open-detail='" + escapeHtml(row.id || "") + "'>Ver detalle</button></div>";
+                        const edit = row.puedeEditar
+                            ? "<a class='checkapp-btn checkapp-btn-ghost checkapp-btn-inline' href='/Activos/OrdenesCompra/Editar/" + encodeURIComponent(row.id || "") + "'>Editar</a>"
+                            : "";
+                        return "<div class='oc-grid-actions-cell'><button type='button' class='checkapp-btn checkapp-btn-secondary checkapp-btn-inline oc-grid-detail-btn' data-oc-open-detail='" + escapeHtml(row.id || "") + "'>Ver detalle</button>" + edit + "</div>";
                     }
                 },
                 { key: "folio", title: "Folio" },
@@ -1692,6 +2252,9 @@
                         return resolveUserFacingOrderState(row.estado, row.estadoNombre);
                     }
                 },
+                { key: "cantidadOrdenada", title: "Ordenado", render: function (value) { return roundQuantity(value || 0); } },
+                { key: "cantidadRecibida", title: "Recibido", render: function (value) { return roundQuantity(value || 0); } },
+                { key: "cantidadPendiente", title: "Pendiente", render: function (value) { return roundQuantity(value || 0); } },
                 {
                     key: "fechaOrden",
                     title: "Fecha de orden",
@@ -1746,8 +2309,6 @@
             },
             onError: function (error) {
                 $("#txOcGridVisibleCount").text("0 visibles");
-                state.report.summary = buildReportSummary([]);
-                updateReportKpis(state.report.summary);
                 setStatus("#txOcListadoStatus", "danger", resolveErrorMessage(error));
             },
             onDraw: function () {
@@ -1755,7 +2316,6 @@
             }
         }).then(function (grid) {
             state.report.grid = grid;
-            syncKpiSelectionWithEstado($("#cbOcFiltroEstado").val());
             return grid;
         });
     }
@@ -1810,26 +2370,6 @@
             });
     }
 
-    function updateReportKpis(summary) {
-        $("#txOcKpiTotal").text(Number(summary.total || 0));
-        $("#txOcKpiBorradores").text(Number(summary.borradores || 0));
-        $("#txOcKpiGeneradas").text(Number(summary.generadas || 0));
-        $("#txOcKpiCanceladas").text(Number(summary.canceladas || 0));
-        $("#txOcKpiImporte").text(formatCurrency(summary.importe || 0));
-    }
-
-    function syncKpiSelectionWithEstado(estado) {
-        const normalized = String(estado || "").trim();
-        state.report.selectedEstado = normalized;
-        $("#ocKpiStrip [data-oc-kpi]").removeClass("is-selected")
-            .filter("[data-oc-kpi='" + normalized + "']")
-            .addClass("is-selected");
-
-        if (!normalized) {
-            $("#ocKpiStrip [data-oc-kpi='']").addClass("is-selected");
-        }
-    }
-
     function updateReportFilterSummary() {
         if (!state.report.accordion) {
             return;
@@ -1877,7 +2417,6 @@
         $("#txOcFiltroFechaDesde").val(defaultRange.start);
         $("#txOcFiltroFechaHasta").val(defaultRange.end);
         $("#txOcBusquedaGrid").val("");
-        syncKpiSelectionWithEstado("");
         updateReportFilterSummary();
     }
 
@@ -1905,33 +2444,6 @@
         };
     }
 
-    function buildReportSummary(rows) {
-        const normalizedRows = Array.isArray(rows) ? rows : [];
-        return normalizedRows.reduce(function (summary, row) {
-            const estado = Number(row.estado || 0);
-            summary.total += 1;
-            summary.importe = roundMoney(summary.importe + Number(row.total || 0));
-
-            if (estado === estadoBorrador) {
-                summary.borradores += 1;
-            }
-            else if (estado === estadoGenerada) {
-                summary.generadas += 1;
-            }
-            else if (estado === estadoCancelada) {
-                summary.canceladas += 1;
-            }
-
-            return summary;
-        }, {
-            total: 0,
-            borradores: 0,
-            generadas: 0,
-            canceladas: 0,
-            importe: 0
-        });
-    }
-
     function syncReportSummaryFromGrid() {
         if (!state.report.grid || !state.report.grid.instance) {
             return;
@@ -1941,8 +2453,6 @@
             return state.report.rows[index];
         });
 
-        state.report.summary = buildReportSummary(filteredRows);
-        updateReportKpis(state.report.summary);
         $("#txOcGridVisibleCount").text(filteredRows.length + " visibles");
     }
 
@@ -2019,6 +2529,9 @@
         }
 
         $("#btOcDetallePdf, #btOcDetalleExcel").prop("disabled", !hasData || isLoading || hasError);
+        if (!hasData || isLoading || hasError) {
+            $("#btOcDetalleEditar").prop("hidden", true);
+        }
     }
 
     function populateReportDetail(detail) {
@@ -2032,10 +2545,16 @@
         $("#txOcDetalleProveedor").text(detail.proveedor || "—");
         $("#txOcDetalleFechaOrden").text(formatDateOnly(detail.fechaOrden));
         $("#txOcDetalleFechaLlegada").text(formatDateOnly(detail.fechaLlegada));
+        $("#txOcDetalleFechaMinima").text(formatDateOnly(detail.fechaMinima));
+        $("#txOcDetalleFechaMaxima").text(formatDateOnly(detail.fechaMaxima));
         $("#txOcDetalleObservaciones").text(detail.observaciones || "Sin observaciones");
         $("#txOcDetalleSubtotal").text(formatCurrency(detail.subtotal || 0));
         $("#txOcDetalleTotal").text(formatCurrency(detail.total || 0));
         $("#txOcDetallePartidasCount").text(partidas.length + " partida" + (partidas.length === 1 ? "" : "s"));
+        const puedeEditar = Number(detail.estado || 0) === estadoBorrador;
+        $("#btOcDetalleEditar")
+            .attr("href", puedeEditar ? "/Activos/OrdenesCompra/Editar/" + encodeURIComponent(detail.id || "") : "#")
+            .prop("hidden", !puedeEditar);
         renderReportDetailPartidas(partidas);
     }
 
@@ -2048,7 +2567,7 @@
         tbody.innerHTML = "";
         if (!Array.isArray(partidas) || !partidas.length) {
             const row = document.createElement("tr");
-            row.innerHTML = "<td colspan='8'><div class='oc-empty-state'>La orden no tiene partidas disponibles.</div></td>";
+            row.innerHTML = "<td colspan='15'><div class='oc-empty-state'>La orden no tiene partidas disponibles.</div></td>";
             tbody.appendChild(row);
             return;
         }
@@ -2061,8 +2580,15 @@
                 "<td>" + escapeHtml(partida.tipoProductoServicioNombre || "—") + "</td>",
                 "<td>" + escapeHtml(partida.codigo || "—") + "</td>",
                 "<td><div class='oc-line-title'><strong>" + escapeHtml(partida.nombre || "—") + "</strong><small title='" + escapeHtml(toPlainText(descripcion || "")) + "'>" + escapeHtml(toPlainText(descripcion || "Sin descripción")) + "</small></div></td>",
+                "<td>" + escapeHtml(partida.categoria || "—") + "</td>",
+                "<td>" + escapeHtml(partida.marca || "—") + "</td>",
+                "<td>" + escapeHtml(partida.varianteSnapshot || "—") + "</td>",
+                "<td>" + escapeHtml(partida.presentacionCompraSnapshot || "—") + "</td>",
                 "<td>" + escapeHtml(resolveUnidadDisplay(partida.unidadMedida, partida.unidadAbreviatura) || "—") + "</td>",
-                "<td>" + escapeHtml(String(roundQuantity(partida.cantidad || 0))) + "</td>",
+                "<td>" + escapeHtml(String(roundQuantity(partida.cantidadBaseOrdenada || 0))) + "</td>",
+                "<td>" + escapeHtml(String(roundQuantity(partida.cantidadBaseRecibidaAcumulada || 0))) + "</td>",
+                "<td>" + escapeHtml(String(roundQuantity(partida.cantidadBasePendiente || 0))) + "</td>",
+                "<td>" + escapeHtml(partida.estadoPartidaNombre || "—") + "</td>",
                 "<td>" + escapeHtml(formatCurrency(partida.costoUnitario || 0)) + "</td>",
                 "<td>" + escapeHtml(formatCurrency(partida.subtotal || 0)) + "</td>"
             ].join("");
@@ -2180,12 +2706,16 @@
         node.value = formatInputDate(new Date());
     }
 
-    function setInitialDateValidationWindow() {
-        const fechaOrden = document.querySelector("#txOcFechaOrden");
-        const fechaMinima = document.querySelector("#txOcFechaMinima");
-        if (fechaOrden && fechaMinima && !fechaMinima.value) {
-            fechaMinima.value = fechaOrden.value || formatInputDate(new Date());
+    function setInitialLegacyDates() {
+        const today = new Date();
+        const maximum = new Date(today.getFullYear(), today.getMonth(), today.getDate() + 7);
+        setTodayIfEmpty("#txOcFechaOrden");
+        setTodayIfEmpty("#txOcFechaLlegada");
+        setTodayIfEmpty("#txOcFechaMinima");
+        if (!$("#txOcFechaMaxima").val()) {
+            $("#txOcFechaMaxima").val(formatInputDate(maximum));
         }
+        syncDateValidationWindow();
     }
 
     function syncDateValidationWindow(sourceId) {
@@ -2329,6 +2859,11 @@
             return;
         }
 
+        if (String($("#txOcBuscarProductoServicio").val() || "").trim() && validateConfiguration(false).length === 0) {
+            state.editor.preparationCollapsed = true;
+            renderPreparation();
+        }
+
         if (state.editor.searchDebounceId) {
             window.clearTimeout(state.editor.searchDebounceId);
         }
@@ -2340,6 +2875,10 @@
     }
 
     function runImmediateSearch() {
+        if (String($("#txOcBuscarProductoServicio").val() || "").trim() && validateConfiguration(false).length === 0) {
+            state.editor.preparationCollapsed = true;
+            renderPreparation();
+        }
         if (state.editor.searchDebounceId) {
             window.clearTimeout(state.editor.searchDebounceId);
             state.editor.searchDebounceId = 0;
@@ -2352,6 +2891,9 @@
         const params = new URLSearchParams();
         appendQuery(params, "texto", $("#txOcBuscarProductoServicio").val());
         appendQuery(params, "tipo", $("#cbOcBuscarTipo").val());
+        if ($("#ckOcSoloProveedor").prop("checked")) {
+            appendQuery(params, "idProveedor", $("#cbOcProveedor").val());
+        }
         appendQuery(params, "limite", 50);
         return {
             params: params,
@@ -2361,19 +2903,8 @@
     }
 
     function sortSearchResults(items) {
-        const proveedorSeleccionado = normalizeGuid($("#cbOcProveedor").val());
         const normalized = Array.isArray(items) ? items.slice() : [];
-        if (!proveedorSeleccionado) {
-            return normalized;
-        }
-
         return normalized.sort(function (left, right) {
-            const leftScore = Number(left.costoActual || 0) > 0 ? 0 : 1;
-            const rightScore = Number(right.costoActual || 0) > 0 ? 0 : 1;
-            if (leftScore !== rightScore) {
-                return leftScore - rightScore;
-            }
-
             return normalizeSearchText((left.nombre || "") + " " + (left.codigo || ""))
                 .localeCompare(normalizeSearchText((right.nombre || "") + " " + (right.codigo || "")), "es");
         });
@@ -2453,17 +2984,7 @@
     }
 
     function sanitizeUserMessage(message) {
-        const raw = String(message || "").trim();
-        if (!raw) {
-            return "";
-        }
-
-        return raw
-            .replace(/guardad[oa] como borrador/gi, "guardada para continuar")
-            .replace(/en borrador/gi, "en captura")
-            .replace(/\bborrador\b/gi, "captura")
-            .replace(/\bgenerad[ao]s?\b/gi, "confirmadas")
-            .replace(/\bcancelad[ao]s?\b/gi, "detenidas");
+        return String(message || "").trim();
     }
 
     function resolveDownloadFileName(contentDisposition) {

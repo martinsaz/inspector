@@ -105,6 +105,43 @@ namespace checklist.Controllers.Activos
         [HttpGet("BuscarProductosServiciosOrdenCompra")]
         public Task<IActionResult> BuscarProductosServiciosOrdenCompra() => ProxyGetAsync("BuscarProductosServiciosOrdenCompra", OrdenesCompraNuevaPermissionCode);
 
+        [HttpPost("PreviewCurvasOrdenCompra")]
+        public async Task<IActionResult> PreviewCurvasOrdenCompra()
+        {
+            IActionResult? auth = AuthorizeOrdenCompraMvc(OrdenesCompraNuevaPermissionCode, requireWrite: false);
+            if (auth != null)
+            {
+                return auth;
+            }
+
+            using HttpRequestMessage request = new(HttpMethod.Post, $"{Utilerias.UrlBase}api/CurvasSugerencias/Preview");
+            AddProxyHeaders(request);
+            string body = await ReadBodyAsync();
+            JsonObject payload = string.IsNullOrWhiteSpace(body)
+                ? new JsonObject()
+                : JsonNode.Parse(body)?.AsObject() ?? new JsonObject();
+            payload["idEmpresa"] = ResolveIdEmpresa();
+            payload["empresaKey"] = ResolveEmpresa();
+            request.Content = new StringContent(payload.ToJsonString(), Encoding.UTF8, "application/json");
+            return await SendAsync(request);
+        }
+
+        [HttpGet("ObtenerCurvasAplicablesOrdenCompra")]
+        public async Task<IActionResult> ObtenerCurvasAplicablesOrdenCompra(Guid idProductoServicio)
+        {
+            IActionResult? auth = AuthorizeOrdenCompraMvc(OrdenesCompraNuevaPermissionCode, requireWrite: false);
+            if (auth != null) return auth;
+            if (idProductoServicio == Guid.Empty)
+            {
+                return BadRequest(new { mensaje = "Selecciona un producto válido." });
+            }
+
+            string query = $"idEmpresa={Uri.EscapeDataString(ResolveIdEmpresa().ToString())}&empresaKey={Uri.EscapeDataString(ResolveEmpresa())}&idProductoServicio={Uri.EscapeDataString(idProductoServicio.ToString())}";
+            using HttpRequestMessage request = new(HttpMethod.Get, $"{Utilerias.UrlBase}api/CurvasSugerencias/Aplicables?{query}");
+            AddProxyHeaders(request);
+            return await SendAsync(request);
+        }
+
         [HttpPost("ValidarPendientesOrdenCompra")]
         public Task<IActionResult> ValidarPendientesOrdenCompra() => ProxyJsonAsync(HttpMethod.Post, "ValidarPendientesOrdenCompra", requireWrite: false, OrdenesCompraNuevaPermissionCode);
 
@@ -409,7 +446,7 @@ namespace checklist.Controllers.Activos
             {
                 container.Page(page =>
                 {
-                    page.Size(PageSizes.A4);
+                    page.Size(PageSizes.A4.Landscape());
                     page.Margin(32);
                     page.DefaultTextStyle(x => x.FontFamily(Fonts.Calibri).FontSize(10).FontColor("#333638"));
 
@@ -568,24 +605,34 @@ namespace checklist.Controllers.Activos
                     table.ColumnsDefinition(columns =>
                     {
                         columns.ConstantColumn(34);
-                        columns.RelativeColumn(1.1f);
-                        columns.RelativeColumn(1.3f);
-                        columns.RelativeColumn(4.1f);
                         columns.RelativeColumn(1.5f);
+                        columns.RelativeColumn(0.9f);
                         columns.RelativeColumn(1.1f);
-                        columns.RelativeColumn(1.35f);
+                        columns.RelativeColumn(3.1f);
+                        columns.RelativeColumn(2.2f);
                         columns.RelativeColumn(1.4f);
+                        columns.RelativeColumn(1.0f);
+                        columns.RelativeColumn(1.0f);
+                        columns.RelativeColumn(1.0f);
+                        columns.RelativeColumn(1.6f);
+                        columns.RelativeColumn(1.1f);
+                        columns.RelativeColumn(1.2f);
                     });
 
                     table.Header(header =>
                     {
                         string background = "#39394D";
                         header.Cell().Element(x => PdfHeaderCell(x, "No.", background));
+                        header.Cell().Element(x => PdfHeaderCell(x, "Sucursal", background));
                         header.Cell().Element(x => PdfHeaderCell(x, "Tipo", background));
                         header.Cell().Element(x => PdfHeaderCell(x, "Código", background));
                         header.Cell().Element(x => PdfHeaderCell(x, "Producto o servicio", background));
+                        header.Cell().Element(x => PdfHeaderCell(x, "Variante / presentación", background));
                         header.Cell().Element(x => PdfHeaderCell(x, "Unidad", background));
-                        header.Cell().Element(x => PdfHeaderCell(x, "Cantidad", background));
+                        header.Cell().Element(x => PdfHeaderCell(x, "Ordenado", background));
+                        header.Cell().Element(x => PdfHeaderCell(x, "Recibido", background));
+                        header.Cell().Element(x => PdfHeaderCell(x, "Pendiente", background));
+                        header.Cell().Element(x => PdfHeaderCell(x, "Estado", background));
                         header.Cell().Element(x => PdfHeaderCell(x, "Costo", background));
                         header.Cell().Element(x => PdfHeaderCell(x, "Subtotal", background));
                     });
@@ -595,11 +642,16 @@ namespace checklist.Controllers.Activos
                     {
                         string rowBackground = index % 2 == 0 ? "#FAFAFA" : "#FAFAFA";
                         table.Cell().Element(x => PdfBodyCell(x, partida.NumeroPartida.ToString(), rowBackground, TextHorizontalAlignment.Center));
+                        table.Cell().Element(x => PdfBodyCell(x, TextOrDash(partida.Sucursal), rowBackground));
                         table.Cell().Element(x => PdfBodyCell(x, TextOrDash(partida.TipoProductoServicioNombre), rowBackground));
                         table.Cell().Element(x => PdfBodyCell(x, TextOrDash(partida.Codigo), rowBackground));
                         table.Cell().Element(x => PdfBodyCell(x, BuildProductLine(partida), rowBackground));
+                        table.Cell().Element(x => PdfBodyCell(x, BuildPurchaseIdentity(partida), rowBackground));
                         table.Cell().Element(x => PdfBodyCell(x, BuildUnidad(partida), rowBackground));
-                        table.Cell().Element(x => PdfBodyCell(x, partida.Cantidad.ToString("0.####"), rowBackground, TextHorizontalAlignment.Right));
+                        table.Cell().Element(x => PdfBodyCell(x, partida.CantidadBaseOrdenada.ToString("0.####"), rowBackground, TextHorizontalAlignment.Right));
+                        table.Cell().Element(x => PdfBodyCell(x, partida.CantidadBaseRecibidaAcumulada.ToString("0.####"), rowBackground, TextHorizontalAlignment.Right));
+                        table.Cell().Element(x => PdfBodyCell(x, partida.CantidadBasePendiente.ToString("0.####"), rowBackground, TextHorizontalAlignment.Right));
+                        table.Cell().Element(x => PdfBodyCell(x, TextOrDash(partida.EstadoPartidaNombre), rowBackground));
                         table.Cell().Element(x => PdfBodyCell(x, detailCurrency(partida.CostoUnitario), rowBackground, TextHorizontalAlignment.Right));
                         table.Cell().Element(x => PdfBodyCell(x, detailCurrency(partida.Subtotal), rowBackground, TextHorizontalAlignment.Right));
                         index++;
@@ -702,7 +754,14 @@ namespace checklist.Controllers.Activos
         {
             string nombre = TextOrDash(partida.Nombre);
             string descripcion = string.IsNullOrWhiteSpace(partida.Descripcion) ? string.Empty : $" · {partida.Descripcion.Trim()}";
-            return $"{nombre}{descripcion}";
+            string catalogo = string.Join(" · ", new[] { partida.Categoria, partida.Marca }.Where(value => !string.IsNullOrWhiteSpace(value)));
+            return string.IsNullOrWhiteSpace(catalogo) ? $"{nombre}{descripcion}" : $"{nombre}{descripcion}\n{catalogo}";
+        }
+
+        private static string BuildPurchaseIdentity(OrdenCompraPartidaPdfDto partida)
+        {
+            return TextOrDash(string.Join(" · ", new[] { partida.VarianteSnapshot, partida.PresentacionCompraSnapshot }
+                .Where(value => !string.IsNullOrWhiteSpace(value))));
         }
 
         private static string BuildUnidad(OrdenCompraPartidaPdfDto partida)
@@ -738,25 +797,35 @@ namespace checklist.Controllers.Activos
 
             if (estado == 1 || normalized == "borrador")
             {
-                return "En captura";
+                return "Borrador";
             }
 
             if (estado == 2 || normalized == "generada")
             {
-                return "Confirmada";
+                return "Generada";
             }
 
             if (estado == 3 || normalized == "cancelada")
             {
-                return "Detenida";
+                return "Cancelada";
+            }
+
+            if (estado == 4 || normalized == "parcialmente recibida")
+            {
+                return "Parcialmente recibida";
+            }
+
+            if (estado == 5 || normalized == "recibida")
+            {
+                return "Recibida";
             }
 
             if (string.IsNullOrWhiteSpace(normalized) || normalized == "nueva")
             {
-                return "En captura";
+                return "Borrador";
             }
 
-            return "Lista";
+            return TextOrDash(estadoNombre);
         }
 
         private static string BuildSafeExportFileName(string prefix, string folio, string extension)
@@ -852,13 +921,22 @@ namespace checklist.Controllers.Activos
         private sealed class OrdenCompraPartidaPdfDto
         {
             public int NumeroPartida { get; set; }
+            public string Sucursal { get; set; } = string.Empty;
             public string TipoProductoServicioNombre { get; set; } = string.Empty;
             public string Codigo { get; set; } = string.Empty;
             public string Nombre { get; set; } = string.Empty;
             public string Descripcion { get; set; } = string.Empty;
+            public string Categoria { get; set; } = string.Empty;
+            public string Marca { get; set; } = string.Empty;
+            public string VarianteSnapshot { get; set; } = string.Empty;
+            public string PresentacionCompraSnapshot { get; set; } = string.Empty;
             public string UnidadMedida { get; set; } = string.Empty;
             public string UnidadAbreviatura { get; set; } = string.Empty;
             public decimal Cantidad { get; set; }
+            public decimal CantidadBaseOrdenada { get; set; }
+            public decimal CantidadBaseRecibidaAcumulada { get; set; }
+            public decimal CantidadBasePendiente { get; set; }
+            public string EstadoPartidaNombre { get; set; } = string.Empty;
             public decimal CostoUnitario { get; set; }
             public decimal Subtotal { get; set; }
         }

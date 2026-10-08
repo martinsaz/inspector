@@ -210,6 +210,14 @@
     max-width: min(1180px, calc(100vw - 2rem));
 }
 
+#modalCurva .modal-content {
+    background: var(--ca-surface, #fff);
+}
+
+#modalCurva .modal-body {
+    background: var(--ca-surface, #fff);
+}
+
 .ps-modal-form {
     position: relative;
 }
@@ -295,6 +303,27 @@
 
 #modalProductoServicio .ps-hint-field > .ps-label-with-help + input {
     padding-right: 2.55rem;
+}
+
+#modalProductoServicio .ps-supplier-control {
+    display: grid;
+    grid-template-columns: 1.35rem minmax(0, 1fr);
+    gap: 0.45rem;
+    align-items: center;
+    min-width: 0;
+}
+
+#modalProductoServicio .ps-supplier-control > .ps-help-button {
+    position: static;
+    width: 1.35rem;
+    height: 1.35rem;
+    margin: 0;
+}
+
+#modalProductoServicio .ps-supplier-control > .form-select,
+#modalProductoServicio .ps-supplier-control > .select2-container {
+    width: 100% !important;
+    min-width: 0;
 }
 
 .ps-modal-top-grid {
@@ -665,6 +694,12 @@
 
     .ps-form-field--status {
         grid-column: 2;
+        grid-row: 3;
+        align-self: start;
+    }
+
+    .ps-form-field--supplier {
+        grid-column: 3;
         grid-row: 3;
         align-self: start;
     }
@@ -3073,6 +3108,7 @@
     .ps-form-field--description,
     .ps-form-field--type,
     .ps-form-field--status,
+    .ps-form-field--supplier,
     .ps-form-field--code,
     .ps-form-grid--catalogs .ps-form-field--category,
     .ps-form-grid--catalogs .ps-form-field--brand,
@@ -3129,6 +3165,7 @@
 
     .ps-form-field--type,
     .ps-form-field--status,
+    .ps-form-field--supplier,
     .ps-form-field--code,
     .ps-form-grid--catalogs .ps-form-field--category,
     .ps-form-grid--catalogs .ps-form-field--brand,
@@ -3577,7 +3614,7 @@
 .ps-unit-dropdown { max-width: calc(100vw - 1rem); }
 .ps-presentation-modal .select2-container { min-width: 0; max-width: 100%; }
 
-/* PO: only redistribute Name/Code and Type/Status within the existing left area. */
+/* PO: only redistribute Name/Code and Type/Status/Supplier within the existing left area. */
 @media (min-width: 992px) {
     .ps-general-panel .ps-form-grid--hero {
         grid-template-columns: repeat(6, minmax(0, 1fr));
@@ -3586,8 +3623,22 @@
     .ps-general-panel .ps-form-field--name { grid-column: 1 / span 4; grid-row: 1; }
     .ps-general-panel .ps-form-field--code { grid-column: 5 / span 2; grid-row: 1; }
     .ps-general-panel .ps-form-field--description { grid-column: 1 / -1; }
-    .ps-general-panel .ps-form-field--type { grid-column: 1 / span 3; }
-    .ps-general-panel .ps-form-field--status { grid-column: 4 / span 3; }
+    .ps-general-panel .ps-form-field--type { grid-column: 1 / span 2; }
+    .ps-general-panel .ps-form-field--status { grid-column: 3 / span 2; }
+    .ps-general-panel .ps-form-field--supplier { grid-column: 5 / span 2; grid-row: 3; }
+}
+
+@media (min-width: 576px) and (max-width: 991.98px) {
+    .ps-general-panel .ps-form-grid--hero,
+    .ps-general-panel .ps-form-grid--catalogs {
+        grid-template-columns: repeat(3, minmax(0, 1fr));
+    }
+    .ps-general-panel .ps-form-field--name { grid-column: 1 / span 2; grid-row: 1; }
+    .ps-general-panel .ps-form-field--code { grid-column: 3; grid-row: 1; }
+    .ps-general-panel .ps-form-field--description { grid-column: 1 / -1; grid-row: 2; }
+    .ps-general-panel .ps-form-field--type { grid-column: 1; grid-row: 3; }
+    .ps-general-panel .ps-form-field--status { grid-column: 2; grid-row: 3; }
+    .ps-general-panel .ps-form-field--supplier { grid-column: 3; grid-row: 3; }
 }
 
 .ps-ficha-presentations { margin-top: 1rem; min-width: 0; }

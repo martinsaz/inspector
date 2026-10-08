@@ -109,7 +109,6 @@
         $("#btAgregarProductoCurva").on("click", addProductObjectives);
         $("#btAplicarCantidadTodasCurva").on("click", applyQuantityToIncluded);
         $("#btLimpiarProductoCurva").on("click", clearProductEditor);
-        $("#btRollbackCurva").on("click", rollbackForm);
         $("#txBuscarProductoCurva").on("input", debounce(searchProducts, 250));
         $("#tbObjetivosCurva").on("change", ".curvas-include-input", updateVariantFromDom);
         $("#tbObjetivosCurva").on("input", ".curvas-quantity-input", updateVariantFromDom);
@@ -464,21 +463,6 @@
             state.saving = false;
             $("#btGuardarCurva").prop("disabled", false);
         });
-    }
-
-    function rollbackForm() {
-        if (!state.originalForm) {
-            resetForm();
-            return;
-        }
-
-        $("#hdCurvaId").val(state.originalForm.id || "");
-        $("#txCurvaNombre").val(state.originalForm.nombre || "");
-        $("#ckCurvaActiva").prop("checked", state.originalForm.activo !== false);
-        state.details = state.originalForm.details.map(cloneDetail);
-        clearProductEditor();
-        renderDetails();
-        setInfo("success", "Cambios revertidos.");
     }
 
     function snapshotForm() {

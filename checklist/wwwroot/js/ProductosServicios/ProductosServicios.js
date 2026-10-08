@@ -25,6 +25,7 @@
             paquetes: [],
             atributos: [],
             tags: [],
+            proveedores: [],
             tipos: [],
             estatus: [],
             objetosImpuesto: [],
@@ -432,6 +433,7 @@
             resetModal();
         });
         $("#modalProductoServicio").on("shown.bs.modal", function () {
+            initTooltips();
             if (($("#hdProductoServicioId").val() || "").trim()) {
                 ensureEditFallback(state.actionsMenu.lastEditRowId, state.actionsMenu.lastEditDescription);
             }
@@ -1510,6 +1512,12 @@
             valueKey: "id",
             textKey: "displayName"
         });
+        fillSelect("#cbProveedorPrincipalProductoServicio", state.combos.proveedores, {
+            includeBlank: true,
+            blankText: "Sin proveedor principal",
+            valueKey: "id",
+            textKey: "displayName"
+        });
         fillSelect("#cbPaqueteProductoServicio", state.combos.paquetes, {
             includeBlank: true,
             blankText: "Sin paquete",
@@ -1533,6 +1541,7 @@
         initSelect2("#cbMarcaProductoServicio", "Sin marca", $("#modalProductoServicio"));
         initSelect2("#cbUnidadProductoServicio", "Selecciona una unidad", $("#modalProductoServicio"));
         initSelect2("#cbColeccionProductoServicio", "Sin colección", $("#modalProductoServicio"));
+        initSelect2("#cbProveedorPrincipalProductoServicio", "Sin proveedor principal", $("#modalProductoServicio"));
         initSelect2("#cbPaqueteProductoServicio", "Sin paquete", $("#modalProductoServicio"));
         initSelect2("#cbObjetoImpuestoProductoServicio", "Sin capturar", $("#modalProductoServicio"));
         initSelect2("#cbTipoPaqueteProductoServicio", "Selecciona un tipo", $("#modalPaqueteProductoServicio"));
@@ -1878,7 +1887,7 @@
         });
     }
 
-    const pricingHelpSelector = "#btAyudaUnidadBase, #btAyudaPrecioPublico, #btAyudaPrecioComparacionProductoServicio, #btAyudaEquivalencia";
+    const pricingHelpSelector = "#btAyudaProveedorPrincipalProductoServicio, #btAyudaUnidadBase, #btAyudaPrecioPublico, #btAyudaPrecioComparacionProductoServicio, #btAyudaEquivalencia";
     let activePricingHelp = null;
     let pricingHelpEventsBound = false;
 
@@ -3077,6 +3086,11 @@
                 $("#cbMarcaProductoServicio").val(data.idMarca || "").trigger("change");
                 $("#cbUnidadProductoServicio").val(data.idUnidadMedida || "").trigger("change");
                 $("#cbColeccionProductoServicio").val(data.idColeccion || "").trigger("change");
+                if (data.idProveedorPrincipal && !$("#cbProveedorPrincipalProductoServicio option[value='" + data.idProveedorPrincipal + "']").length) {
+                    const proveedorText = [data.proveedorPrincipalCodigo, data.proveedorPrincipalNombre].filter(Boolean).join(" · ") + " (inactivo)";
+                    $("#cbProveedorPrincipalProductoServicio").append(new Option(proveedorText, data.idProveedorPrincipal, false, false));
+                }
+                $("#cbProveedorPrincipalProductoServicio").val(data.idProveedorPrincipal || "").trigger("change");
                 $("#cbPaqueteProductoServicio").val(data.idPaquete || "").trigger("change");
                 applyFiscalState(data.objetoImpuesto || "", data.porcentajeIVA || 0);
                 ensureSelect2Option("#cbClaveProductoSatProductoServicio", data.claveProductoSat || "", context.satProductoText || data.claveProductoSat || "");
@@ -3429,6 +3443,7 @@
             idMarca: tipo === 2 ? null : normalizeGuid($("#cbMarcaProductoServicio").val()),
             idUnidadMedida: tipo === 2 ? "00000000-0000-0000-0000-000000000000" : ($("#cbUnidadProductoServicio").val() || ""),
             idColeccion: normalizeGuid($("#cbColeccionProductoServicio").val()),
+            idProveedorPrincipal: normalizeGuid($("#cbProveedorPrincipalProductoServicio").val()),
             idPaquete: esProductoFisico ? normalizeGuid($("#cbPaqueteProductoServicio").val()) : null,
             costo: toNullableNumber($("#txCostoProductoServicio").val()),
             precioPublico: toNumber($("#txPrecioPublicoProductoServicio").val()),
@@ -3989,6 +4004,7 @@
         $("#cbMarcaProductoServicio").val("").trigger("change");
         $("#cbUnidadProductoServicio").val("").trigger("change");
         $("#cbColeccionProductoServicio").val("").trigger("change");
+        $("#cbProveedorPrincipalProductoServicio").val("").trigger("change");
         $("#cbPaqueteProductoServicio").val("").trigger("change");
         applyFiscalState("01", 0);
         ensureSelect2Option("#cbClaveProductoSatProductoServicio", "", "");
@@ -5625,6 +5641,9 @@
     }
 
     function clearFieldError(selector) {
+        if (!selector || selector === "#") {
+            return;
+        }
         const node = document.querySelector(selector);
         if (node) {
             node.classList.remove("is-invalid");
