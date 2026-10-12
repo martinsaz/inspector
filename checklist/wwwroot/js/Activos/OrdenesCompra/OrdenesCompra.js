@@ -74,7 +74,8 @@
             captureRows: [],
             captureStoreSettings: {},
             curvasAplicables: [],
-            capturePreviewSequence: 0
+            capturePreviewSequence: 0,
+            closureIdempotencyKey: ""
         },
         ui: {
             cancelModal: null,
@@ -107,6 +108,7 @@
         renderSearchResults([]);
         renderPartidas();
         renderWizard();
+        initPurchasePresentationHint();
 
         Promise.resolve()
             .then(loadCombos)
@@ -116,7 +118,7 @@
                 }
 
                 applyDetailToEditor(null);
-                return null;
+                return resumePendingClosure();
             })
             .catch(function (error) {
                 setStatus("#txOcFormStatus", "danger", resolveErrorMessage(error));
@@ -167,6 +169,8 @@
         $("#btOcConfirmarCancelar").on("click", cancelCurrentOrder);
         $("#btOcExportarPdf").on("click", exportOrderPdf);
         $("#btOcExportarExcel").on("click", exportOrderExcel);
+        $("#btOcResultadoPdf").on("click", exportOrderPdf);
+        $("#btOcResultadoExcel").on("click", exportOrderExcel);
 
         $("#txOcBuscarProductoServicio").on("keydown", function (event) {
             if (event.key === "Enter") {
@@ -275,21 +279,15 @@
         $("#txOcCapturaCantidad, #txOcCapturaCosto").on("input", function () { clearFieldError(this); });
 
         $("#grOcPartidas").on("input", "[data-oc-qty]", function () {
-            updatePartidaField($(this).data("ocQty"), "cantidadCompra", $(this).val());
+            updatePartidaField($(this).data("ocQty"), "cantidadCompra", $(this).val(), this);
         });
 
         $("#grOcPartidas").on("input", "[data-oc-cost]", function () {
-            updatePartidaField($(this).data("ocCost"), "costoUnitario", $(this).val());
+            updatePartidaField($(this).data("ocCost"), "costoUnitario", $(this).val(), this);
         });
 
         $("#grOcPartidas").on("click", "[data-oc-remove-item]", function () {
             removePartida($(this).data("ocRemoveItem"));
-        });
-
-        $("#grOcPartidas").on("click", "[data-oc-edit-item]", function () {
-            const uid = String($(this).data("ocEditItem") || "");
-            const input = document.querySelector("[data-oc-qty='" + cssEscape(uid) + "']");
-            if (input) { input.focus(); input.select(); }
         });
 
         $("#panelOcSucursalChips").on("click", "[data-oc-remove-branch]", function () {
@@ -605,7 +603,7 @@
         }
 
         const presentations = getPresentationsForVariant(item, selectedVariantId);
-        const options = ["<option value=''>Base directa (" + escapeHtml(unidadCompra || "unidad") + ")</option>"].concat(presentations.map(function (presentation) {
+        const options = ["<option value=''>Compra en unidad base (" + escapeHtml(unidadCompra || "unidad") + ")</option>"].concat(presentations.map(function (presentation) {
             const label = presentation.nombre + " · " + formatFactor(presentation.factorConversionBase || 1) + " " + resolveUnidadDisplay(item.unidad, item.abreviatura);
             return "<option value='" + escapeHtml(presentation.id) + "'" + (String(selectedPresentationId || "") === String(presentation.id || "") ? " selected" : "") + ">" + escapeHtml(label) + "</option>";
         }));
@@ -701,7 +699,7 @@
 
         const idVariante = normalizeGuid($("#cbOcCapturaVariante").val());
         const presentations = getPresentationsForVariant(item, idVariante);
-        appendOption(presentationSelect, "", "Base directa");
+        appendOption(presentationSelect, "", "Compra en unidad base");
         presentations.forEach(function (presentation) {
             appendOption(presentationSelect, presentation.id, presentation.nombre + " · " + formatFactor(presentation.factorConversionBase || 1));
         });
@@ -866,10 +864,10 @@
         }).join("");
         const presentationControl = presentations.length
             ? "<select aria-label='Presentación de compra' data-capture-presentation='" + escapeHtml(row.key) + "'" + (disabled ? " disabled" : "") + "><option value=''>Selecciona presentación</option>" + options + "</select>"
-            : "<span class='oc-capture-direct'>Base directa</span>";
+            : "<span class='oc-capture-direct'>Compra en unidad base</span>";
         const stateLabel = capturePreviewState(row);
         return [
-            "<tr class='" + (disabled ? "is-no-order" : "") + "' data-capture-row='" + escapeHtml(row.key) + "'>",
+            "<tr class='" + escapeHtml(stateLabel.className) + (disabled ? " is-no-order" : "") + "' data-capture-row='" + escapeHtml(row.key) + "'>",
             "<td><div class='oc-capture-variant'><label class='oc-capture-select'><input type='checkbox' data-capture-select='" + escapeHtml(row.key) + "'" + (row.selected ? " checked" : "") + (disabled ? " disabled" : "") + "><span>" + escapeHtml(variant ? (variant.nombre || variant.sku || "Variante") : "Producto base") + "</span></label><small>Costo asociado: " + escapeHtml(formatCurrency(row.costo)) + "</small>" + presentationControl + "</div></td>",
             metricCell(preview.curvaObjetivoBase), metricCell(preview.existenciaBase), metricCell(preview.transitoBase), metricCell(preview.huecoBase), metricCell(preview.copeteBase),
             "<td>" + captureNumberField("Pedido", "data-capture-qty", row.key, row.cantidad, "0.0001", disabled) + "</td>",
@@ -914,7 +912,7 @@
     function capturePreviewState(row) {
         if (row.modo === 4) return { text: "No pedir", className: "is-none" };
         if (!row.preview) return { text: "Calculando", className: "is-pending" };
-        if (!normalizeGuid(row.preview.idCurva)) return { text: "Sin curva", className: "is-pending" };
+        if (!normalizeGuid(row.preview.idCurva)) return { text: "Sin curva", className: "is-none" };
         if (Number(row.preview.huecoBase || 0) > 0) return { text: "Hueco", className: "is-gap" };
         if (Number(row.preview.copeteBase || 0) > 0) return { text: "Copete", className: "is-over" };
         return { text: "Curva configurada", className: "is-ok" };
@@ -989,6 +987,7 @@
             row.modo = mode;
             row.inicializando = false;
             if (mode === 4) row.cantidad = 0;
+            if (mode === 3 && !normalizeGuid(row.idCurvaTemporal)) row.idCurvaTemporal = normalizeGuid(row.preview && row.preview.idCurva);
         });
         renderCaptureRows();
         refreshCapturePreviews();
@@ -1009,6 +1008,7 @@
                 row.modo = mode;
                 row.inicializando = false;
                 if (mode === 4) row.cantidad = 0;
+                if (mode === 3 && !normalizeGuid(row.idCurvaTemporal)) row.idCurvaTemporal = normalizeGuid(row.preview && row.preview.idCurva);
             });
             renderCaptureRows();
             refreshCapturePreviews();
@@ -1102,6 +1102,14 @@
             if (!state.editor.partidas.some(function (entry) { return entry.uid === uid; })) state.editor.partidas.push(partida);
         });
         if (state.ui.captureModal) state.ui.captureModal.hide();
+        state.editor.selectedProduct = null;
+        state.editor.selectedVariantId = null;
+        state.editor.captureRows = [];
+        state.editor.captureStoreSettings = {};
+        state.editor.curvasAplicables = [];
+        state.editor.capturePreviewSequence += 1;
+        renderSearchResults(state.editor.searchResults);
+        renderCapture();
         renderPartidas(lastUid);
         setStatus("#txOcFormStatus", "success", rows.length + " partida(s) agregada(s).");
         state.editor.maxUnlockedStep = 5;
@@ -1121,7 +1129,7 @@
         }, 1600);
     }
 
-    function updatePartidaField(uid, field, rawValue) {
+    function updatePartidaField(uid, field, rawValue, input) {
         const partida = state.editor.partidas.find(function (item) {
             return String(item.uid) === String(uid);
         });
@@ -1133,7 +1141,20 @@
         const parsed = toNumber(rawValue);
         partida[field] = field === "cantidadCompra" ? roundQuantity(parsed) : roundMoney(parsed);
         recalcPartida(partida);
-        renderPartidas(partida.uid);
+        if (input) {
+            const invalid = field === "cantidadCompra"
+                ? !(Number(partida.cantidadCompra) > 0)
+                : !(Number(partida.costoUnitario) > 0);
+            input.classList.toggle("is-invalid", invalid);
+            const row = input.closest("tr");
+            const total = row ? row.querySelector("[data-oc-line-total]") : null;
+            if (total) total.textContent = formatCurrency(partida.subtotal);
+        }
+
+        updateSummaryTotals(roundMoney(state.editor.partidas.reduce(function (accumulator, item) {
+            return accumulator + Number(item.subtotal || 0);
+        }, 0)));
+        refreshWizardState();
     }
 
     function removePartida(uid) {
@@ -1181,11 +1202,11 @@
                 "<td><strong>" + escapeHtml(partida.sucursal || "—") + "</strong></td>",
                 "<td><div class='oc-line-title oc-line-title--partida'><span class='oc-row-number'>#" + (index + 1) + " · " + escapeHtml(partida.tipoProductoServicioNombre || "") + " · " + escapeHtml(partida.codigo || "") + "</span><strong>" + escapeHtml(partida.nombre || "") + "</strong><small title='" + escapeHtml(toPlainText(partida.descripcion || "")) + "'>" + escapeHtml(toPlainText(partida.descripcion || "")) + "</small></div></td>",
                 "<td>" + escapeHtml(partida.varianteSnapshot || "Base") + "</td>",
-                "<td>" + escapeHtml(partida.presentacionCompraSnapshot || "Base directa") + "</td>",
+                "<td>" + escapeHtml(partida.presentacionCompraSnapshot || "Compra en unidad base") + "</td>",
                 "<td><input class='form-control oc-inline-input" + (isInvalidQuantity ? " is-invalid" : "") + "' type='number' min='0' step='0.0001' data-oc-qty='" + escapeHtml(partida.uid) + "' value='" + escapeHtml(formatDecimalInput(partida.cantidadCompra)) + "'" + (state.editor.readOnly ? " disabled" : "") + " /></td>",
                 "<td><input class='form-control oc-inline-input" + (isInvalidCostForGenerate ? " is-invalid" : "") + "' type='number' min='0' step='0.01' data-oc-cost='" + escapeHtml(partida.uid) + "' value='" + escapeHtml(formatDecimalInput(partida.costoUnitario)) + "'" + (state.editor.readOnly ? " disabled" : "") + " /></td>",
-                "<td>" + formatCurrency(partida.subtotal) + "</td>",
-                "<td><button type='button' class='checkapp-btn checkapp-btn-ghost checkapp-btn-sm' data-oc-edit-item='" + escapeHtml(partida.uid) + "'" + (state.editor.readOnly ? " disabled" : "") + "><i class='fa fa-pencil'></i><span>Editar</span></button><button type='button' class='checkapp-btn checkapp-btn-ghost checkapp-btn-sm' data-oc-remove-item='" + escapeHtml(partida.uid) + "'" + (state.editor.readOnly ? " disabled" : "") + "><i class='fa fa-trash'></i><span>Eliminar</span></button></td>"
+                "<td data-oc-line-total>" + formatCurrency(partida.subtotal) + "</td>",
+                "<td><button type='button' class='checkapp-btn checkapp-btn-ghost checkapp-btn-sm' data-oc-remove-item='" + escapeHtml(partida.uid) + "'" + (state.editor.readOnly ? " disabled" : "") + "><i class='fa fa-trash'></i><span>Eliminar</span></button></td>"
             ].join("");
             tbody.appendChild(tr);
         });
@@ -1406,36 +1427,29 @@
         }
 
         const payload = buildSavePayload();
-        const errors = validateSavePayload(payload);
+        const errors = validateConfiguration(true).concat(validatePartidasForGenerate());
         if (errors.length) {
             setStatus("#txOcFormStatus", "danger", errors[0]);
             showError(errors[0]);
             return;
         }
 
+        state.editor.closureIdempotencyKey = state.editor.closureIdempotencyKey || createClosureIdempotencyKey();
+        payload.idempotencyKey = state.editor.closureIdempotencyKey;
+        window.sessionStorage.setItem("checkapp.oc.pendingClosure", JSON.stringify(payload));
         state.editor.saving = true;
         syncActionButtons();
-        showEditorOverlay(true, "Guardando borrador...", "Estamos registrando los cambios de tu orden.");
-        setStatus("#txOcFormStatus", "info", "Guardando borrador...");
+        showEditorOverlay(true, "Validando pedidos pendientes...", "Estamos preparando el cierre seguro de la orden.");
+        setStatus("#txOcFormStatus", "info", "Validando pedidos pendientes...");
 
-        fetchJson("/Activos/OrdenesCompra/GuardarBorradorOrdenCompra", {
+        fetchJson("/Activos/OrdenesCompra/PrepararCierreOrdenCompra", {
             method: "POST",
             headers: { "Content-Type": "application/json" },
             body: JSON.stringify(payload)
         })
             .then(function (response) {
-                const nextId = normalizeGuid(response.idOrdenCompra);
-                if (nextId) {
-                    state.detailId = nextId;
-                    state.mode = "detail";
-                    if (window.history && window.history.replaceState) {
-                        window.history.replaceState({}, "", "/Activos/OrdenesCompra/Detalle/" + encodeURIComponent(nextId));
-                    }
-                }
-
-                showSuccess(resolveServerMessage(response) || "El borrador se guardó correctamente.");
-                setStatus("#txOcFormStatus", "success", resolveServerMessage(response) || "El borrador se guardó correctamente.");
-                return loadOrderDetail(nextId || state.detailId);
+                showEditorOverlay(false);
+                return processClosurePreparation(response, payload);
             })
             .catch(function (error) {
                 setStatus("#txOcFormStatus", "danger", resolveErrorMessage(error));
@@ -1446,6 +1460,83 @@
                 showEditorOverlay(false);
                 syncActionButtons();
             });
+    }
+
+    function createClosureIdempotencyKey() {
+        if (window.crypto && typeof window.crypto.randomUUID === "function") return window.crypto.randomUUID();
+        return "oc-" + Date.now() + "-" + Math.random().toString(16).slice(2) + "-" + Math.random().toString(16).slice(2);
+    }
+
+    function resumePendingClosure() {
+        const raw = window.sessionStorage.getItem("checkapp.oc.pendingClosure");
+        if (!raw) return Promise.resolve();
+        let payload;
+        try { payload = JSON.parse(raw); } catch (_) { window.sessionStorage.removeItem("checkapp.oc.pendingClosure"); return Promise.resolve(); }
+        if (!payload || !payload.idempotencyKey) return Promise.resolve();
+        state.editor.closureIdempotencyKey = payload.idempotencyKey;
+        return fetchJson("/Activos/OrdenesCompra/PrepararCierreOrdenCompra", { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify(payload) })
+            .then(function (response) { return processClosurePreparation(response, payload); })
+            .catch(function () { return null; });
+    }
+
+    function processClosurePreparation(response, payload) {
+        if (response && response.idOrdenCompra) { showClosureResult(response); return Promise.resolve(response); }
+        if (response && response.completada && response.resultado) { showClosureResult(response.resultado); return Promise.resolve(response.resultado); }
+        const conflicts = Array.isArray(response && response.conflictos) ? response.conflictos : [];
+        if (!conflicts.length) {
+            return Swal.fire({ icon: "question", title: "Confirmar orden de compra", text: "No se encontraron pedidos pendientes con la misma identidad. Se creará la orden.", showCancelButton: true, confirmButtonText: "Crear orden", cancelButtonText: "Cancelar" })
+                .then(function (choice) { if (choice.isConfirmed) return executeClosure(response.token, payload.idempotencyKey, "SEPARATE"); clearPendingClosure(); return null; });
+        }
+        const rows = conflicts.map(function (item) {
+            return "<tr><td>" + escapeHtml(item.folio || "—") + "</td><td>" + escapeHtml(item.sucursal || "—") + "</td><td>" + escapeHtml(item.concepto || "—") + "</td><td>" + escapeHtml(item.variante || "—") + "</td><td>" + escapeHtml(item.presentacionCompra || "Base") + "</td><td>" + escapeHtml(formatDecimalInput(item.cantidadAnterior)) + " → " + escapeHtml(formatDecimalInput(item.cantidadPropuesta)) + "</td></tr>";
+        }).join("");
+        return Swal.fire({
+            icon: "warning", title: "Ya existen pedidos pendientes",
+            html: "<div class='oc-conflict-scroll'><table class='table'><thead><tr><th>Folio</th><th>Sucursal</th><th>Concepto</th><th>Variante</th><th>Presentación</th><th>Cantidad</th></tr></thead><tbody>" + rows + "</tbody></table></div>",
+            showCancelButton: true, showDenyButton: true, showConfirmButton: !!response.puedeConsolidar,
+            confirmButtonText: "Consolidar y reemplazar", denyButtonText: "Mantener separados", cancelButtonText: "Cancelar", width: "min(1120px, 96vw)"
+        }).then(function (choice) {
+            if (choice.isDenied) return executeClosure(response.token, payload.idempotencyKey, "SEPARATE");
+            if (!choice.isConfirmed) { clearPendingClosure(); return null; }
+            return showConsolidationPreview(response.vistaPrevia || []).then(function (confirmed) {
+                return confirmed ? executeClosure(response.token, payload.idempotencyKey, "CONSOLIDATE") : null;
+            });
+        });
+    }
+
+    function clearPendingClosure() {
+        window.sessionStorage.removeItem("checkapp.oc.pendingClosure");
+        state.editor.closureIdempotencyKey = "";
+    }
+
+    function showConsolidationPreview(items) {
+        const rows = items.map(function (item) {
+            return "<tr><td><strong>" + escapeHtml(item.accion || "") + "</strong></td><td>" + escapeHtml(item.sucursal || "—") + "</td><td>" + escapeHtml(item.concepto || "—") + "</td><td>" + escapeHtml(item.variante || "—") + "</td><td>" + escapeHtml(item.presentacionCompra || "Base") + "</td><td>" + escapeHtml(formatDecimalInput(item.cantidadAnterior)) + "</td><td>" + escapeHtml(formatDecimalInput(item.cantidadNueva)) + "</td></tr>";
+        }).join("");
+        return Swal.fire({ icon: "question", title: "Confirmar consolidación y reemplazo", html: "<p>La cantidad propuesta reemplaza la anterior; no se suma.</p><div class='oc-conflict-scroll'><table class='table'><thead><tr><th>Acción</th><th>Sucursal</th><th>Concepto</th><th>Variante</th><th>Presentación</th><th>Anterior</th><th>Nueva</th></tr></thead><tbody>" + rows + "</tbody></table></div>", showCancelButton: true, confirmButtonText: "Consolidar y reemplazar", cancelButtonText: "Volver", width: "min(1120px, 96vw)" }).then(function (choice) { return !!choice.isConfirmed; });
+    }
+
+    function executeClosure(token, idempotencyKey, decision) {
+        state.editor.saving = true; syncActionButtons();
+        showEditorOverlay(true, decision === "CONSOLIDATE" ? "Consolidando orden..." : "Creando orden...", "La operación es atómica; no cierres esta ventana.");
+        return fetchJson("/Activos/OrdenesCompra/EjecutarCierreOrdenCompra", { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ idEmpresa: state.empresaId, token: token, idempotencyKey: idempotencyKey, decision: decision }) })
+            .then(function (result) { showClosureResult(result); return result; })
+            .finally(function () { state.editor.saving = false; showEditorOverlay(false); syncActionButtons(); });
+    }
+
+    function showClosureResult(result) {
+        const id = normalizeGuid(result && result.idOrdenCompra);
+        if (!id) return;
+        state.detailId = id; state.mode = "detail"; state.editor.readOnly = true; state.editor.detail = { estado: estadoGenerada, estadoNombre: result.estadoNombre || "Generada" };
+        window.sessionStorage.removeItem("checkapp.oc.pendingClosure"); state.editor.closureIdempotencyKey = "";
+        $(".oc-stepper, [data-step-panel]").prop("hidden", true);
+        $("#panelOcResultadoFinal").prop("hidden", false);
+        $("#txOcHeroTitle").text("Orden de compra generada");
+        $("#txOcHeroDescription").text(result.consolidada ? "La orden consolidada quedó registrada con trazabilidad de reemplazo." : "La orden quedó registrada correctamente.");
+        $("#txOcResultadoFolio").text(result.folio || "—"); $("#txOcResultadoEstado").text(result.estadoNombre || "Generada");
+        $("#txOcResultadoRenglones").text(result.renglones || 0); $("#txOcResultadoPiezas").text(formatDecimalInput(result.piezas || 0)); $("#txOcResultadoTotal").text(formatCurrency(result.total || 0));
+        if (window.history && window.history.replaceState) window.history.replaceState({}, "", "/Activos/OrdenesCompra/Detalle/" + encodeURIComponent(id));
+        window.scrollTo({ top: 0, behavior: "smooth" });
     }
 
     function generateOrder() {
@@ -1755,6 +1846,17 @@
         toggleEditorReadOnly(state.editor.readOnly);
         renderWizard();
         syncActionButtons();
+        if (detail && Number(detail.estado || 0) === estadoGenerada) {
+            showClosureResult({
+                idOrdenCompra: detail.id,
+                folio: detail.folio,
+                estadoNombre: detail.estadoNombre || "Generada",
+                renglones: state.editor.partidas.length,
+                piezas: state.editor.partidas.reduce(function (sum, row) { return sum + Number(row.cantidadBaseOrdenada || 0); }, 0),
+                total: detail.total || 0,
+                consolidada: false
+            });
+        }
     }
 
     function toggleEditorReadOnly(isReadOnly) {
@@ -1854,14 +1956,14 @@
                 1: !!normalizeGuid($("#cbOcProveedor").val()),
                 2: getSelectedSucursalIds().length > 0,
                 3: !!state.editor.selectedProduct || state.editor.partidas.length > 0,
-                4: state.editor.partidas.length > 0,
-                5: !!state.detailId
+                4: false,
+                5: state.editor.partidas.length > 0
             };
             const isCompleted = !!completionByStep[step];
 
             button.disabled = !accessible && !isActive;
             button.classList.toggle("is-active", isActive);
-            button.classList.toggle("is-completed", isCompleted);
+            button.classList.toggle("is-completed", isCompleted && !isActive);
             button.classList.toggle("is-blocked", !accessible && !isActive);
             button.classList.toggle("is-pending", accessible && !isActive && !isCompleted);
         });
@@ -1869,8 +1971,8 @@
         updateStepStateCopy(1, !!normalizeGuid($("#cbOcProveedor").val()), state.currentStep === 1);
         updateStepStateCopy(2, getSelectedSucursalIds().length > 0, state.currentStep === 2);
         updateStepStateCopy(3, !!state.editor.selectedProduct || state.editor.partidas.length > 0, state.currentStep === 3);
-        updateStepStateCopy(4, state.editor.partidas.length > 0, state.currentStep === 4);
-        updateStepStateCopy(5, false, state.currentStep === 5);
+        updateStepStateCopy(4, false, state.currentStep === 4);
+        updateStepStateCopy(5, state.editor.partidas.length > 0, state.currentStep === 5);
         renderPreparation();
         renderContinuousGates();
         syncActionButtons();
@@ -1934,13 +2036,25 @@
 
         let text = "Pendiente";
         if (completed) {
-            text = "Completo";
+            text = step <= 2 ? "Completo" : "Listo";
         } else if (active) {
             text = "Activo";
         } else if (step > 1 && !isStepUnlocked(step)) {
             text = "Bloqueado";
         }
         node.textContent = text;
+    }
+
+    function initPurchasePresentationHint() {
+        const button = document.querySelector("#btAyudaPresentacionCompraOc");
+        if (!button || !window.bootstrap || !window.bootstrap.Tooltip) {
+            return;
+        }
+
+        window.bootstrap.Tooltip.getOrCreateInstance(button, {
+            trigger: "click",
+            animation: false
+        });
     }
 
     function syncActionButtons() {
@@ -1968,7 +2082,7 @@
 
         $("#btOcGuardar").prop("hidden", !isDraft)
             .prop("disabled", !canSave || validateConfiguration(false).length > 0 || validatePartidas().length > 0)
-            .find("span").text(state.editor.saving ? "Guardando..." : "Guardar borrador");
+            .find("span").text(state.editor.saving ? "Guardando..." : "Guardar orden de compra");
         $("#btOcGenerar").prop("hidden", !(hasPersistedOrder && estado === estadoBorrador))
             .prop("disabled", !canGenerate || validatePartidasForGenerate().length > 0)
             .find("span").text(state.editor.generating ? "Generando..." : "Generar orden");
@@ -2012,7 +2126,7 @@
 
     function isStepUnlocked(step) {
         if (Number(step || 0) === 4 && !state.editor.selectedProduct) {
-            return state.currentStep === 4;
+            return false;
         }
         return Number(step || 0) <= Number(state.editor.maxUnlockedStep || 1);
     }
@@ -2550,50 +2664,231 @@
         $("#txOcDetalleObservaciones").text(detail.observaciones || "Sin observaciones");
         $("#txOcDetalleSubtotal").text(formatCurrency(detail.subtotal || 0));
         $("#txOcDetalleTotal").text(formatCurrency(detail.total || 0));
+        $("#txOcDetallePiezas").text(formatDetailQuantity(sumDetailPartidas(partidas).quantity));
+        $("#txOcDetallePartidasResumen").text(partidas.length);
         $("#txOcDetallePartidasCount").text(partidas.length + " partida" + (partidas.length === 1 ? "" : "s"));
         const puedeEditar = Number(detail.estado || 0) === estadoBorrador;
         $("#btOcDetalleEditar")
             .attr("href", puedeEditar ? "/Activos/OrdenesCompra/Editar/" + encodeURIComponent(detail.id || "") : "#")
             .prop("hidden", !puedeEditar);
-        renderReportDetailPartidas(partidas);
+        renderReportDetailPartidas(detail, partidas);
     }
 
-    function renderReportDetailPartidas(partidas) {
-        const tbody = document.querySelector("#tbOcDetallePartidas");
-        if (!tbody) {
+    function renderReportDetailPartidas(detail, partidas) {
+        const host = document.querySelector("#ocDetallePartidasGroups");
+        if (!host) {
             return;
         }
 
-        tbody.innerHTML = "";
+        host.innerHTML = "";
         if (!Array.isArray(partidas) || !partidas.length) {
-            const row = document.createElement("tr");
-            row.innerHTML = "<td colspan='15'><div class='oc-empty-state'>La orden no tiene partidas disponibles.</div></td>";
-            tbody.appendChild(row);
+            host.innerHTML = "<div class='oc-empty-state'>La orden no tiene partidas disponibles.</div>";
             return;
         }
 
-        partidas.forEach(function (partida) {
-            const tr = document.createElement("tr");
-            const descripcion = [partida.nombre || "", partida.descripcion || ""].filter(Boolean).join(" · ");
-            tr.innerHTML = [
-                "<td>" + escapeHtml(partida.numeroPartida || "—") + "</td>",
-                "<td>" + escapeHtml(partida.tipoProductoServicioNombre || "—") + "</td>",
-                "<td>" + escapeHtml(partida.codigo || "—") + "</td>",
-                "<td><div class='oc-line-title'><strong>" + escapeHtml(partida.nombre || "—") + "</strong><small title='" + escapeHtml(toPlainText(descripcion || "")) + "'>" + escapeHtml(toPlainText(descripcion || "Sin descripción")) + "</small></div></td>",
-                "<td>" + escapeHtml(partida.categoria || "—") + "</td>",
-                "<td>" + escapeHtml(partida.marca || "—") + "</td>",
-                "<td>" + escapeHtml(partida.varianteSnapshot || "—") + "</td>",
-                "<td>" + escapeHtml(partida.presentacionCompraSnapshot || "—") + "</td>",
-                "<td>" + escapeHtml(resolveUnidadDisplay(partida.unidadMedida, partida.unidadAbreviatura) || "—") + "</td>",
-                "<td>" + escapeHtml(String(roundQuantity(partida.cantidadBaseOrdenada || 0))) + "</td>",
-                "<td>" + escapeHtml(String(roundQuantity(partida.cantidadBaseRecibidaAcumulada || 0))) + "</td>",
-                "<td>" + escapeHtml(String(roundQuantity(partida.cantidadBasePendiente || 0))) + "</td>",
-                "<td>" + escapeHtml(partida.estadoPartidaNombre || "—") + "</td>",
-                "<td>" + escapeHtml(formatCurrency(partida.costoUnitario || 0)) + "</td>",
-                "<td>" + escapeHtml(formatCurrency(partida.subtotal || 0)) + "</td>"
-            ].join("");
-            tbody.appendChild(tr);
+        const model = buildReportDetailGroups(detail || {}, partidas);
+        [1, 2].forEach(function (type) {
+            const groups = model.groups.filter(function (group) { return group.type === type; });
+            if (!groups.length) {
+                return;
+            }
+
+            const section = document.createElement("section");
+            section.className = "oc-detail-type-group";
+            section.innerHTML = "<div class='oc-detail-type-heading'>" + (type === 1 ? "PRODUCTO" : "SERVICIO") + "</div>";
+            groups.forEach(function (group) {
+                section.insertAdjacentHTML("beforeend", renderReportDetailGroup(group, model.branches));
+            });
+            host.appendChild(section);
         });
+    }
+
+    function buildReportDetailGroups(detail, partidas) {
+        const branches = resolveReportDetailBranches(detail, partidas);
+        const groupMap = new Map();
+
+        partidas.forEach(function (item) {
+            const type = Number(item.tipoProductoServicio || 0);
+            const unit = resolveReportDetailUnit(item);
+            const groupKey = [
+                type,
+                item.idProductoServicio || "",
+                normalizeDetailText(item.codigo),
+                normalizeDetailText(item.nombre),
+                normalizeDetailText(item.descripcion),
+                normalizeDetailText(item.categoria),
+                normalizeDetailText(item.marca),
+                unit
+            ].join("|");
+            let group = groupMap.get(groupKey);
+            if (!group) {
+                group = {
+                    type: type,
+                    code: normalizeDetailText(item.codigo) || "—",
+                    name: normalizeDetailText(item.nombre) || "—",
+                    description: normalizeDetailText(item.descripcion),
+                    category: normalizeDetailText(item.categoria),
+                    brand: normalizeDetailText(item.marca),
+                    unit: unit,
+                    items: [],
+                    variants: []
+                };
+                groupMap.set(groupKey, group);
+            }
+            group.items.push(item);
+        });
+
+        const groups = Array.from(groupMap.values()).map(function (group) {
+            const variantMap = new Map();
+            group.items.forEach(function (item) {
+                const identity = group.type === 1
+                    ? [normalizeDetailText(item.varianteSnapshot), normalizeDetailText(item.presentacionCompraSnapshot)].filter(Boolean).join(" · ") || "—"
+                    : "—";
+                const key = [item.idVariante || "", item.idPresentacionCompra || "", identity].join("|");
+                if (!variantMap.has(key)) {
+                    variantMap.set(key, { identity: identity, items: [] });
+                }
+                variantMap.get(key).items.push(item);
+            });
+
+            group.variants = Array.from(variantMap.values()).map(function (variant) {
+                variant.byBranch = {};
+                branches.forEach(function (branch) {
+                    variant.byBranch[branch] = sumDetailPartidas(variant.items.filter(function (item) {
+                        return sameDetailText(item.sucursal, branch);
+                    }));
+                });
+                variant.total = sumDetailPartidas(variant.items);
+                return variant;
+            }).sort(function (left, right) {
+                return left.identity.localeCompare(right.identity, "es", { sensitivity: "base", numeric: true });
+            });
+
+            group.byBranch = {};
+            branches.forEach(function (branch) {
+                group.byBranch[branch] = sumDetailPartidas(group.items.filter(function (item) {
+                    return sameDetailText(item.sucursal, branch);
+                }));
+            });
+            group.total = sumDetailPartidas(group.items);
+            return group;
+        }).sort(function (left, right) {
+            return left.type - right.type || left.code.localeCompare(right.code, "es", { sensitivity: "base", numeric: true });
+        });
+
+        return { branches: branches, groups: groups };
+    }
+
+    function renderReportDetailGroup(group, branches) {
+        const catalog = [group.category, group.brand].filter(Boolean).join(" · ");
+        const header = [
+            "<article class='oc-detail-concept'>",
+            "<header class='oc-detail-concept-head'>",
+            "<div class='oc-detail-concept-code'>" + escapeHtml(group.code) + "</div>",
+            "<div class='oc-detail-concept-copy'>",
+            "<h4>" + escapeHtml(group.name) + "</h4>",
+            group.description ? "<p>" + escapeHtml(group.description) + "</p>" : "",
+            "<div class='oc-detail-concept-meta'>",
+            catalog ? "<span>" + escapeHtml(catalog) + "</span>" : "",
+            "<span>Unidad: " + escapeHtml(group.unit) + "</span>",
+            "</div></div></header>"
+        ].join("");
+
+        const desktopHeader = branches.map(function (branch) {
+            return "<th>" + escapeHtml(branch) + "</th>";
+        }).join("");
+        const desktopRows = group.variants.map(function (variant) {
+            return "<tr><th scope='row'>" + escapeHtml(variant.identity) + "</th>" +
+                branches.map(function (branch) {
+                    return renderReportDetailMetricCell(variant.byBranch[branch]);
+                }).join("") +
+                renderReportDetailMetricCell(variant.total, true) + "</tr>";
+        }).join("");
+        const desktopSubtotal = "<tr class='oc-detail-matrix-subtotal'><th scope='row'>Subtotal " +
+            (group.type === 1 ? "producto " : "servicio ") + escapeHtml(group.code) + "</th>" +
+            branches.map(function (branch) { return renderReportDetailMetricCell(group.byBranch[branch]); }).join("") +
+            renderReportDetailMetricCell(group.total, true) + "</tr>";
+
+        const mobileRows = group.variants.map(function (variant) {
+            return "<section class='oc-detail-mobile-variant'><h5>" + escapeHtml(variant.identity) + "</h5>" +
+                branches.map(function (branch) {
+                    return renderReportDetailMobileMetric(branch, variant.byBranch[branch]);
+                }).join("") + renderReportDetailMobileMetric("Total", variant.total, true) + "</section>";
+        }).join("");
+
+        return header +
+            "<div class='oc-detail-matrix-wrap'><table class='oc-detail-matrix'><thead><tr><th>Variante / Presentación</th>" + desktopHeader + "<th>Total</th></tr></thead><tbody>" + desktopRows + desktopSubtotal + "</tbody></table></div>" +
+            "<div class='oc-detail-mobile-matrix'>" + mobileRows +
+            "<div class='oc-detail-mobile-subtotal'><strong>Subtotal " + (group.type === 1 ? "producto " : "servicio ") + escapeHtml(group.code) + "</strong>" +
+            renderReportDetailMobileMetric("Total", group.total, true) + "</div></div></article>";
+    }
+
+    function renderReportDetailMetricCell(totals, emphasize) {
+        const value = totals || sumDetailPartidas([]);
+        const status = value.statuses.length ? " · Estado " + value.statuses.join(", ") : "";
+        return "<td class='oc-detail-metric" + (emphasize ? " is-total" : "") + "'>" +
+            "<strong>" + escapeHtml(formatDetailQuantity(value.quantity)) + "</strong>" +
+            "<span>" + escapeHtml(formatCurrency(value.amount)) + "</span>" +
+            "<small>Recibido " + escapeHtml(formatDetailQuantity(value.received)) + " · Pendiente " + escapeHtml(formatDetailQuantity(value.pending)) + escapeHtml(status) + "</small></td>";
+    }
+
+    function renderReportDetailMobileMetric(label, totals, emphasize) {
+        const value = totals || sumDetailPartidas([]);
+        const status = value.statuses.length ? " · Estado " + value.statuses.join(", ") : "";
+        return "<div class='oc-detail-mobile-metric" + (emphasize ? " is-total" : "") + "'>" +
+            "<span>" + escapeHtml(label) + "</span><strong>" + escapeHtml(formatDetailQuantity(value.quantity)) + " · " + escapeHtml(formatCurrency(value.amount)) + "</strong>" +
+            "<small>Recibido " + escapeHtml(formatDetailQuantity(value.received)) + " · Pendiente " + escapeHtml(formatDetailQuantity(value.pending)) + escapeHtml(status) + "</small></div>";
+    }
+
+    function resolveReportDetailBranches(detail, partidas) {
+        const destinationNames = Array.isArray(detail.sucursales)
+            ? detail.sucursales.map(function (item) { return normalizeDetailText(item && item.nombre); }).filter(Boolean)
+            : [];
+        const source = destinationNames.length
+            ? destinationNames
+            : partidas.map(function (item) { return normalizeDetailText(item.sucursal); }).filter(Boolean);
+        const branches = source.filter(function (value, index, values) {
+            return values.findIndex(function (candidate) { return sameDetailText(candidate, value); }) === index;
+        }).sort(function (left, right) {
+            return left.localeCompare(right, "es", { sensitivity: "base", numeric: true });
+        });
+        if (!branches.length && normalizeDetailText(detail.sucursal)) {
+            branches.push(normalizeDetailText(detail.sucursal));
+        }
+        return branches.length ? branches : ["Sin sucursal"];
+    }
+
+    function resolveReportDetailUnit(item) {
+        if (normalizeDetailText(item.presentacionCompraSnapshot) && normalizeDetailText(item.unidadCompraSnapshot)) {
+            return resolveUnidadDisplay(item.unidadCompraSnapshot, item.unidadCompraAbreviaturaSnapshot) || "—";
+        }
+        return resolveUnidadDisplay(item.unidadMedida, item.unidadAbreviatura) || "—";
+    }
+
+    function sumDetailPartidas(items) {
+        return (Array.isArray(items) ? items : []).reduce(function (totals, item) {
+            totals.quantity += Number(item.cantidadBaseOrdenada || 0);
+            totals.received += Number(item.cantidadBaseRecibidaAcumulada || 0);
+            totals.pending += Number(item.cantidadBasePendiente || 0);
+            totals.amount += Number(item.subtotal || 0);
+            const status = normalizeDetailText(item.estadoPartidaNombre);
+            if (status && totals.statuses.indexOf(status) < 0) {
+                totals.statuses.push(status);
+            }
+            return totals;
+        }, { quantity: 0, received: 0, pending: 0, amount: 0, statuses: [] });
+    }
+
+    function normalizeDetailText(value) {
+        return toPlainText(value == null ? "" : String(value)).trim();
+    }
+
+    function sameDetailText(left, right) {
+        return normalizeDetailText(left).localeCompare(normalizeDetailText(right), "es", { sensitivity: "base" }) === 0;
+    }
+
+    function formatDetailQuantity(value) {
+        return String(roundQuantity(Number(value || 0)));
     }
 
     function exportReportDetailPdf() {

@@ -56,6 +56,23 @@
         </section>
 
         <main class="oc-main oc-main--continuous">
+                <section id="panelOcResultadoFinal" class="checkapp-panel oc-panel oc-final-result" hidden>
+                    <div class="checkapp-panel-head">
+                        <div><span class="checkapp-panel-eyebrow">Orden generada</span><h2>Resultado final</h2><p class="checkapp-panel-copy">La orden quedó registrada y está lista para consulta o exportación.</p></div>
+                        <span id="txOcResultadoEstado" class="oc-state-pill is-complete">Generada</span>
+                    </div>
+                    <div class="oc-final-result-grid">
+                        <div><small>Folio</small><strong id="txOcResultadoFolio">—</strong></div>
+                        <div><small>Renglones</small><strong id="txOcResultadoRenglones">0</strong></div>
+                        <div><small>Piezas</small><strong id="txOcResultadoPiezas">0</strong></div>
+                        <div><small>Total</small><strong id="txOcResultadoTotal">$0.00</strong></div>
+                    </div>
+                    <div class="oc-step-actions oc-step-actions--review">
+                        <button id="btOcResultadoPdf" type="button" class="checkapp-btn checkapp-btn-secondary"><i class="fa fa-file-pdf-o"></i><span>Ver/imprimir PDF</span></button>
+                        <button id="btOcResultadoExcel" type="button" class="checkapp-btn checkapp-btn-excel"><i class="fa fa-file-excel-o"></i><span>Excel</span></button>
+                        <a class="checkapp-btn checkapp-btn-ghost" href="/Activos/OrdenesCompra/Nueva"><i class="fa fa-refresh"></i><span>Crear otra orden</span></a>
+                    </div>
+                </section>
                 <section class="checkapp-panel oc-panel oc-preparation" data-step-panel="1" id="panelOcPreparacion">
                     <div class="checkapp-panel-head oc-preparation-head">
                         <div>
@@ -186,20 +203,31 @@
                         <div>
                             <span class="checkapp-panel-eyebrow">Paso 5</span>
                             <h2>Partidas / Guardar</h2>
-                            <p class="checkapp-panel-copy">Ajusta cantidades y costos; después guarda el borrador o genera la orden.</p>
+                            <p class="checkapp-panel-copy">Ajusta cantidades y costos; después guarda la orden de compra.</p>
                         </div>
                     </div>
 
                     <div class="oc-partidas-section">
-                        <div class="checkapp-grid-toolbar">
-                            <strong>Partidas capturadas</strong>
-                            <div class="oc-grid-toolbar-meta">
-                                <label class="checkapp-field oc-field oc-field--toolbar">
-                                    <span>Buscar dentro de partidas</span>
-                                    <input id="txOcBuscarPartidas" type="text" placeholder="Código, nombre o descripción" />
-                                </label>
-                                <span id="txOcPartidasCount" class="ca-grid-count">0 partidas</span>
-                            </div>
+                        <div class="oc-partidas-metrics" aria-label="Resumen de partidas">
+                            <article class="oc-partidas-metric oc-partidas-metric--pieces">
+                                <span class="oc-partidas-metric-icon"><i class="fa fa-clipboard-check" aria-hidden="true"></i></span>
+                                <span><strong id="txOcPiezas">0</strong><small>PIEZAS</small></span>
+                            </article>
+                            <article class="oc-partidas-metric oc-partidas-metric--amount">
+                                <span class="oc-partidas-metric-icon" aria-hidden="true">$</span>
+                                <span><strong id="txOcTotal">$0.00</strong><small>IMPORTE</small></span>
+                            </article>
+                            <article class="oc-partidas-metric oc-partidas-metric--rows">
+                                <span class="oc-partidas-metric-icon"><i class="fa fa-list-ol" aria-hidden="true"></i></span>
+                                <span><strong id="txOcRenglones">0</strong><small>RENGLONES</small></span>
+                            </article>
+                        </div>
+                        <div class="oc-partidas-search-row">
+                            <label class="checkapp-field oc-field oc-field--toolbar">
+                                <span class="visually-hidden">Buscar en partidas</span>
+                                <input id="txOcBuscarPartidas" type="text" placeholder="Buscar en partidas..." aria-label="Buscar en partidas" />
+                            </label>
+                            <span id="txOcPartidasCount" class="ca-grid-count">0 partidas</span>
                         </div>
                         <div class="checkapp-grid-scroll">
                             <table class="table table-row-bordered align-middle checkapp-grid-table oc-grid-table" id="grOcPartidas">
@@ -208,11 +236,16 @@
                                         <th>Sucursal</th>
                                         <th>Concepto</th>
                                         <th>Variante</th>
-                                        <th>Presentación compra</th>
+                                        <th>
+                                            <span class="oc-label-with-help">
+                                                <span>Presentación compra</span>
+                                                <button id="btAyudaPresentacionCompraOc" type="button" class="oc-help-button" data-bs-toggle="tooltip" data-bs-trigger="click" data-bs-title="Se compra directamente en la unidad de inventario. Ejemplo: cantidad 3 con factor 1 agrega 3 unidades base." aria-label="Ayuda sobre presentación de compra"><i class="fa fa-question" aria-hidden="true"></i></button>
+                                            </span>
+                                        </th>
                                         <th>Cantidad</th>
                                         <th>Costo</th>
                                         <th>Importe</th>
-                                        <th>Editar / eliminar</th>
+                                        <th>Eliminar</th>
                                     </tr>
                                 </thead>
                                 <tbody></tbody>
@@ -222,10 +255,7 @@
                     </div>
 
                     <div class="oc-order-totals" aria-label="Totales de la orden">
-                        <span>Renglones <strong id="txOcRenglones">0</strong></span>
-                        <span>Piezas <strong id="txOcPiezas">0</strong></span>
                         <span>Subtotal <strong id="txOcSubtotal">$0.00</strong></span>
-                        <span>Total <strong id="txOcTotal">$0.00</strong></span>
                     </div>
 
                     <section class="checkapp-panel oc-panel oc-panel--cancelled" id="panelOcCancelacion" hidden>
@@ -252,7 +282,7 @@
                         <button id="btOcPaso5Anterior" type="button" class="oc-hidden-control" tabindex="-1">Regresar</button>
                         <button id="btOcGuardar" type="button" class="checkapp-btn checkapp-btn-secondary">
                             <i class="fa fa-save"></i>
-                            <span>Guardar borrador</span>
+                            <span>Guardar orden de compra</span>
                         </button>
                         <button id="btOcGenerar" type="button" class="checkapp-btn checkapp-btn-primary" hidden>
                             <i class="fa fa-check-circle"></i>

@@ -201,7 +201,7 @@
                                     <strong id="txOcDetalleRazonSocial">—</strong>
                                 </article>
                                 <article class="oc-detail-summary-card">
-                                    <small>Sucursal</small>
+                                    <small>Sucursales</small>
                                     <strong id="txOcDetalleSucursal">—</strong>
                                 </article>
                                 <article class="oc-detail-summary-card">
@@ -224,6 +224,10 @@
                                     <small>Fecha máxima</small>
                                     <strong id="txOcDetalleFechaMaxima">—</strong>
                                 </article>
+                                <article class="oc-detail-summary-card">
+                                    <small>Partidas</small>
+                                    <strong id="txOcDetallePartidasResumen">0</strong>
+                                </article>
                                 <article class="oc-detail-summary-card oc-detail-summary-card--full">
                                     <small>Observaciones</small>
                                     <strong id="txOcDetalleObservaciones">—</strong>
@@ -235,37 +239,18 @@
                             <div class="checkapp-grid-toolbar oc-detail-lines-toolbar">
                                 <div>
                                     <span class="checkapp-panel-eyebrow">Partidas</span>
-                                    <h3>Detalle de la orden</h3>
+                                    <h3>Productos y servicios</h3>
                                 </div>
                                 <span id="txOcDetallePartidasCount" class="ca-chip ca-chip--secondary">0 partidas</span>
                             </div>
-                            <div class="checkapp-grid-scroll oc-detail-grid-scroll">
-                                <table class="table table-row-bordered align-middle checkapp-grid-table oc-grid-table oc-detail-grid-table">
-                                    <thead>
-                                        <tr>
-                                            <th>#</th>
-                                            <th>Tipo</th>
-                                            <th>Código</th>
-                                            <th>Producto o servicio</th>
-                                            <th>Categoría</th>
-                                            <th>Marca</th>
-                                            <th>Variante</th>
-                                            <th>Presentación compra</th>
-                                            <th>Unidad</th>
-                                            <th>Ordenado</th>
-                                            <th>Recibido</th>
-                                            <th>Pendiente</th>
-                                            <th>Estado</th>
-                                            <th>Costo</th>
-                                            <th>Subtotal</th>
-                                        </tr>
-                                    </thead>
-                                    <tbody id="tbOcDetallePartidas"></tbody>
-                                </table>
-                            </div>
+                            <div id="ocDetallePartidasGroups" class="oc-detail-groups" aria-live="polite"></div>
                         </section>
 
                         <section class="oc-detail-totals">
+                            <article class="oc-detail-total-card">
+                                <small>Piezas</small>
+                                <strong id="txOcDetallePiezas">0</strong>
+                            </article>
                             <article class="oc-detail-total-card">
                                 <small>Subtotal</small>
                                 <strong id="txOcDetalleSubtotal">$0.00</strong>

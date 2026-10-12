@@ -7,10 +7,6 @@ using System.Text.Json.Nodes;
 using checklist.Clases;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
-using QuestPDF.Fluent;
-using QuestPDF.Helpers;
-using QuestPDF.Infrastructure;
-using QRCoder;
 
 namespace checklist.Controllers.Activos
 {
@@ -30,12 +26,18 @@ namespace checklist.Controllers.Activos
         private readonly IHttpClientFactory _clientFactory;
         private readonly IConfiguration _configuration;
         private readonly IWebHostEnvironment _environment;
+        private readonly ILogger<OrdenesCompraController> _logger;
 
-        public OrdenesCompraController(IHttpClientFactory clientFactory, IConfiguration configuration, IWebHostEnvironment environment)
+        public OrdenesCompraController(
+            IHttpClientFactory clientFactory,
+            IConfiguration configuration,
+            IWebHostEnvironment environment,
+            ILogger<OrdenesCompraController> logger)
         {
             _clientFactory = clientFactory;
             _configuration = configuration;
             _environment = environment;
+            _logger = logger;
         }
 
         [HttpGet("Nueva")]
@@ -145,6 +147,12 @@ namespace checklist.Controllers.Activos
         [HttpPost("ValidarPendientesOrdenCompra")]
         public Task<IActionResult> ValidarPendientesOrdenCompra() => ProxyJsonAsync(HttpMethod.Post, "ValidarPendientesOrdenCompra", requireWrite: false, OrdenesCompraNuevaPermissionCode);
 
+        [HttpPost("PrepararCierreOrdenCompra")]
+        public Task<IActionResult> PrepararCierreOrdenCompra() => ProxyJsonAsync(HttpMethod.Post, "PrepararCierreOrdenCompra", requireWrite: true, OrdenesCompraNuevaPermissionCode);
+
+        [HttpPost("EjecutarCierreOrdenCompra")]
+        public Task<IActionResult> EjecutarCierreOrdenCompra() => ProxyJsonAsync(HttpMethod.Post, "EjecutarCierreOrdenCompra", requireWrite: true, OrdenesCompraNuevaPermissionCode);
+
         [HttpGet("ExportarOrdenesCompra")]
         public Task<IActionResult> ExportarOrdenesCompra() => ProxyGetAsync("ExportarOrdenesCompra", OrdenesCompraReportePermissionCode);
 
@@ -162,7 +170,7 @@ namespace checklist.Controllers.Activos
                 return BadRequest(new { mensaje = "La orden de compra no está disponible." });
             }
 
-            OrdenCompraDetallePdfDto? detail = await GetOrderDetailForPdfAsync(idOrdenCompra);
+            OrdenCompraPdfModel? detail = await GetOrderDetailForPdfAsync(idOrdenCompra);
             if (detail == null || detail.Id == Guid.Empty)
             {
                 return NotFound(new { mensaje = "La orden de compra no está disponible." });
@@ -364,46 +372,69 @@ namespace checklist.Controllers.Activos
         private async Task<IActionResult> SendAsync(HttpRequestMessage request)
         {
             using HttpClient client = _clientFactory.CreateClient();
-            using HttpResponseMessage response = await client.SendAsync(request, HttpCompletionOption.ResponseHeadersRead);
-            string responseContentType = response.Content.Headers.ContentType?.ToString() ?? "application/json";
-            bool isAttachment = response.Content.Headers.ContentDisposition != null;
-            bool isTextual =
-                responseContentType.StartsWith("application/json", StringComparison.OrdinalIgnoreCase) ||
-                responseContentType.StartsWith("text/", StringComparison.OrdinalIgnoreCase) ||
-                responseContentType.StartsWith("application/problem+json", StringComparison.OrdinalIgnoreCase) ||
-                responseContentType.StartsWith("application/xml", StringComparison.OrdinalIgnoreCase) ||
-                responseContentType.StartsWith("text/csv", StringComparison.OrdinalIgnoreCase);
+            HttpResponseMessage response;
 
-            if (!isTextual || isAttachment)
+            try
             {
-                byte[] bytes = await response.Content.ReadAsByteArrayAsync();
-                if (bytes.Length == 0)
+                response = await client.SendAsync(request, HttpCompletionOption.ResponseHeadersRead);
+            }
+            catch (HttpRequestException exception)
+            {
+                _logger.LogError(
+                    exception,
+                    "No fue posible conectar con la API de OrdenesCompra. Metodo: {Method}. URL: {Url}.",
+                    request.Method,
+                    request.RequestUri);
+
+                return StatusCode(StatusCodes.Status502BadGateway, new
+                {
+                    exitoso = false,
+                    mensaje = "No fue posible conectar con el servicio de órdenes de compra. Intenta nuevamente."
+                });
+            }
+
+            using (response)
+            {
+                string responseContentType = response.Content.Headers.ContentType?.ToString() ?? "application/json";
+                bool isAttachment = response.Content.Headers.ContentDisposition != null;
+                bool isTextual =
+                    responseContentType.StartsWith("application/json", StringComparison.OrdinalIgnoreCase) ||
+                    responseContentType.StartsWith("text/", StringComparison.OrdinalIgnoreCase) ||
+                    responseContentType.StartsWith("application/problem+json", StringComparison.OrdinalIgnoreCase) ||
+                    responseContentType.StartsWith("application/xml", StringComparison.OrdinalIgnoreCase) ||
+                    responseContentType.StartsWith("text/csv", StringComparison.OrdinalIgnoreCase);
+
+                if (!isTextual || isAttachment)
+                {
+                    byte[] bytes = await response.Content.ReadAsByteArrayAsync();
+                    if (bytes.Length == 0)
+                    {
+                        return StatusCode((int)response.StatusCode);
+                    }
+
+                    string fileName = response.Content.Headers.ContentDisposition?.FileNameStar
+                        ?? response.Content.Headers.ContentDisposition?.FileName
+                        ?? "archivo";
+
+                    fileName = fileName.Trim('"');
+
+                    return File(bytes, responseContentType, fileName);
+                }
+
+                string content = await response.Content.ReadAsStringAsync();
+
+                if (string.IsNullOrWhiteSpace(content))
                 {
                     return StatusCode((int)response.StatusCode);
                 }
 
-                string fileName = response.Content.Headers.ContentDisposition?.FileNameStar
-                    ?? response.Content.Headers.ContentDisposition?.FileName
-                    ?? "archivo";
-
-                fileName = fileName.Trim('"');
-
-                return File(bytes, responseContentType, fileName);
+                return new ContentResult
+                {
+                    Content = content,
+                    ContentType = responseContentType,
+                    StatusCode = (int)response.StatusCode
+                };
             }
-
-            string content = await response.Content.ReadAsStringAsync();
-
-            if (string.IsNullOrWhiteSpace(content))
-            {
-                return StatusCode((int)response.StatusCode);
-            }
-
-            return new ContentResult
-            {
-                Content = content,
-                ContentType = responseContentType,
-                StatusCode = (int)response.StatusCode
-            };
         }
 
         private async Task<string> ReadBodyAsync()
@@ -412,7 +443,7 @@ namespace checklist.Controllers.Activos
             return await reader.ReadToEndAsync();
         }
 
-        private async Task<OrdenCompraDetallePdfDto?> GetOrderDetailForPdfAsync(Guid idOrdenCompra)
+        private async Task<OrdenCompraPdfModel?> GetOrderDetailForPdfAsync(Guid idOrdenCompra)
         {
             using HttpRequestMessage request = CreateApiRequest(HttpMethod.Get, "ObtenerOrdenCompra");
             using HttpClient client = _clientFactory.CreateClient();
@@ -424,307 +455,23 @@ namespace checklist.Controllers.Activos
                 return null;
             }
 
-            return JsonSerializer.Deserialize<OrdenCompraDetallePdfDto>(content, new JsonSerializerOptions
+            return JsonSerializer.Deserialize<OrdenCompraPdfModel>(content, new JsonSerializerOptions
             {
                 PropertyNameCaseInsensitive = true
             });
         }
 
-        private byte[] BuildOrderPdf(OrdenCompraDetallePdfDto detail)
+        private byte[] BuildOrderPdf(OrdenCompraPdfModel detail)
         {
-            QuestPDF.Settings.License = LicenseType.Evaluation;
-
             byte[]? logo = LoadCheckAppLogo();
-            byte[]? qr = BuildOrderQr(detail);
-            string fechaOrden = FormatDate(detail.FechaOrden);
-            string fechaLlegada = detail.FechaLlegada.HasValue ? FormatDate(detail.FechaLlegada.Value) : "Sin captura";
-            string fechaEmision = DateTime.Now.ToString("dd/MM/yyyy");
-            string observaciones = string.IsNullOrWhiteSpace(detail.Observaciones) ? "Sin observaciones" : detail.Observaciones.Trim();
-            string estadoVisible = ResolveUserFacingOrderState(detail.Estado, detail.EstadoNombre);
+            string creatorName = detail.IdUsuarioCreacion.HasValue
+                ? detail.UsuarioCreacionNombre.Trim()
+                : string.Empty;
+            string creatorPosition = detail.IdUsuarioCreacion.HasValue
+                ? detail.UsuarioCreacionPuesto.Trim()
+                : string.Empty;
 
-            return Document.Create(container =>
-            {
-                container.Page(page =>
-                {
-                    page.Size(PageSizes.A4.Landscape());
-                    page.Margin(32);
-                    page.DefaultTextStyle(x => x.FontFamily(Fonts.Calibri).FontSize(10).FontColor("#333638"));
-
-                    page.Header().Element(header =>
-                    {
-                        header.Row(row =>
-                        {
-                            row.RelativeItem(2.8f).Column(column =>
-                            {
-                                column.Spacing(5);
-                                if (logo != null)
-                                {
-                                    column.Item().Height(24).AlignLeft().Image(logo).FitHeight();
-                                }
-
-                                column.Item().Text("Orden de compra").SemiBold().FontSize(20).FontColor("#39394D");
-                                column.Item().Text($"{TextOrDash(detail.RazonSocial)} · {TextOrDash(detail.Sucursal)}").FontSize(10).FontColor("#4791AA");
-                                column.Item().Text($"Proveedor: {TextOrDash(detail.Proveedor)}").FontSize(10).FontColor("#333638");
-                            });
-
-                            row.ConstantItem(190).Element(container =>
-                            {
-                                container
-                                    .Border(1)
-                                    .BorderColor("#4791AA")
-                                    .CornerRadius(12)
-                                    .Padding(10)
-                                    .Background("#FAFAFA")
-                                    .Column(card =>
-                                {
-                                    card.Spacing(4);
-                                    card.Item().AlignCenter().Text($"Folio {TextOrDash(detail.Folio)}").SemiBold().FontColor("#39394D");
-                                    card.Item().AlignCenter().Text($"Emitida {fechaEmision}").FontSize(9).FontColor("#4791AA");
-                                    if (qr != null)
-                                    {
-                                        card.Item().Width(34).Height(34).AlignCenter().Image(qr).FitArea();
-                                    }
-                                });
-                            });
-                        });
-                    });
-
-                    page.Content().Column(content =>
-                    {
-                        content.Spacing(14);
-
-                        content.Item().Element(x => ComposeMetadataTable(x, new[]
-                        {
-                            ("Folio", TextOrDash(detail.Folio)),
-                            ("Estado", estadoVisible),
-                            ("Fecha de orden", fechaOrden),
-                            ("Fecha de llegada", fechaLlegada),
-                            ("Razón social", TextOrDash(detail.RazonSocial)),
-                            ("Sucursal", TextOrDash(detail.Sucursal)),
-                            ("Proveedor", TextOrDash(detail.Proveedor)),
-                            ("Partidas", detail.Partidas.Count.ToString())
-                        }));
-
-                        content.Item().Element(x => ComposeInfoCard(x, "Observaciones", new[]
-                        {
-                            ("Detalle", observaciones)
-                        }));
-
-                        content.Item().Element(x => ComposePartidasTable(x, detail.Partidas));
-
-                        content.Item().AlignRight().Width(220).Element(x => ComposeTotalsCard(x, detail.Subtotal, detail.Total, detail.Partidas));
-                    });
-
-                    page.Footer()
-                        .AlignCenter()
-                        .DefaultTextStyle(x => x.FontSize(8).FontColor("#39394D"))
-                        .Text(text =>
-                        {
-                            text.Span("CheckApp · Orden de compra · ");
-                            text.CurrentPageNumber();
-                            text.Span(" / ");
-                            text.TotalPages();
-                        });
-                });
-            }).GeneratePdf();
-        }
-
-        private void ComposeMetadataTable(IContainer container, IReadOnlyCollection<(string Label, string Value)> rows)
-        {
-            container
-                .Border(1)
-                .BorderColor("#4791AA")
-                .CornerRadius(12)
-                .Background("#FAFAFA")
-                .Padding(10)
-                .Table(table =>
-                {
-                    table.ColumnsDefinition(columns =>
-                    {
-                        columns.RelativeColumn();
-                        columns.RelativeColumn();
-                        columns.RelativeColumn();
-                        columns.RelativeColumn();
-                    });
-
-                    int index = 0;
-                    foreach ((string label, string value) in rows)
-                    {
-                        table.Cell().Element(cell =>
-                        {
-                            cell
-                                .Padding(8)
-                                .BorderBottom(index < rows.Count - 4 ? 1 : 0)
-                                .BorderRight(index % 4 != 3 ? 1 : 0)
-                                .BorderColor("#4791AA")
-                                .Column(column =>
-                                {
-                                    column.Spacing(3);
-                                    column.Item().Text(label).FontSize(8).SemiBold().FontColor("#4791AA");
-                                    column.Item().Text(TextOrDash(value)).FontSize(10).FontColor("#333638");
-                                });
-                        });
-                        index++;
-                    }
-                });
-        }
-
-        private void ComposeInfoCard(IContainer container, string title, IEnumerable<(string Label, string Value)> rows)
-        {
-            container
-                .Background("#FAFAFA")
-                .Border(1)
-                .BorderColor("#4791AA")
-                .CornerRadius(12)
-                .Padding(16)
-                .Column(column =>
-                {
-                    column.Spacing(8);
-                    column.Item().Text(title).SemiBold().FontSize(12).FontColor("#39394D");
-
-                    foreach ((string label, string value) in rows)
-                    {
-                        column.Item().Column(item =>
-                        {
-                            item.Spacing(2);
-                            item.Item().Text(label).FontSize(8).SemiBold().FontColor("#4791AA");
-                            item.Item().Text(TextOrDash(value)).FontSize(10).FontColor("#333638");
-                        });
-                    }
-                });
-        }
-
-        private void ComposePartidasTable(IContainer container, IReadOnlyCollection<OrdenCompraPartidaPdfDto> partidas)
-        {
-            container.Column(column =>
-            {
-                column.Spacing(10);
-                column.Item().Text("Partidas").SemiBold().FontSize(12).FontColor("#39394D");
-                column.Item().Table(table =>
-                {
-                    table.ColumnsDefinition(columns =>
-                    {
-                        columns.ConstantColumn(34);
-                        columns.RelativeColumn(1.5f);
-                        columns.RelativeColumn(0.9f);
-                        columns.RelativeColumn(1.1f);
-                        columns.RelativeColumn(3.1f);
-                        columns.RelativeColumn(2.2f);
-                        columns.RelativeColumn(1.4f);
-                        columns.RelativeColumn(1.0f);
-                        columns.RelativeColumn(1.0f);
-                        columns.RelativeColumn(1.0f);
-                        columns.RelativeColumn(1.6f);
-                        columns.RelativeColumn(1.1f);
-                        columns.RelativeColumn(1.2f);
-                    });
-
-                    table.Header(header =>
-                    {
-                        string background = "#39394D";
-                        header.Cell().Element(x => PdfHeaderCell(x, "No.", background));
-                        header.Cell().Element(x => PdfHeaderCell(x, "Sucursal", background));
-                        header.Cell().Element(x => PdfHeaderCell(x, "Tipo", background));
-                        header.Cell().Element(x => PdfHeaderCell(x, "Código", background));
-                        header.Cell().Element(x => PdfHeaderCell(x, "Producto o servicio", background));
-                        header.Cell().Element(x => PdfHeaderCell(x, "Variante / presentación", background));
-                        header.Cell().Element(x => PdfHeaderCell(x, "Unidad", background));
-                        header.Cell().Element(x => PdfHeaderCell(x, "Ordenado", background));
-                        header.Cell().Element(x => PdfHeaderCell(x, "Recibido", background));
-                        header.Cell().Element(x => PdfHeaderCell(x, "Pendiente", background));
-                        header.Cell().Element(x => PdfHeaderCell(x, "Estado", background));
-                        header.Cell().Element(x => PdfHeaderCell(x, "Costo", background));
-                        header.Cell().Element(x => PdfHeaderCell(x, "Subtotal", background));
-                    });
-
-                    int index = 0;
-                    foreach (OrdenCompraPartidaPdfDto partida in partidas)
-                    {
-                        string rowBackground = index % 2 == 0 ? "#FAFAFA" : "#FAFAFA";
-                        table.Cell().Element(x => PdfBodyCell(x, partida.NumeroPartida.ToString(), rowBackground, TextHorizontalAlignment.Center));
-                        table.Cell().Element(x => PdfBodyCell(x, TextOrDash(partida.Sucursal), rowBackground));
-                        table.Cell().Element(x => PdfBodyCell(x, TextOrDash(partida.TipoProductoServicioNombre), rowBackground));
-                        table.Cell().Element(x => PdfBodyCell(x, TextOrDash(partida.Codigo), rowBackground));
-                        table.Cell().Element(x => PdfBodyCell(x, BuildProductLine(partida), rowBackground));
-                        table.Cell().Element(x => PdfBodyCell(x, BuildPurchaseIdentity(partida), rowBackground));
-                        table.Cell().Element(x => PdfBodyCell(x, BuildUnidad(partida), rowBackground));
-                        table.Cell().Element(x => PdfBodyCell(x, partida.CantidadBaseOrdenada.ToString("0.####"), rowBackground, TextHorizontalAlignment.Right));
-                        table.Cell().Element(x => PdfBodyCell(x, partida.CantidadBaseRecibidaAcumulada.ToString("0.####"), rowBackground, TextHorizontalAlignment.Right));
-                        table.Cell().Element(x => PdfBodyCell(x, partida.CantidadBasePendiente.ToString("0.####"), rowBackground, TextHorizontalAlignment.Right));
-                        table.Cell().Element(x => PdfBodyCell(x, TextOrDash(partida.EstadoPartidaNombre), rowBackground));
-                        table.Cell().Element(x => PdfBodyCell(x, detailCurrency(partida.CostoUnitario), rowBackground, TextHorizontalAlignment.Right));
-                        table.Cell().Element(x => PdfBodyCell(x, detailCurrency(partida.Subtotal), rowBackground, TextHorizontalAlignment.Right));
-                        index++;
-                    }
-                });
-            });
-
-            static string detailCurrency(decimal amount) => amount.ToString("$#,##0.00", System.Globalization.CultureInfo.GetCultureInfo("es-MX"));
-        }
-
-        private void ComposeTotalsCard(IContainer container, decimal subtotal, decimal total, IReadOnlyCollection<OrdenCompraPartidaPdfDto> partidas)
-        {
-            container
-                .Background("#FAFAFA")
-                .Border(1)
-                .BorderColor("#4791AA")
-                .CornerRadius(12)
-                .Padding(14)
-                .Column(column =>
-                {
-                    column.Spacing(8);
-                    column.Item().Text("Totales").SemiBold().FontSize(12).FontColor("#39394D");
-                    column.Item().Row(row =>
-                    {
-                        row.RelativeItem().Text("Partidas").FontColor("#4791AA");
-                        row.ConstantItem(96).AlignRight().Text(partidas.Count.ToString()).SemiBold();
-                    });
-                    column.Item().Row(row =>
-                    {
-                        row.RelativeItem().Text("Subtotal").FontColor("#4791AA");
-                        row.ConstantItem(96).AlignRight().Text(FormatCurrency(subtotal)).SemiBold();
-                    });
-                    column.Item().LineHorizontal(1).LineColor("#4791AA");
-                    column.Item().Row(row =>
-                    {
-                        row.RelativeItem().Text("Total").SemiBold().FontColor("#39394D");
-                        row.ConstantItem(96).AlignRight().Text(FormatCurrency(total)).SemiBold().FontColor("#FF9230");
-                    });
-                });
-        }
-
-        private static void PdfHeaderCell(IContainer container, string text, string background)
-        {
-            container
-                .Background(background)
-                .PaddingVertical(8)
-                .PaddingHorizontal(6)
-                .Text(text)
-                .FontSize(9)
-                .SemiBold()
-                .FontColor("#FAFAFA");
-        }
-
-        private static void PdfBodyCell(IContainer container, string text, string background, TextHorizontalAlignment alignment = TextHorizontalAlignment.Left)
-        {
-            IContainer alignedContainer = container
-                .Background(background)
-                .BorderBottom(1)
-                .BorderColor("#4791AA")
-                .PaddingVertical(8)
-                .PaddingHorizontal(6);
-
-            alignedContainer = alignment switch
-            {
-                TextHorizontalAlignment.Right => alignedContainer.AlignRight(),
-                TextHorizontalAlignment.Center => alignedContainer.AlignCenter(),
-                _ => alignedContainer.AlignLeft()
-            };
-
-            alignedContainer
-                .Text(TextOrDash(text))
-                .FontSize(9)
-                .FontColor("#333638");
+            return OrdenCompraPdfComposer.Build(detail, logo, creatorName, creatorPosition, DateTime.Now);
         }
 
         private byte[]? LoadCheckAppLogo()
@@ -732,102 +479,6 @@ namespace checklist.Controllers.Activos
             string path = Path.Combine(_environment.WebRootPath, "assets", "media", "logos", "checkapp2.png");
             return System.IO.File.Exists(path) ? System.IO.File.ReadAllBytes(path) : null;
         }
-
-        private static byte[]? BuildOrderQr(OrdenCompraDetallePdfDto detail)
-        {
-            string payload = string.Join("|", new[]
-            {
-                "OC",
-                TextOrDash(detail.Folio),
-                TextOrDash(detail.Proveedor),
-                FormatDate(detail.FechaOrden),
-                FormatCurrency(detail.Total)
-            });
-
-            using QRCodeGenerator generator = new QRCodeGenerator();
-            using QRCodeData qrData = generator.CreateQrCode(payload, QRCodeGenerator.ECCLevel.Q);
-            PngByteQRCode qrCode = new PngByteQRCode(qrData);
-            return qrCode.GetGraphic(12, new byte[] { 57, 57, 77 }, new byte[] { 250, 250, 250 }, true);
-        }
-
-        private static string BuildProductLine(OrdenCompraPartidaPdfDto partida)
-        {
-            string nombre = TextOrDash(partida.Nombre);
-            string descripcion = string.IsNullOrWhiteSpace(partida.Descripcion) ? string.Empty : $" · {partida.Descripcion.Trim()}";
-            string catalogo = string.Join(" · ", new[] { partida.Categoria, partida.Marca }.Where(value => !string.IsNullOrWhiteSpace(value)));
-            return string.IsNullOrWhiteSpace(catalogo) ? $"{nombre}{descripcion}" : $"{nombre}{descripcion}\n{catalogo}";
-        }
-
-        private static string BuildPurchaseIdentity(OrdenCompraPartidaPdfDto partida)
-        {
-            return TextOrDash(string.Join(" · ", new[] { partida.VarianteSnapshot, partida.PresentacionCompraSnapshot }
-                .Where(value => !string.IsNullOrWhiteSpace(value))));
-        }
-
-        private static string BuildUnidad(OrdenCompraPartidaPdfDto partida)
-        {
-            if (!string.IsNullOrWhiteSpace(partida.UnidadMedida) && !string.IsNullOrWhiteSpace(partida.UnidadAbreviatura))
-            {
-                return $"{partida.UnidadMedida} ({partida.UnidadAbreviatura})";
-            }
-
-            return TextOrDash(partida.UnidadMedida ?? partida.UnidadAbreviatura);
-        }
-
-        private static string TextOrDash(string? value)
-        {
-            return string.IsNullOrWhiteSpace(value) ? "—" : value.Trim();
-        }
-
-        private static string FormatDate(DateTime value)
-        {
-            return value.ToString("dd/MM/yyyy");
-        }
-
-        private static string FormatCurrency(decimal amount)
-        {
-            return amount.ToString("$#,##0.00", System.Globalization.CultureInfo.GetCultureInfo("es-MX"));
-        }
-
-        private static string ResolveUserFacingOrderState(int estado, string? estadoNombre)
-        {
-            string normalized = string.IsNullOrWhiteSpace(estadoNombre)
-                ? string.Empty
-                : estadoNombre.Trim().ToLowerInvariant();
-
-            if (estado == 1 || normalized == "borrador")
-            {
-                return "Borrador";
-            }
-
-            if (estado == 2 || normalized == "generada")
-            {
-                return "Generada";
-            }
-
-            if (estado == 3 || normalized == "cancelada")
-            {
-                return "Cancelada";
-            }
-
-            if (estado == 4 || normalized == "parcialmente recibida")
-            {
-                return "Parcialmente recibida";
-            }
-
-            if (estado == 5 || normalized == "recibida")
-            {
-                return "Recibida";
-            }
-
-            if (string.IsNullOrWhiteSpace(normalized) || normalized == "nueva")
-            {
-                return "Borrador";
-            }
-
-            return TextOrDash(estadoNombre);
-        }
-
         private static string BuildSafeExportFileName(string prefix, string folio, string extension)
         {
             string safeFolio = string.IsNullOrWhiteSpace(folio)
@@ -901,44 +552,5 @@ namespace checklist.Controllers.Activos
             return normalized.Trim('"').Trim();
         }
 
-        private sealed class OrdenCompraDetallePdfDto
-        {
-            public Guid Id { get; set; }
-            public string Folio { get; set; } = string.Empty;
-            public string RazonSocial { get; set; } = string.Empty;
-            public string Sucursal { get; set; } = string.Empty;
-            public string Proveedor { get; set; } = string.Empty;
-            public DateTime FechaOrden { get; set; }
-            public DateTime? FechaLlegada { get; set; }
-            public byte Estado { get; set; }
-            public string EstadoNombre { get; set; } = string.Empty;
-            public string Observaciones { get; set; } = string.Empty;
-            public decimal Subtotal { get; set; }
-            public decimal Total { get; set; }
-            public List<OrdenCompraPartidaPdfDto> Partidas { get; set; } = new();
-        }
-
-        private sealed class OrdenCompraPartidaPdfDto
-        {
-            public int NumeroPartida { get; set; }
-            public string Sucursal { get; set; } = string.Empty;
-            public string TipoProductoServicioNombre { get; set; } = string.Empty;
-            public string Codigo { get; set; } = string.Empty;
-            public string Nombre { get; set; } = string.Empty;
-            public string Descripcion { get; set; } = string.Empty;
-            public string Categoria { get; set; } = string.Empty;
-            public string Marca { get; set; } = string.Empty;
-            public string VarianteSnapshot { get; set; } = string.Empty;
-            public string PresentacionCompraSnapshot { get; set; } = string.Empty;
-            public string UnidadMedida { get; set; } = string.Empty;
-            public string UnidadAbreviatura { get; set; } = string.Empty;
-            public decimal Cantidad { get; set; }
-            public decimal CantidadBaseOrdenada { get; set; }
-            public decimal CantidadBaseRecibidaAcumulada { get; set; }
-            public decimal CantidadBasePendiente { get; set; }
-            public string EstadoPartidaNombre { get; set; } = string.Empty;
-            public decimal CostoUnitario { get; set; }
-            public decimal Subtotal { get; set; }
-        }
     }
 }
