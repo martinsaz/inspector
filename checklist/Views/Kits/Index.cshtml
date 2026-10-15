@@ -1,0 +1,212 @@
+@{
+    ViewBag.Title = "Kits";
+    Layout = "~/Views/Shared/_Layout.cshtml";
+}
+
+<div class="checkapp-scope checkapp-page kits-page" data-kits-page="index" data-can-write="@(ViewBag.PuedeAdministrarKits == true ? "true" : "false")">
+    <div class="container-fluid checkapp-shell">
+        <section class="checkapp-hero">
+            <div>
+                <p class="checkapp-kicker">PROVEEDURÍA</p>
+                <h1>Kits</h1>
+                <p>Administra conjuntos de productos, servicios o combinaciones de ambos.</p>
+            </div>
+            @if (ViewBag.PuedeAdministrarKits == true)
+            {
+                <div class="checkapp-hero-actions">
+                    <button id="btNuevoKit" type="button" class="checkapp-btn checkapp-btn-primary">
+                        <i class="fa fa-plus"></i><span>Nuevo Kit</span>
+                    </button>
+                </div>
+            }
+        </section>
+
+        <section id="accordionFiltrosKits" class="checkapp-panel checkapp-accordion is-open">
+            <button type="button" class="checkapp-accordion-toggle" aria-expanded="true" aria-controls="accordionFiltrosKitsBody">
+                <div>
+                    <span class="checkapp-panel-eyebrow">Filtros</span>
+                    <h3>Encuentra Kits por nombre, tipo o estatus.</h3>
+                </div>
+                <span class="checkapp-accordion-summary">Sin filtros activos</span>
+            </button>
+            <div class="checkapp-accordion-body" id="accordionFiltrosKitsBody">
+                <div class="checkapp-accordion-inner kits-filter-layout">
+                    <div class="checkapp-filter-grid kits-filter-grid">
+                        <label class="checkapp-field kits-filter-search">
+                            <span>Buscar</span>
+                            <input id="txBusquedaKits" type="search" maxlength="150" placeholder="Nombre del Kit" autocomplete="off" />
+                        </label>
+                        <label class="checkapp-field">
+                            <span>Tipo de Kit</span>
+                            <select id="cbTipoKits" class="form-select">
+                                <option value="">Todos</option>
+                                <option value="1">Producto</option>
+                                <option value="2">Servicio</option>
+                                <option value="3">Mixto</option>
+                            </select>
+                        </label>
+                        <label class="checkapp-field">
+                            <span>Estatus</span>
+                            <select id="cbEstatusKits" class="form-select">
+                                <option value="">Todos</option>
+                                <option value="true">Activos</option>
+                                <option value="false">Inactivos</option>
+                            </select>
+                        </label>
+                    </div>
+                    <div class="checkapp-filter-actions kits-filter-actions">
+                        <button id="btBuscarKits" type="button" class="checkapp-btn checkapp-btn-primary">
+                            <i class="fa fa-search"></i><span>Buscar</span>
+                        </button>
+                        <button id="btLimpiarKits" type="button" class="checkapp-btn checkapp-btn-ghost">
+                            <i class="fa fa-eraser"></i><span>Limpiar</span>
+                        </button>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <section class="checkapp-panel">
+            <div class="checkapp-panel-head">
+                <div>
+                    <span class="checkapp-panel-eyebrow">Proveeduría</span>
+                    <h2>Listado de Kits</h2>
+                    <p class="checkapp-panel-copy">Consulta los Kits disponibles y sus valores actuales.</p>
+                </div>
+                <div class="checkapp-grid-actions">
+                    <span id="txGridKitsVisibleCount" class="ca-chip ca-chip--secondary">0 visibles</span>
+                    <div class="checkapp-grid-columns">
+                        <button id="btColumnasKits" type="button" class="checkapp-btn checkapp-btn-ghost">
+                            <i class="fa fa-columns"></i><span>Columnas</span>
+                        </button>
+                        <div id="panelColumnasKits" class="checkapp-grid-columns-panel"></div>
+                    </div>
+                </div>
+            </div>
+
+            <div id="gridKitsHost">
+                <div class="checkapp-grid-toolbar">
+                    <label class="checkapp-grid-search" for="txBusquedaGridKits">
+                        <i class="fa fa-search"></i>
+                        <input id="txBusquedaGridKits" type="search" placeholder="Busca dentro del resultado filtrado" />
+                    </label>
+                    <div class="checkapp-grid-actions">
+                        <span id="txGridKitsCount" class="ca-grid-count">0 registros</span>
+                    </div>
+                </div>
+                <div class="checkapp-grid-scroll">
+                    <table id="grKits" class="table table-row-bordered align-middle checkapp-grid-table">
+                        <thead><tr>
+                            <th>Imagen</th><th>Nombre</th><th>Tipo</th><th>Componentes</th>
+                            <th>Valor componentes</th><th>Precio Kit</th><th>Diferencia</th>
+                            <th>Estatus</th><th>Actualización</th><th>Acciones</th>
+                        </tr></thead>
+                        <tbody></tbody>
+                    </table>
+                </div>
+                <div id="gridKitsFooter" class="checkapp-grid-footer">
+                    <span id="txGridKitsRange" class="checkapp-grid-footer-range">Sin resultados</span>
+                    <div id="txGridKitsPageSize" class="checkapp-grid-page-size">
+                        <span class="checkapp-grid-page-size-label">Filas:</span>
+                        <button type="button" class="checkapp-grid-page-chip is-active" data-page-size="25" aria-pressed="true">25</button>
+                        <button type="button" class="checkapp-grid-page-chip" data-page-size="50" aria-pressed="false">50</button>
+                        <button type="button" class="checkapp-grid-page-chip" data-page-size="100" aria-pressed="false">100</button>
+                    </div>
+                    <div class="checkapp-grid-page-nav">
+                        <span id="txGridKitsPageIndicator" class="checkapp-grid-footer-page">Página 1 de 1</span>
+                        <button id="btGridKitsPrev" type="button" class="checkapp-grid-nav-btn" aria-label="Página anterior">‹</button>
+                        <button id="btGridKitsNext" type="button" class="checkapp-grid-nav-btn" aria-label="Página siguiente">›</button>
+                    </div>
+                </div>
+            </div>
+        </section>
+    </div>
+</div>
+
+@if (ViewBag.PuedeAdministrarKits == true)
+{
+<div class="modal fade checkapp-modal" tabindex="-1" id="modalKit" aria-labelledby="txModalKitTitulo" aria-hidden="true">
+    <div class="modal-dialog ps-modal-dialog kits-modal-dialog">
+        <div class="modal-content ps-modal-content">
+            <form id="frmKit" novalidate>
+                <div class="modal-header kits-modal-header">
+                    <div><p class="checkapp-kicker">Registro</p><h3 class="modal-title" id="txModalKitTitulo">Nuevo Kit</h3></div>
+                    <div class="kits-stepper" aria-label="Progreso del formulario">
+                        <div class="kits-step is-active" data-kit-step-indicator="1" aria-current="step"><span>1</span><strong>Información general</strong></div>
+                        <span class="kits-step-line" aria-hidden="true"></span>
+                        <div class="kits-step" data-kit-step-indicator="2"><span>2</span><strong>Componentes</strong></div>
+                    </div>
+                    <button type="button" class="btn btn-icon btn-sm btn-active-light-primary" data-bs-dismiss="modal" aria-label="Cerrar"><i class="fa fa-times"></i></button>
+                </div>
+                <div class="modal-body kits-modal-body">
+                    <section class="checkapp-panel kits-form-panel" data-kit-step="1">
+                        <div class="checkapp-panel-head">
+                            <div><h2>Información general</h2><p class="checkapp-panel-copy">Define la identidad, tipo, estatus, imagen y precio independiente del Kit.</p></div>
+                        </div>
+                        <div class="kits-general-grid">
+                            <aside class="checkapp-panel kits-image-panel">
+                                <span class="checkapp-panel-eyebrow">Imagen</span>
+                                <div id="vistaImagenKit" class="kits-image-preview"><i class="fa fa-picture-o"></i><strong>Sin imagen</strong><span>JPG, PNG o WEBP. Máximo 10 MB.</span></div>
+                                <input id="flImagenKit" type="file" accept="image/jpeg,image/png,image/webp" hidden />
+                                <div class="kits-image-actions"><button id="btSeleccionarImagenKit" type="button" class="checkapp-btn checkapp-btn-ghost">Cambiar</button><button id="btEliminarImagenKit" type="button" class="checkapp-btn checkapp-btn-ghost" disabled><i class="fa fa-trash"></i> Eliminar</button></div>
+                            </aside>
+                            <div class="kits-general-fields">
+                                <label class="checkapp-field"><span>Nombre *</span><input id="txNombreKit" type="text" maxlength="150" autocomplete="off" placeholder="Nombre del Kit" /></label>
+                                <label class="checkapp-field"><span>Precio del Kit *</span><input id="txPrecioKit" type="number" min="0" step="0.01" inputmode="decimal" value="0.00" /></label>
+                                <fieldset class="kits-choice-field"><legend>Tipo *</legend><div class="kits-choice-group" role="radiogroup" aria-label="Tipo de Kit">
+                                    <label><input type="radio" name="tipoKitAlta" value="1" checked /><span>Producto</span></label>
+                                    <label><input type="radio" name="tipoKitAlta" value="2" /><span>Servicio</span></label>
+                                    <label><input type="radio" name="tipoKitAlta" value="3" /><span>Mixto</span></label>
+                                </div></fieldset>
+                                <fieldset class="kits-choice-field"><legend>Estatus *</legend><div class="kits-choice-group" role="radiogroup" aria-label="Estatus del Kit">
+                                    <label><input type="radio" name="estatusKitAlta" value="true" checked /><span>Activo</span></label>
+                                    <label><input type="radio" name="estatusKitAlta" value="false" /><span>Inactivo</span></label>
+                                </div></fieldset>
+                            </div>
+                        </div>
+                    </section>
+
+                    <section class="checkapp-panel kits-form-panel" data-kit-step="2" hidden>
+                        <div class="checkapp-panel-head"><div><h2>Componentes del Kit</h2><p class="checkapp-panel-copy">Selecciona la identidad vendible, confirma cantidad y ajusta el precio propuesto si corresponde.</p></div></div>
+                        <div class="kits-component-editor">
+                            <label class="checkapp-field kits-hint-field kits-component-source"><span id="txEtiquetaFuenteKit">Componente *</span><select id="cbFuenteKit" class="form-select"><option value="">Selecciona una opción</option></select></label>
+                            <label id="fieldIdentidadKit" class="checkapp-field kits-hint-field kits-component-identity" hidden><span>Variante/Presentación *</span><select id="cbIdentidadKit" class="form-select"><option value="">Selecciona una opción</option></select></label>
+                            <label class="checkapp-field kits-hint-field kits-component-quantity"><span>Cantidad *</span><input id="txCantidadComponenteKit" type="number" min="0.0001" step="1" value="1" /></label>
+                            <label class="checkapp-field kits-hint-field kits-component-price"><span>Precio unitario *</span><input id="txPrecioComponenteKit" type="number" min="0" step="0.01" value="0.00" /></label>
+                            <button id="btAgregarComponenteKit" type="button" class="checkapp-btn checkapp-btn-secondary kits-component-add" title="Agregar componente" aria-label="Agregar componente"><i class="fa fa-plus" aria-hidden="true"></i></button>
+                        </div>
+                        <p id="txAyudaPrecioComponenteKit" class="kits-field-hint" role="status">Selecciona un componente para resolver su precio Nivel 1.</p>
+                        <div class="checkapp-grid-scroll kits-components-scroll">
+                            <table class="table table-row-bordered align-middle checkapp-grid-table kits-components-table">
+                                <thead><tr><th>Componente</th><th>Cantidad</th><th>Precio unitario</th><th>Importe</th><th>Acciones</th></tr></thead>
+                                <tbody id="tbComponentesKit"><tr class="kits-components-empty"><td colspan="5">Agrega al menos un componente para activar el Kit.</td></tr></tbody>
+                            </table>
+                        </div>
+                        <div class="kits-summary" aria-label="Resumen del Kit">
+                            <div><span>Componentes</span><strong id="txResumenComponentesKit">0</strong></div>
+                            <div><span>Valor componentes</span><strong id="txResumenValorKit">$0.00</strong></div>
+                            <div><span>Precio Kit</span><strong id="txResumenPrecioKit">$0.00</strong></div>
+                            <div><span>Diferencia</span><strong id="txResumenDiferenciaKit">$0.00</strong></div>
+                        </div>
+                    </section>
+                </div>
+                <div class="modal-footer ps-modal-footer">
+                    <button id="btAnteriorKit" type="button" class="checkapp-btn checkapp-btn-primary" hidden><i class="fa fa-arrow-left"></i><span>Información general</span></button>
+                    <span class="kits-footer-spacer"></span>
+                    <button type="button" class="checkapp-btn checkapp-btn-ghost" data-bs-dismiss="modal"><i class="fa fa-ban"></i><span>Cancelar</span></button>
+                    <button id="btSiguienteKit" type="button" class="checkapp-btn checkapp-btn-primary"><span>Siguiente: Componentes</span><i class="fa fa-arrow-right"></i></button>
+                    <button id="btGuardarKit" type="submit" class="checkapp-btn checkapp-btn-primary" hidden><i class="fa fa-save"></i><span>Guardar Kit</span></button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+}
+
+@section Scripts {
+    <link href="~/css/checkapp-theme.css" rel="stylesheet" />
+    <link href="~/css/ProductosServicios/ProductosServicios.css" rel="stylesheet" asp-append-version="true" />
+    <link href="~/css/Kits/Kits.css" rel="stylesheet" asp-append-version="true" />
+    <script src="~/js/checkapp-ui.js" asp-append-version="true"></script>
+    <script src="~/js/Kits/Kits.js" asp-append-version="true"></script>
+}
