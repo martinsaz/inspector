@@ -21,6 +21,39 @@
             </div>
         </section>
 
+        <section class="checkapp-summary-strip curvas-kpi-strip" aria-label="Resumen del catálogo de curvas">
+            <article class="checkapp-summary-card ps-summary-card curvas-kpi-card">
+                <small>Curvas activas</small>
+                <strong id="txKpiCurvasActivas">0</strong>
+                <span>Curvas visibles disponibles para operación</span>
+            </article>
+            <article class="checkapp-summary-card ps-summary-card curvas-kpi-card">
+                <small>Curvas inactivas</small>
+                <strong id="txKpiCurvasInactivas">0</strong>
+                <span>Curvas visibles en baja lógica</span>
+            </article>
+            <article class="checkapp-summary-card ps-summary-card curvas-kpi-card">
+                <small>Cantidad objetivo</small>
+                <strong id="txKpiCantidadObjetivo">0</strong>
+                <span>Suma configurada en unidad base</span>
+            </article>
+            <article class="checkapp-summary-card ps-summary-card curvas-kpi-card">
+                <small>Identidades configuradas</small>
+                <strong id="txKpiIdentidades">0</strong>
+                <span>Productos base y variantes visibles</span>
+            </article>
+            <article class="checkapp-summary-card ps-summary-card curvas-kpi-card">
+                <small>Productos asignados</small>
+                <strong id="txKpiProductos">0</strong>
+                <span>Productos distintos en las curvas visibles</span>
+            </article>
+            <article class="checkapp-summary-card ps-summary-card curvas-kpi-card">
+                <small>Sucursales sembradas</small>
+                <strong id="txKpiSucursales">0</strong>
+                <span>Sucursales distintas con siembra vigente</span>
+            </article>
+        </section>
+
         <section id="accordionFiltrosCurvas" class="checkapp-panel checkapp-accordion is-open">
             <button type="button" class="checkapp-accordion-toggle" aria-expanded="true" aria-controls="accordionFiltrosCurvasBody">
                 <div>
@@ -31,12 +64,12 @@
             </button>
             <div class="checkapp-accordion-body" id="accordionFiltrosCurvasBody">
                 <div class="checkapp-accordion-inner">
-                    <div class="checkapp-filter-grid ps-catalog-filter-grid">
-                        <label class="checkapp-field ps-catalog-field ps-catalog-field--search">
-                            <span>Búsqueda</span>
+                    <div class="checkapp-filter-grid ps-filter-grid">
+                        <label class="checkapp-field ps-filter-field ps-filter-field--search curvas-filter-search">
+                            <span>Búsqueda general</span>
                             <input id="txBusquedaCurvas" type="text" placeholder="Código o nombre" />
                         </label>
-                        <label class="checkapp-field ps-catalog-field">
+                        <label class="checkapp-field ps-filter-field curvas-filter-status">
                             <span>Estatus</span>
                             <select id="cbFiltroEstatusCurvas" class="form-select">
                                 <option value="activos">Activos</option>
@@ -45,9 +78,9 @@
                             </select>
                         </label>
                     </div>
-                    <div class="ps-catalog-filter-tail">
-                        <div class="checkapp-filter-actions ps-catalog-filter-actions">
-                            <button id="btBuscarCurvas" type="button" class="checkapp-btn checkapp-btn-secondary ps-catalog-search-btn">
+                    <div class="ps-filter-tail curvas-filter-tail">
+                        <div class="checkapp-filter-actions ps-filter-actions ps-filter-actions--tail">
+                            <button id="btBuscarCurvas" type="button" class="checkapp-btn checkapp-btn-secondary ps-filter-search-btn">
                                 <i class="fa fa-search"></i>
                                 <span>Buscar</span>
                             </button>
@@ -133,40 +166,34 @@
             </div>
             <div class="modal-body">
                 <input id="hdCurvaId" type="hidden" />
-                <div class="row g-3 align-items-end">
-                    <div class="col-12 col-lg-9">
+                <div class="row g-3 align-items-end curvas-modal-general">
+                    <div class="col-12 col-lg-4 d-flex">
                         <label class="checkapp-field">
                             <span>Nombre</span>
                             <input id="txCurvaNombre" type="text" maxlength="150" />
                         </label>
                     </div>
-                    <div class="col-12 col-lg-3">
-                        <label class="ps-catalog-field--checkbox curvas-active-switch">
-                            <input id="ckCurvaActiva" type="checkbox" checked />
-                            <span>Activa</span>
+                    <div class="col-12 col-lg-5 d-flex curvas-product-picker">
+                        <label class="checkapp-field">
+                            <span>Producto</span>
+                            <input id="txBuscarProductoCurva" type="text" placeholder="Busca por código o nombre" autocomplete="off" />
+                        </label>
+                        <div id="lsProductosCurva" class="list-group curvas-product-results"></div>
+                    </div>
+                    <div class="col-12 col-lg-3 d-flex">
+                        <label class="curvas-toggle curvas-active-switch" for="ckCurvaActiva">
+                            <input id="ckCurvaActiva" type="checkbox" role="switch" aria-checked="true" checked />
+                            <span class="curvas-toggle-track" aria-hidden="true"><span class="curvas-toggle-thumb"></span></span>
+                            <span id="txCurvaActivaEstado" class="ps-status-switch-copy">Activa</span>
                         </label>
                     </div>
                 </div>
 
-                <div class="checkapp-panel mt-4">
-                    <div class="checkapp-panel-head">
-                        <div>
-                            <span class="checkapp-panel-eyebrow">Detalle</span>
-                            <h2>Objetivos de la curva</h2>
-                        </div>
-                    </div>
-                    <div class="row g-3">
-                        <div class="col-12">
-                            <label class="checkapp-field">
-                                <span>Producto</span>
-                                <input id="txBuscarProductoCurva" type="text" placeholder="Busca producto" />
-                            </label>
-                            <div id="lsProductosCurva" class="list-group mt-2"></div>
-                        </div>
-                    </div>
-                    <div id="panelObjetivosCurva" class="curvas-objectives is-empty mt-3">
+                <div class="curvas-product-flow mt-3">
+                    <div id="panelObjetivosCurva" class="curvas-objectives is-empty">
                         <div class="curvas-product-empty">
-                            Selecciona un producto para cargar sus objetivos.
+                            <i class="fa fa-list-alt" aria-hidden="true"></i>
+                            <span><strong>Sin producto seleccionado.</strong> Busca un producto para cargar sus variantes y cantidades objetivo.</span>
                         </div>
                         <div class="curvas-product-editor">
                             <div class="curvas-product-editor-head">
@@ -181,44 +208,39 @@
                                 </button>
                             </div>
                             <div class="curvas-apply-all">
-                                <label class="checkapp-field">
+                                <button id="btAplicarCantidadTodasCurva" type="button" class="checkapp-btn checkapp-btn-ghost curvas-equal-button">
+                                    <i class="fa fa-bar-chart"></i>
+                                    <span>Cantidades iguales</span>
+                                </button>
+                                <label class="checkapp-field curvas-equal-field">
                                     <span>Cantidad para todas</span>
                                     <input id="txCantidadTodasCurva" type="number" min="0" step="0.0001" />
                                 </label>
-                                <button id="btAplicarCantidadTodasCurva" type="button" class="checkapp-btn checkapp-btn-secondary">
-                                    <i class="fa fa-check"></i>
-                                    <span>Aplicar a todas</span>
-                                </button>
-                                <span id="txResumenObjetivosCurva" class="ca-chip ca-chip--secondary">0 variantes incluidas · 0 unidades objetivo</span>
+                                <span id="txResumenObjetivosCurva" class="curvas-live-counter">0 piezas · 0 variantes</span>
                             </div>
                             <div class="checkapp-grid-scroll curvas-variant-scroll">
                                 <table class="table table-row-bordered align-middle checkapp-grid-table">
                                     <thead>
                                         <tr>
-                                            <th>Incluir</th>
+                                            <th>Usar</th>
                                             <th>Variante</th>
                                             <th>Unidad base</th>
                                             <th>Cantidad objetivo</th>
+                                            <th>Acciones</th>
                                         </tr>
                                     </thead>
                                     <tbody id="tbObjetivosCurva"></tbody>
                                 </table>
                             </div>
-                            <div class="checkapp-filter-actions ps-catalog-filter-actions mt-3">
-                                <button id="btAgregarProductoCurva" type="button" class="checkapp-btn checkapp-btn-secondary">
-                                    <i class="fa fa-plus"></i>
-                                    <span>Agregar producto/objetivos</span>
-                                </button>
-                            </div>
                         </div>
                     </div>
-                    <div class="checkapp-grid-scroll mt-3">
+                    <div id="panelDetalleCurva" class="checkapp-grid-scroll curvas-captured mt-3" hidden>
                         <div class="curvas-details-head">
                             <div>
                                 <span class="checkapp-panel-eyebrow">Detalles capturados</span>
                                 <h3>Productos y variantes</h3>
                             </div>
-                            <span id="txResumenDetalleCurva" class="ca-chip ca-chip--secondary">0 renglones · 0 unidades objetivo</span>
+                            <span id="txResumenDetalleCurva" class="ca-chip ca-chip--secondary">0 piezas · 0 identidades</span>
                         </div>
                         <table class="table table-row-bordered align-middle checkapp-grid-table">
                             <thead>
@@ -242,6 +264,24 @@
                     <i class="fa fa-save"></i>
                     <span>Guardar</span>
                 </button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<div id="modalCurvaConsulta" class="modal fade checkapp-modal" tabindex="-1" aria-hidden="true">
+    <div class="modal-dialog modal-lg modal-dialog-centered modal-dialog-scrollable">
+        <div class="modal-content">
+            <div class="modal-header">
+                <div>
+                    <p id="txCurvaConsultaKicker" class="checkapp-panel-eyebrow mb-1">Consulta</p>
+                    <h5 id="txCurvaConsultaTitulo" class="modal-title">Detalle de la curva</h5>
+                </div>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Cerrar"></button>
+            </div>
+            <div id="bdCurvaConsulta" class="modal-body"></div>
+            <div class="modal-footer">
+                <button type="button" class="checkapp-btn checkapp-btn-primary" data-bs-dismiss="modal">Cerrar</button>
             </div>
         </div>
     </div>

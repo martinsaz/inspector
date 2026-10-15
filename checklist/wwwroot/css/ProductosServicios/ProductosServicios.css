@@ -1457,9 +1457,184 @@
     margin-top: 0.75rem;
 }
 
-.curvas-active-switch {
-    min-height: 4.25rem;
+.curvas-kpi-strip {
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+}
+
+.curvas-kpi-card {
+    min-height: 118px;
+    cursor: default;
+}
+
+.curvas-kpi-card > span {
+    position: relative;
+    z-index: 1;
+    display: block;
+    margin-top: 0.55rem;
+    color: var(--ca-text-muted, #64748b);
+    font-size: 0.82rem;
+    line-height: 1.35;
+}
+
+#accordionFiltrosCurvas .checkapp-accordion-toggle {
+    padding: 0.9rem 1rem 0.2rem;
+}
+
+#accordionFiltrosCurvas .checkapp-accordion-inner {
+    padding-top: 0;
+    padding-bottom: 0.55rem;
+    display: grid;
+    grid-template-columns: repeat(12, minmax(0, 1fr));
+    gap: 0.55rem 0.85rem;
+    align-items: end;
+}
+
+#accordionFiltrosCurvas .ps-filter-grid {
+    display: contents;
+}
+
+#accordionFiltrosCurvas .checkapp-field {
+    gap: 0.22rem;
+    min-width: 0;
+}
+
+#accordionFiltrosCurvas .checkapp-field span {
+    font-size: 0.82rem;
+    font-weight: 600;
+}
+
+#accordionFiltrosCurvas input,
+#accordionFiltrosCurvas .form-select {
+    min-height: 2.4rem;
+    border-radius: 0.85rem;
+    font-size: 0.95rem;
+}
+
+#accordionFiltrosCurvas h3 {
+    margin: 0;
+    font-size: 0.95rem;
+    font-weight: 700;
+    line-height: 1.2;
+}
+
+#accordionFiltrosCurvas .curvas-filter-search {
+    grid-column: span 6;
+}
+
+#accordionFiltrosCurvas .curvas-filter-status {
+    grid-column: span 4;
+}
+
+#accordionFiltrosCurvas .curvas-filter-tail {
+    grid-column: span 2;
+    align-self: end;
+}
+
+#accordionFiltrosCurvas .ps-filter-actions--tail .checkapp-btn {
+    flex: 1 1 0;
+    min-width: 0;
+    min-height: 40px;
+    height: 40px;
+    padding: 0.65rem 0.8rem;
     justify-content: center;
+}
+
+#accordionFiltrosCurvas .ps-filter-search-btn {
+    background: #ff4336;
+    border-color: #ff4336;
+    color: #fff !important;
+    font-weight: 800;
+    box-shadow: 0 6px 16px rgba(15, 23, 42, 0.14);
+}
+
+#accordionFiltrosCurvas .ps-filter-search-btn:hover,
+#accordionFiltrosCurvas .ps-filter-search-btn:focus-visible {
+    background: #e63629;
+    border-color: #e63629;
+}
+
+.curvas-active-switch {
+    width: 100%;
+    min-height: 2.75rem;
+    justify-content: center;
+}
+
+.curvas-toggle {
+    position: relative;
+    display: inline-flex;
+    align-items: center;
+    gap: 0.7rem;
+    min-height: 2.75rem;
+    padding: 0.55rem 0.75rem;
+    border: 1px solid var(--checkapp-border);
+    border-radius: var(--checkapp-radius-sm);
+    cursor: pointer;
+}
+
+.curvas-toggle input {
+    position: absolute;
+    width: 1px;
+    height: 1px;
+    opacity: 0;
+}
+
+.curvas-toggle-track {
+    position: relative;
+    width: 2.7rem;
+    height: 1.45rem;
+    border-radius: 999px;
+    background: var(--ca-border-strong, #cbd5e1);
+    transition: background 160ms ease;
+}
+
+.curvas-toggle-thumb {
+    position: absolute;
+    top: 0.2rem;
+    left: 0.2rem;
+    width: 1.05rem;
+    height: 1.05rem;
+    border-radius: 50%;
+    background: var(--ca-surface, #fff);
+    box-shadow: 0 1px 4px rgba(15, 23, 42, 0.24);
+    transition: transform 160ms ease;
+}
+
+.curvas-toggle input:checked + .curvas-toggle-track {
+    background: var(--ca-primary, #dc2626);
+}
+
+.curvas-toggle input:checked + .curvas-toggle-track .curvas-toggle-thumb {
+    transform: translateX(1.25rem);
+}
+
+.curvas-toggle input:focus-visible + .curvas-toggle-track {
+    outline: 3px solid var(--ca-focus-ring, rgba(220, 38, 38, 0.25));
+    outline-offset: 2px;
+}
+
+.curvas-modal-general .checkapp-field {
+    width: 100%;
+}
+
+.curvas-product-picker {
+    position: relative;
+}
+
+.curvas-product-results {
+    position: absolute;
+    z-index: 5;
+    top: calc(100% + 0.25rem);
+    right: 0.5rem;
+    left: 0.5rem;
+    max-height: 14rem;
+    overflow: auto;
+    box-shadow: var(--checkapp-shadow);
+}
+
+.curvas-product-flow {
+    border: 1px solid var(--checkapp-border);
+    border-radius: var(--checkapp-radius-sm);
+    padding: 1rem;
 }
 
 .curvas-objectives.is-empty .curvas-product-editor,
@@ -1471,7 +1646,10 @@
     border: 1px dashed var(--checkapp-border);
     border-radius: var(--checkapp-radius-sm);
     color: var(--checkapp-muted);
-    padding: 1rem;
+    padding: 0.8rem 1rem;
+    display: flex;
+    align-items: center;
+    gap: 0.65rem;
 }
 
 .curvas-product-editor {
@@ -1505,11 +1683,27 @@
 .curvas-apply-all {
     flex-wrap: wrap;
     margin: 1rem 0;
+    justify-content: flex-start;
 }
 
-.curvas-apply-all .checkapp-field {
+.curvas-apply-all .curvas-equal-field {
     flex: 1 1 12rem;
     max-width: 18rem;
+}
+
+.curvas-equal-button {
+    min-height: 44px;
+    text-transform: uppercase;
+    font-weight: 800;
+}
+
+.curvas-live-counter {
+    color: var(--ca-text-muted, #64748b);
+    font-weight: 600;
+}
+
+.curvas-live-counter::first-letter {
+    color: var(--ca-text-strong, #0f172a);
 }
 
 .curvas-variant-scroll {
@@ -1527,7 +1721,217 @@
     min-width: 8rem;
 }
 
-@media (max-width: 768px) {
+.curvas-quantity-stepper {
+    display: inline-flex;
+    gap: 0.45rem;
+}
+
+.curvas-qty-step {
+    display: inline-grid;
+    place-items: center;
+    width: 2.35rem;
+    height: 2.35rem;
+    border: 1px solid rgba(220, 38, 38, 0.22);
+    border-radius: 50%;
+    background: rgba(254, 226, 226, 0.62);
+    color: var(--ca-primary, #dc2626);
+    font-size: 1.35rem;
+    font-weight: 800;
+}
+
+.curvas-grid-summary,
+.curvas-grid-metric {
+    display: grid;
+    gap: 0.2rem;
+    min-width: 9rem;
+}
+
+.curvas-grid-summary strong,
+.curvas-grid-metric strong {
+    color: var(--ca-text-strong, #0f172a);
+}
+
+.curvas-grid-summary small,
+.curvas-grid-metric small {
+    color: var(--ca-text-muted, #64748b);
+}
+
+.curvas-grid-number {
+    display: inline-block;
+    min-width: 2rem;
+    text-align: center;
+    font-weight: 800;
+}
+
+.curvas-consulta-loading,
+.curvas-consulta-header,
+.curvas-assignment-card {
+    display: flex;
+    align-items: center;
+    gap: 0.75rem;
+}
+
+.curvas-consulta-loading {
+    justify-content: center;
+    min-height: 10rem;
+    color: var(--ca-text-muted, #64748b);
+}
+
+.curvas-consulta-header {
+    justify-content: space-between;
+    margin-bottom: 1rem;
+    padding-bottom: 1rem;
+    border-bottom: 1px solid var(--ca-border, rgba(15, 23, 42, 0.12));
+}
+
+.curvas-consulta-metrics,
+.curvas-assignment-meta,
+.curvas-assignment-distribution,
+.curvas-assignment-toolbar {
+    display: flex;
+    align-items: center;
+    flex-wrap: wrap;
+    gap: 0.55rem;
+}
+
+.curvas-assignment-toolbar {
+    justify-content: space-between;
+    margin-bottom: 0.85rem;
+}
+
+.curvas-assignment-toolbar .checkapp-grid-search {
+    flex: 1 1 24rem;
+}
+
+.curvas-assignment-visible {
+    color: var(--ca-text-muted, #64748b);
+    font-size: 0.88rem;
+}
+
+.curvas-consulta-header h3,
+.curvas-consulta-section h3 {
+    margin: 0;
+    color: var(--ca-text-strong, #0f172a);
+}
+
+.curvas-consulta-header p,
+.curvas-consulta-note,
+.curvas-consulta-empty {
+    margin: 0.25rem 0 0;
+    color: var(--ca-text-muted, #64748b);
+}
+
+.curvas-consulta-section + .curvas-consulta-section {
+    margin-top: 1.25rem;
+}
+
+.curvas-assignment-grid {
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 0.75rem;
+    margin-top: 0.7rem;
+}
+
+.curvas-assignment-card {
+    align-items: flex-start;
+    flex-direction: column;
+    padding: 0.85rem;
+    border: 1px solid var(--ca-border, rgba(15, 23, 42, 0.12));
+    border-radius: 0.85rem;
+    background: var(--ca-surface, #fff);
+}
+
+.curvas-assignment-card[hidden] {
+    display: none;
+}
+
+.curvas-assignment-card-head {
+    display: flex;
+    align-items: flex-start;
+    justify-content: space-between;
+    gap: 0.75rem;
+    width: 100%;
+}
+
+.curvas-assignment-card-head > div {
+    display: grid;
+    gap: 0.15rem;
+}
+
+.curvas-assignment-card h4 {
+    margin: 0;
+    color: var(--ca-text-strong, #0f172a);
+    font-size: 1rem;
+}
+
+.curvas-assignment-card code {
+    color: var(--ca-text-muted, #64748b);
+}
+
+.curvas-assignment-distribution span,
+.curvas-assignment-meta span {
+    padding: 0.35rem 0.55rem;
+    border: 1px solid var(--ca-border, rgba(15, 23, 42, 0.12));
+    border-radius: 999px;
+    color: var(--ca-text-strong, #0f172a);
+    font-size: 0.82rem;
+    font-weight: 700;
+}
+
+.curvas-assignment-empty {
+    display: flex;
+    align-items: flex-start;
+    gap: 0.9rem;
+    padding: 1rem;
+    border: 1px dashed var(--ca-border, rgba(15, 23, 42, 0.12));
+    border-radius: 0.9rem;
+}
+
+.curvas-assignment-empty i {
+    color: var(--ca-primary, #dc2626);
+    font-size: 1.35rem;
+}
+
+.curvas-assignment-empty p {
+    margin: 0.2rem 0 0;
+    color: var(--ca-text-muted, #64748b);
+}
+
+.curvas-assignment-card span {
+    color: var(--ca-text-muted, #64748b);
+    font-size: 0.86rem;
+}
+
+.curvas-branch-chips {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.55rem;
+    margin-top: 0.7rem;
+}
+
+@media (max-width: 991.98px) {
+    .curvas-kpi-strip {
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+    }
+
+    #accordionFiltrosCurvas .checkapp-accordion-inner {
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+    }
+
+    #accordionFiltrosCurvas .curvas-filter-search,
+    #accordionFiltrosCurvas .curvas-filter-status {
+        grid-column: span 1;
+    }
+
+    #accordionFiltrosCurvas .curvas-filter-tail {
+        grid-column: 1 / -1;
+        width: 100%;
+    }
+
+    #accordionFiltrosCurvas .ps-filter-actions--tail {
+        width: 100%;
+    }
+
     .curvas-product-editor-head,
     .curvas-details-head,
     .curvas-apply-all {
@@ -1538,6 +1942,41 @@
     .curvas-apply-all .checkapp-field {
         max-width: none;
         width: 100%;
+    }
+
+    .curvas-assignment-grid {
+        grid-template-columns: minmax(0, 1fr);
+    }
+}
+
+@media (max-width: 575.98px) {
+    .curvas-kpi-strip,
+    #accordionFiltrosCurvas .checkapp-accordion-inner {
+        grid-template-columns: minmax(0, 1fr);
+    }
+
+    #accordionFiltrosCurvas .curvas-filter-search,
+    #accordionFiltrosCurvas .curvas-filter-status,
+    #accordionFiltrosCurvas .curvas-filter-tail {
+        grid-column: 1 / -1;
+    }
+
+    #accordionFiltrosCurvas .ps-filter-actions--tail {
+        flex-direction: column;
+    }
+
+    #accordionFiltrosCurvas .ps-filter-actions--tail .checkapp-btn {
+        width: 100%;
+    }
+
+    .curvas-consulta-header {
+        align-items: flex-start;
+        flex-direction: column;
+    }
+
+    .curvas-product-results {
+        right: 0.75rem;
+        left: 0.75rem;
     }
 }
 

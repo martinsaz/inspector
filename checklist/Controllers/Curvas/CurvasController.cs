@@ -21,6 +21,7 @@ namespace checklist.Controllers.Curvas
         private const string ProxySignatureHeader = "X-ProductosServicios-Proxy-Signature";
         private const string CurvasCatalogoPermissionCode = "05005001";
         private const string CurvasSiembraPermissionCode = "05005002";
+        private const string CurvasHuecosCopetesPermissionCode = "05005003";
         private static readonly JsonSerializerOptions ProxyJsonOptions = new(JsonSerializerDefaults.Web);
 
         private readonly IHttpClientFactory _clientFactory;
@@ -55,6 +56,25 @@ namespace checklist.Controllers.Curvas
             return View("~/Views/Curvas/Siembra.cshtml");
         }
 
+        [HttpGet("/Activos/Curvas/HuecosCopetes")]
+        public async Task<IActionResult> HuecosCopetes()
+        {
+            if (!await HasCurvasAccessAsync(CurvasHuecosCopetesPermissionCode))
+            {
+                return Forbid();
+            }
+
+            return View("~/Views/Curvas/HuecosCopetes.cshtml");
+        }
+
+        [HttpGet("/Activos/Curvas/HuecosCopetes/Sucursales")]
+        public Task<IActionResult> SucursalesHuecosCopetes()
+            => ProxyGetAsync("Analisis/Sucursales", "CurvasSugerencias");
+
+        [HttpPost("/Activos/Curvas/HuecosCopetes/Analizar")]
+        public Task<IActionResult> AnalizarHuecosCopetes()
+            => ProxyJsonAsync(HttpMethod.Post, "Analisis", "CurvasSugerencias");
+
         [HttpGet("Siembra/Sucursales")]
         public Task<IActionResult> SucursalesSiembra() => ProxyGetAsync("Sucursales", "CurvasSiembra");
 
@@ -79,6 +99,9 @@ namespace checklist.Controllers.Curvas
         [HttpGet("Detalle")]
         public Task<IActionResult> Detalle() => ProxyGetAsync("Detalle");
 
+        [HttpGet("Resumen")]
+        public Task<IActionResult> Resumen() => ProxyGetAsync("Resumen");
+
         [HttpGet("ProductosElegibles")]
         public Task<IActionResult> ProductosElegibles() => ProxyGetAsync("ProductosElegibles");
 
@@ -93,6 +116,9 @@ namespace checklist.Controllers.Curvas
 
         [HttpPost("Reactivar")]
         public Task<IActionResult> Reactivar() => ProxyPostQueryAsync("Reactivar");
+
+        [HttpPost("Eliminar")]
+        public Task<IActionResult> Eliminar() => ProxyPostQueryAsync("Eliminar");
 
         private async Task<IActionResult> ProxyGetAsync(string actionName, string apiController = "CurvasCatalogo")
         {

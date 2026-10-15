@@ -1,0 +1,91 @@
+@{
+    ViewBag.Title = "Huecos y Copetes";
+    Layout = "~/Views/Shared/_Layout.cshtml";
+}
+
+<partial name="~/Views/ProductosServicios/_ProductosServiciosSessionContext.cshtml" />
+
+<div class="checkapp-scope checkapp-page productos-servicios-page ps-catalog-page curvas-analisis-page" data-curvas-analisis-page>
+    <div class="container-fluid checkapp-shell">
+        <section class="checkapp-hero">
+            <div>
+                <p class="checkapp-kicker">Proveeduría</p>
+                <h1>Huecos y Copetes</h1>
+                <p>Analiza cobertura, faltantes y excedentes de inventario según las curvas configuradas por sucursal.</p>
+            </div>
+        </section>
+
+        <section class="checkapp-panel">
+            <div class="checkapp-panel-head">
+                <div>
+                    <span class="checkapp-panel-eyebrow">Filtros</span>
+                    <h2>Consulta analítica</h2>
+                    <p class="checkapp-panel-copy">Los resultados son informativos y no crean órdenes de compra ni snapshots.</p>
+                </div>
+            </div>
+            <div class="curvas-analisis-filters">
+                <label class="checkapp-field">
+                    <span>Sucursal</span>
+                    <select id="cbAnalisisSucursal" class="form-select"><option value="">Todas las sucursales</option></select>
+                </label>
+                <label class="checkapp-field">
+                    <span>Producto</span>
+                    <input id="txAnalisisProducto" class="form-control" type="search" maxlength="150" placeholder="Código, producto o variante" autocomplete="off" />
+                </label>
+                <label class="checkapp-field">
+                    <span>Estado</span>
+                    <select id="cbAnalisisEstado" class="form-select">
+                        <option value="TODOS">Todos</option>
+                        <option value="HUECO">Hueco</option>
+                        <option value="COPETE">Copete</option>
+                        <option value="EN_OBJETIVO">En objetivo</option>
+                        <option value="SIN_CURVA">Sin curva</option>
+                    </select>
+                </label>
+                <button id="btAnalizarCurvas" type="button" class="checkapp-btn checkapp-btn-primary">
+                    <i class="fa fa-search"></i><span>Analizar</span>
+                </button>
+            </div>
+        </section>
+
+        <section class="checkapp-panel">
+            <div class="checkapp-panel-head">
+                <div>
+                    <span class="checkapp-panel-eyebrow">Resultados</span>
+                    <h2>Cobertura por identidad</h2>
+                    <p id="txAnalisisTiempo" class="checkapp-panel-copy">Consulta pendiente.</p>
+                </div>
+                <span id="txAnalisisCount" class="ca-chip ca-chip--secondary">0 registros</span>
+            </div>
+            <div id="gridAnalisisCurvasHost">
+                <div class="checkapp-grid-scroll">
+                    <table id="grAnalisisCurvas" class="table table-row-bordered align-middle checkapp-grid-table">
+                        <thead><tr id="trAnalisisCurvasHead"></tr></thead><tbody></tbody>
+                    </table>
+                </div>
+            </div>
+            <div class="checkapp-grid-footer curvas-analisis-footer">
+                <span id="txAnalisisRange" class="checkapp-grid-footer-range">Sin resultados</span>
+                <div id="txAnalisisPageSize" class="checkapp-grid-page-size">
+                    <span class="checkapp-grid-page-size-label">Filas:</span>
+                    <button type="button" class="checkapp-grid-page-chip is-active" data-server-page-size="25">25</button>
+                    <button type="button" class="checkapp-grid-page-chip" data-server-page-size="50">50</button>
+                    <button type="button" class="checkapp-grid-page-chip" data-server-page-size="100">100</button>
+                </div>
+                <div class="checkapp-grid-page-nav">
+                    <span id="txAnalisisPage" class="checkapp-grid-footer-page">Página 0 de 0</span>
+                    <button id="btAnalisisPrev" type="button" class="checkapp-grid-nav-btn" aria-label="Página anterior">‹</button>
+                    <button id="btAnalisisNext" type="button" class="checkapp-grid-nav-btn" aria-label="Página siguiente">›</button>
+                </div>
+            </div>
+        </section>
+    </div>
+</div>
+
+@section Scripts {
+    <link href="~/css/checkapp-theme.css" rel="stylesheet" />
+    <link href="~/css/ProductosServicios/ProductosServicios.css" rel="stylesheet" asp-append-version="true" />
+    <link href="~/css/Curvas/HuecosCopetes.css" rel="stylesheet" asp-append-version="true" />
+    <script src="~/js/checkapp-ui.js"></script>
+    <script src="~/js/Curvas/HuecosCopetes.js" asp-append-version="true"></script>
+}

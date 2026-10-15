@@ -1,0 +1,71 @@
+.curvas-analisis-page .curvas-analisis-filters {
+    display: grid;
+    grid-template-columns: minmax(220px, 1fr) minmax(280px, 1.4fr) minmax(190px, .8fr) auto;
+    gap: 1rem;
+    align-items: end;
+}
+
+.curvas-analisis-page .checkapp-grid-scroll {
+    max-width: 100%;
+    overflow-x: auto;
+}
+
+.curvas-analisis-page .checkapp-grid-table {
+    min-width: 1280px;
+}
+
+.curvas-analisis-page .curvas-analisis-number {
+    text-align: right;
+    font-variant-numeric: tabular-nums;
+}
+
+.curvas-analisis-page .curvas-analisis-footer {
+    margin-top: 1rem;
+}
+
+.curvas-analisis-mobile-metrics {
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: .65rem;
+    margin-top: .7rem;
+}
+
+.curvas-analisis-mobile-metric {
+    display: grid;
+    gap: .15rem;
+    padding: .6rem;
+    border: 1px solid var(--ca-border);
+    border-radius: var(--ca-radius-sm);
+    background: var(--ca-surface);
+}
+
+.curvas-analisis-mobile-metric span {
+    color: var(--ca-text-muted);
+    font-size: .7rem;
+    font-weight: 700;
+}
+
+.curvas-analisis-mobile-metric strong {
+    font-variant-numeric: tabular-nums;
+}
+
+@media (max-width: 900px) {
+    .curvas-analisis-page .curvas-analisis-filters {
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+    }
+}
+
+@media (max-width: 575.98px) {
+    .curvas-analisis-page .curvas-analisis-filters {
+        grid-template-columns: minmax(0, 1fr);
+    }
+
+    .curvas-analisis-page .curvas-analisis-filters .checkapp-btn {
+        width: 100%;
+        justify-content: center;
+    }
+
+    .curvas-analisis-page .curvas-analisis-footer {
+        align-items: flex-start;
+    }
+}

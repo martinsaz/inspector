@@ -8,12 +8,14 @@
 
     const state = {
         modal: null,
+        consultaModal: null,
         selectedProduct: null,
         variantRows: [],
         details: [],
         originalForm: null,
         editingId: null,
-        saving: false
+        saving: false,
+        productSearchSequence: 0
     };
 
     const columns = [
@@ -23,7 +25,26 @@
             key: "nombre",
             title: "Nombre",
             render: function (value, row) {
-                return "<div class='ps-catalog-title'><strong>" + escapeHtml(value || "") + "</strong><small>" + Number(row.renglones || 0) + " renglón(es)</small></div>";
+                return "<div class='ps-catalog-title'><strong>" + escapeHtml(value || "") + "</strong><small>" + pluralize(Number(row.productosAsignados || 0), "producto", "productos") + " · " + pluralize(Number(row.sucursalesSembradas || 0), "sucursal", "sucursales") + "</small></div>";
+            }
+        },
+        {
+            key: "productosAsignados",
+            title: "Productos relacionados",
+            render: function (value, row) {
+                const count = Number(value || 0);
+                const extra = Math.max(count - 1, 0);
+                return "<div class='curvas-grid-summary'><strong>" + escapeHtml(row.productoResumen || "Sin productos") + "</strong>" + (extra ? "<small>+" + extra + " producto(s)</small>" : "") + "</div>";
+            }
+        },
+        {
+            key: "renglones",
+            title: "Identidades",
+            render: function (value, row) {
+                const parts = [];
+                if (Number(row.variantesConfiguradas || 0)) parts.push(pluralize(Number(row.variantesConfiguradas), "variante", "variantes"));
+                if (Number(row.productosBaseConfigurados || 0)) parts.push(pluralize(Number(row.productosBaseConfigurados), "producto base", "productos base"));
+                return "<div class='curvas-grid-metric'><strong>" + Number(value || 0) + "</strong><small>" + escapeHtml(parts.join(" · ") || "Sin identidades") + "</small></div>";
             }
         },
         {
@@ -31,12 +52,18 @@
             title: "Cantidad objetivo",
             render: function (value) { return formatDecimal(value); }
         },
+        {
+            key: "sucursalesSembradas",
+            title: "Sucursales sembradas",
+            render: function (value) { return "<span class='curvas-grid-number'>" + Number(value || 0) + "</span>"; }
+        },
         statusColumn(),
         updatedColumn()
     ];
 
     document.addEventListener("DOMContentLoaded", function () {
         state.modal = resolveModal("#modalCurva");
+        state.consultaModal = resolveModal("#modalCurvaConsulta");
         buildHead();
         initAccordion();
         initGrid();
@@ -49,7 +76,7 @@
             id: "curvas-filtros",
             selector: "#accordionFiltrosCurvas",
             open: true,
-            emptySummaryText: "Activos"
+            emptySummaryText: "Estatus: Activos"
         });
     }
 
@@ -74,10 +101,14 @@
             exportSheetName: "CatalogoCurvas",
             exportFileName: function () { return "CatalogoCurvas_" + formatDateForFile(new Date()) + ".xlsx"; },
             loadData: function () {
-                const query = new URLSearchParams();
-                appendQuery(query, "busqueda", $("#txBusquedaCurvas").val());
-                appendQuery(query, "estatus", $("#cbFiltroEstatusCurvas").val());
-                return fetchJson("/Proveeduria/Curvas/Listar?" + query.toString(), { cache: "no-store" });
+                const query = buildFiltersQuery();
+                return Promise.all([
+                    fetchJson("/Proveeduria/Curvas/Listar?" + query, { cache: "no-store" }),
+                    fetchJson("/Proveeduria/Curvas/Resumen?" + query, { cache: "no-store" })
+                ]).then(function (result) {
+                    renderKpis(result[1] || {});
+                    return result[0] || [];
+                });
             },
             columns: columns,
             onLoaded: function (rows) {
@@ -106,12 +137,14 @@
         });
         $("#btNuevaCurva").on("click", openCreate);
         $("#btGuardarCurva").on("click", save);
-        $("#btAgregarProductoCurva").on("click", addProductObjectives);
         $("#btAplicarCantidadTodasCurva").on("click", applyQuantityToIncluded);
         $("#btLimpiarProductoCurva").on("click", clearProductEditor);
         $("#txBuscarProductoCurva").on("input", debounce(searchProducts, 250));
         $("#tbObjetivosCurva").on("change", ".curvas-include-input", updateVariantFromDom);
         $("#tbObjetivosCurva").on("input", ".curvas-quantity-input", updateVariantFromDom);
+        $("#tbObjetivosCurva").on("click", ".curvas-qty-step", stepVariantQuantity);
+        $("#ckCurvaActiva").on("change", renderActiveSwitch);
+        $("#bdCurvaConsulta").on("input", ".curvas-assignment-search", filterAssignments);
         $("#modalCurva").on("hidden.bs.modal", resetForm);
     }
 
@@ -129,12 +162,19 @@
             hideable: false,
             exportable: false,
             render: function (_value, row) {
+                const eliminated = readProp(row, "eliminada", "Eliminada") === true;
+                const id = escapeJs(readProp(row, "id", "Id"));
                 const actions = [
-                    actionLink("Editar", "fa fa-edit", "curvasCatalogoEditar('" + escapeJs(readProp(row, "id", "Id")) + "')")
+                    actionLink("Ver variantes y presentaciones", "fa fa-list-alt", "curvasCatalogoIdentidades('" + id + "')"),
+                    actionLink("Productos asignados", "fa fa-cubes", "curvasCatalogoProductos('" + id + "')")
                 ];
-                actions.push(row.activo
-                    ? actionLink("Dar de baja", "fa fa-ban", "curvasCatalogoEstatus('" + escapeJs(readProp(row, "id", "Id")) + "', false)", "is-danger")
-                    : actionLink("Reactivar", "fa fa-check", "curvasCatalogoEstatus('" + escapeJs(readProp(row, "id", "Id")) + "', true)", "is-success"));
+                if (!eliminated) {
+                    actions.unshift(actionLink("Editar", "fa fa-edit", "curvasCatalogoEditar('" + id + "')"));
+                    actions.push(readProp(row, "activo", "Activo")
+                        ? actionLink("Desactivar", "fa fa-toggle-on", "curvasCatalogoEstatus('" + id + "', false)", "is-warning")
+                        : actionLink("Reactivar", "fa fa-toggle-off", "curvasCatalogoEstatus('" + id + "', true)", "is-success"));
+                    actions.push(actionLink("Eliminar", "fa fa-trash", "curvasCatalogoEliminar('" + id + "')", "is-danger"));
+                }
                 return "<div class='ps-catalog-actions'>" + actions.join("") + "</div>";
             }
         };
@@ -144,11 +184,14 @@
         return {
             key: "activo",
             title: "Estatus",
-            exportValue: function (value) { return value ? "Activo" : "Baja lógica"; },
-            render: function (value) {
+            exportValue: function (value, row) { return readProp(row, "eliminada", "Eliminada") ? "Eliminada" : (value ? "Activo" : "Inactiva"); },
+            render: function (value, row) {
+                if (readProp(row, "eliminada", "Eliminada")) {
+                    return "<span class='checkapp-badge checkapp-badge-danger'>Eliminada</span>";
+                }
                 return value
                     ? "<span class='checkapp-badge checkapp-badge-success'>Activo</span>"
-                    : "<span class='checkapp-badge checkapp-badge-muted'>Baja lógica</span>";
+                    : "<span class='checkapp-badge checkapp-badge-muted'>Inactiva</span>";
             }
         };
     }
@@ -172,6 +215,7 @@
                 $("#hdCurvaId").val(state.editingId || "");
                 $("#txCurvaNombre").val(readProp(data, "nombre", "Nombre") || "");
                 $("#ckCurvaActiva").prop("checked", readProp(data, "activo", "Activo") !== false);
+                renderActiveSwitch();
                 $("#txCurvaModalKicker").text("Edición");
                 $("#txCurvaModalTitulo").text("Editar curva");
                 state.details = (readProp(data, "detalles", "Detalles") || []).map(mapDetail);
@@ -204,6 +248,93 @@
         });
     };
 
+    window.curvasCatalogoEliminar = function (id) {
+        Swal.fire({
+            icon: "warning",
+            title: "¿Eliminar curva?",
+            text: "Se archivarán sus objetivos y saldrá del catálogo operativo. El historial se conserva y esta acción no permite reactivación.",
+            showCancelButton: true,
+            confirmButtonText: "Eliminar",
+            cancelButtonText: "Cancelar",
+            confirmButtonColor: "#dc2626"
+        }).then(function (result) {
+            if (!result.isConfirmed) return;
+            fetchJson("/Proveeduria/Curvas/Eliminar?id=" + encodeURIComponent(id), { method: "POST" })
+                .then(function (data) {
+                    showSuccess(resolveServerMessage(data));
+                    CheckAppUI.reloadGrid("curvas-catalogo-grid");
+                })
+                .catch(function (error) { showError(resolveErrorMessage(error)); });
+        });
+    };
+
+    window.curvasCatalogoIdentidades = function (id) {
+        openReadOnlyDetail(id, "Identidades configuradas", "Variantes y producto base", renderIdentityDetail);
+    };
+
+    window.curvasCatalogoProductos = function (id) {
+        openReadOnlyDetail(id, "Productos asignados", "Productos y sucursales", renderProductAssignments);
+    };
+
+    function openReadOnlyDetail(id, title, kicker, renderer) {
+        $("#txCurvaConsultaKicker").text(kicker);
+        $("#txCurvaConsultaTitulo").text(title);
+        $("#bdCurvaConsulta").html("<div class='curvas-consulta-loading'><i class='fa fa-spinner fa-spin'></i><span>Cargando información…</span></div>");
+        state.consultaModal.show();
+        fetchJson("/Proveeduria/Curvas/Detalle?id=" + encodeURIComponent(id), { cache: "no-store" })
+            .then(function (data) { $("#bdCurvaConsulta").html(renderer(data)); })
+            .catch(function (error) { $("#bdCurvaConsulta").html("<div class='alert alert-danger'>" + escapeHtml(resolveErrorMessage(error)) + "</div>"); });
+    }
+
+    function renderIdentityDetail(data) {
+        const details = readProp(data, "detalles", "Detalles") || [];
+        const rows = details.map(function (item) {
+            const variantId = readProp(item, "idVariante", "IdVariante");
+            const active = readProp(item, "fuenteActiva", "FuenteActiva") !== false;
+            return "<tr><td>" + escapeHtml([readProp(item, "codigoProducto", "CodigoProducto"), readProp(item, "producto", "Producto")].filter(Boolean).join(" · ")) + "</td>" +
+                "<td>" + escapeHtml(variantId ? readProp(item, "variante", "Variante") : "Producto base") + "</td>" +
+                "<td>" + escapeHtml(readProp(item, "unidadBase", "UnidadBase") || "") + "</td>" +
+                "<td>" + formatDecimal(readProp(item, "cantidadBaseObjetivo", "CantidadBaseObjetivo")) + "</td>" +
+                "<td>" + (active ? "<span class='checkapp-badge checkapp-badge-success'>Fuente activa</span>" : "<span class='checkapp-badge checkapp-badge-muted'>Fuente inactiva</span>") + "</td></tr>";
+        }).join("");
+        const total = details.reduce(function (sum, item) { return sum + Number(readProp(item, "cantidadBaseObjetivo", "CantidadBaseObjetivo") || 0); }, 0);
+        return buildReadOnlyHeader(data, [pluralize(details.length, "identidad", "identidades"), pluralize(total, "pieza", "piezas")]) + "<div class='checkapp-grid-scroll'><table class='table table-row-bordered align-middle checkapp-grid-table'><thead><tr><th>Producto / código</th><th>Variante / presentación</th><th>Unidad base</th><th>Cantidad objetivo</th><th>Fuente</th></tr></thead><tbody>" + (rows || "<tr><td colspan='5'>Sin variantes o presentaciones configuradas.</td></tr>") + "</tbody></table></div>";
+    }
+
+    function renderProductAssignments(data) {
+        const assignments = readProp(data, "asignaciones", "Asignaciones") || [];
+        if (!assignments.length) {
+            return buildReadOnlyHeader(data, ["0 asignaciones", "0 piezas", "0 variantes"]) + "<div class='curvas-assignment-empty'><i class='fa fa-archive' aria-hidden='true'></i><div><strong>Sin productos asignados</strong><p>Esta curva todavía no tiene productos sembrados en sucursales para mostrar en el catálogo.</p></div></div>";
+        }
+        const total = assignments.reduce(function (sum, item) { return sum + Number(readProp(item, "cantidadBaseObjetivo", "CantidadBaseObjetivo") || 0); }, 0);
+        const cards = assignments.map(function (item) {
+            const product = [readProp(item, "codigoProducto", "CodigoProducto"), readProp(item, "producto", "Producto")].filter(Boolean).join(" · ");
+            const variant = readProp(item, "variante", "Variante") || "Producto base";
+            const branch = readProp(item, "sucursal", "Sucursal") || "Sucursal";
+            const quantity = Number(readProp(item, "cantidadBaseObjetivo", "CantidadBaseObjetivo") || 0);
+            const search = [branch, product, variant, readProp(item, "estado", "Estado")].join(" ").toLowerCase();
+            return "<article class='curvas-assignment-card' data-assignment-search='" + escapeHtml(search) + "'><div class='curvas-assignment-card-head'><div><span>Sucursal</span><strong>" + escapeHtml(branch) + "</strong></div><span class='checkapp-badge checkapp-badge-success'>" + escapeHtml(readProp(item, "estado", "Estado") || "Activa") + "</span></div><h4>" + escapeHtml(product) + "</h4><code>" + escapeHtml(readProp(item, "codigoProducto", "CodigoProducto") || "Sin código") + "</code><div class='curvas-assignment-distribution'><span>" + escapeHtml(variant) + " ×" + formatDecimal(quantity) + "</span></div><div class='curvas-assignment-meta'><span>" + pluralize(quantity, "pieza", "piezas") + "</span><span>1 variante</span><span>" + escapeHtml(readProp(item, "unidadBase", "UnidadBase") || "unidad base") + "</span></div></article>";
+        }).join("");
+        return buildReadOnlyHeader(data, [pluralize(assignments.length, "asignación", "asignaciones"), pluralize(total, "pieza", "piezas"), pluralize(assignments.length, "variante", "variantes")]) + "<div class='curvas-assignment-toolbar'><label class='checkapp-grid-search'><i class='fa fa-search'></i><input class='curvas-assignment-search' type='search' placeholder='Buscar sucursal, producto o código' /></label><span class='curvas-assignment-visible'>Mostrando " + assignments.length + " de " + assignments.length + " asignaciones</span></div><div class='curvas-assignment-grid' data-total='" + assignments.length + "'>" + cards + "</div><p class='curvas-consulta-note'>Consulta informativa; las asignaciones no se modifican desde Catálogo.</p>";
+    }
+
+    function buildReadOnlyHeader(data, metrics) {
+        const chips = (metrics || [formatDecimal(readProp(data, "piezasObjetivo", "PiezasObjetivo")) + " unidades objetivo"]).map(function (metric) { return "<span class='ca-chip ca-chip--secondary'>" + escapeHtml(metric) + "</span>"; }).join("");
+        return "<div class='curvas-consulta-header'><div><span class='checkapp-panel-eyebrow'>Curva</span><h3>" + escapeHtml(readProp(data, "nombre", "Nombre") || "") + "</h3><p>" + escapeHtml(readProp(data, "codigo", "Codigo") || "") + "</p></div><div class='curvas-consulta-metrics'>" + chips + "</div></div>";
+    }
+
+    function filterAssignments() {
+        const term = String(this.value || "").trim().toLowerCase();
+        const cards = $("#bdCurvaConsulta [data-assignment-search]");
+        let visible = 0;
+        cards.each(function () {
+            const show = !term || String(this.getAttribute("data-assignment-search") || "").includes(term);
+            this.hidden = !show;
+            if (show) visible += 1;
+        });
+        $("#bdCurvaConsulta .curvas-assignment-visible").text("Mostrando " + visible + " de " + cards.length + " asignaciones");
+    }
+
     function openCreate() {
         resetForm();
         state.originalForm = snapshotForm();
@@ -218,6 +349,7 @@
         state.editingId = null;
         $("#hdCurvaId,#txCurvaNombre,#txBuscarProductoCurva,#txCantidadTodasCurva").val("");
         $("#ckCurvaActiva").prop("checked", true);
+        renderActiveSwitch();
         $("#lsProductosCurva,#txCurvaInfo").empty();
         $("#txCurvaModalKicker").text("Alta");
         $("#txCurvaModalTitulo").text("Nueva curva");
@@ -225,8 +357,15 @@
         renderDetails();
     }
 
+    function renderActiveSwitch() {
+        const active = $("#ckCurvaActiva").prop("checked");
+        $("#ckCurvaActiva").attr("aria-checked", active ? "true" : "false");
+        $("#txCurvaActivaEstado").text(active ? "Activa" : "Inactiva").toggleClass("is-inactive", !active);
+    }
+
     function searchProducts() {
         const query = ($("#txBuscarProductoCurva").val() || "").trim();
+        const sequence = ++state.productSearchSequence;
         if (query.length < 2) {
             $("#lsProductosCurva").empty();
             return;
@@ -234,6 +373,9 @@
 
         fetchJson("/Proveeduria/Curvas/ProductosElegibles?busqueda=" + encodeURIComponent(query), { cache: "no-store" })
             .then(function (items) {
+                if (sequence !== state.productSearchSequence) {
+                    return;
+                }
                 $("#lsProductosCurva").html((items || []).map(function (item) {
                     const label = [item.codigo, item.nombre].filter(Boolean).join(" · ");
                     const meta = item.variantes > 0 ? item.variantes + " variante(s)" : "Sin variantes";
@@ -242,7 +384,11 @@
                 }).join(""));
                 $("#lsProductosCurva button").on("click", selectProduct);
             })
-            .catch(function (error) { showError(resolveErrorMessage(error)); });
+            .catch(function (error) {
+                if (sequence === state.productSearchSequence) {
+                    showError(resolveErrorMessage(error));
+                }
+            });
     }
 
     function selectProduct() {
@@ -263,11 +409,22 @@
         fetchJson("/Proveeduria/Curvas/Variantes?idProductoServicio=" + encodeURIComponent(idProducto), { cache: "no-store" })
             .then(function (items) {
                 const variants = items || [];
+                const productHasDetails = state.details.some(function (item) { return sameKey(item.idProductoServicio, null, state.selectedProduct.id, null); }) ||
+                    state.details.some(function (item) { return String(item.idProductoServicio).toLowerCase() === String(state.selectedProduct.id).toLowerCase(); });
                 state.variantRows = variants.length > 0
                     ? variants.map(function (item) {
-                        return buildVariantRow(item.id, item.nombre || item.codigo || "Variante", true);
+                        const existing = findDetail(state.selectedProduct.id, item.id);
+                        const row = buildVariantRow(item.id, item.nombre || item.codigo || "Variante", existing ? true : !productHasDetails);
+                        row.cantidadBaseObjetivo = existing ? Number(existing.cantidadBaseObjetivo || 0) : 0;
+                        return row;
                     })
-                    : [buildVariantRow(null, "Base", true)];
+                    : [function () {
+                        const existing = findDetail(state.selectedProduct.id, null);
+                        const row = buildVariantRow(null, "Base", existing ? true : !productHasDetails);
+                        row.cantidadBaseObjetivo = existing ? Number(existing.cantidadBaseObjetivo || 0) : 0;
+                        return row;
+                    }()];
+                syncDetailsFromVariantRows();
                 renderProductEditor();
             })
             .catch(function (error) {
@@ -291,12 +448,14 @@
 
     function renderProductEditor(loading) {
         const hasProduct = !!state.selectedProduct;
-        $("#panelObjetivosCurva").toggleClass("is-empty", !hasProduct);
-        $(".curvas-product-empty").text(loading ? "Cargando variantes activas..." : "Selecciona un producto para cargar sus objetivos.");
-        if (!hasProduct) {
+        $("#panelObjetivosCurva").toggleClass("is-empty", !hasProduct || !!loading);
+        $(".curvas-product-empty span").html(loading ? "Cargando variantes activas…" : "<strong>Sin producto seleccionado.</strong> Busca un producto para cargar sus variantes y cantidades objetivo.");
+        if (!hasProduct || loading) {
             $("#tbObjetivosCurva").empty();
-            $("#txProductoObjetivoCurva").text("Producto");
-            $("#txProductoUnidadCurva").text("Unidad base");
+            if (!hasProduct) {
+                $("#txProductoObjetivoCurva").text("Producto");
+                $("#txProductoUnidadCurva").text("Unidad base");
+            }
             updateVariantSummary();
             return;
         }
@@ -306,12 +465,21 @@
         $("#tbObjetivosCurva").html(state.variantRows.map(function (row, index) {
             return "<tr data-index='" + index + "'>" +
                 "<td><input class='curvas-include-input' type='checkbox' " + (row.included ? "checked" : "") + " aria-label='Incluir variante' /></td>" +
-                "<td>" + escapeHtml(row.variante || "Base") + "</td>" +
+                "<td><strong>" + escapeHtml(row.idVariante ? row.variante : "Producto base") + "</strong></td>" +
                 "<td>" + escapeHtml(row.unidadBase || "") + "</td>" +
-                "<td><input class='curvas-quantity-input' type='number' min='0' step='0.0001' value='" + escapeHtml(row.cantidadBaseObjetivo) + "' /></td>" +
+                "<td><input class='curvas-quantity-input' type='number' min='0' step='0.0001' value='" + escapeHtml(row.cantidadBaseObjetivo) + "' aria-label='Cantidad objetivo' /></td>" +
+                "<td><div class='curvas-quantity-stepper'><button type='button' class='curvas-qty-step' data-delta='-1' aria-label='Disminuir cantidad'>−</button><button type='button' class='curvas-qty-step' data-delta='1' aria-label='Aumentar cantidad'>+</button></div></td>" +
                 "</tr>";
         }).join(""));
         updateVariantSummary();
+    }
+
+    function stepVariantQuantity() {
+        const row = $(this).closest("tr");
+        const input = row.find(".curvas-quantity-input");
+        const delta = Number(this.getAttribute("data-delta") || 0);
+        const next = Math.max(0, Number(input.val() || 0) + delta);
+        input.val(formatDecimalInput(next)).trigger("input");
     }
 
     function updateVariantFromDom() {
@@ -323,6 +491,7 @@
 
         state.variantRows[index].included = row.find(".curvas-include-input").prop("checked");
         state.variantRows[index].cantidadBaseObjetivo = Number(row.find(".curvas-quantity-input").val() || 0);
+        syncDetailsFromVariantRows();
         updateVariantSummary();
     }
 
@@ -338,55 +507,9 @@
                 row.cantidadBaseObjetivo = quantity;
             }
         });
+        syncDetailsFromVariantRows();
         renderProductEditor();
         setInfo("success", "Cantidad aplicada a las variantes incluidas.");
-    }
-
-    function addProductObjectives() {
-        if (!state.selectedProduct) {
-            setInfo("danger", "Selecciona un producto.");
-            return;
-        }
-
-        syncVariantRowsFromDom();
-        const selected = state.variantRows.filter(function (row) { return row.included; });
-        if (selected.length === 0) {
-            setInfo("danger", "Incluye al menos una variante o la fila Base.");
-            return;
-        }
-
-        const invalid = selected.some(function (row) {
-            return !Number.isFinite(Number(row.cantidadBaseObjetivo)) || Number(row.cantidadBaseObjetivo) < 0;
-        });
-        if (invalid) {
-            setInfo("danger", "Revisa las cantidades objetivo.");
-            return;
-        }
-
-        const duplicate = selected.find(function (row) {
-            return state.details.some(function (item) {
-                return sameKey(item.idProductoServicio, item.idVariante, row.idProductoServicio, row.idVariante);
-            });
-        });
-        if (duplicate) {
-            setInfo("danger", "Ese producto y variante ya están en la curva.");
-            return;
-        }
-
-        selected.forEach(function (row) {
-            state.details.push({
-                idProductoServicio: row.idProductoServicio,
-                idVariante: row.idVariante,
-                producto: row.producto,
-                codigoProducto: row.codigoProducto,
-                variante: row.variante,
-                unidadBase: row.unidadBase,
-                cantidadBaseObjetivo: Number(row.cantidadBaseObjetivo)
-            });
-        });
-        setInfo("success", selected.length + " objetivo(s) agregado(s).");
-        clearProductEditor();
-        renderDetails();
     }
 
     function syncVariantRowsFromDom() {
@@ -397,10 +520,34 @@
                 state.variantRows[index].cantidadBaseObjetivo = Number($(this).find(".curvas-quantity-input").val() || 0);
             }
         });
+        syncDetailsFromVariantRows();
         updateVariantSummary();
     }
 
+    function syncDetailsFromVariantRows() {
+        if (!state.selectedProduct) return;
+        state.variantRows.forEach(function (row) {
+            const index = state.details.findIndex(function (item) {
+                return sameKey(item.idProductoServicio, item.idVariante, row.idProductoServicio, row.idVariante);
+            });
+            if (!row.included) {
+                if (index >= 0) state.details.splice(index, 1);
+                return;
+            }
+            const detail = cloneDetail(row);
+            if (index >= 0) state.details[index] = detail;
+            else state.details.push(detail);
+        });
+        renderDetails();
+    }
+
+    function findDetail(productId, variantId) {
+        return state.details.find(function (item) { return sameKey(item.idProductoServicio, item.idVariante, productId, variantId); }) || null;
+    }
+
     function clearProductEditor() {
+        syncVariantRowsFromDom();
+        state.productSearchSequence += 1;
         state.selectedProduct = null;
         state.variantRows = [];
         $("#txBuscarProductoCurva,#txCantidadTodasCurva").val("");
@@ -413,11 +560,18 @@
             const producto = [item.codigoProducto, item.producto].filter(Boolean).join(" · ");
             return "<tr><td>" + escapeHtml(producto) + "</td><td>" + escapeHtml(item.idVariante ? item.variante : "Base") + "</td><td>" + escapeHtml(item.unidadBase || "") + "</td><td>" + formatDecimal(item.cantidadBaseObjetivo) + "</td><td><div class='ps-catalog-actions'><a href='javascript:void(0)' class='is-danger' title='Quitar' onclick='curvasQuitarDetalle(" + index + ")'><i class='fa fa-trash'></i></a></div></td></tr>";
         }).join("") || "<tr><td colspan='5'>Sin renglones capturados.</td></tr>");
+        $("#panelDetalleCurva").prop("hidden", state.details.length === 0);
         updateDetailsSummary();
     }
 
     window.curvasQuitarDetalle = function (index) {
-        state.details.splice(index, 1);
+        const removed = state.details.splice(index, 1)[0];
+        if (removed) {
+            state.variantRows.forEach(function (row) {
+                if (sameKey(row.idProductoServicio, row.idVariante, removed.idProductoServicio, removed.idVariante)) row.included = false;
+            });
+            renderProductEditor();
+        }
         renderDetails();
     };
 
@@ -427,6 +581,7 @@
         }
 
         const nombre = ($("#txCurvaNombre").val() || "").trim();
+        syncVariantRowsFromDom();
         if (!nombre) {
             setInfo("danger", "Captura el nombre.");
             return;
@@ -482,7 +637,8 @@
             codigoProducto: readProp(item, "codigoProducto", "CodigoProducto"),
             variante: readProp(item, "variante", "Variante") || "Base",
             unidadBase: readProp(item, "unidadBase", "UnidadBase"),
-            cantidadBaseObjetivo: Number(readProp(item, "cantidadBaseObjetivo", "CantidadBaseObjetivo") || 0)
+            cantidadBaseObjetivo: Number(readProp(item, "cantidadBaseObjetivo", "CantidadBaseObjetivo") || 0),
+            fuenteActiva: readProp(item, "fuenteActiva", "FuenteActiva") !== false
         };
     }
 
@@ -501,19 +657,37 @@
     function updateVariantSummary() {
         const included = state.variantRows.filter(function (row) { return row.included; });
         const total = included.reduce(function (sum, row) { return sum + Number(row.cantidadBaseObjetivo || 0); }, 0);
-        const label = state.variantRows.length === 1 && !state.variantRows[0].idVariante ? "1 producto" : included.length + " variantes incluidas";
-        $("#txResumenObjetivosCurva").text(label + " · " + formatDecimal(total) + " unidades objetivo");
+        const identityLabel = state.variantRows.length === 1 && !state.variantRows[0].idVariante
+            ? "1 producto base"
+            : pluralize(included.length, "variante", "variantes");
+        $("#txResumenObjetivosCurva").text(pluralize(total, "pieza", "piezas") + " · " + identityLabel);
     }
 
     function updateDetailsSummary() {
         const total = state.details.reduce(function (sum, row) { return sum + Number(row.cantidadBaseObjetivo || 0); }, 0);
-        $("#txResumenDetalleCurva").text(state.details.length + " renglones · " + formatDecimal(total) + " unidades objetivo");
+        $("#txResumenDetalleCurva").text(pluralize(total, "pieza", "piezas") + " · " + pluralize(state.details.length, "identidad", "identidades"));
     }
 
     function updateSummary() {
         const status = $("#cbFiltroEstatusCurvas option:selected").text() || "Activos";
         const term = ($("#txBusquedaCurvas").val() || "").trim();
-        $("#accordionFiltrosCurvas .checkapp-accordion-summary").text(term ? status + " · " + term : status);
+        $("#accordionFiltrosCurvas .checkapp-accordion-summary").text(term ? "Estatus: " + status + " · Búsqueda: " + term : "Estatus: " + status);
+    }
+
+    function buildFiltersQuery() {
+        const query = new URLSearchParams();
+        appendQuery(query, "busqueda", $("#txBusquedaCurvas").val());
+        appendQuery(query, "estatus", $("#cbFiltroEstatusCurvas").val());
+        return query.toString();
+    }
+
+    function renderKpis(data) {
+        $("#txKpiCurvasActivas").text(formatDecimal(readProp(data, "curvasActivas", "CurvasActivas")));
+        $("#txKpiCurvasInactivas").text(formatDecimal(readProp(data, "curvasInactivas", "CurvasInactivas")));
+        $("#txKpiCantidadObjetivo").text(formatDecimal(readProp(data, "cantidadObjetivo", "CantidadObjetivo")));
+        $("#txKpiIdentidades").text(formatDecimal(readProp(data, "identidadesConfiguradas", "IdentidadesConfiguradas")));
+        $("#txKpiProductos").text(formatDecimal(readProp(data, "productosAsignados", "ProductosAsignados")));
+        $("#txKpiSucursales").text(formatDecimal(readProp(data, "sucursalesSembradas", "SucursalesSembradas")));
     }
 
     function sameKey(productA, variantA, productB, variantB) {
@@ -573,6 +747,16 @@
     function formatDecimal(value) {
         const number = Number(value || 0);
         return number.toLocaleString("es-MX", { minimumFractionDigits: 0, maximumFractionDigits: 4 });
+    }
+
+    function formatDecimalInput(value) {
+        const number = Number(value || 0);
+        return Number.isFinite(number) ? String(Math.round(number * 10000) / 10000) : "0";
+    }
+
+    function pluralize(value, singular, plural) {
+        const count = Number(value || 0);
+        return count + " " + (count === 1 ? singular : plural);
     }
 
     function formatDateForFile(date) {
