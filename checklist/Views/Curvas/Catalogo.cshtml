@@ -155,7 +155,7 @@
 </div>
 
 <div id="modalCurva" class="modal fade checkapp-modal" tabindex="-1" aria-hidden="true">
-    <div class="modal-dialog modal-xl modal-dialog-centered modal-dialog-scrollable">
+    <div class="modal-dialog modal-lg modal-dialog-centered modal-dialog-scrollable curvas-catalog-modal">
         <div class="modal-content">
             <div class="modal-header">
                 <div>
@@ -193,28 +193,16 @@
                     <div id="panelObjetivosCurva" class="curvas-objectives is-empty">
                         <div class="curvas-product-empty">
                             <i class="fa fa-list-alt" aria-hidden="true"></i>
-                            <span><strong>Sin producto seleccionado.</strong> Busca un producto para cargar sus variantes y cantidades objetivo.</span>
+                            <span>Selecciona un producto para cargar sus objetivos.</span>
                         </div>
                         <div class="curvas-product-editor">
-                            <div class="curvas-product-editor-head">
-                                <div>
-                                    <span class="checkapp-panel-eyebrow">Producto seleccionado</span>
-                                    <h3 id="txProductoObjetivoCurva">Producto</h3>
-                                    <p id="txProductoUnidadCurva">Unidad base</p>
-                                </div>
-                                <button id="btLimpiarProductoCurva" type="button" class="checkapp-btn checkapp-btn-ghost">
-                                    <i class="fa fa-times"></i>
-                                    <span>Cambiar</span>
-                                </button>
-                            </div>
                             <div class="curvas-apply-all">
                                 <button id="btAplicarCantidadTodasCurva" type="button" class="checkapp-btn checkapp-btn-ghost curvas-equal-button">
                                     <i class="fa fa-bar-chart"></i>
                                     <span>Cantidades iguales</span>
                                 </button>
                                 <label class="checkapp-field curvas-equal-field">
-                                    <span>Cantidad para todas</span>
-                                    <input id="txCantidadTodasCurva" type="number" min="0" step="0.0001" />
+                                    <input id="txCantidadTodasCurva" type="number" min="0" step="0.0001" placeholder="Cantidad para todas" aria-label="Cantidad para todas" />
                                 </label>
                                 <span id="txResumenObjetivosCurva" class="curvas-live-counter">0 piezas · 0 variantes</span>
                             </div>
@@ -233,27 +221,6 @@
                                 </table>
                             </div>
                         </div>
-                    </div>
-                    <div id="panelDetalleCurva" class="checkapp-grid-scroll curvas-captured mt-3" hidden>
-                        <div class="curvas-details-head">
-                            <div>
-                                <span class="checkapp-panel-eyebrow">Detalles capturados</span>
-                                <h3>Productos y variantes</h3>
-                            </div>
-                            <span id="txResumenDetalleCurva" class="ca-chip ca-chip--secondary">0 piezas · 0 identidades</span>
-                        </div>
-                        <table class="table table-row-bordered align-middle checkapp-grid-table">
-                            <thead>
-                                <tr>
-                                    <th>Producto</th>
-                                    <th>Variante</th>
-                                    <th>Unidad base</th>
-                                    <th>Cantidad objetivo</th>
-                                    <th>Acciones</th>
-                                </tr>
-                            </thead>
-                            <tbody id="tbDetalleCurva"></tbody>
-                        </table>
                     </div>
                 </div>
                 <div id="txCurvaInfo" class="mt-3"></div>

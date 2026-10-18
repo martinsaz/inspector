@@ -1616,6 +1616,10 @@
     width: 100%;
 }
 
+.curvas-catalog-modal {
+    max-width: min(60rem, calc(100vw - 2rem));
+}
+
 .curvas-product-picker {
     position: relative;
 }
@@ -1653,13 +1657,9 @@
 }
 
 .curvas-product-editor {
-    border: 1px solid var(--checkapp-border);
-    border-radius: var(--checkapp-radius-sm);
-    padding: 1rem;
+    min-width: 0;
 }
 
-.curvas-product-editor-head,
-.curvas-details-head,
 .curvas-apply-all {
     display: flex;
     align-items: center;
@@ -1667,37 +1667,39 @@
     gap: .75rem;
 }
 
-.curvas-product-editor-head h3,
-.curvas-details-head h3 {
-    margin: 0;
-    color: var(--checkapp-text);
-    font-size: 1rem;
-    font-weight: 700;
-}
-
-.curvas-product-editor-head p {
-    margin: .2rem 0 0;
-    color: var(--checkapp-muted);
-}
-
 .curvas-apply-all {
-    flex-wrap: wrap;
-    margin: 1rem 0;
+    flex-wrap: nowrap;
+    margin: 0 0 .75rem;
     justify-content: flex-start;
 }
 
 .curvas-apply-all .curvas-equal-field {
+    display: flex;
+    align-items: center;
     flex: 1 1 12rem;
     max-width: 18rem;
+    margin: 0;
+}
+
+.curvas-apply-all .curvas-equal-field input {
+    height: 44px;
+    min-height: 44px;
+    margin: 0;
 }
 
 .curvas-equal-button {
+    height: 44px;
     min-height: 44px;
+    margin: 0;
     text-transform: uppercase;
     font-weight: 800;
 }
 
 .curvas-live-counter {
+    display: inline-flex;
+    align-items: center;
+    min-height: 44px;
+    margin: 0;
     color: var(--ca-text-muted, #64748b);
     font-weight: 600;
 }
@@ -1932,16 +1934,13 @@
         width: 100%;
     }
 
-    .curvas-product-editor-head,
-    .curvas-details-head,
     .curvas-apply-all {
-        align-items: stretch;
-        flex-direction: column;
+        align-items: center;
+        flex-direction: row;
     }
 
     .curvas-apply-all .checkapp-field {
-        max-width: none;
-        width: 100%;
+        width: auto;
     }
 
     .curvas-assignment-grid {
@@ -1974,9 +1973,52 @@
         flex-direction: column;
     }
 
+    .curvas-apply-all {
+        flex-wrap: nowrap;
+        gap: .4rem;
+    }
+
+    .curvas-apply-all .curvas-equal-button {
+        flex: 0 1 auto;
+        gap: .25rem;
+        min-width: 0;
+        padding-inline: .3rem;
+        font-size: .66rem;
+        white-space: nowrap;
+    }
+
+    .curvas-apply-all .curvas-equal-field {
+        flex: 1 1 6rem;
+        min-width: 0;
+    }
+
+    .curvas-apply-all .curvas-live-counter {
+        flex: 0 0 auto;
+        font-size: .6rem;
+        white-space: nowrap;
+    }
+
+    .curvas-apply-all .curvas-equal-field input {
+        padding-inline: .4rem;
+        font-size: .75rem;
+    }
+
     .curvas-product-results {
         right: 0.75rem;
         left: 0.75rem;
+    }
+
+    .curvas-variant-scroll {
+        display: block;
+        max-height: 18rem;
+    }
+
+    .curvas-variant-scroll .checkapp-grid-table td {
+        grid-template-columns: minmax(6.5rem, 42%) minmax(0, 1fr);
+    }
+
+    .curvas-variant-scroll .curvas-quantity-input {
+        min-width: 0;
     }
 }
 

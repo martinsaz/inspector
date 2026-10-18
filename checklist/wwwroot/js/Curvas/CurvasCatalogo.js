@@ -11,11 +11,11 @@
         consultaModal: null,
         selectedProduct: null,
         variantRows: [],
-        details: [],
         originalForm: null,
         editingId: null,
         saving: false,
-        productSearchSequence: 0
+        productSearchSequence: 0,
+        variantLoadSequence: 0
     };
 
     const columns = [
@@ -138,7 +138,6 @@
         $("#btNuevaCurva").on("click", openCreate);
         $("#btGuardarCurva").on("click", save);
         $("#btAplicarCantidadTodasCurva").on("click", applyQuantityToIncluded);
-        $("#btLimpiarProductoCurva").on("click", clearProductEditor);
         $("#txBuscarProductoCurva").on("input", debounce(searchProducts, 250));
         $("#tbObjetivosCurva").on("change", ".curvas-include-input", updateVariantFromDom);
         $("#tbObjetivosCurva").on("input", ".curvas-quantity-input", updateVariantFromDom);
@@ -218,10 +217,34 @@
                 renderActiveSwitch();
                 $("#txCurvaModalKicker").text("Edición");
                 $("#txCurvaModalTitulo").text("Editar curva");
-                state.details = (readProp(data, "detalles", "Detalles") || []).map(mapDetail);
-                state.originalForm = snapshotForm();
-                renderDetails();
+                const details = (readProp(data, "detalles", "Detalles") || []).map(mapDetail);
+                const productIds = Array.from(new Set(details.map(function (item) {
+                    return String(item.idProductoServicio || "").toLowerCase();
+                }).filter(Boolean)));
+                if (productIds.length > 1) {
+                    resetForm();
+                    showError("STOP_PO: la curva contiene más de un producto y no puede editarse con el contrato CAT03.");
+                    return;
+                }
+                if (details.length === 0) {
+                    state.originalForm = snapshotForm();
+                    state.modal.show();
+                    return;
+                }
+
+                const first = details[0];
+                state.selectedProduct = {
+                    id: first.idProductoServicio,
+                    nombre: first.producto,
+                    codigo: first.codigoProducto,
+                    unidadBase: first.unidadBase
+                };
+                $("#txBuscarProductoCurva").val(productLabel(state.selectedProduct));
+                renderProductEditor(true);
                 state.modal.show();
+                loadVariants(first.idProductoServicio, details).then(function () {
+                    state.originalForm = snapshotForm();
+                });
             })
             .catch(function (error) { showError(resolveErrorMessage(error)); });
     };
@@ -344,7 +367,6 @@
     function resetForm() {
         state.selectedProduct = null;
         state.variantRows = [];
-        state.details = [];
         state.originalForm = null;
         state.editingId = null;
         $("#hdCurvaId,#txCurvaNombre,#txBuscarProductoCurva,#txCantidadTodasCurva").val("");
@@ -354,7 +376,6 @@
         $("#txCurvaModalKicker").text("Alta");
         $("#txCurvaModalTitulo").text("Nueva curva");
         renderProductEditor();
-        renderDetails();
     }
 
     function renderActiveSwitch() {
@@ -392,44 +413,84 @@
     }
 
     function selectProduct() {
-        state.selectedProduct = {
+        const nextProduct = {
             id: this.getAttribute("data-id"),
             nombre: this.getAttribute("data-name"),
             codigo: this.getAttribute("data-code"),
             unidadBase: this.getAttribute("data-unit")
         };
-        $("#txBuscarProductoCurva").val([state.selectedProduct.codigo, state.selectedProduct.nombre].filter(Boolean).join(" · "));
         $("#lsProductosCurva").empty();
-        loadVariants(state.selectedProduct.id);
+        if (state.selectedProduct && String(state.selectedProduct.id).toLowerCase() === String(nextProduct.id).toLowerCase()) {
+            $("#txBuscarProductoCurva").val(productLabel(state.selectedProduct));
+            return;
+        }
+        if (state.selectedProduct && String(state.selectedProduct.id).toLowerCase() !== String(nextProduct.id).toLowerCase() && state.variantRows.some(function (row) { return row.included; })) {
+            Swal.fire({
+                icon: "warning",
+                title: "¿Cambiar producto?",
+                text: "Las cantidades capturadas del producto actual se reemplazarán.",
+                showCancelButton: true,
+                confirmButtonText: "Cambiar producto",
+                cancelButtonText: "Conservar actual"
+            }).then(function (result) {
+                if (result.isConfirmed) {
+                    applySelectedProduct(nextProduct);
+                } else {
+                    $("#txBuscarProductoCurva").val(productLabel(state.selectedProduct));
+                }
+            });
+            return;
+        }
+        applySelectedProduct(nextProduct);
     }
 
-    function loadVariants(idProducto) {
+    function applySelectedProduct(product) {
+        state.selectedProduct = product;
+        $("#txBuscarProductoCurva").val(productLabel(product));
+        $("#txCantidadTodasCurva").val("");
+        loadVariants(product.id, []);
+    }
+
+    function loadVariants(idProducto, existingDetails) {
+        const sequence = ++state.variantLoadSequence;
+        const saved = existingDetails || [];
         state.variantRows = [];
         renderProductEditor(true);
-        fetchJson("/Proveeduria/Curvas/Variantes?idProductoServicio=" + encodeURIComponent(idProducto), { cache: "no-store" })
+        return fetchJson("/Proveeduria/Curvas/Variantes?idProductoServicio=" + encodeURIComponent(idProducto), { cache: "no-store" })
             .then(function (items) {
+                if (sequence !== state.variantLoadSequence || !state.selectedProduct || String(state.selectedProduct.id).toLowerCase() !== String(idProducto).toLowerCase()) return;
                 const variants = items || [];
-                const productHasDetails = state.details.some(function (item) { return sameKey(item.idProductoServicio, null, state.selectedProduct.id, null); }) ||
-                    state.details.some(function (item) { return String(item.idProductoServicio).toLowerCase() === String(state.selectedProduct.id).toLowerCase(); });
                 state.variantRows = variants.length > 0
                     ? variants.map(function (item) {
-                        const existing = findDetail(state.selectedProduct.id, item.id);
-                        const row = buildVariantRow(item.id, item.nombre || item.codigo || "Variante", existing ? true : !productHasDetails);
+                        const existing = findDetail(saved, state.selectedProduct.id, item.id);
+                        const row = buildVariantRow(item.id, item.nombre || item.codigo || "Variante", existing ? true : saved.length === 0);
                         row.cantidadBaseObjetivo = existing ? Number(existing.cantidadBaseObjetivo || 0) : 0;
                         return row;
                     })
                     : [function () {
-                        const existing = findDetail(state.selectedProduct.id, null);
-                        const row = buildVariantRow(null, "Base", existing ? true : !productHasDetails);
+                        const existing = findDetail(saved, state.selectedProduct.id, null);
+                        const row = buildVariantRow(null, "Base", existing ? true : saved.length === 0);
                         row.cantidadBaseObjetivo = existing ? Number(existing.cantidadBaseObjetivo || 0) : 0;
                         return row;
                     }()];
-                syncDetailsFromVariantRows();
+                saved.forEach(function (existing) {
+                    const represented = state.variantRows.some(function (row) {
+                        return sameKey(row.idProductoServicio, row.idVariante, existing.idProductoServicio, existing.idVariante);
+                    });
+                    if (!represented) {
+                        const row = buildVariantRow(existing.idVariante, existing.variante || "Variante", true);
+                        row.cantidadBaseObjetivo = Number(existing.cantidadBaseObjetivo || 0);
+                        row.fuenteActiva = existing.fuenteActiva;
+                        state.variantRows.push(row);
+                    }
+                });
                 renderProductEditor();
             })
             .catch(function (error) {
-                clearProductEditor();
-                showError(resolveErrorMessage(error));
+                if (sequence === state.variantLoadSequence) {
+                    clearProductEditor();
+                    showError(resolveErrorMessage(error));
+                }
             });
     }
 
@@ -449,26 +510,20 @@
     function renderProductEditor(loading) {
         const hasProduct = !!state.selectedProduct;
         $("#panelObjetivosCurva").toggleClass("is-empty", !hasProduct || !!loading);
-        $(".curvas-product-empty span").html(loading ? "Cargando variantes activas…" : "<strong>Sin producto seleccionado.</strong> Busca un producto para cargar sus variantes y cantidades objetivo.");
+        $(".curvas-product-empty span").text(loading ? "Cargando variantes activas…" : "Selecciona un producto para cargar sus objetivos.");
         if (!hasProduct || loading) {
             $("#tbObjetivosCurva").empty();
-            if (!hasProduct) {
-                $("#txProductoObjetivoCurva").text("Producto");
-                $("#txProductoUnidadCurva").text("Unidad base");
-            }
             updateVariantSummary();
             return;
         }
 
-        $("#txProductoObjetivoCurva").text([state.selectedProduct.codigo, state.selectedProduct.nombre].filter(Boolean).join(" · "));
-        $("#txProductoUnidadCurva").text("Unidad base: " + (state.selectedProduct.unidadBase || ""));
         $("#tbObjetivosCurva").html(state.variantRows.map(function (row, index) {
             return "<tr data-index='" + index + "'>" +
-                "<td><input class='curvas-include-input' type='checkbox' " + (row.included ? "checked" : "") + " aria-label='Incluir variante' /></td>" +
-                "<td><strong>" + escapeHtml(row.idVariante ? row.variante : "Producto base") + "</strong></td>" +
-                "<td>" + escapeHtml(row.unidadBase || "") + "</td>" +
-                "<td><input class='curvas-quantity-input' type='number' min='0' step='0.0001' value='" + escapeHtml(row.cantidadBaseObjetivo) + "' aria-label='Cantidad objetivo' /></td>" +
-                "<td><div class='curvas-quantity-stepper'><button type='button' class='curvas-qty-step' data-delta='-1' aria-label='Disminuir cantidad'>−</button><button type='button' class='curvas-qty-step' data-delta='1' aria-label='Aumentar cantidad'>+</button></div></td>" +
+                "<td data-label='Usar'><input class='curvas-include-input' type='checkbox' " + (row.included ? "checked" : "") + " aria-label='Incluir variante' /></td>" +
+                "<td data-label='Variante'><strong>" + escapeHtml(row.idVariante ? row.variante : "Producto base") + "</strong></td>" +
+                "<td data-label='Unidad base'>" + escapeHtml(row.unidadBase || "") + "</td>" +
+                "<td data-label='Cantidad objetivo'><input class='curvas-quantity-input' type='number' min='0' step='0.0001' value='" + escapeHtml(row.cantidadBaseObjetivo) + "' aria-label='Cantidad objetivo' /></td>" +
+                "<td data-label='Acciones'><div class='curvas-quantity-stepper'><button type='button' class='curvas-qty-step' data-delta='-1' aria-label='Disminuir cantidad'>−</button><button type='button' class='curvas-qty-step' data-delta='1' aria-label='Aumentar cantidad'>+</button></div></td>" +
                 "</tr>";
         }).join(""));
         updateVariantSummary();
@@ -491,7 +546,6 @@
 
         state.variantRows[index].included = row.find(".curvas-include-input").prop("checked");
         state.variantRows[index].cantidadBaseObjetivo = Number(row.find(".curvas-quantity-input").val() || 0);
-        syncDetailsFromVariantRows();
         updateVariantSummary();
     }
 
@@ -507,7 +561,6 @@
                 row.cantidadBaseObjetivo = quantity;
             }
         });
-        syncDetailsFromVariantRows();
         renderProductEditor();
         setInfo("success", "Cantidad aplicada a las variantes incluidas.");
     }
@@ -520,60 +573,22 @@
                 state.variantRows[index].cantidadBaseObjetivo = Number($(this).find(".curvas-quantity-input").val() || 0);
             }
         });
-        syncDetailsFromVariantRows();
         updateVariantSummary();
     }
 
-    function syncDetailsFromVariantRows() {
-        if (!state.selectedProduct) return;
-        state.variantRows.forEach(function (row) {
-            const index = state.details.findIndex(function (item) {
-                return sameKey(item.idProductoServicio, item.idVariante, row.idProductoServicio, row.idVariante);
-            });
-            if (!row.included) {
-                if (index >= 0) state.details.splice(index, 1);
-                return;
-            }
-            const detail = cloneDetail(row);
-            if (index >= 0) state.details[index] = detail;
-            else state.details.push(detail);
-        });
-        renderDetails();
-    }
-
-    function findDetail(productId, variantId) {
-        return state.details.find(function (item) { return sameKey(item.idProductoServicio, item.idVariante, productId, variantId); }) || null;
+    function findDetail(details, productId, variantId) {
+        return details.find(function (item) { return sameKey(item.idProductoServicio, item.idVariante, productId, variantId); }) || null;
     }
 
     function clearProductEditor() {
-        syncVariantRowsFromDom();
         state.productSearchSequence += 1;
+        state.variantLoadSequence += 1;
         state.selectedProduct = null;
         state.variantRows = [];
         $("#txBuscarProductoCurva,#txCantidadTodasCurva").val("");
         $("#lsProductosCurva").empty();
         renderProductEditor();
     }
-
-    function renderDetails() {
-        $("#tbDetalleCurva").html(state.details.map(function (item, index) {
-            const producto = [item.codigoProducto, item.producto].filter(Boolean).join(" · ");
-            return "<tr><td>" + escapeHtml(producto) + "</td><td>" + escapeHtml(item.idVariante ? item.variante : "Base") + "</td><td>" + escapeHtml(item.unidadBase || "") + "</td><td>" + formatDecimal(item.cantidadBaseObjetivo) + "</td><td><div class='ps-catalog-actions'><a href='javascript:void(0)' class='is-danger' title='Quitar' onclick='curvasQuitarDetalle(" + index + ")'><i class='fa fa-trash'></i></a></div></td></tr>";
-        }).join("") || "<tr><td colspan='5'>Sin renglones capturados.</td></tr>");
-        $("#panelDetalleCurva").prop("hidden", state.details.length === 0);
-        updateDetailsSummary();
-    }
-
-    window.curvasQuitarDetalle = function (index) {
-        const removed = state.details.splice(index, 1)[0];
-        if (removed) {
-            state.variantRows.forEach(function (row) {
-                if (sameKey(row.idProductoServicio, row.idVariante, removed.idProductoServicio, removed.idVariante)) row.included = false;
-            });
-            renderProductEditor();
-        }
-        renderDetails();
-    };
 
     function save() {
         if (state.saving) {
@@ -582,11 +597,16 @@
 
         const nombre = ($("#txCurvaNombre").val() || "").trim();
         syncVariantRowsFromDom();
+        const details = state.variantRows.filter(function (row) { return row.included; });
         if (!nombre) {
             setInfo("danger", "Captura el nombre.");
             return;
         }
-        if (state.details.length === 0) {
+        if (state.selectedProduct && ($("#txBuscarProductoCurva").val() || "").trim() !== productLabel(state.selectedProduct)) {
+            setInfo("danger", "Selecciona un producto de la lista antes de guardar.");
+            return;
+        }
+        if (!state.selectedProduct || details.length === 0) {
             setInfo("danger", "Agrega al menos un objetivo.");
             return;
         }
@@ -600,7 +620,7 @@
                 id: normalizeGuid($("#hdCurvaId").val() || state.editingId),
                 nombre: nombre,
                 activo: $("#ckCurvaActiva").prop("checked"),
-                detalles: state.details.map(function (item) {
+                detalles: details.map(function (item) {
                     return {
                         idProductoServicio: item.idProductoServicio,
                         idVariante: item.idVariante,
@@ -625,7 +645,8 @@
             id: $("#hdCurvaId").val(),
             nombre: $("#txCurvaNombre").val(),
             activo: $("#ckCurvaActiva").prop("checked"),
-            details: state.details.map(cloneDetail)
+            product: state.selectedProduct ? String(state.selectedProduct.id) : null,
+            details: state.variantRows.filter(function (row) { return row.included; }).map(cloneDetail)
         };
     }
 
@@ -663,9 +684,8 @@
         $("#txResumenObjetivosCurva").text(pluralize(total, "pieza", "piezas") + " · " + identityLabel);
     }
 
-    function updateDetailsSummary() {
-        const total = state.details.reduce(function (sum, row) { return sum + Number(row.cantidadBaseObjetivo || 0); }, 0);
-        $("#txResumenDetalleCurva").text(pluralize(total, "pieza", "piezas") + " · " + pluralize(state.details.length, "identidad", "identidades"));
+    function productLabel(product) {
+        return [product && product.codigo, product && product.nombre].filter(Boolean).join(" · ");
     }
 
     function updateSummary() {
